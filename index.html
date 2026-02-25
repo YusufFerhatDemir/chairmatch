@@ -207,33 +207,6 @@ function logoHeader(small){
     ${LOGO(160)}
   </div>`;}
 
-// ═══════════════ DATA ═══════════════
-const CATS=[
-  {id:"barber",lbl:"Barbershop",sub:"Fade · Cut · Bart"},
-  {id:"friseur",lbl:"Friseur",sub:"Schnitt · Farbe · Styling"},
-  {id:"kosmetik",lbl:"Kosmetik",sub:"Facial · Peeling"},
-  {id:"aesthetik",lbl:"Ästhetik",sub:"Botox · Filler"},
-  {id:"nail",lbl:"Nails",sub:"Gel · Nail Art"},
-  {id:"massage",lbl:"Massage",sub:"Wellness · Therapie"}
-];
-const SPECS=[
-  {id:"s1",nm:"Ahmed K.",role:"Master Barber",rt:4.9,cat:"barber",ini:"AK",col:"#2A4A3A"},
-  {id:"s2",nm:"Sofia M.",role:"Kosmetikerin",rt:4.8,cat:"kosmetik",ini:"SM",col:"#4A2A3A"},
-  {id:"s3",nm:"Dr. Meyer",role:"Ästhetik Arzt",rt:5.0,cat:"aesthetik",ini:"DM",col:"#1A3050"},
-  {id:"s4",nm:"Lena B.",role:"Nail Artist",rt:4.9,cat:"nail",ini:"LB",col:"#3A3828"},
-  {id:"s5",nm:"Marcus R.",role:"Senior Barber",rt:4.7,cat:"barber",ini:"MR",col:"#2A3828"},
-  {id:"s6",nm:"Julia H.",role:"Friseurmeisterin",rt:4.9,cat:"friseur",ini:"JH",col:"#3A2840"},
-  {id:"s7",nm:"Kenan A.",role:"Masseur",rt:5.0,cat:"massage",ini:"KA",col:"#1A3430"}
-];
-const PROVS=[
-  {id:"p1",cat:"barber",nm:"BlackLabel Barbershop",st:"Münchener Str. 17",city:"Frankfurt am Main",rt:4.9,rc:412,tl:"Premium Fades & Beard Design",tags:["Fade","Skin Fade","Bart"],disc:15,bc:"#C8A84B",prom:true,ver:true,live:true,frei:3,sps:["s1","s5"],svs:[{id:"sv1",nm:"Signature Cut",dur:40,pr:42},{id:"sv2",nm:"Skin Fade",dur:45,pr:48},{id:"sv3",nm:"Beard Design",dur:30,pr:28}],revs:[{u:"Tobias K.",s:5,t:"Absolut top — bester Fade in Deutschland!",d:"12.02.2026"},{u:"Markus L.",s:5,t:"Super Atmosphäre, perfektes Ergebnis.",d:"05.02.2026"}]},
-  {id:"p2",cat:"kosmetik",nm:"Glow Studio",st:"Maximilianstr. 18",city:"München",rt:4.8,rc:234,tl:"Organic Facials & Skin Care",tags:["Facial","Peeling"],disc:0,bc:"#D4829A",prom:false,ver:true,live:true,frei:2,sps:["s2"],svs:[{id:"sv4",nm:"Deep Cleanse Facial",dur:60,pr:85},{id:"sv5",nm:"Chemical Peeling",dur:45,pr:65}],revs:[{u:"Anna S.",s:5,t:"Haut strahlt — super Behandlung!",d:"08.02.2026"}]},
-  {id:"p3",cat:"aesthetik",nm:"AesthetiQ Klinik",st:"Kurfürstendamm 55",city:"Berlin",rt:5.0,rc:188,tl:"Med. Ästhetik & Anti-Aging",tags:["Botox","Filler"],disc:10,bc:"#6AAED4",prom:true,ver:true,live:false,frei:0,sps:["s3"],svs:[{id:"sv6",nm:"Botox",dur:30,pr:320},{id:"sv7",nm:"Hyaluron Filler",dur:45,pr:450}],revs:[{u:"Sandra M.",s:5,t:"Dr. Meyer ist einfach der Beste.",d:"10.02.2026"}]},
-  {id:"p4",cat:"nail",nm:"NailLab by Lena",st:"Jungfernstieg 7",city:"Hamburg",rt:4.9,rc:301,tl:"Gel Nails & Premium Nail Art",tags:["Gel","Nail Art"],disc:0,bc:"#C8A87A",prom:false,ver:true,live:true,frei:1,sps:["s4"],svs:[{id:"sv8",nm:"Gel Manicure",dur:60,pr:55},{id:"sv9",nm:"Nail Art Design",dur:90,pr:75}],revs:[{u:"Julia R.",s:5,t:"Traumhafte Nägel — immer wieder!",d:"14.02.2026"}]},
-  {id:"p5",cat:"friseur",nm:"Maison Haarwerk",st:"Königsallee 44",city:"Düsseldorf",rt:4.9,rc:318,tl:"Premium Haarschnitt & Colorationen",tags:["Damenschnitt","Herrenschnitt","Balayage"],disc:10,bc:"#9A70C8",prom:true,ver:true,live:true,frei:2,sps:["s6"],svs:[{id:"sv10",nm:"Damenschnitt & Styling",dur:60,pr:65},{id:"sv11",nm:"Herrenschnitt",dur:35,pr:38},{id:"sv12",nm:"Balayage / Highlights",dur:120,pr:120}],revs:[{u:"Klara W.",s:5,t:"Julia ist ein Goldstück — traumhafte Farbe!",d:"15.02.2026"},{u:"Tom B.",s:5,t:"Bester Haarschnitt seit Jahren.",d:"09.02.2026"}]},
-  {id:"p6",cat:"massage",nm:"ZenFlow Massage",st:"Schildergasse 12",city:"Köln",rt:5.0,rc:276,tl:"Klassische & Tiefengewebsmassagen",tags:["Klassisch","Tiefengewebe","Hot Stone"],disc:0,bc:"#4AA890",prom:true,ver:true,live:true,frei:4,sps:["s7"],svs:[{id:"sv13",nm:"Klassische Massage",dur:60,pr:75},{id:"sv14",nm:"Tiefengewebsmassage",dur:60,pr:90},{id:"sv15",nm:"Hot Stone Massage",dur:90,pr:110}],revs:[{u:"Peter N.",s:5,t:"Absolut entspannend — ich komme jede Woche!",d:"13.02.2026"},{u:"Sabine K.",s:5,t:"Kenan ist ein Profi, Verspannungen einfach weg.",d:"07.02.2026"}]}
-];
-
 // ─── CATEGORY SVG ICONS ───
 function catSVG(type){
   if(type==="friseur") return `<svg width="30" height="30" viewBox="0 0 60 60" fill="none">
