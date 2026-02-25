@@ -207,7 +207,83 @@ function logoHeader(small){
     ${LOGO(160)}
   </div>`;}
 
-// ─── CATEGORY SVG ICONS (v5.2) ───
+// ═══════════════ DATA ═══════════════
+const CATS=[
+  {id:"barber",lbl:"Barbershop",sub:"Fade · Cut · Bart"},
+  {id:"friseur",lbl:"Friseur",sub:"Schnitt · Farbe · Styling"},
+  {id:"kosmetik",lbl:"Kosmetik",sub:"Facial · Peeling"},
+  {id:"aesthetik",lbl:"Ästhetik",sub:"Botox · Filler"},
+  {id:"nail",lbl:"Nails",sub:"Gel · Nail Art"},
+  {id:"massage",lbl:"Massage",sub:"Wellness · Therapie"}
+];
+const SPECS=[
+  {id:"s1",nm:"Ahmed K.",role:"Master Barber",rt:4.9,cat:"barber",ini:"AK",col:"#2A4A3A"},
+  {id:"s2",nm:"Sofia M.",role:"Kosmetikerin",rt:4.8,cat:"kosmetik",ini:"SM",col:"#4A2A3A"},
+  {id:"s3",nm:"Dr. Meyer",role:"Ästhetik Arzt",rt:5.0,cat:"aesthetik",ini:"DM",col:"#1A3050"},
+  {id:"s4",nm:"Lena B.",role:"Nail Artist",rt:4.9,cat:"nail",ini:"LB",col:"#3A3828"},
+  {id:"s5",nm:"Marcus R.",role:"Senior Barber",rt:4.7,cat:"barber",ini:"MR",col:"#2A3828"},
+  {id:"s6",nm:"Julia H.",role:"Friseurmeisterin",rt:4.9,cat:"friseur",ini:"JH",col:"#3A2840"},
+  {id:"s7",nm:"Kenan A.",role:"Masseur",rt:5.0,cat:"massage",ini:"KA",col:"#1A3430"}
+];
+const PROVS=[
+  {id:"p1",cat:"barber",nm:"BlackLabel Barbershop",st:"Münchener Str. 17",city:"Frankfurt am Main",rt:4.9,rc:412,tl:"Premium Fades & Beard Design",tags:["Fade","Skin Fade","Bart"],disc:15,bc:"#C8A84B",prom:true,ver:true,live:true,frei:3,sps:["s1","s5"],svs:[{id:"sv1",nm:"Signature Cut",dur:40,pr:42},{id:"sv2",nm:"Skin Fade",dur:45,pr:48},{id:"sv3",nm:"Beard Design",dur:30,pr:28}],revs:[{u:"Tobias K.",s:5,t:"Absolut top — bester Fade in Deutschland!",d:"12.02.2026"},{u:"Markus L.",s:5,t:"Super Atmosphäre, perfektes Ergebnis.",d:"05.02.2026"}]},
+  {id:"p2",cat:"kosmetik",nm:"Glow Studio",st:"Maximilianstr. 18",city:"München",rt:4.8,rc:234,tl:"Organic Facials & Skin Care",tags:["Facial","Peeling"],disc:0,bc:"#D4829A",prom:false,ver:true,live:true,frei:2,sps:["s2"],svs:[{id:"sv4",nm:"Deep Cleanse Facial",dur:60,pr:85},{id:"sv5",nm:"Chemical Peeling",dur:45,pr:65}],revs:[{u:"Anna S.",s:5,t:"Haut strahlt — super Behandlung!",d:"08.02.2026"}]},
+  {id:"p3",cat:"aesthetik",nm:"AesthetiQ Klinik",st:"Kurfürstendamm 55",city:"Berlin",rt:5.0,rc:188,tl:"Med. Ästhetik & Anti-Aging",tags:["Botox","Filler"],disc:10,bc:"#6AAED4",prom:true,ver:true,live:false,frei:0,sps:["s3"],svs:[{id:"sv6",nm:"Botox",dur:30,pr:320},{id:"sv7",nm:"Hyaluron Filler",dur:45,pr:450}],revs:[{u:"Sandra M.",s:5,t:"Dr. Meyer ist einfach der Beste.",d:"10.02.2026"}]},
+  {id:"p4",cat:"nail",nm:"NailLab by Lena",st:"Jungfernstieg 7",city:"Hamburg",rt:4.9,rc:301,tl:"Gel Nails & Premium Nail Art",tags:["Gel","Nail Art"],disc:0,bc:"#C8A87A",prom:false,ver:true,live:true,frei:1,sps:["s4"],svs:[{id:"sv8",nm:"Gel Manicure",dur:60,pr:55},{id:"sv9",nm:"Nail Art Design",dur:90,pr:75}],revs:[{u:"Julia R.",s:5,t:"Traumhafte Nägel — immer wieder!",d:"14.02.2026"}]},
+  {id:"p5",cat:"friseur",nm:"Maison Haarwerk",st:"Königsallee 44",city:"Düsseldorf",rt:4.9,rc:318,tl:"Premium Haarschnitt & Colorationen",tags:["Damenschnitt","Herrenschnitt","Balayage"],disc:10,bc:"#9A70C8",prom:true,ver:true,live:true,frei:2,sps:["s6"],svs:[{id:"sv10",nm:"Damenschnitt & Styling",dur:60,pr:65},{id:"sv11",nm:"Herrenschnitt",dur:35,pr:38},{id:"sv12",nm:"Balayage / Highlights",dur:120,pr:120}],revs:[{u:"Klara W.",s:5,t:"Julia ist ein Goldstück — traumhafte Farbe!",d:"15.02.2026"},{u:"Tom B.",s:5,t:"Bester Haarschnitt seit Jahren.",d:"09.02.2026"}]},
+  {id:"p6",cat:"massage",nm:"ZenFlow Massage",st:"Schildergasse 12",city:"Köln",rt:5.0,rc:276,tl:"Klassische & Tiefengewebsmassagen",tags:["Klassisch","Tiefengewebe","Hot Stone"],disc:0,bc:"#4AA890",prom:true,ver:true,live:true,frei:4,sps:["s7"],svs:[{id:"sv13",nm:"Klassische Massage",dur:60,pr:75},{id:"sv14",nm:"Tiefengewebsmassage",dur:60,pr:90},{id:"sv15",nm:"Hot Stone Massage",dur:90,pr:110}],revs:[{u:"Peter N.",s:5,t:"Absolut entspannend — ich komme jede Woche!",d:"13.02.2026"},{u:"Sabine K.",s:5,t:"Kenan ist ein Profi, Verspannungen einfach weg.",d:"07.02.2026"}]}
+];
+
+// ═══════════════ STATE ═══════════════
+let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,regStep:1,regData:{vn:"",nn:"",em:"",tel:"",geschaeft:"",st:"",plz:"",city:"",kat:"",iban:"",gb:false,chair:false,cpr:"",agb:false,dsgvo:false},bookDone:false,regDone:false};
+
+function stars(n){let s="";for(let i=1;i<=5;i++)s+=`<span style="opacity:${i<=Math.round(n)?1:.3};color:#E8C86A">★</span>`;return s;}
+function badge(t,c){return`<span class="badge ${c}">${t}</span>`;}
+
+// ═══════════════ RENDER ═══════════════
+function render(){
+  const scr=document.getElementById("mainScreen");
+  const nav=document.getElementById("navBar");
+  const s=state;
+  if(!s.onboarded){nav.style.display="none";scr.innerHTML=renderOnboarding();return;}
+  if(s.subPage){nav.style.display="none";scr.innerHTML=renderSubPage();return;}
+  nav.style.display="flex";
+  ["home","explore","offers","account"].forEach(t=>{
+    const a=s.tab===t||(t==="home"&&s.detail);
+    document.getElementById("ni_"+t).style.color=a?"var(--gold)":"var(--stone)";
+    document.getElementById("nl_"+t).style.color=a?"var(--gold)":"var(--stone2)";
+  });
+  if(s.detail){scr.innerHTML=renderDetail();return;}
+  if(s.tab==="home")scr.innerHTML=renderHome();
+  else if(s.tab==="explore")scr.innerHTML=renderExplore();
+  else if(s.tab==="offers")scr.innerHTML=renderOffers();
+  else if(s.tab==="account")scr.innerHTML=renderAccount();
+  const ov=document.getElementById("bookingOverlay");
+  if(s.bookingProv){ov.classList.add("active");document.getElementById("bookingSheet").innerHTML=renderBooking();}
+  else ov.classList.remove("active");
+}
+
+// ─── ONBOARDING ───
+function renderOnboarding(){
+  const slides=[{icon:"💈",t:"Willkommen bei ChairMatch",s:"Dein Beauty-Partner in ganz Deutschland"},{icon:"svg",t:"Stuhl-Vermittlung",s:"Freie Stühle & Kabinen · 0 % Provision"},{icon:"📅",t:"Sofort buchen",s:"Termin in 30 Sekunden · Ohne Kommission"}];
+  if(state.obStep>=3)return`<div style="padding:60px 26px 40px;display:flex;flex-direction:column;gap:12px">
+    <div style="text-align:center;margin-bottom:10px">${logoHeader(false)}</div>
+    <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Ich bin...</p>
+    ${[["Kunde — ich suche Termine","CUSTOMER"],["Anbieter — ich biete Services","PROVIDER"],["B2B — Stuhl / Kabine mieten","B2B"]].map(([l,r])=>`<button class="boutline" style="padding:17px;font-size:14px;font-weight:700;text-align:left" onclick="finishOnboarding('${r}')">${l}</button>`).join("")}
+  </div>`;
+  const sl=slides[state.obStep];
+  const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
+  return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;justify-content:center;padding:30px">
+    ${state.obStep===0?`<div style="margin-bottom:10px">${logoHeader(false)}</div>`:sl.icon==="svg"?`<div style="margin-bottom:20px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbSeat()}</div>`:`<div style="font-size:60px;margin-bottom:20px">${sl.icon}</div>`}
+    <p class="cinzel" style="font-size:22px;font-weight:600;margin-bottom:10px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
+    <p style="font-size:14px;color:var(--stone);line-height:1.7;margin-bottom:44px">${sl.s}</p>
+    <div style="display:flex;gap:8px;margin-bottom:30px">${dots}</div>
+    <button class="bgold" style="width:auto;padding:15px 36px;font-size:14px" onclick="nextOb()">
+      ${state.obStep<2?"Weiter →":"Los geht's"}
+    </button>
+  </div>`;}
+
+// ─── CATEGORY SVG ICONS ───
 function catSVG(type){
   if(type==="friseur") return `<svg width="30" height="30" viewBox="0 0 60 60" fill="none">
     <defs>
@@ -260,63 +336,160 @@ function catSVG(type){
   </svg>`;
   return "";}
 
-// ─── CLASSIC VINTAGE BARBER CHAIR (v5.2) ───
+// ─── PREMIUM LUXURY BARBER CHAIR ───
 function dbSeat(){
   return `<svg width="118" height="130" viewBox="0 0 118 130" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bcLeather" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#2A2420"/><stop offset="35%" stop-color="#1A1410"/><stop offset="100%" stop-color="#0E0A08"/></linearGradient>
-    <linearGradient id="bcLeatherH" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#3A3028"/><stop offset="40%" stop-color="#524840"/><stop offset="60%" stop-color="#3A3028"/><stop offset="100%" stop-color="#201810"/></linearGradient>
-    <linearGradient id="bcChrome" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#F8F4EC"/><stop offset="25%" stop-color="#D4C8A8"/><stop offset="50%" stop-color="#F0E8D0"/><stop offset="75%" stop-color="#B8A880"/><stop offset="100%" stop-color="#E8DCC0"/></linearGradient>
-    <linearGradient id="bcChromeV" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#C8B888"/><stop offset="30%" stop-color="#F8F0D8"/><stop offset="55%" stop-color="#E8D8B0"/><stop offset="100%" stop-color="#A89060"/></linearGradient>
-    <linearGradient id="bcBase" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#E8D8B0"/><stop offset="50%" stop-color="#C8A860"/><stop offset="100%" stop-color="#906830"/></linearGradient>
-    <linearGradient id="bcFootring" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#F0E4C0"/><stop offset="50%" stop-color="#C8A848"/><stop offset="100%" stop-color="#806020"/></linearGradient>
-    <filter id="bcShadow" x="-20%" y="-10%" width="140%" height="140%"><feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".7"/></filter>
-    <filter id="bcGlow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#C8A84B" flood-opacity=".2"/></filter>
+    <!-- Rich burgundy/wine leather -->
+    <linearGradient id="bcLeath" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8B1A2B"/><stop offset="40%" stop-color="#6A0E1E"/><stop offset="100%" stop-color="#3A0812"/>
+    </linearGradient>
+    <linearGradient id="bcLeathH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5A1020"/><stop offset="35%" stop-color="#9A2238"/><stop offset="65%" stop-color="#7A1828"/><stop offset="100%" stop-color="#4A0C18"/>
+    </linearGradient>
+    <!-- Gold chrome -->
+    <linearGradient id="bcGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F8ECC0"/><stop offset="20%" stop-color="#DCC070"/><stop offset="50%" stop-color="#F0D888"/><stop offset="80%" stop-color="#C8A040"/><stop offset="100%" stop-color="#A88030"/>
+    </linearGradient>
+    <linearGradient id="bcGoldH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#B89840"/><stop offset="30%" stop-color="#F8E8A0"/><stop offset="60%" stop-color="#D8B860"/><stop offset="100%" stop-color="#987020"/>
+    </linearGradient>
+    <!-- Silver chrome for base -->
+    <linearGradient id="bcSilv" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F0ECE8"/><stop offset="25%" stop-color="#C8C0B8"/><stop offset="50%" stop-color="#E8E0D8"/><stop offset="75%" stop-color="#A8A098"/><stop offset="100%" stop-color="#D8D0C8"/>
+    </linearGradient>
+    <linearGradient id="bcSilvH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#989088"/><stop offset="30%" stop-color="#F0E8E0"/><stop offset="60%" stop-color="#C8C0B0"/><stop offset="100%" stop-color="#807870"/>
+    </linearGradient>
+    <!-- Deep leather highlight -->
+    <radialGradient id="bcShine" cx=".4" cy=".3" r=".7">
+      <stop offset="0%" stop-color="#C83050" stop-opacity=".5"/><stop offset="100%" stop-color="#3A0812" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="bcSh" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity=".6"/>
+    </filter>
+    <filter id="bcGl" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#C8A84B" flood-opacity=".35"/>
+    </filter>
+    <filter id="bcInner" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000" flood-opacity=".4"/>
+    </filter>
   </defs>
-  <ellipse cx="59" cy="127" rx="36" ry="4" fill="#000" opacity=".5"/>
-  <ellipse cx="59" cy="118" rx="34" ry="7" fill="url(#bcBase)" filter="url(#bcShadow)"/>
-  <ellipse cx="59" cy="116" rx="32" ry="5.5" fill="url(#bcChrome)"/>
-  <ellipse cx="59" cy="115" rx="30" ry="4" fill="none" stroke="#F8F0D0" stroke-width=".8" opacity=".5"/>
-  <path d="M27 116 Q59 110 91 116" stroke="#FFF8E0" stroke-width="1.5" fill="none" opacity=".4" stroke-linecap="round"/>
-  <rect x="50" y="88" width="18" height="28" rx="9" fill="url(#bcChrome)" filter="url(#bcShadow)"/>
-  <rect x="52" y="89" width="5" height="26" rx="2.5" fill="#FFF8E0" opacity=".35"/>
-  <rect x="50" y="98" width="18" height="3" rx="1.5" fill="url(#bcChromeV)"/>
-  <rect x="22" y="96" width="74" height="10" rx="5" fill="url(#bcFootring)" filter="url(#bcShadow)"/>
-  <rect x="24" y="97" width="70" height="3.5" rx="2.5" fill="#FFF8D0" opacity=".45"/>
-  <ellipse cx="22" cy="101" rx="5" ry="5" fill="url(#bcChrome)"/>
-  <ellipse cx="96" cy="101" rx="5" ry="5" fill="url(#bcChrome)"/>
-  <path d="M16 75 Q16 65 26 65 L92 65 Q102 65 102 75 L102 84 Q102 90 92 90 L26 90 Q16 90 16 84 Z" fill="url(#bcLeather)" filter="url(#bcShadow)"/>
-  <path d="M18 74 Q18 67 27 67 L91 67 Q100 67 100 74 L100 80 Q100 74 91 74 L27 74 Q18 74 18 80 Z" fill="url(#bcLeatherH)"/>
-  <line x1="24" y1="66" x2="24" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="31" y1="66" x2="31" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="38" y1="66" x2="38" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="45" y1="66" x2="45" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="52" y1="66" x2="52" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="59" y1="66" x2="59" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="66" y1="66" x2="66" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="73" y1="66" x2="73" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="80" y1="66" x2="80" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="87" y1="66" x2="87" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="94" y1="66" x2="94" y2="89" stroke="#0A0806" stroke-width="1.2" opacity=".6"/>
-  <path d="M20 68 Q59 64 98 68" stroke="#5A4A38" stroke-width="1.5" fill="none" opacity=".5" stroke-linecap="round"/>
-  <path d="M16 84 Q16 90 26 90 L92 90 Q102 90 102 84" stroke="url(#bcChrome)" stroke-width="2" fill="none"/>
-  <path d="M8 66 L8 86 Q8 92 14 92 L22 92 L22 86 L16 86 L16 66 Z" fill="url(#bcChrome)" filter="url(#bcShadow)"/>
-  <path d="M4 58 Q4 52 10 52 L22 52 Q28 52 28 58 L28 70 Q28 74 22 74 L10 74 Q4 74 4 70 Z" fill="url(#bcLeather)"/>
-  <line x1="6" y1="56" x2="26" y2="56" stroke="#0A0806" stroke-width=".8" opacity=".6"/><line x1="6" y1="60" x2="26" y2="60" stroke="#0A0806" stroke-width=".8" opacity=".6"/><line x1="6" y1="64" x2="26" y2="64" stroke="#0A0806" stroke-width=".8" opacity=".6"/><line x1="6" y1="68" x2="26" y2="68" stroke="#0A0806" stroke-width=".8" opacity=".6"/>
-  <path d="M4 70 Q4 74 10 74 L22 74 Q28 74 28 70" stroke="url(#bcChrome)" stroke-width="1.5" fill="none"/>
-  <path d="M110 66 L110 86 Q110 92 104 92 L96 92 L96 86 L102 86 L102 66 Z" fill="url(#bcChrome)" filter="url(#bcShadow)"/>
-  <path d="M90 58 Q90 52 96 52 L108 52 Q114 52 114 58 L114 70 Q114 74 108 74 L96 74 Q90 74 90 70 Z" fill="url(#bcLeather)"/>
-  <line x1="92" y1="56" x2="112" y2="56" stroke="#0A0806" stroke-width=".8" opacity=".6"/><line x1="92" y1="60" x2="112" y2="60" stroke="#0A0806" stroke-width=".8" opacity=".6"/><line x1="92" y1="64" x2="112" y2="64" stroke="#0A0806" stroke-width=".8" opacity=".6"/><line x1="92" y1="68" x2="112" y2="68" stroke="#0A0806" stroke-width=".8" opacity=".6"/>
-  <path d="M90 70 Q90 74 96 74 L108 74 Q114 74 114 70" stroke="url(#bcChrome)" stroke-width="1.5" fill="none"/>
-  <path d="M20 18 Q20 8 30 8 L88 8 Q98 8 98 18 L98 66 Q98 70 94 70 L24 70 Q20 70 20 66 Z" fill="url(#bcChrome)" filter="url(#bcShadow)"/>
-  <path d="M23 20 Q23 11 32 11 L86 11 Q95 11 95 20 L95 65 Q95 68 92 68 L26 68 Q23 68 23 65 Z" fill="url(#bcLeather)"/>
-  <line x1="28" y1="12" x2="28" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="35" y1="12" x2="35" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="42" y1="12" x2="42" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="49" y1="12" x2="49" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="56" y1="12" x2="56" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="63" y1="12" x2="63" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="70" y1="12" x2="70" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="77" y1="12" x2="77" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="84" y1="12" x2="84" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/><line x1="91" y1="12" x2="91" y2="67" stroke="#0A0806" stroke-width="1.4" opacity=".65"/>
-  <line x1="25" y1="20" x2="93" y2="20" stroke="#0A0806" stroke-width=".6" opacity=".3"/><line x1="25" y1="28" x2="93" y2="28" stroke="#0A0806" stroke-width=".6" opacity=".3"/><line x1="25" y1="36" x2="93" y2="36" stroke="#0A0806" stroke-width=".6" opacity=".3"/><line x1="25" y1="44" x2="93" y2="44" stroke="#0A0806" stroke-width=".6" opacity=".3"/><line x1="25" y1="52" x2="93" y2="52" stroke="#0A0806" stroke-width=".6" opacity=".3"/><line x1="25" y1="60" x2="93" y2="60" stroke="#0A0806" stroke-width=".6" opacity=".3"/>
-  <path d="M33 11 Q59 8 85 11" stroke="#5A4A38" stroke-width="2" fill="none" opacity=".6" stroke-linecap="round"/>
-  <rect x="20" y="15" width="5" height="53" rx="2.5" fill="url(#bcChromeV)" filter="url(#bcShadow)"/>
-  <rect x="21" y="16" width="2" height="51" rx="1" fill="#FFF8E0" opacity=".35"/>
-  <rect x="93" y="15" width="5" height="53" rx="2.5" fill="url(#bcChromeV)" filter="url(#bcShadow)"/>
-  <rect x="94" y="16" width="2" height="51" rx="1" fill="#FFF8E0" opacity=".3"/>
-  <rect x="20" y="64" width="78" height="6" rx="3" fill="url(#bcChrome)"/>
-  <rect x="22" y="65" width="74" height="2" rx="1" fill="#FFF8E0" opacity=".4"/>
-  <rect x="48" y="4" width="22" height="10" rx="4" fill="url(#bcChrome)" filter="url(#bcShadow)"/>
-  <path d="M36 3 Q36 -2 42 -2 L76 -2 Q82 -2 82 3 L82 13 Q82 17 76 17 L42 17 Q36 17 36 13 Z" fill="url(#bcLeather)" filter="url(#bcShadow)"/>
-  <line x1="42" y1="4" x2="42" y2="16" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="49" y1="4" x2="49" y2="16" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="56" y1="4" x2="56" y2="16" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="63" y1="4" x2="63" y2="16" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="70" y1="4" x2="70" y2="16" stroke="#0A0806" stroke-width="1.2" opacity=".6"/><line x1="77" y1="4" x2="77" y2="16" stroke="#0A0806" stroke-width="1.2" opacity=".6"/>
-  <path d="M36 13 Q36 17 42 17 L76 17 Q82 17 82 13" stroke="url(#bcChrome)" stroke-width="2" fill="none"/>
-  <path d="M40 4 Q59 1 78 4" stroke="#5A4A38" stroke-width="1.5" fill="none" opacity=".5" stroke-linecap="round"/>
-  <rect x="96" y="78" width="16" height="5" rx="2.5" fill="url(#bcBase)"/>
-  <ellipse cx="112" cy="80.5" rx="4" ry="4" fill="url(#bcChrome)"/>
-  <ellipse cx="112" cy="80.5" rx="2" ry="2" fill="#FFF8E0" opacity=".5"/>
+
+  <!-- === FLOOR SHADOW === -->
+  <ellipse cx="59" cy="127" rx="38" ry="4" fill="#000" opacity=".45"/>
+
+  <!-- === STAR BASE (5-point) === -->
+  <g filter="url(#bcSh)">
+    <path d="M59 122 L28 126 Q24 126 24 123 L24 120 Q24 118 28 118 L59 118 L90 118 Q94 118 94 120 L94 123 Q94 126 90 126 Z" fill="url(#bcSilv)"/>
+    <ellipse cx="24" cy="122" rx="5" ry="3.5" fill="url(#bcSilv)"/>
+    <ellipse cx="94" cy="122" rx="5" ry="3.5" fill="url(#bcSilv)"/>
+    <ellipse cx="24" cy="121" rx="3.5" ry="2" fill="#F0E8E0" opacity=".5"/>
+    <ellipse cx="94" cy="121" rx="3.5" ry="2" fill="#F0E8E0" opacity=".5"/>
+  </g>
+  <!-- Base highlight -->
+  <path d="M30 119 Q59 117 88 119" stroke="#FFF8E8" stroke-width="1" fill="none" opacity=".35"/>
+
+  <!-- === HYDRAULIC COLUMN === -->
+  <g filter="url(#bcSh)">
+    <rect x="51" y="96" width="16" height="24" rx="8" fill="url(#bcSilv)"/>
+    <rect x="53" y="97" width="4" height="22" rx="2" fill="#F8F0E8" opacity=".35"/>
+    <rect x="49" y="108" width="20" height="4" rx="2" fill="url(#bcSilvH)"/>
+    <rect x="50" y="109" width="18" height="1.5" rx=".75" fill="#FFF" opacity=".2"/>
+  </g>
+
+  <!-- === FOOTREST RING === -->
+  <g filter="url(#bcSh)">
+    <rect x="26" y="102" width="66" height="8" rx="4" fill="url(#bcGold)" filter="url(#bcGl)"/>
+    <rect x="28" y="103" width="62" height="3" rx="1.5" fill="#FFF8D0" opacity=".4"/>
+    <ellipse cx="26" cy="106" rx="4.5" ry="4.5" fill="url(#bcGold)"/>
+    <ellipse cx="92" cy="106" rx="4.5" ry="4.5" fill="url(#bcGold)"/>
+    <ellipse cx="26" cy="105" rx="2.5" ry="2.5" fill="#FFF8D0" opacity=".4"/>
+    <ellipse cx="92" cy="105" rx="2.5" ry="2.5" fill="#FFF8D0" opacity=".4"/>
+  </g>
+
+  <!-- === SEAT CUSHION === -->
+  <g filter="url(#bcSh)">
+    <path d="M18 72 Q18 63 28 63 L90 63 Q100 63 100 72 L100 82 Q100 90 90 90 L28 90 Q18 90 18 82 Z" fill="url(#bcLeath)"/>
+    <path d="M18 72 Q18 63 28 63 L90 63 Q100 63 100 72 L100 82 Q100 90 90 90 L28 90 Q18 90 18 82 Z" fill="url(#bcShine)"/>
+    <!-- Tufted diamond pattern -->
+    <circle cx="35" cy="72" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="50" cy="72" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="65" cy="72" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="80" cy="72" r="1.2" fill="#4A0C18" opacity=".7"/>
+    <circle cx="42" cy="80" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="57" cy="80" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="72" cy="80" r="1.2" fill="#4A0C18" opacity=".7"/>
+    <!-- Quilted lines -->
+    <path d="M35 72 L42 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/><path d="M50 72 L42 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/>
+    <path d="M50 72 L57 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/><path d="M65 72 L57 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/>
+    <path d="M65 72 L72 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/><path d="M80 72 L72 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/>
+    <!-- Seat piping -->
+    <path d="M22 64 Q59 60 96 64" stroke="#C8A84B" stroke-width="1.2" fill="none" opacity=".5"/>
+    <path d="M18 82 Q18 90 28 90 L90 90 Q100 90 100 82" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".45"/>
+    <!-- Leather sheen -->
+    <path d="M25 66 Q59 62 93 66" stroke="#C83050" stroke-width="2" fill="none" opacity=".25" stroke-linecap="round"/>
+  </g>
+
+  <!-- === ARMRESTS === -->
+  <!-- Left armrest -->
+  <g filter="url(#bcSh)">
+    <path d="M10 62 L10 84 Q10 89 15 89 L22 89 L22 84 L16 84 L16 62 Z" fill="url(#bcGold)"/>
+    <rect x="11" y="63" width="2.5" height="20" rx="1" fill="#FFF8D0" opacity=".35"/>
+    <path d="M5 55 Q5 49 11 49 L21 49 Q27 49 27 55 L27 66 Q27 70 21 70 L11 70 Q5 70 5 66 Z" fill="url(#bcLeath)"/>
+    <path d="M5 55 Q5 49 11 49 L21 49 Q27 49 27 55 L27 66 Q27 70 21 70 L11 70 Q5 70 5 66 Z" fill="url(#bcShine)"/>
+    <circle cx="12" cy="56" r=".9" fill="#4A0C18" opacity=".6"/><circle cx="20" cy="56" r=".9" fill="#4A0C18" opacity=".6"/>
+    <circle cx="12" cy="63" r=".9" fill="#4A0C18" opacity=".6"/><circle cx="20" cy="63" r=".9" fill="#4A0C18" opacity=".6"/>
+    <path d="M5 66 Q5 70 11 70 L21 70 Q27 70 27 66" stroke="#C8A84B" stroke-width="1.2" fill="none" opacity=".45"/>
+  </g>
+  <!-- Right armrest -->
+  <g filter="url(#bcSh)">
+    <path d="M108 62 L108 84 Q108 89 103 89 L96 89 L96 84 L102 84 L102 62 Z" fill="url(#bcGold)"/>
+    <rect x="104.5" y="63" width="2.5" height="20" rx="1" fill="#FFF8D0" opacity=".35"/>
+    <path d="M91 55 Q91 49 97 49 L107 49 Q113 49 113 55 L113 66 Q113 70 107 70 L97 70 Q91 70 91 66 Z" fill="url(#bcLeath)"/>
+    <path d="M91 55 Q91 49 97 49 L107 49 Q113 49 113 55 L113 66 Q113 70 107 70 L97 70 Q91 70 91 66 Z" fill="url(#bcShine)"/>
+    <circle cx="98" cy="56" r=".9" fill="#4A0C18" opacity=".6"/><circle cx="106" cy="56" r=".9" fill="#4A0C18" opacity=".6"/>
+    <circle cx="98" cy="63" r=".9" fill="#4A0C18" opacity=".6"/><circle cx="106" cy="63" r=".9" fill="#4A0C18" opacity=".6"/>
+    <path d="M91 66 Q91 70 97 70 L107 70 Q113 70 113 66" stroke="#C8A84B" stroke-width="1.2" fill="none" opacity=".45"/>
+  </g>
+
+  <!-- === BACKREST === -->
+  <g filter="url(#bcSh)">
+    <!-- Gold frame -->
+    <path d="M22 14 Q22 5 32 5 L86 5 Q96 5 96 14 L96 65 Q96 69 92 69 L26 69 Q22 69 22 65 Z" fill="url(#bcGold)"/>
+    <rect x="23" y="6" width="2.5" height="61" rx="1" fill="#FFF8D0" opacity=".3"/>
+    <!-- Leather pad -->
+    <path d="M25 17 Q25 9 33 9 L85 9 Q93 9 93 17 L93 63 Q93 67 87 67 L31 67 Q25 67 25 63 Z" fill="url(#bcLeath)"/>
+    <path d="M25 17 Q25 9 33 9 L85 9 Q93 9 93 17 L93 63 Q93 67 87 67 L31 67 Q25 67 25 63 Z" fill="url(#bcShine)"/>
+    <!-- Tufted diamond buttons -->
+    <circle cx="42" cy="20" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="59" cy="20" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="76" cy="20" r="1.3" fill="#4A0C18" opacity=".7"/>
+    <circle cx="50" cy="30" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="68" cy="30" r="1.3" fill="#4A0C18" opacity=".7"/>
+    <circle cx="42" cy="40" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="59" cy="40" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="76" cy="40" r="1.3" fill="#4A0C18" opacity=".7"/>
+    <circle cx="50" cy="50" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="68" cy="50" r="1.3" fill="#4A0C18" opacity=".7"/>
+    <circle cx="42" cy="60" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="59" cy="60" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="76" cy="60" r="1.3" fill="#4A0C18" opacity=".7"/>
+    <!-- Diamond quilted lines -->
+    <path d="M42 20 L50 30 L42 40 L50 50 L42 60" stroke="#4A0C18" stroke-width=".5" opacity=".45" fill="none"/>
+    <path d="M59 20 L50 30 M59 20 L68 30 L59 40 L50 50 M59 40 L68 50 L59 60" stroke="#4A0C18" stroke-width=".5" opacity=".45" fill="none"/>
+    <path d="M76 20 L68 30 L76 40 L68 50 L76 60" stroke="#4A0C18" stroke-width=".5" opacity=".45" fill="none"/>
+    <!-- Top sheen -->
+    <path d="M35 10 Q59 7 83 10" stroke="#C83050" stroke-width="2.5" fill="none" opacity=".2" stroke-linecap="round"/>
+    <!-- Gold piping around leather -->
+    <path d="M25 17 Q25 9 33 9 L85 9 Q93 9 93 17" stroke="#C8A84B" stroke-width="1" fill="none" opacity=".5"/>
+    <path d="M25 63 Q25 67 31 67 L87 67 Q93 67 93 63" stroke="#C8A84B" stroke-width="1" fill="none" opacity=".5"/>
+  </g>
+
+  <!-- === HEADREST === -->
+  <g filter="url(#bcSh)">
+    <rect x="44" y="1" width="30" height="8" rx="3" fill="url(#bcGold)"/>
+    <path d="M38 0 Q38 -5 44 -5 L74 -5 Q80 -5 80 0 L80 8 Q80 12 74 12 L44 12 Q38 12 38 8 Z" fill="url(#bcLeath)"/>
+    <path d="M38 0 Q38 -5 44 -5 L74 -5 Q80 -5 80 0 L80 8 Q80 12 74 12 L44 12 Q38 12 38 8 Z" fill="url(#bcShine)"/>
+    <circle cx="50" cy="3" r="1" fill="#4A0C18" opacity=".6"/><circle cx="59" cy="3" r="1" fill="#4A0C18" opacity=".6"/><circle cx="68" cy="3" r="1" fill="#4A0C18" opacity=".6"/>
+    <path d="M38 8 Q38 12 44 12 L74 12 Q80 12 80 8" stroke="#C8A84B" stroke-width="1.2" fill="none" opacity=".5"/>
+    <path d="M42 -4 Q59 -6 76 -4" stroke="#C83050" stroke-width="1.5" fill="none" opacity=".2"/>
+  </g>
+
+  <!-- === LEVER HANDLE (right side) === -->
+  <rect x="97" y="82" width="14" height="4" rx="2" fill="url(#bcGold)" filter="url(#bcSh)"/>
+  <ellipse cx="111" cy="84" rx="3.5" ry="3.5" fill="url(#bcGold)" filter="url(#bcGl)"/>
+  <ellipse cx="111" cy="83.5" rx="2" ry="2" fill="#FFF8D0" opacity=".5"/>
+
+  <!-- === AMBIENT GOLD GLOW === -->
+  <ellipse cx="59" cy="50" rx="50" ry="60" fill="#C8A84B" opacity=".03"/>
 </svg>`;}
 
 // ═══════════════ i18n ═══════════════
@@ -1034,18 +1207,37 @@ function renderBooking(){
   <div style="padding:20px;padding-bottom:30px">${body}</div>`;
 }
 
+// ═══ HISTORY / BACK NAVIGATION ═══
+let skipPush=false;
+function pushNav(label){if(!skipPush)history.pushState({nav:label},"")}
+window.addEventListener("popstate",function(){
+  skipPush=true;
+  // Booking overlay open? Close it
+  if(state.bookingProv){state.bookingProv=null;state.bookDone=false;render();skipPush=false;return;}
+  // Sub-page open? Close it
+  if(state.subPage){state.subPage=null;render();skipPush=false;return;}
+  // Detail view open? Go back to list
+  if(state.detail){state.detail=null;state.tab="home";render();skipPush=false;return;}
+  // On a non-home tab? Go home
+  if(state.tab!=="home"){state.tab="home";render();skipPush=false;return;}
+  // Onboarding step >0? Go back one step
+  if(!state.onboarded&&state.obStep>0){state.obStep--;render();skipPush=false;return;}
+  // Nothing left to go back to — let browser handle it
+  skipPush=false;
+});
+
 // ═══ ACTIONS ═══
-function nextOb(){state.obStep++;render();}
-function finishOnboarding(r){state.role=r;state.onboarded=true;state.tab="home";document.getElementById("mainScreen").scrollTop=0;render();}
-function goTab(tb){state.tab=tb;state.detail=null;state.subPage=null;document.getElementById("mainScreen").scrollTop=0;render();}
-function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="info";document.getElementById("mainScreen").scrollTop=0;render();}
-function setDetailTab(tb){state.detailTab=tb;render();}
-function goBack(){state.detail=null;state.tab="home";render();}
+function nextOb(){state.obStep++;pushNav("ob"+state.obStep);render();}
+function finishOnboarding(r){state.role=r;state.onboarded=true;state.tab="home";pushNav("home");document.getElementById("mainScreen").scrollTop=0;render();}
+function goTab(t){state.tab=t;state.detail=null;state.subPage=null;pushNav("tab-"+t);document.getElementById("mainScreen").scrollTop=0;render();}
+function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="info";pushNav("detail-"+id);document.getElementById("mainScreen").scrollTop=0;render();}
+function setDetailTab(t){state.detailTab=t;render();}
+function goBack(){state.detail=null;state.tab="home";history.back();}
 function setCat(c){state.catFilter=c;render();}
 function setRole(r){state.role=r;render();}
-function goSub(p){state.subPage=p;document.getElementById("mainScreen").scrollTop=0;render();}
-function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;state.bookName="";state.bookEmail="";state.bookPhone="";state.bookNotes="";state.promoCode="";state.promoValid=null;state.promoDiscount=0;render();}
-function closeBooking(){state.bookingProv=null;state.bookDone=false;state.stamps=Math.min(10,state.stamps+1);state.loyaltyRedeemed=false;localStorage.setItem("cm_redeemed","false");saveStamps();render();}
+function goSub(p){if(p){pushNav("sub-"+p);}else{history.back();return;}state.subPage=p;document.getElementById("mainScreen").scrollTop=0;render();}
+function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;state.bookName="";state.bookEmail="";state.bookPhone="";state.bookNotes="";state.promoCode="";state.promoValid=null;state.promoDiscount=0;pushNav("booking");render();}
+function closeBooking(){state.bookingProv=null;state.bookDone=false;state.stamps=Math.min(10,state.stamps+1);state.loyaltyRedeemed=false;localStorage.setItem("cm_redeemed","false");saveStamps();history.back();}
 function selectSv(id){state.bookSv=state.bookingProv.svs.find(s=>s.id===id);render();}
 function selectDay(i){state.bookDay=i;state.bookSlot=null;render();}
 function selectSlot(tm){state.bookSlot=tm;render();}
