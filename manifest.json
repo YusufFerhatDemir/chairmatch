@@ -1,0 +1,10 @@
+{
+  "name": "ChairMatch",
+  "short_name": "ChairMatch",
+  "description": "Dein Beauty-Partner in ganz Deutschland",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#060504",
+  "theme_color": "#C8A84B",
+  "icons": []
+}

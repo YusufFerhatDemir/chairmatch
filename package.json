@@ -1,0 +1,13 @@
+{
+  "name": "chairmatch",
+  "version": "5.2.0",
+  "description": "ChairMatch - Dein Beauty-Partner in ganz Deutschland",
+  "main": "index.html",
+  "scripts": {
+    "start": "open index.html",
+    "serve": "python3 -m http.server 8080"
+  },
+  "keywords": ["beauty", "salon", "booking", "germany", "appointment"],
+  "author": "Yusuf Demir",
+  "license": "MIT"
+}
