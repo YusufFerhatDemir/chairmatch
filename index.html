@@ -234,55 +234,6 @@ const PROVS=[
   {id:"p6",cat:"massage",nm:"ZenFlow Massage",st:"Schildergasse 12",city:"Köln",rt:5.0,rc:276,tl:"Klassische & Tiefengewebsmassagen",tags:["Klassisch","Tiefengewebe","Hot Stone"],disc:0,bc:"#4AA890",prom:true,ver:true,live:true,frei:4,sps:["s7"],svs:[{id:"sv13",nm:"Klassische Massage",dur:60,pr:75},{id:"sv14",nm:"Tiefengewebsmassage",dur:60,pr:90},{id:"sv15",nm:"Hot Stone Massage",dur:90,pr:110}],revs:[{u:"Peter N.",s:5,t:"Absolut entspannend — ich komme jede Woche!",d:"13.02.2026"},{u:"Sabine K.",s:5,t:"Kenan ist ein Profi, Verspannungen einfach weg.",d:"07.02.2026"}]}
 ];
 
-// ═══════════════ STATE ═══════════════
-let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,regStep:1,regData:{vn:"",nn:"",em:"",tel:"",geschaeft:"",st:"",plz:"",city:"",kat:"",iban:"",gb:false,chair:false,cpr:"",agb:false,dsgvo:false},bookDone:false,regDone:false};
-
-function stars(n){let s="";for(let i=1;i<=5;i++)s+=`<span style="opacity:${i<=Math.round(n)?1:.3};color:#E8C86A">★</span>`;return s;}
-function badge(t,c){return`<span class="badge ${c}">${t}</span>`;}
-
-// ═══════════════ RENDER ═══════════════
-function render(){
-  const scr=document.getElementById("mainScreen");
-  const nav=document.getElementById("navBar");
-  const s=state;
-  if(!s.onboarded){nav.style.display="none";scr.innerHTML=renderOnboarding();return;}
-  if(s.subPage){nav.style.display="none";scr.innerHTML=renderSubPage();return;}
-  nav.style.display="flex";
-  ["home","explore","offers","account"].forEach(t=>{
-    const a=s.tab===t||(t==="home"&&s.detail);
-    document.getElementById("ni_"+t).style.color=a?"var(--gold)":"var(--stone)";
-    document.getElementById("nl_"+t).style.color=a?"var(--gold)":"var(--stone2)";
-  });
-  if(s.detail){scr.innerHTML=renderDetail();return;}
-  if(s.tab==="home")scr.innerHTML=renderHome();
-  else if(s.tab==="explore")scr.innerHTML=renderExplore();
-  else if(s.tab==="offers")scr.innerHTML=renderOffers();
-  else if(s.tab==="account")scr.innerHTML=renderAccount();
-  const ov=document.getElementById("bookingOverlay");
-  if(s.bookingProv){ov.classList.add("active");document.getElementById("bookingSheet").innerHTML=renderBooking();}
-  else ov.classList.remove("active");
-}
-
-// ─── ONBOARDING ───
-function renderOnboarding(){
-  const slides=[{icon:"💈",t:"Willkommen bei ChairMatch",s:"Dein Beauty-Partner in ganz Deutschland"},{icon:"svg",t:"Stuhl-Vermittlung",s:"Freie Stühle & Kabinen · 0 % Provision"},{icon:"📅",t:"Sofort buchen",s:"Termin in 30 Sekunden · Ohne Kommission"}];
-  if(state.obStep>=3)return`<div style="padding:60px 26px 40px;display:flex;flex-direction:column;gap:12px">
-    <div style="text-align:center;margin-bottom:10px">${logoHeader(false)}</div>
-    <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Ich bin...</p>
-    ${[["Kunde — ich suche Termine","CUSTOMER"],["Anbieter — ich biete Services","PROVIDER"],["B2B — Stuhl / Kabine mieten","B2B"]].map(([l,r])=>`<button class="boutline" style="padding:17px;font-size:14px;font-weight:700;text-align:left" onclick="finishOnboarding('${r}')">${l}</button>`).join("")}
-  </div>`;
-  const sl=slides[state.obStep];
-  const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
-  return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;justify-content:center;padding:30px">
-    ${state.obStep===0?`<div style="margin-bottom:10px">${logoHeader(false)}</div>`:sl.icon==="svg"?`<div style="margin-bottom:20px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbSeat()}</div>`:`<div style="font-size:60px;margin-bottom:20px">${sl.icon}</div>`}
-    <p class="cinzel" style="font-size:22px;font-weight:600;margin-bottom:10px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
-    <p style="font-size:14px;color:var(--stone);line-height:1.7;margin-bottom:44px">${sl.s}</p>
-    <div style="display:flex;gap:8px;margin-bottom:30px">${dots}</div>
-    <button class="bgold" style="width:auto;padding:15px 36px;font-size:14px" onclick="nextOb()">
-      ${state.obStep<2?"Weiter →":"Los geht's"}
-    </button>
-  </div>`;}
-
 // ─── CATEGORY SVG ICONS ───
 function catSVG(type){
   if(type==="friseur") return `<svg width="30" height="30" viewBox="0 0 60 60" fill="none">
