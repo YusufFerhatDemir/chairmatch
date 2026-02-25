@@ -8,41 +8,50 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#060504;font-family:'DM Sans',sans-serif;color:#F0E8D8;overflow:hidden}
+html,body{height:100%;font-family:'DM Sans',sans-serif;overflow:hidden;transition:background .3s,color .3s}
 :root{--bg:#060504;--c1:#0D0B08;--c2:#141108;--c3:#1C1810;--c4:#232018;--c5:#2E2A1E;
 --gold:#C8A84B;--gold2:#E8D06A;--gold3:#F5E080;--goldlo:rgba(200,168,75,0.08);
---cream:#F0E8D8;--stone:#8A8070;--stone2:#5A5448;--red:#E85040;--green:#4A8A5A}
+--cream:#F0E8D8;--stone:#8A8070;--stone2:#5A5448;--red:#E85040;--green:#4A8A5A;
+--cardbg:#141108;--sheetbg:#0D0B08;--border:rgba(200,168,75,0.08);--borderhi:rgba(200,168,75,0.15)}
+html,body{background:var(--bg);color:var(--cream)}
+.light{--bg:#F5F0E8;--c1:#FFFFFF;--c2:#F8F4EE;--c3:#EDE8E0;--c4:#E0D8CC;--c5:#D0C8B8;
+--cream:#1A1408;--stone:#6A6458;--stone2:#9A9488;--cardbg:#FFFFFF;--sheetbg:#FFFFFF;--border:rgba(0,0,0,0.06);--borderhi:rgba(0,0,0,0.12)}
 .serif{font-family:'Cormorant Garamond',serif}
 .cinzel{font-family:'Cinzel',serif}
 .shell{width:100%;max-width:430px;margin:0 auto;height:100vh;background:var(--c1);position:relative;display:flex;flex-direction:column;overflow:hidden}
 .screen{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:72px;-webkit-overflow-scrolling:touch}
 .screen::-webkit-scrollbar{display:none}
 button{border:none;background:none;cursor:pointer;font-family:inherit;color:inherit}
-.bgold{background:linear-gradient(135deg,#D4AE54,#C8A84B,#B8982B);color:#080706;font-weight:800;border-radius:14px;padding:14px 22px;font-size:14px;width:100%;border:none;cursor:pointer;font-family:inherit;display:block;box-shadow:0 4px 20px rgba(200,168,75,0.3)}
-.bgold:disabled{opacity:.4;box-shadow:none}
-.boutline{background:transparent;border:1.5px solid rgba(200,168,75,.35);color:var(--gold2);font-weight:700;border-radius:14px;padding:14px 22px;font-size:14px;cursor:pointer;font-family:inherit}
-.inp{width:100%;background:var(--c3);border:1.5px solid rgba(200,168,75,.12);border-radius:12px;padding:13px 16px;color:var(--cream);font-family:inherit;font-size:14px;outline:none}
+.bgold{background:linear-gradient(135deg,#D4AE54,#C8A84B,#B8982B);color:#080706;font-weight:800;border-radius:14px;padding:14px 22px;font-size:14px;width:100%;border:none;cursor:pointer;font-family:inherit;display:block;box-shadow:0 4px 20px rgba(200,168,75,0.3);transition:transform .15s,box-shadow .15s}
+.bgold:active{transform:scale(.97);box-shadow:0 2px 10px rgba(200,168,75,0.2)}
+.bgold:disabled{opacity:.4;box-shadow:none;transform:none}
+.boutline{background:transparent;border:1.5px solid rgba(200,168,75,.35);color:var(--gold2);font-weight:700;border-radius:14px;padding:14px 22px;font-size:14px;cursor:pointer;font-family:inherit;transition:background .2s}
+.boutline:active{background:rgba(200,168,75,.08)}
+.inp{width:100%;background:var(--c3);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--cream);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s}
 .inp:focus{border-color:var(--gold)}
 .inp::placeholder{color:var(--stone2)}
-.card{background:var(--c2);border-radius:18px;border:1px solid rgba(200,168,75,.08);overflow:hidden}
+.card{background:var(--cardbg);border-radius:18px;border:1px solid var(--border);overflow:hidden;transition:transform .2s}
+.card:active{transform:scale(.985)}
 .lsm{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--stone);text-transform:uppercase}
 .lgold{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
 .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
 .bgd{background:rgba(200,168,75,.12);color:var(--gold2);border:1px solid rgba(200,168,75,.2)}
 .bgr{background:rgba(74,138,90,.15);color:#6ABF80;border:1px solid rgba(74,138,90,.25)}
 .brd{background:rgba(232,80,64,.12);color:#F07060;border:1px solid rgba(232,80,64,.2)}
-.nav{position:absolute;bottom:0;left:0;right:0;background:rgba(6,5,4,.97);border-top:1px solid rgba(200,168,75,.12);display:flex;justify-content:space-around;padding:10px 0 20px;z-index:50}
-.nbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:2px 16px;cursor:pointer;border:none;background:none;font-family:inherit}
-.sticky{position:sticky;top:0;background:var(--c1);z-index:40;border-bottom:1px solid rgba(200,168,75,.08);padding:14px 20px}
+.nav{position:absolute;bottom:0;left:0;right:0;background:rgba(6,5,4,.97);border-top:1px solid rgba(200,168,75,.12);display:flex;justify-content:space-around;padding:10px 0 20px;z-index:50;backdrop-filter:blur(12px)}
+.light .nav{background:rgba(255,255,255,.95)}
+.nbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:2px 16px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative}
+.nbtn .notif-dot{position:absolute;top:0;right:8px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.sticky{position:sticky;top:0;background:var(--c1);z-index:40;border-bottom:1px solid var(--border);padding:14px 20px}
 .pbar{height:3px;background:var(--c4);border-radius:2px}
 .pfill{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold3));border-radius:2px;transition:width .3s}
 .check{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;border:2px solid var(--c5);background:var(--c4);cursor:pointer}
 .check.on{background:var(--gold);border-color:var(--gold);color:#080706}
 .overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);align-items:flex-end}
 .overlay.active{display:flex}
-.sheet{width:100%;max-width:430px;margin:0 auto;max-height:93vh;overflow-y:auto;background:var(--c1);border-radius:24px 24px 0 0;border:1px solid rgba(200,168,75,.15)}
-
-/* ═══ LOGO ANIMATIONS ═══ */
+.sheet{width:100%;max-width:430px;margin:0 auto;max-height:93vh;overflow-y:auto;background:var(--sheetbg);border-radius:24px 24px 0 0;border:1px solid var(--borderhi);animation:sheetUp .3s ease}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+/* Logo Animations */
 @keyframes logoFloat{0%,100%{transform:translateY(0px)}50%{transform:translateY(-4px)}}
 @keyframes logoGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(200,168,75,0.4)) drop-shadow(0 0 20px rgba(200,168,75,0.2))}50%{filter:drop-shadow(0 0 16px rgba(232,208,106,0.7)) drop-shadow(0 0 40px rgba(200,168,75,0.4)) drop-shadow(0 0 80px rgba(200,168,75,0.15))}}
 @keyframes rimRotate{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-600}}
@@ -51,6 +60,20 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 @keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .fu{animation:fu .4s ease both}
 .d1{animation-delay:.07s}.d2{animation-delay:.14s}.d3{animation-delay:.22s}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--gold);color:#080706;padding:12px 24px;border-radius:12px;font-size:13px;font-weight:700;z-index:999;animation:toastIn .3s ease,toastOut .3s ease 2s forwards;pointer-events:none;max-width:380px;text-align:center}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+.skel{background:linear-gradient(90deg,var(--c3) 25%,var(--c4) 50%,var(--c3) 75%);background-size:200% 100%;animation:skel 1.5s infinite;border-radius:8px}
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.heart{cursor:pointer;transition:transform .2s}
+.heart:active{transform:scale(1.3)}
+.heart.liked{color:#E85040}
+.switch{width:44px;height:24px;border-radius:12px;background:var(--c4);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.switch.on{background:var(--gold)}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch.on::after{transform:translateX(20px)}
 </style>
 </head>
 <body>
@@ -65,6 +88,10 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
       <span id="ni_explore" style="font-size:19px;color:var(--stone)">◫</span>
       <span id="nl_explore" style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--stone2)">TERMIN</span>
     </button>
+    <button class="nbtn" onclick="goTab('favorites')">
+      <span id="ni_favorites" style="font-size:19px;color:var(--stone)">♡</span>
+      <span id="nl_favorites" style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--stone2)">FAVORITEN</span>
+    </button>
     <button class="nbtn" onclick="goTab('offers')">
       <span id="ni_offers" style="font-size:19px;color:var(--stone)">❋</span>
       <span id="nl_offers" style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--stone2)">ANGEBOTE</span>
@@ -78,228 +105,94 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 <div class="overlay" id="bookingOverlay" onclick="if(event.target===this)closeBooking()">
   <div class="sheet" id="bookingSheet"></div>
 </div>
+<div class="overlay" id="filterOverlay" onclick="if(event.target===this)toggleFilter()">
+  <div class="sheet" id="filterSheet"></div>
+</div>
 
 <script>
-// ═══════════════ CHAIRMATCH LOGO SVG ═══════════════
+// ═══════════════ CHAIRMATCH LOGO SVG (v5.2) ═══════════════
 function LOGO(size){
   const s=size||180;
   return `<svg width="${s}" height="${Math.round(s*1.15)}" viewBox="0 0 200 230" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:block">
   <defs>
-    <!-- Main gold gradient - metallic 3D -->
     <linearGradient id="lGold" x1="0" y1="0" x2="200" y2="230" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FFF8D0"/>
-      <stop offset="15%" stop-color="#E8C860"/>
-      <stop offset="30%" stop-color="#C8A030"/>
-      <stop offset="45%" stop-color="#F5E080"/>
-      <stop offset="60%" stop-color="#B8901C"/>
-      <stop offset="75%" stop-color="#E0C050"/>
-      <stop offset="90%" stop-color="#FFF0A0"/>
-      <stop offset="100%" stop-color="#C8A840"/>
+      <stop offset="0%" stop-color="#FFF8D0"/><stop offset="15%" stop-color="#E8C860"/>
+      <stop offset="30%" stop-color="#C8A030"/><stop offset="45%" stop-color="#F5E080"/>
+      <stop offset="60%" stop-color="#B8901C"/><stop offset="75%" stop-color="#E0C050"/>
+      <stop offset="90%" stop-color="#FFF0A0"/><stop offset="100%" stop-color="#C8A840"/>
     </linearGradient>
-    <!-- Deep gold for shadow faces -->
     <linearGradient id="lDark" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#8A6010"/>
-      <stop offset="100%" stop-color="#3A2008"/>
+      <stop offset="0%" stop-color="#8A6010"/><stop offset="100%" stop-color="#3A2008"/>
     </linearGradient>
-    <!-- Background shield fill -->
     <linearGradient id="lBg" x1="0" y1="0" x2="0" y2="230" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#1A1608"/>
-      <stop offset="40%" stop-color="#120E04"/>
-      <stop offset="100%" stop-color="#060402"/>
+      <stop offset="0%" stop-color="#1A1608"/><stop offset="40%" stop-color="#120E04"/><stop offset="100%" stop-color="#060402"/>
     </linearGradient>
-    <!-- Inner background glow -->
     <radialGradient id="rCenter" cx="50%" cy="40%" r="55%">
-      <stop offset="0%" stop-color="#2A2010" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#0A0802" stop-opacity="1"/>
+      <stop offset="0%" stop-color="#2A2010" stop-opacity="1"/><stop offset="100%" stop-color="#0A0802" stop-opacity="1"/>
     </radialGradient>
-    <!-- Glow halo -->
     <radialGradient id="rGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#C8A84B" stop-opacity="0.25"/>
-      <stop offset="60%" stop-color="#C8A84B" stop-opacity="0.05"/>
-      <stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#C8A84B" stop-opacity="0.25"/><stop offset="60%" stop-color="#C8A84B" stop-opacity="0.05"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/>
     </radialGradient>
-    <!-- Chair seat gradient -->
     <linearGradient id="lChair" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#F5E080"/>
-      <stop offset="30%" stop-color="#C8A84B"/>
-      <stop offset="60%" stop-color="#A07828"/>
-      <stop offset="100%" stop-color="#C8A84B"/>
+      <stop offset="0%" stop-color="#F5E080"/><stop offset="30%" stop-color="#C8A84B"/><stop offset="60%" stop-color="#A07828"/><stop offset="100%" stop-color="#C8A84B"/>
     </linearGradient>
-    <!-- Drop shadow filter -->
-    <filter id="fShadow" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.9"/>
-    </filter>
-    <!-- Glow filter for chair -->
-    <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="3" result="b1"/>
-      <feGaussianBlur stdDeviation="8" result="b2"/>
-      <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <!-- Outer glow for whole logo -->
-    <filter id="fOuter" x="-30%" y="-20%" width="160%" height="150%">
-      <feGaussianBlur stdDeviation="12" result="glow"/>
-      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <!-- Bevel/emboss for 3D text -->
-    <filter id="fBevel">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur"/>
-      <feSpecularLighting in="blur" surfaceScale="4" specularConstant="1.2" specularExponent="12" result="spec" lighting-color="#FFF8D0">
-        <fePointLight x="80" y="30" z="120"/>
-      </feSpecularLighting>
-      <feComposite in="spec" in2="SourceAlpha" operator="in" result="specOut"/>
-      <feBlend in="SourceGraphic" in2="specOut" mode="screen"/>
-    </filter>
-    <!-- Sparkle filter -->
-    <filter id="fSparkle">
-      <feGaussianBlur stdDeviation="1.5" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <!-- Clip for inner shield -->
-    <clipPath id="clipShield">
-      <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z"/>
-    </clipPath>
+    <filter id="fShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.9"/></filter>
+    <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b1"/><feGaussianBlur stdDeviation="8" result="b2"/><feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="fOuter" x="-30%" y="-20%" width="160%" height="150%"><feGaussianBlur stdDeviation="12" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="fBevel"><feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur"/><feSpecularLighting in="blur" surfaceScale="4" specularConstant="1.2" specularExponent="12" result="spec" lighting-color="#FFF8D0"><fePointLight x="80" y="30" z="120"/></feSpecularLighting><feComposite in="spec" in2="SourceAlpha" operator="in" result="specOut"/><feBlend in="SourceGraphic" in2="specOut" mode="screen"/></filter>
+    <filter id="fSparkle"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="clipShield"><path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z"/></clipPath>
   </defs>
-
-  <!-- ═══ OUTER GLOW HALO ═══ -->
   <ellipse cx="100" cy="115" rx="92" ry="105" fill="url(#rGlow)" style="animation:logoGlow 3s ease-in-out infinite"/>
-
-  <!-- ═══ 3D SHIELD - SHADOW/BASE ═══ -->
-  <!-- Bottom face (3D depth) -->
-  <path d="M14 20 Q14 10 24 10 L176 10 Q186 10 186 20 L186 132 Q186 187 100 212 Q14 187 14 132 Z"
-    fill="#0A0800" transform="translate(4,6)" opacity="0.9"/>
-  <!-- Side face left (3D) -->
-  <path d="M10 18 L14 20 L14 132 Q14 187 100 212 L98 216 Q8 190 8 134 Z"
-    fill="url(#lDark)" opacity="0.8"/>
-  <!-- Side face right (3D) -->
-  <path d="M190 18 L186 20 L186 132 Q186 187 100 212 L102 216 Q192 190 192 134 Z"
-    fill="url(#lDark)" opacity="0.6"/>
-  <!-- Bottom edge (3D) -->
-  <path d="M100 216 L98 212 Q14 187 14 132 L10 134 Q8 190 100 220 Z"
-    fill="#6A4A10" opacity="0.7"/>
-
-  <!-- ═══ MAIN SHIELD FACE ═══ -->
-  <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z"
-    fill="url(#lBg)"/>
-  <!-- Inner glow on shield -->
-  <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z"
-    fill="url(#rCenter)"/>
-
-  <!-- ═══ SHIELD BORDER - TRIPLE RIM ═══ -->
-  <!-- Outer rim glow -->
-  <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z"
-    fill="none" stroke="url(#lGold)" stroke-width="4" opacity="0.4" style="filter:blur(2px)"/>
-  <!-- Main rim -->
-  <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z"
-    fill="none" stroke="url(#lGold)" stroke-width="2.5"/>
-  <!-- Inner rim thin line -->
-  <path d="M18 20 Q18 14 26 14 L174 14 Q182 14 182 20 L182 128 Q182 180 100 204 Q18 180 18 128 Z"
-    fill="none" stroke="url(#lGold)" stroke-width="0.8" opacity="0.5"/>
-  <!-- Innermost accent -->
-  <path d="M24 23 Q24 18 30 18 L170 18 Q176 18 176 23 L176 126 Q176 174 100 198 Q24 174 24 126 Z"
-    fill="none" stroke="url(#lGold)" stroke-width="0.4" opacity="0.25"/>
-
-  <!-- ═══ CORNER ORNAMENTS ═══ -->
-  <!-- Top-left corner jewel -->
-  <g transform="translate(22,12)">
-    <path d="M0 8 L4 0 L8 8 L4 14 Z" fill="url(#lGold)" opacity="0.9"/>
-    <path d="M0 8 L4 4 L4 14 Z" fill="#FFF8D0" opacity="0.4"/>
-  </g>
-  <!-- Top-right corner jewel -->
-  <g transform="translate(168,12)">
-    <path d="M0 8 L4 0 L8 8 L4 14 Z" fill="url(#lGold)" opacity="0.9"/>
-    <path d="M0 8 L4 4 L4 14 Z" fill="#FFF8D0" opacity="0.4"/>
-  </g>
-  <!-- Top-left scroll -->
+  <path d="M14 20 Q14 10 24 10 L176 10 Q186 10 186 20 L186 132 Q186 187 100 212 Q14 187 14 132 Z" fill="#0A0800" transform="translate(4,6)" opacity="0.9"/>
+  <path d="M10 18 L14 20 L14 132 Q14 187 100 212 L98 216 Q8 190 8 134 Z" fill="url(#lDark)" opacity="0.8"/>
+  <path d="M190 18 L186 20 L186 132 Q186 187 100 212 L102 216 Q192 190 192 134 Z" fill="url(#lDark)" opacity="0.6"/>
+  <path d="M100 216 L98 212 Q14 187 14 132 L10 134 Q8 190 100 220 Z" fill="#6A4A10" opacity="0.7"/>
+  <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z" fill="url(#lBg)"/>
+  <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z" fill="url(#rCenter)"/>
+  <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z" fill="none" stroke="url(#lGold)" stroke-width="4" opacity="0.4" style="filter:blur(2px)"/>
+  <path d="M12 18 Q12 8 22 8 L178 8 Q188 8 188 18 L188 130 Q188 185 100 210 Q12 185 12 130 Z" fill="none" stroke="url(#lGold)" stroke-width="2.5"/>
+  <path d="M18 20 Q18 14 26 14 L174 14 Q182 14 182 20 L182 128 Q182 180 100 204 Q18 180 18 128 Z" fill="none" stroke="url(#lGold)" stroke-width="0.8" opacity="0.5"/>
+  <path d="M24 23 Q24 18 30 18 L170 18 Q176 18 176 23 L176 126 Q176 174 100 198 Q24 174 24 126 Z" fill="none" stroke="url(#lGold)" stroke-width="0.4" opacity="0.25"/>
+  <g transform="translate(22,12)"><path d="M0 8 L4 0 L8 8 L4 14 Z" fill="url(#lGold)" opacity="0.9"/><path d="M0 8 L4 4 L4 14 Z" fill="#FFF8D0" opacity="0.4"/></g>
+  <g transform="translate(168,12)"><path d="M0 8 L4 0 L8 8 L4 14 Z" fill="url(#lGold)" opacity="0.9"/><path d="M0 8 L4 4 L4 14 Z" fill="#FFF8D0" opacity="0.4"/></g>
   <path d="M34 20 Q28 20 26 26 Q24 32 30 34 Q22 34 20 40" stroke="url(#lGold)" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.6"/>
-  <!-- Top-right scroll -->
   <path d="M166 20 Q172 20 174 26 Q176 32 170 34 Q178 34 180 40" stroke="url(#lGold)" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.6"/>
-
-  <!-- ═══ TOP ORNAMENT LINE ═══ -->
   <line x1="38" y1="44" x2="162" y2="44" stroke="url(#lGold)" stroke-width="0.6" opacity="0.35"/>
   <path d="M100 40 L102.5 44 L100 48 L97.5 44 Z" fill="url(#lGold)" opacity="0.6"/>
-
-  <!-- ═══ "CHAIR" - TOP WORD ═══ -->
-  <!-- Shadow depth -->
-  <text x="101" y="95" text-anchor="middle" fill="#3A2808"
-    font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6">CHAIR</text>
-  <!-- Main gold -->
-  <text x="100" y="94" text-anchor="middle" fill="url(#lGold)"
-    font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6"
-    filter="url(#fBevel)">CHAIR</text>
-  <!-- Highlight shimmer -->
-  <text x="100" y="93" text-anchor="middle" fill="#FFF8D0"
-    font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6"
-    opacity="0.18">CHAIR</text>
-
-  <!-- ═══ MIDDLE ORNAMENTAL DIVIDER ═══ -->
-  <!-- Main divider lines -->
+  <text x="101" y="95" text-anchor="middle" fill="#3A2808" font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6">CHAIR</text>
+  <text x="100" y="94" text-anchor="middle" fill="url(#lGold)" font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6" filter="url(#fBevel)">CHAIR</text>
+  <text x="100" y="93" text-anchor="middle" fill="#FFF8D0" font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6" opacity="0.18">CHAIR</text>
   <line x1="28" y1="106" x2="172" y2="106" stroke="url(#lGold)" stroke-width="1" opacity="0.5"/>
   <line x1="28" y1="109" x2="172" y2="109" stroke="url(#lGold)" stroke-width="0.4" opacity="0.2"/>
-  <!-- Center diamond -->
   <path d="M100 101 L104 106 L100 111 L96 106 Z" fill="url(#lGold)" opacity="0.95"/>
   <path d="M100 103 L102.5 106 L100 109 Z" fill="#FFF8D0" opacity="0.4"/>
-  <!-- Side diamonds -->
   <path d="M78 104 L80.5 106 L78 108 L75.5 106 Z" fill="url(#lGold)" opacity="0.6"/>
   <path d="M122 104 L124.5 106 L122 108 L119.5 106 Z" fill="url(#lGold)" opacity="0.6"/>
-  <!-- Tiny dots -->
   <circle cx="60" cy="106" r="1.2" fill="url(#lGold)" opacity="0.45"/>
   <circle cx="140" cy="106" r="1.2" fill="url(#lGold)" opacity="0.45"/>
   <circle cx="46" cy="106" r="0.8" fill="url(#lGold)" opacity="0.3"/>
   <circle cx="154" cy="106" r="0.8" fill="url(#lGold)" opacity="0.3"/>
-
-  <!-- ═══ "MATCH" - BOTTOM WORD ═══ -->
-  <!-- Shadow depth -->
-  <text x="101" y="148" text-anchor="middle" fill="#3A2808"
-    font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6">MATCH</text>
-  <!-- Main gold -->
-  <text x="100" y="147" text-anchor="middle" fill="url(#lGold)"
-    font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6"
-    filter="url(#fBevel)">MATCH</text>
-  <!-- Highlight shimmer -->
-  <text x="100" y="146" text-anchor="middle" fill="#FFF8D0"
-    font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6"
-    opacity="0.18">MATCH</text>
-
-  <!-- ═══ BOTTOM ORNAMENT LINE ═══ -->
+  <text x="101" y="148" text-anchor="middle" fill="#3A2808" font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6">MATCH</text>
+  <text x="100" y="147" text-anchor="middle" fill="url(#lGold)" font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6" filter="url(#fBevel)">MATCH</text>
+  <text x="100" y="146" text-anchor="middle" fill="#FFF8D0" font-size="38" font-weight="900" font-family="Cinzel,Georgia,serif" letter-spacing="6" opacity="0.18">MATCH</text>
   <line x1="38" y1="160" x2="162" y2="160" stroke="url(#lGold)" stroke-width="0.6" opacity="0.35"/>
   <path d="M100 156 L102.5 160 L100 164 L97.5 160 Z" fill="url(#lGold)" opacity="0.6"/>
-
-  <!-- ═══ EST. SUBLINE ═══ -->
-  <text x="100" y="180" text-anchor="middle" fill="url(#lGold)"
-    font-size="7" font-weight="400" font-family="Cinzel,Georgia,serif" letter-spacing="5"
-    opacity="0.65">DEUTSCHLAND · EST. 2026</text>
-
-  <!-- ═══ SPARKLE STARS (animated) ═══ -->
+  <text x="100" y="180" text-anchor="middle" fill="url(#lGold)" font-size="7" font-weight="400" font-family="Cinzel,Georgia,serif" letter-spacing="5" opacity="0.65">DEUTSCHLAND · EST. 2026</text>
   <g filter="url(#fSparkle)" fill="url(#lGold)">
-    <g style="animation:sparkle 2.4s ease-in-out infinite;animation-delay:0s;transform-origin:28px 35px">
-      <path d="M28 30 L29.2 33.5 L33 34.5 L29.2 35.5 L28 39 L26.8 35.5 L23 34.5 L26.8 33.5 Z" opacity="0.9"/>
-    </g>
-    <g style="animation:sparkle 2.4s ease-in-out infinite;animation-delay:0.8s;transform-origin:172px 35px">
-      <path d="M172 30 L173.2 33.5 L177 34.5 L173.2 35.5 L172 39 L170.8 35.5 L167 34.5 L170.8 33.5 Z" opacity="0.9"/>
-    </g>
-    <g style="animation:sparkle 2.4s ease-in-out infinite;animation-delay:1.6s;transform-origin:100px 22px">
-      <path d="M100 18 L101 21 L104 22 L101 23 L100 26 L99 23 L96 22 L99 21 Z" opacity="0.75"/>
-    </g>
-    <g style="animation:sparkle 2.8s ease-in-out infinite;animation-delay:0.4s;transform-origin:48px 155px">
-      <path d="M48 152 L49 154.5 L51.5 155.5 L49 156.5 L48 159 L47 156.5 L44.5 155.5 L47 154.5 Z" opacity="0.6"/>
-    </g>
-    <g style="animation:sparkle 2.8s ease-in-out infinite;animation-delay:1.2s;transform-origin:152px 155px">
-      <path d="M152 152 L153 154.5 L155.5 155.5 L153 156.5 L152 159 L151 156.5 L148.5 155.5 L151 154.5 Z" opacity="0.6"/>
-    </g>
+    <g style="animation:sparkle 2.4s ease-in-out infinite;animation-delay:0s;transform-origin:28px 35px"><path d="M28 30 L29.2 33.5 L33 34.5 L29.2 35.5 L28 39 L26.8 35.5 L23 34.5 L26.8 33.5 Z" opacity="0.9"/></g>
+    <g style="animation:sparkle 2.4s ease-in-out infinite;animation-delay:0.8s;transform-origin:172px 35px"><path d="M172 30 L173.2 33.5 L177 34.5 L173.2 35.5 L172 39 L170.8 35.5 L167 34.5 L170.8 33.5 Z" opacity="0.9"/></g>
+    <g style="animation:sparkle 2.4s ease-in-out infinite;animation-delay:1.6s;transform-origin:100px 22px"><path d="M100 18 L101 21 L104 22 L101 23 L100 26 L99 23 L96 22 L99 21 Z" opacity="0.75"/></g>
+    <g style="animation:sparkle 2.8s ease-in-out infinite;animation-delay:0.4s;transform-origin:48px 155px"><path d="M48 152 L49 154.5 L51.5 155.5 L49 156.5 L48 159 L47 156.5 L44.5 155.5 L47 154.5 Z" opacity="0.6"/></g>
+    <g style="animation:sparkle 2.8s ease-in-out infinite;animation-delay:1.2s;transform-origin:152px 155px"><path d="M152 152 L153 154.5 L155.5 155.5 L153 156.5 L152 159 L151 156.5 L148.5 155.5 L151 154.5 Z" opacity="0.6"/></g>
   </g>
-
-  <!-- ═══ SIDE ORNAMENTAL SCROLLWORK ═══ -->
-  <!-- Left laurel -->
-  <path d="M14 75 Q8 68 10 60 Q12 52 18 54 Q13 56 14 62 Q15 68 20 70 Q14 72 14 78 Q14 84 20 86 Q13 86 12 92" 
-    stroke="url(#lGold)" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.55"/>
+  <path d="M14 75 Q8 68 10 60 Q12 52 18 54 Q13 56 14 62 Q15 68 20 70 Q14 72 14 78 Q14 84 20 86 Q13 86 12 92" stroke="url(#lGold)" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.55"/>
   <path d="M14 62 Q10 58 12 53" stroke="url(#lGold)" stroke-width="0.8" fill="none" opacity="0.35"/>
-  <!-- Right laurel -->
-  <path d="M186 75 Q192 68 190 60 Q188 52 182 54 Q187 56 186 62 Q185 68 180 70 Q186 72 186 78 Q186 84 180 86 Q187 86 188 92"
-    stroke="url(#lGold)" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.55"/>
+  <path d="M186 75 Q192 68 190 60 Q188 52 182 54 Q187 56 186 62 Q185 68 180 70 Q186 72 186 78 Q186 84 180 86 Q187 86 188 92" stroke="url(#lGold)" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.55"/>
   <path d="M186 62 Q190 58 188 53" stroke="url(#lGold)" stroke-width="0.8" fill="none" opacity="0.35"/>
 </svg>`;}
 
-// ─── LOGO HEADER for screens ───
+// ─── LOGO HEADER (v5.2 style with LOGO()) ───
 function logoHeader(small){
   if(small) return `<div style="display:flex;align-items:center;gap:12px">
     <div style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:inline-block">
@@ -314,83 +207,7 @@ function logoHeader(small){
     ${LOGO(160)}
   </div>`;}
 
-// ═══════════════ DATA ═══════════════
-const CATS=[
-  {id:"barber",lbl:"Barbershop",sub:"Fade · Cut · Bart"},
-  {id:"friseur",lbl:"Friseur",sub:"Schnitt · Farbe · Styling"},
-  {id:"kosmetik",lbl:"Kosmetik",sub:"Facial · Peeling"},
-  {id:"aesthetik",lbl:"Ästhetik",sub:"Botox · Filler"},
-  {id:"nail",lbl:"Nails",sub:"Gel · Nail Art"},
-  {id:"massage",lbl:"Massage",sub:"Wellness · Therapie"}
-];
-const SPECS=[
-  {id:"s1",nm:"Ahmed K.",role:"Master Barber",rt:4.9,cat:"barber",ini:"AK",col:"#2A4A3A"},
-  {id:"s2",nm:"Sofia M.",role:"Kosmetikerin",rt:4.8,cat:"kosmetik",ini:"SM",col:"#4A2A3A"},
-  {id:"s3",nm:"Dr. Meyer",role:"Ästhetik Arzt",rt:5.0,cat:"aesthetik",ini:"DM",col:"#1A3050"},
-  {id:"s4",nm:"Lena B.",role:"Nail Artist",rt:4.9,cat:"nail",ini:"LB",col:"#3A3828"},
-  {id:"s5",nm:"Marcus R.",role:"Senior Barber",rt:4.7,cat:"barber",ini:"MR",col:"#2A3828"},
-  {id:"s6",nm:"Julia H.",role:"Friseurmeisterin",rt:4.9,cat:"friseur",ini:"JH",col:"#3A2840"},
-  {id:"s7",nm:"Kenan A.",role:"Masseur",rt:5.0,cat:"massage",ini:"KA",col:"#1A3430"}
-];
-const PROVS=[
-  {id:"p1",cat:"barber",nm:"BlackLabel Barbershop",st:"Münchener Str. 17",city:"Frankfurt am Main",rt:4.9,rc:412,tl:"Premium Fades & Beard Design",tags:["Fade","Skin Fade","Bart"],disc:15,bc:"#C8A84B",prom:true,ver:true,live:true,frei:3,sps:["s1","s5"],svs:[{id:"sv1",nm:"Signature Cut",dur:40,pr:42},{id:"sv2",nm:"Skin Fade",dur:45,pr:48},{id:"sv3",nm:"Beard Design",dur:30,pr:28}],revs:[{u:"Tobias K.",s:5,t:"Absolut top — bester Fade in Deutschland!",d:"12.02.2026"},{u:"Markus L.",s:5,t:"Super Atmosphäre, perfektes Ergebnis.",d:"05.02.2026"}]},
-  {id:"p2",cat:"kosmetik",nm:"Glow Studio",st:"Maximilianstr. 18",city:"München",rt:4.8,rc:234,tl:"Organic Facials & Skin Care",tags:["Facial","Peeling"],disc:0,bc:"#D4829A",prom:false,ver:true,live:true,frei:2,sps:["s2"],svs:[{id:"sv4",nm:"Deep Cleanse Facial",dur:60,pr:85},{id:"sv5",nm:"Chemical Peeling",dur:45,pr:65}],revs:[{u:"Anna S.",s:5,t:"Haut strahlt — super Behandlung!",d:"08.02.2026"}]},
-  {id:"p3",cat:"aesthetik",nm:"AesthetiQ Klinik",st:"Kurfürstendamm 55",city:"Berlin",rt:5.0,rc:188,tl:"Med. Ästhetik & Anti-Aging",tags:["Botox","Filler"],disc:10,bc:"#6AAED4",prom:true,ver:true,live:false,frei:0,sps:["s3"],svs:[{id:"sv6",nm:"Botox",dur:30,pr:320},{id:"sv7",nm:"Hyaluron Filler",dur:45,pr:450}],revs:[{u:"Sandra M.",s:5,t:"Dr. Meyer ist einfach der Beste.",d:"10.02.2026"}]},
-  {id:"p4",cat:"nail",nm:"NailLab by Lena",st:"Jungfernstieg 7",city:"Hamburg",rt:4.9,rc:301,tl:"Gel Nails & Premium Nail Art",tags:["Gel","Nail Art"],disc:0,bc:"#C8A87A",prom:false,ver:true,live:true,frei:1,sps:["s4"],svs:[{id:"sv8",nm:"Gel Manicure",dur:60,pr:55},{id:"sv9",nm:"Nail Art Design",dur:90,pr:75}],revs:[{u:"Julia R.",s:5,t:"Traumhafte Nägel — immer wieder!",d:"14.02.2026"}]},
-  {id:"p5",cat:"friseur",nm:"Maison Haarwerk",st:"Königsallee 44",city:"Düsseldorf",rt:4.9,rc:318,tl:"Premium Haarschnitt & Colorationen",tags:["Damenschnitt","Herrenschnitt","Balayage"],disc:10,bc:"#9A70C8",prom:true,ver:true,live:true,frei:2,sps:["s6"],svs:[{id:"sv10",nm:"Damenschnitt & Styling",dur:60,pr:65},{id:"sv11",nm:"Herrenschnitt",dur:35,pr:38},{id:"sv12",nm:"Balayage / Highlights",dur:120,pr:120}],revs:[{u:"Klara W.",s:5,t:"Julia ist ein Goldstück — traumhafte Farbe!",d:"15.02.2026"},{u:"Tom B.",s:5,t:"Bester Haarschnitt seit Jahren.",d:"09.02.2026"}]},
-  {id:"p6",cat:"massage",nm:"ZenFlow Massage",st:"Schildergasse 12",city:"Köln",rt:5.0,rc:276,tl:"Klassische & Tiefengewebsmassagen",tags:["Klassisch","Tiefengewebe","Hot Stone"],disc:0,bc:"#4AA890",prom:true,ver:true,live:true,frei:4,sps:["s7"],svs:[{id:"sv13",nm:"Klassische Massage",dur:60,pr:75},{id:"sv14",nm:"Tiefengewebsmassage",dur:60,pr:90},{id:"sv15",nm:"Hot Stone Massage",dur:90,pr:110}],revs:[{u:"Peter N.",s:5,t:"Absolut entspannend — ich komme jede Woche!",d:"13.02.2026"},{u:"Sabine K.",s:5,t:"Kenan ist ein Profi, Verspannungen einfach weg.",d:"07.02.2026"}]}
-];
-
-// ═══════════════ STATE ═══════════════
-let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,regStep:1,regData:{vn:"",nn:"",em:"",tel:"",geschaeft:"",st:"",plz:"",city:"",kat:"",iban:"",gb:false,chair:false,cpr:"",agb:false,dsgvo:false},bookDone:false,regDone:false};
-
-function stars(n){let s="";for(let i=1;i<=5;i++)s+=`<span style="opacity:${i<=Math.round(n)?1:.3};color:#E8C86A">★</span>`;return s;}
-function badge(t,c){return`<span class="badge ${c}">${t}</span>`;}
-
-// ═══════════════ RENDER ═══════════════
-function render(){
-  const scr=document.getElementById("mainScreen");
-  const nav=document.getElementById("navBar");
-  const s=state;
-  if(!s.onboarded){nav.style.display="none";scr.innerHTML=renderOnboarding();return;}
-  if(s.subPage){nav.style.display="none";scr.innerHTML=renderSubPage();return;}
-  nav.style.display="flex";
-  ["home","explore","offers","account"].forEach(t=>{
-    const a=s.tab===t||(t==="home"&&s.detail);
-    document.getElementById("ni_"+t).style.color=a?"var(--gold)":"var(--stone)";
-    document.getElementById("nl_"+t).style.color=a?"var(--gold)":"var(--stone2)";
-  });
-  if(s.detail){scr.innerHTML=renderDetail();return;}
-  if(s.tab==="home")scr.innerHTML=renderHome();
-  else if(s.tab==="explore")scr.innerHTML=renderExplore();
-  else if(s.tab==="offers")scr.innerHTML=renderOffers();
-  else if(s.tab==="account")scr.innerHTML=renderAccount();
-  const ov=document.getElementById("bookingOverlay");
-  if(s.bookingProv){ov.classList.add("active");document.getElementById("bookingSheet").innerHTML=renderBooking();}
-  else ov.classList.remove("active");
-}
-
-// ─── ONBOARDING ───
-function renderOnboarding(){
-  const slides=[{icon:"💈",t:"Willkommen bei ChairMatch",s:"Dein Beauty-Partner in ganz Deutschland"},{icon:"💺",t:"Stuhl-Vermittlung",s:"Freie Stühle & Kabinen · 0 % Provision"},{icon:"📅",t:"Sofort buchen",s:"Termin in 30 Sekunden · Ohne Kommission"}];
-  if(state.obStep>=3)return`<div style="padding:60px 26px 40px;display:flex;flex-direction:column;gap:12px">
-    <div style="text-align:center;margin-bottom:10px">${logoHeader(false)}</div>
-    <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Ich bin...</p>
-    ${[["Kunde — ich suche Termine","CUSTOMER"],["Anbieter — ich biete Services","PROVIDER"],["B2B — Stuhl / Kabine mieten","B2B"]].map(([l,r])=>`<button class="boutline" style="padding:17px;font-size:14px;font-weight:700;text-align:left" onclick="finishOnboarding('${r}')">${l}</button>`).join("")}
-  </div>`;
-  const sl=slides[state.obStep];
-  const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
-  return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;justify-content:center;padding:30px">
-    ${state.obStep===0?`<div style="margin-bottom:10px">${logoHeader(false)}</div>`:`<div style="font-size:60px;margin-bottom:20px">${sl.icon}</div>`}
-    <p class="cinzel" style="font-size:22px;font-weight:600;margin-bottom:10px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
-    <p style="font-size:14px;color:var(--stone);line-height:1.7;margin-bottom:44px">${sl.s}</p>
-    <div style="display:flex;gap:8px;margin-bottom:30px">${dots}</div>
-    <button class="bgold" style="width:auto;padding:15px 36px;font-size:14px" onclick="nextOb()">
-      ${state.obStep<2?"Weiter →":"Los geht's"}
-    </button>
-  </div>`;}
-
-// ─── CATEGORY SVG ICONS ───
+// ─── CATEGORY SVG ICONS (v5.2) ───
 function catSVG(type){
   if(type==="friseur") return `<svg width="30" height="30" viewBox="0 0 60 60" fill="none">
     <defs>
@@ -399,35 +216,23 @@ function catSVG(type){
       </linearGradient>
       <filter id="gfF"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity=".7"/></filter>
     </defs>
-    <!-- Scissors left blade -->
     <g filter="url(#gfF)">
-      <!-- Ring left -->
       <circle cx="12" cy="44" r="8" fill="none" stroke="url(#gF)" stroke-width="2.5"/>
       <circle cx="12" cy="44" r="4" fill="url(#gF)" opacity=".35"/>
-      <!-- Ring right -->
       <circle cx="28" cy="44" r="8" fill="none" stroke="url(#gF)" stroke-width="2.5"/>
       <circle cx="28" cy="44" r="4" fill="url(#gF)" opacity=".35"/>
-      <!-- Pivot screw -->
       <circle cx="20" cy="36" r="3" fill="url(#gF)"/>
       <circle cx="20" cy="36" r="1.2" fill="#FFF0D0" opacity=".5"/>
-      <!-- Left blade -->
-      <path d="M12 37 Q14 28 22 14 Q24 10 26 9 Q24 11 23 14 Q20 22 18 29 Q17 33 17 36" 
-        fill="url(#gF)" stroke="url(#gF)" stroke-width=".5"/>
-      <!-- Right blade -->
-      <path d="M28 37 Q26 28 18 14 Q16 10 14 9 Q16 11 17 14 Q20 22 22 29 Q23 33 23 36"
-        fill="url(#gF)" stroke="url(#gF)" stroke-width=".5" opacity=".85"/>
-      <!-- Blade highlights -->
+      <path d="M12 37 Q14 28 22 14 Q24 10 26 9 Q24 11 23 14 Q20 22 18 29 Q17 33 17 36" fill="url(#gF)" stroke="url(#gF)" stroke-width=".5"/>
+      <path d="M28 37 Q26 28 18 14 Q16 10 14 9 Q16 11 17 14 Q20 22 22 29 Q23 33 23 36" fill="url(#gF)" stroke="url(#gF)" stroke-width=".5" opacity=".85"/>
       <path d="M13 35 Q16 26 23 12" stroke="#FFF0D0" stroke-width=".8" fill="none" opacity=".4" stroke-linecap="round"/>
       <path d="M27 35 Q24 26 17 12" stroke="#FFF0D0" stroke-width=".8" fill="none" opacity=".3" stroke-linecap="round"/>
-      <!-- Comb -->
       <rect x="37" y="8" width="14" height="4" rx="2" fill="url(#gF)"/>
       <rect x="37" y="12" width="14" height="34" rx="1" fill="url(#gF)" opacity=".7"/>
       ${[0,1,2,3,4,5,6].map(i=>`<rect x="${38+i*2}" y="13" width="1" height="32" rx=".5" fill="#000" opacity=".25"/>`).join('')}
-      <!-- Comb highlight -->
       <rect x="37" y="8" width="14" height="1.5" rx="1" fill="#FFF0D0" opacity=".35"/>
     </g>
   </svg>`;
-
   if(type==="massage") return `<svg width="30" height="30" viewBox="0 0 60 60" fill="none">
     <defs>
       <linearGradient id="gM" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse">
@@ -436,63 +241,37 @@ function catSVG(type){
       <filter id="gfM"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity=".7"/></filter>
     </defs>
     <g filter="url(#gfM)">
-      <!-- Left hand / palm -->
-      <path d="M8 40 Q6 34 8 28 Q9 24 13 23 Q14 20 17 20 Q18 17 21 18 Q22 15 25 17 Q27 14 29 17 L30 32 Q28 34 26 33 L25 38 Q24 42 20 43 Q16 45 12 43 Z"
-        fill="url(#gM)" opacity=".9"/>
-      <!-- Palm highlight -->
+      <path d="M8 40 Q6 34 8 28 Q9 24 13 23 Q14 20 17 20 Q18 17 21 18 Q22 15 25 17 Q27 14 29 17 L30 32 Q28 34 26 33 L25 38 Q24 42 20 43 Q16 45 12 43 Z" fill="url(#gM)" opacity=".9"/>
       <path d="M10 38 Q9 32 11 27 Q12 24 15 23" stroke="#A0FFE0" stroke-width="1" fill="none" opacity=".4" stroke-linecap="round"/>
-      <!-- Fingers detail lines -->
       <line x1="17" y1="20" x2="17" y2="30" stroke="#2A6858" stroke-width=".8" opacity=".5"/>
       <line x1="21" y1="18" x2="21" y2="30" stroke="#2A6858" stroke-width=".8" opacity=".5"/>
       <line x1="25" y1="17" x2="25" y2="30" stroke="#2A6858" stroke-width=".8" opacity=".5"/>
-      <!-- Right hand coming from top -->
-      <path d="M52 20 Q54 26 52 32 Q51 36 47 37 Q46 40 43 40 Q42 43 39 42 Q38 45 35 43 Q33 46 31 43 L30 28 Q32 26 34 27 L35 22 Q36 18 40 17 Q44 15 48 17 Z"
-        fill="url(#gM)" opacity=".75"/>
-      <!-- Right hand highlight -->
+      <path d="M52 20 Q54 26 52 32 Q51 36 47 37 Q46 40 43 40 Q42 43 39 42 Q38 45 35 43 Q33 46 31 43 L30 28 Q32 26 34 27 L35 22 Q36 18 40 17 Q44 15 48 17 Z" fill="url(#gM)" opacity=".75"/>
       <path d="M50 22 Q51 28 49 33 Q48 36 45 37" stroke="#A0FFE0" stroke-width="1" fill="none" opacity=".35" stroke-linecap="round"/>
-      <!-- Energy/flow lines between hands -->
       <path d="M30 32 Q30 36 30 38" stroke="url(#gM)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".6"/>
-      <!-- Aura dots -->
       <circle cx="30" cy="35" r="2" fill="#A0FFE0" opacity=".5"/>
       <circle cx="16" cy="14" r="1.5" fill="url(#gM)" opacity=".6"/>
       <circle cx="44" cy="46" r="1.5" fill="url(#gM)" opacity=".6"/>
       <circle cx="8" cy="22" r="1" fill="url(#gM)" opacity=".4"/>
       <circle cx="52" cy="38" r="1" fill="url(#gM)" opacity=".4"/>
-      <!-- Hot stone center -->
       <ellipse cx="30" cy="35" rx="5" ry="3.5" fill="url(#gM)" opacity=".8"/>
       <ellipse cx="30" cy="35" rx="3" ry="2" fill="#C0FFF0" opacity=".35"/>
     </g>
   </svg>`;
   return "";}
 
-// ─── CLASSIC VINTAGE BARBER CHAIR ───
+// ─── CLASSIC VINTAGE BARBER CHAIR (v5.2) ───
 function dbSeat(){
   return `<svg width="118" height="130" viewBox="0 0 118 130" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bcLeather" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#2A2420"/><stop offset="35%" stop-color="#1A1410"/><stop offset="100%" stop-color="#0E0A08"/>
-    </linearGradient>
-    <linearGradient id="bcLeatherH" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#3A3028"/><stop offset="40%" stop-color="#524840"/><stop offset="60%" stop-color="#3A3028"/><stop offset="100%" stop-color="#201810"/>
-    </linearGradient>
-    <linearGradient id="bcChrome" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#F8F4EC"/><stop offset="25%" stop-color="#D4C8A8"/><stop offset="50%" stop-color="#F0E8D0"/><stop offset="75%" stop-color="#B8A880"/><stop offset="100%" stop-color="#E8DCC0"/>
-    </linearGradient>
-    <linearGradient id="bcChromeV" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#C8B888"/><stop offset="30%" stop-color="#F8F0D8"/><stop offset="55%" stop-color="#E8D8B0"/><stop offset="100%" stop-color="#A89060"/>
-    </linearGradient>
-    <linearGradient id="bcBase" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#E8D8B0"/><stop offset="50%" stop-color="#C8A860"/><stop offset="100%" stop-color="#906830"/>
-    </linearGradient>
-    <linearGradient id="bcFootring" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#F0E4C0"/><stop offset="50%" stop-color="#C8A848"/><stop offset="100%" stop-color="#806020"/>
-    </linearGradient>
-    <filter id="bcShadow" x="-20%" y="-10%" width="140%" height="140%">
-      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".7"/>
-    </filter>
-    <filter id="bcGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#C8A84B" flood-opacity=".2"/>
-    </filter>
+    <linearGradient id="bcLeather" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#2A2420"/><stop offset="35%" stop-color="#1A1410"/><stop offset="100%" stop-color="#0E0A08"/></linearGradient>
+    <linearGradient id="bcLeatherH" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#3A3028"/><stop offset="40%" stop-color="#524840"/><stop offset="60%" stop-color="#3A3028"/><stop offset="100%" stop-color="#201810"/></linearGradient>
+    <linearGradient id="bcChrome" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#F8F4EC"/><stop offset="25%" stop-color="#D4C8A8"/><stop offset="50%" stop-color="#F0E8D0"/><stop offset="75%" stop-color="#B8A880"/><stop offset="100%" stop-color="#E8DCC0"/></linearGradient>
+    <linearGradient id="bcChromeV" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#C8B888"/><stop offset="30%" stop-color="#F8F0D8"/><stop offset="55%" stop-color="#E8D8B0"/><stop offset="100%" stop-color="#A89060"/></linearGradient>
+    <linearGradient id="bcBase" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#E8D8B0"/><stop offset="50%" stop-color="#C8A860"/><stop offset="100%" stop-color="#906830"/></linearGradient>
+    <linearGradient id="bcFootring" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="#F0E4C0"/><stop offset="50%" stop-color="#C8A848"/><stop offset="100%" stop-color="#806020"/></linearGradient>
+    <filter id="bcShadow" x="-20%" y="-10%" width="140%" height="140%"><feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".7"/></filter>
+    <filter id="bcGlow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#C8A84B" flood-opacity=".2"/></filter>
   </defs>
   <ellipse cx="59" cy="127" rx="36" ry="4" fill="#000" opacity=".5"/>
   <ellipse cx="59" cy="118" rx="34" ry="7" fill="url(#bcBase)" filter="url(#bcShadow)"/>
@@ -540,34 +319,163 @@ function dbSeat(){
   <ellipse cx="112" cy="80.5" rx="2" ry="2" fill="#FFF8E0" opacity=".5"/>
 </svg>`;}
 
-// ─── HOME ───
+// ═══════════════ i18n ═══════════════
+const LANG={
+  de:{welcome:"Willkommen bei ChairMatch",subtitle:"Dein Beauty-Partner in ganz Deutschland",chair:"Stuhl-Vermittlung",chairSub:"Freie Stühle & Kabinen · 0 % Provision",book:"Sofort buchen",bookSub:"Termin in 30 Sekunden · Ohne Kommission",iAm:"Ich bin...",customer:"Kunde — ich suche Termine",provider:"Anbieter — ich biete Services",b2b:"B2B — Stuhl / Kabine mieten",next:"Weiter →",go:"Los geht's",morning:"Guten Morgen",afternoon:"Guten Tag",evening:"Guten Abend",nationwide:"Deutschlandweit buchen",search:"Stadt, Name, Service...",categories:"Kategorien",all:"Alle",topSpecs:"Top Spezialisten",availToday:"Heute verfügbar",allProviders:"Alle Anbieter",found:"gefunden",from:"ab",available:"verfügbar",soldOut:"Ausgebucht",offers:"Angebote",discount:"Rabatt",bookNow:"Jetzt buchen",refer:"Freunde werben",referSub:"Du & dein Freund erhalten je 5 €",shareLink:"Link teilen",perRef:"pro Empfehlung",back:"← Zurück",buchen:"Buchen",info:"Info",services:"Services",team:"Team",reviews:"Bewertungen",gallery:"Galerie",whyUs:"Warum ChairMatch?",noComm:"0 % Provision",vs:"vs. 35% bei Treatwell",direct:"Direktbuchung",noDetour:"Kein Umweg",verified:"Verifiziert",checked:"Gewerbeschein geprüft",service:"Service",day:"Tag",time:"Uhrzeit",specialist:"Spezialist",contact:"Kontakt",name:"Name",email:"E-Mail",step:"Schritt",confirm:"Bestätigt!",total:"Gesamt",noFee:"0 % Buchungsgebühr · Kostenlose Stornierung 24h",done:"Fertig",shareWA:"Per WhatsApp teilen",favs:"Favoriten",noFavs:"Noch keine Favoriten",noFavsSub:"Tippe ♡ um Salons zu speichern",account:"Konto",bookings:"Buchungen",legal:"Rechtliches",privacy:"Datenschutzerklärung (DSGVO)",imprint:"Impressum",register:"Als Anbieter registrieren",loyalty:"Treuekarte",stampsOf:"Stempel",freeService:"Gratis-Service!",loyaltySub:"Sammle Stempel bei jeder Buchung",lang:"Sprache",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Benachrichtigungen",filter:"Filter",priceRange:"Preis",minRating:"Min. Bewertung",city:"Stadt",allCities:"Alle Städte",onlyAvail:"Nur verfügbar",onlyDiscount:"Nur Rabatt",apply:"Anwenden",reset:"Zurücksetzen",map:"Karte",list:"Liste",promoTitle:"Spare bis zu 15%",promoSub:"auf erste Buchung",promoCode:"Code: CHAIR2026",noResults:"Keine Ergebnisse",tryOther:"Versuche andere Filter",confirmed:"Bestätigt",pending:"Ausstehend",cancelled:"Storniert",chairRent:"Stuhl vermieten",premChair:"Premium Stuhl & Kabinen",zeroComm:"0 % Provision · Deutschlandweit",becomeProvider:"→ Anbieter werden",refBalance:"Referral Guthaben",recommend:"Empfehlen",special:"SONDERANGEBOT",before:"Vorher",after:"Nachher",phone:"Telefon",linkCopied:"Link kopiert!",writeReview:"Bewertung schreiben",reviewPlaceholder:"Wie war dein Erlebnis?",submitReview:"Absenden",reviewSubmitted:"Bewertung abgeschickt!",promoApply:"Anwenden",promoInvalid:"Ungültiger Code",promoApplied:"Code angewendet!",enterPromo:"Promo-Code eingeben",redeemNow:"Jetzt einlösen",redeemed:"Eingelöst!",loyaltyRedeemMsg:"Gratis-Service eingelöst!",cancelBooking:"Stornieren",cancelConfirm:"Termin wirklich stornieren?",bookingCancelled:"Termin storniert",noBookings:"Keine Buchungen",noBookingsSub:"Buche deinen ersten Termin",specialRequests:"Besondere Wünsche",notesPlaceholder:"z.B. Allergien, Wünsche...",noNotifications:"Keine Benachrichtigungen",noNotificationsSub:"Du bist auf dem neuesten Stand!"},
+  en:{welcome:"Welcome to ChairMatch",subtitle:"Your Beauty Partner across Germany",chair:"Chair Brokerage",chairSub:"Free chairs & cabins · 0% commission",book:"Book instantly",bookSub:"Appointment in 30 seconds · No commission",iAm:"I am...",customer:"Customer — looking for appointments",provider:"Provider — offering services",b2b:"B2B — rent a chair / cabin",next:"Next →",go:"Let's go!",morning:"Good Morning",afternoon:"Good Afternoon",evening:"Good Evening",nationwide:"Book nationwide",search:"City, name, service...",categories:"Categories",all:"All",topSpecs:"Top Specialists",availToday:"Available today",allProviders:"All Providers",found:"found",from:"from",available:"available",soldOut:"Sold out",offers:"Offers",discount:"Discount",bookNow:"Book now",refer:"Refer Friends",referSub:"You & your friend each get €5",shareLink:"Share link",perRef:"per referral",back:"← Back",buchen:"Book",info:"Info",services:"Services",team:"Team",reviews:"Reviews",gallery:"Gallery",whyUs:"Why ChairMatch?",noComm:"0% commission",vs:"vs. 35% at Treatwell",direct:"Direct booking",noDetour:"No detour",verified:"Verified",checked:"Business license checked",service:"Service",day:"Day",time:"Time",specialist:"Specialist",contact:"Contact",name:"Name",email:"Email",step:"Step",confirm:"Confirmed!",total:"Total",noFee:"0% booking fee · Free cancellation 24h",done:"Done",shareWA:"Share via WhatsApp",favs:"Favorites",noFavs:"No favorites yet",noFavsSub:"Tap ♡ to save salons",account:"Account",bookings:"Bookings",legal:"Legal",privacy:"Privacy Policy (GDPR)",imprint:"Imprint",register:"Register as provider",loyalty:"Loyalty Card",stampsOf:"stamps",freeService:"Free service!",loyaltySub:"Collect stamps with every booking",lang:"Language",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Notifications",filter:"Filter",priceRange:"Price",minRating:"Min. Rating",city:"City",allCities:"All cities",onlyAvail:"Available only",onlyDiscount:"Discount only",apply:"Apply",reset:"Reset",map:"Map",list:"List",promoTitle:"Save up to 15%",promoSub:"on first booking",promoCode:"Code: CHAIR2026",noResults:"No results",tryOther:"Try different filters",confirmed:"Confirmed",pending:"Pending",cancelled:"Cancelled",chairRent:"Rent a chair",premChair:"Premium Chairs & Cabins",zeroComm:"0% Commission · Nationwide",becomeProvider:"→ Become a provider",refBalance:"Referral Balance",recommend:"Recommend",special:"SPECIAL OFFER",before:"Before",after:"After",phone:"Phone",linkCopied:"Link copied!",writeReview:"Write a review",reviewPlaceholder:"How was your experience?",submitReview:"Submit",reviewSubmitted:"Review submitted!",promoApply:"Apply",promoInvalid:"Invalid code",promoApplied:"Code applied!",enterPromo:"Enter promo code",redeemNow:"Redeem now",redeemed:"Redeemed!",loyaltyRedeemMsg:"Free service redeemed!",cancelBooking:"Cancel",cancelConfirm:"Really cancel appointment?",bookingCancelled:"Booking cancelled",noBookings:"No bookings",noBookingsSub:"Book your first appointment",specialRequests:"Special requests",notesPlaceholder:"e.g. allergies, preferences...",noNotifications:"No notifications",noNotificationsSub:"You're all caught up!"},
+  tr:{welcome:"ChairMatch'e Hoş Geldiniz",subtitle:"Almanya genelinde güzellik ortağınız",chair:"Koltuk Aracılığı",chairSub:"Boş koltuklar & kabinler · %0 komisyon",book:"Hemen randevu al",bookSub:"30 saniyede randevu · Komisyonsuz",iAm:"Ben...",customer:"Müşteri — randevu arıyorum",provider:"Hizmet veren — hizmet sunuyorum",b2b:"B2B — koltuk / kabin kiralama",next:"İleri →",go:"Başlayalım!",morning:"Günaydın",afternoon:"İyi Günler",evening:"İyi Akşamlar",nationwide:"Almanya genelinde rezervasyon",search:"Şehir, isim, hizmet...",categories:"Kategoriler",all:"Tümü",topSpecs:"En İyi Uzmanlar",availToday:"Bugün müsait",allProviders:"Tüm Sağlayıcılar",found:"bulundu",from:"dan",available:"müsait",soldOut:"Dolu",offers:"Teklifler",discount:"İndirim",bookNow:"Şimdi rezerve et",refer:"Arkadaşını Davet Et",referSub:"Sen ve arkadaşın 5€ kazanır",shareLink:"Link paylaş",perRef:"davet başına",back:"← Geri",buchen:"Rezerve Et",info:"Bilgi",services:"Hizmetler",team:"Ekip",reviews:"Değerlendirmeler",gallery:"Galeri",whyUs:"Neden ChairMatch?",noComm:"%0 komisyon",vs:"Treatwell'de %35'e karşı",direct:"Direkt rezervasyon",noDetour:"Aracısız",verified:"Doğrulanmış",checked:"İşletme belgesi kontrol edildi",service:"Hizmet",day:"Gün",time:"Saat",specialist:"Uzman",contact:"İletişim",name:"İsim",email:"E-Posta",step:"Adım",confirm:"Onaylandı!",total:"Toplam",noFee:"%0 rezervasyon ücreti · 24 saat ücretsiz iptal",done:"Tamam",shareWA:"WhatsApp ile paylaş",favs:"Favoriler",noFavs:"Henüz favori yok",noFavsSub:"Salonları kaydetmek için ♡ tıklayın",account:"Hesap",bookings:"Rezervasyonlar",legal:"Yasal",privacy:"Gizlilik Politikası (KVKK)",imprint:"Künye",register:"Sağlayıcı olarak kayıt ol",loyalty:"Sadakat Kartı",stampsOf:"damga",freeService:"Ücretsiz hizmet!",loyaltySub:"Her rezervasyonda damga toplayın",lang:"Dil",theme:"Tasarım",darkMode:"Koyu Mod",lightMode:"Açık Mod",notifications:"Bildirimler",filter:"Filtre",priceRange:"Fiyat",minRating:"Min. Puan",city:"Şehir",allCities:"Tüm şehirler",onlyAvail:"Sadece müsait",onlyDiscount:"Sadece indirimli",apply:"Uygula",reset:"Sıfırla",map:"Harita",list:"Liste",promoTitle:"%15'e kadar tasarruf",promoSub:"ilk rezervasyonda",promoCode:"Kod: CHAIR2026",noResults:"Sonuç yok",tryOther:"Farklı filtre deneyin",confirmed:"Onaylandı",pending:"Beklemede",cancelled:"İptal",chairRent:"Koltuk kirala",premChair:"Premium Koltuk & Kabinler",zeroComm:"%0 Komisyon · Almanya Geneli",becomeProvider:"→ Sağlayıcı ol",refBalance:"Referans Bakiyesi",recommend:"Tavsiye Et",special:"ÖZEL TEKLİF",before:"Önce",after:"Sonra",phone:"Telefon",linkCopied:"Link kopyalandı!",writeReview:"Değerlendirme yaz",reviewPlaceholder:"Deneyimin nasıldı?",submitReview:"Gönder",reviewSubmitted:"Değerlendirme gönderildi!",promoApply:"Uygula",promoInvalid:"Geçersiz kod",promoApplied:"Kod uygulandı!",enterPromo:"Promo kodu girin",redeemNow:"Şimdi kullan",redeemed:"Kullanıldı!",loyaltyRedeemMsg:"Ücretsiz hizmet kullanıldı!",cancelBooking:"İptal et",cancelConfirm:"Randevuyu iptal etmek istiyor musunuz?",bookingCancelled:"Randevu iptal edildi",noBookings:"Rezervasyon yok",noBookingsSub:"İlk randevunuzu alın",specialRequests:"Özel istekler",notesPlaceholder:"ör. alerji, tercihler...",noNotifications:"Bildirim yok",noNotificationsSub:"Her şey güncel!"}
+};
+function t(key){return LANG[state.lang]?.[key]||LANG.de[key]||key;}
+
+// ═══════════════ DATA ═══════════════
+const CATS=[
+  {id:"barber",lbl:"Barbershop",sub:"Fade · Cut · Bart"},
+  {id:"friseur",lbl:"Friseur",sub:"Schnitt · Farbe · Styling"},
+  {id:"kosmetik",lbl:"Kosmetik",sub:"Facial · Peeling"},
+  {id:"aesthetik",lbl:"Ästhetik",sub:"Botox · Filler"},
+  {id:"nail",lbl:"Nails",sub:"Gel · Nail Art"},
+  {id:"massage",lbl:"Massage",sub:"Wellness · Therapie"}
+];
+const SPECS=[
+  {id:"s1",nm:"Ahmed K.",role:"Master Barber",rt:4.9,cat:"barber",ini:"AK",col:"#2A4A3A"},
+  {id:"s2",nm:"Sofia M.",role:"Kosmetikerin",rt:4.8,cat:"kosmetik",ini:"SM",col:"#4A2A3A"},
+  {id:"s3",nm:"Dr. Meyer",role:"Ästhetik Arzt",rt:5.0,cat:"aesthetik",ini:"DM",col:"#1A3050"},
+  {id:"s4",nm:"Lena B.",role:"Nail Artist",rt:4.9,cat:"nail",ini:"LB",col:"#3A3828"},
+  {id:"s5",nm:"Marcus R.",role:"Senior Barber",rt:4.7,cat:"barber",ini:"MR",col:"#2A3828"},
+  {id:"s6",nm:"Julia H.",role:"Friseurmeisterin",rt:4.9,cat:"friseur",ini:"JH",col:"#3A2840"},
+  {id:"s7",nm:"Kenan A.",role:"Masseur",rt:5.0,cat:"massage",ini:"KA",col:"#1A3430"},
+  {id:"s8",nm:"Elif T.",role:"Friseurin",rt:4.8,cat:"friseur",ini:"ET",col:"#3A2048"},
+  {id:"s9",nm:"Jan W.",role:"Barber",rt:4.6,cat:"barber",ini:"JW",col:"#283A28"},
+  {id:"s10",nm:"Sarah L.",role:"Kosmetikerin",rt:4.9,cat:"kosmetik",ini:"SL",col:"#4A2848"},
+  {id:"s11",nm:"Mia K.",role:"Nail Designerin",rt:4.8,cat:"nail",ini:"MK",col:"#38382A"},
+  {id:"s12",nm:"Timo F.",role:"Masseur",rt:4.7,cat:"massage",ini:"TF",col:"#1A3028"}
+];
+const PROVS=[
+  {id:"p1",cat:"barber",nm:"BlackLabel Barbershop",st:"Münchener Str. 17",city:"Frankfurt",rt:4.9,rc:412,tl:"Premium Fades & Beard Design",tags:["Fade","Skin Fade","Bart"],disc:15,bc:"#C8A84B",prom:true,ver:true,live:true,frei:3,sps:["s1","s5"],svs:[{id:"sv1",nm:"Signature Cut",dur:40,pr:42},{id:"sv2",nm:"Skin Fade",dur:45,pr:48},{id:"sv3",nm:"Beard Design",dur:30,pr:28}],revs:[{u:"Tobias K.",s:5,t:"Absolut top!",d:"12.02.2026"},{u:"Markus L.",s:5,t:"Super Atmosphäre.",d:"05.02.2026"}],gal:[{b:"#3A2818",a:"#5A4828",sv:"Skin Fade"},{b:"#2A1A10",a:"#4A3A20",sv:"Beard Design"}]},
+  {id:"p2",cat:"kosmetik",nm:"Glow Studio",st:"Maximilianstr. 18",city:"München",rt:4.8,rc:234,tl:"Organic Facials & Skin Care",tags:["Facial","Peeling"],disc:0,bc:"#D4829A",prom:false,ver:true,live:true,frei:2,sps:["s2","s10"],svs:[{id:"sv4",nm:"Deep Cleanse Facial",dur:60,pr:85},{id:"sv5",nm:"Chemical Peeling",dur:45,pr:65}],revs:[{u:"Anna S.",s:5,t:"Haut strahlt!",d:"08.02.2026"}],gal:[{b:"#3A2028",a:"#5A3848",sv:"Facial"}]},
+  {id:"p3",cat:"aesthetik",nm:"AesthetiQ Klinik",st:"Kurfürstendamm 55",city:"Berlin",rt:5.0,rc:188,tl:"Med. Ästhetik & Anti-Aging",tags:["Botox","Filler"],disc:10,bc:"#6AAED4",prom:true,ver:true,live:false,frei:0,sps:["s3"],svs:[{id:"sv6",nm:"Botox",dur:30,pr:320},{id:"sv7",nm:"Hyaluron Filler",dur:45,pr:450}],revs:[{u:"Sandra M.",s:5,t:"Dr. Meyer ist der Beste.",d:"10.02.2026"}],gal:[]},
+  {id:"p4",cat:"nail",nm:"NailLab by Lena",st:"Jungfernstieg 7",city:"Hamburg",rt:4.9,rc:301,tl:"Gel Nails & Premium Nail Art",tags:["Gel","Nail Art"],disc:0,bc:"#C8A87A",prom:false,ver:true,live:true,frei:1,sps:["s4","s11"],svs:[{id:"sv8",nm:"Gel Manicure",dur:60,pr:55},{id:"sv9",nm:"Nail Art Design",dur:90,pr:75}],revs:[{u:"Julia R.",s:5,t:"Traumhafte Nägel!",d:"14.02.2026"}],gal:[{b:"#2A2818",a:"#4A4828",sv:"Gel"},{b:"#281828",a:"#483848",sv:"Nail Art"}]},
+  {id:"p5",cat:"friseur",nm:"Maison Haarwerk",st:"Königsallee 44",city:"Düsseldorf",rt:4.9,rc:318,tl:"Premium Haarschnitt & Colorationen",tags:["Damenschnitt","Herrenschnitt","Balayage"],disc:10,bc:"#9A70C8",prom:true,ver:true,live:true,frei:2,sps:["s6"],svs:[{id:"sv10",nm:"Damenschnitt & Styling",dur:60,pr:65},{id:"sv11",nm:"Herrenschnitt",dur:35,pr:38},{id:"sv12",nm:"Balayage / Highlights",dur:120,pr:120}],revs:[{u:"Klara W.",s:5,t:"Traumhafte Farbe!",d:"15.02.2026"},{u:"Tom B.",s:5,t:"Bester Haarschnitt.",d:"09.02.2026"}],gal:[{b:"#2A1828",a:"#4A3048",sv:"Balayage"},{b:"#1A1828",a:"#3A3048",sv:"Damenschnitt"}]},
+  {id:"p6",cat:"massage",nm:"ZenFlow Massage",st:"Schildergasse 12",city:"Köln",rt:5.0,rc:276,tl:"Klassische & Tiefengewebsmassagen",tags:["Klassisch","Tiefengewebe","Hot Stone"],disc:0,bc:"#4AA890",prom:true,ver:true,live:true,frei:4,sps:["s7"],svs:[{id:"sv13",nm:"Klassische Massage",dur:60,pr:75},{id:"sv14",nm:"Tiefengewebsmassage",dur:60,pr:90},{id:"sv15",nm:"Hot Stone Massage",dur:90,pr:110}],revs:[{u:"Peter N.",s:5,t:"Absolut entspannend!",d:"13.02.2026"},{u:"Sabine K.",s:5,t:"Kenan ist ein Profi.",d:"07.02.2026"}],gal:[]},
+  {id:"p7",cat:"barber",nm:"King's Cut Berlin",st:"Torstraße 89",city:"Berlin",rt:4.8,rc:189,tl:"Urban Barbershop Culture",tags:["Fade","Razor","Bart"],disc:20,bc:"#D4A840",prom:true,ver:true,live:true,frei:2,sps:["s9"],svs:[{id:"sv16",nm:"Classic Cut",dur:35,pr:35},{id:"sv17",nm:"Hot Towel Shave",dur:30,pr:30},{id:"sv18",nm:"Full Service",dur:60,pr:58}],revs:[{u:"Leon M.",s:5,t:"Bester Barber in Berlin!",d:"18.02.2026"},{u:"Felix A.",s:4,t:"Super Ergebnis.",d:"11.02.2026"}],gal:[{b:"#2A2010",a:"#4A4020",sv:"Fade"}]},
+  {id:"p8",cat:"friseur",nm:"Haarmonie Stuttgart",st:"Calwer Str. 22",city:"Stuttgart",rt:4.7,rc:156,tl:"Nachhaltige Friseur-Kunst",tags:["Bio","Vegan","Balayage"],disc:0,bc:"#7AB870",prom:false,ver:true,live:true,frei:3,sps:["s8"],svs:[{id:"sv19",nm:"Bio Haarschnitt",dur:45,pr:52},{id:"sv20",nm:"Vegan Coloration",dur:90,pr:95}],revs:[{u:"Marie S.",s:5,t:"Endlich ein nachhaltiger Salon!",d:"20.02.2026"}],gal:[{b:"#182A18",a:"#284A28",sv:"Bio"}]},
+  {id:"p9",cat:"kosmetik",nm:"Skin Atelier",st:"Neuer Wall 15",city:"Hamburg",rt:4.9,rc:210,tl:"Luxus Hautpflege & Treatments",tags:["Microneedling","Facial","Anti-Aging"],disc:15,bc:"#C880A0",prom:true,ver:true,live:true,frei:1,sps:["s10"],svs:[{id:"sv21",nm:"Luxus Facial",dur:75,pr:120},{id:"sv22",nm:"Microneedling",dur:60,pr:150}],revs:[{u:"Lisa W.",s:5,t:"Beste Behandlung ever!",d:"22.02.2026"}],gal:[{b:"#2A1828",a:"#4A3040",sv:"Facial"}]},
+  {id:"p10",cat:"massage",nm:"Lotus Wellness",st:"Hohenzollernring 33",city:"Köln",rt:4.8,rc:198,tl:"Asiatische Massage-Tradition",tags:["Thai","Shiatsu","Aromatherapie"],disc:0,bc:"#60A8A0",prom:false,ver:true,live:true,frei:5,sps:["s12"],svs:[{id:"sv23",nm:"Thai Massage",dur:60,pr:70},{id:"sv24",nm:"Shiatsu",dur:75,pr:85},{id:"sv25",nm:"Aromatherapie",dur:90,pr:100}],revs:[{u:"Hans B.",s:5,t:"Wie in Thailand!",d:"16.02.2026"}],gal:[]},
+  {id:"p11",cat:"nail",nm:"Glitter & Glow Nails",st:"Zeil 28",city:"Frankfurt",rt:4.7,rc:145,tl:"Trendy Nail Art Studio",tags:["Chrome","Airbrush","Extensions"],disc:10,bc:"#C0A0D0",prom:false,ver:true,live:true,frei:2,sps:["s11"],svs:[{id:"sv26",nm:"Chrome Nails",dur:75,pr:65},{id:"sv27",nm:"Airbrush Design",dur:90,pr:85}],revs:[{u:"Lara T.",s:4,t:"Coole Designs!",d:"19.02.2026"}],gal:[{b:"#281838",a:"#483058",sv:"Chrome"}]},
+  {id:"p12",cat:"aesthetik",nm:"Face Perfect München",st:"Leopoldstr. 31",city:"München",rt:4.9,rc:167,tl:"Lippenunterspritzung & Profhilo",tags:["Lippen","Profhilo","Mesotherapie"],disc:0,bc:"#80A8D8",prom:true,ver:true,live:true,frei:1,sps:["s3"],svs:[{id:"sv28",nm:"Lippen Filler",dur:30,pr:380},{id:"sv29",nm:"Profhilo",dur:45,pr:420}],revs:[{u:"Nina G.",s:5,t:"Natürliches Ergebnis!",d:"21.02.2026"}],gal:[]}
+];
+const CITIES=[...new Set(PROVS.map(p=>p.city))].sort();
+const PROMO_CODES={"CHAIR2026":{discount:15,type:"percent"},"WELCOME10":{discount:10,type:"percent"},"BEAUTY5":{discount:5,type:"fixed"}};
+const NOTIFS=[
+  {id:"n1",title:"Termin morgen!",body:"Skin Fade bei BlackLabel · Mi 10:00",time:"vor 2 Std.",read:false,icon:"📅"},
+  {id:"n2",title:"15% Rabatt",body:"Exklusiv für dich bei King's Cut Berlin",time:"vor 5 Std.",read:false,icon:"🎉"},
+  {id:"n3",title:"Neue Bewertung",body:"Tobias K. hat BlackLabel bewertet",time:"Gestern",read:true,icon:"⭐"},
+  {id:"n4",title:"Willkommen!",body:"Entdecke die besten Salons in deiner Nähe",time:"vor 2 Tagen",read:true,icon:"👋"}
+];
+
+// ═══════════════ STATE ═══════════════
+let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,
+  lang:"de",theme:"dark",favorites:JSON.parse(localStorage.getItem("cm_favs")||"[]"),stamps:parseInt(localStorage.getItem("cm_stamps")||"4"),
+  searchQuery:"",searchOpen:false,showFilter:false,filterCity:"all",filterMinRating:0,filterMaxPrice:500,filterOnlyAvail:false,filterOnlyDisc:false,
+  viewMode:"list",notifications:[...NOTIFS],
+  bookName:"",bookEmail:"",bookPhone:"",bookNotes:"",
+  promoCode:"",promoValid:null,promoDiscount:0,
+  reviewRating:0,reviewText:"",
+  bookings:JSON.parse(localStorage.getItem("cm_bookings")||"[]"),
+  loyaltyRedeemed:JSON.parse(localStorage.getItem("cm_redeemed")||"false"),
+  regStep:1,regData:{vn:"",nn:"",em:"",tel:"",geschaeft:"",st:"",plz:"",city:"",kat:"",iban:"",gb:false,chair:false,cpr:"",agb:false,dsgvo:false},bookDone:false,regDone:false
+};
+if(localStorage.getItem("cm_theme")==="light"){state.theme="light";document.body.classList.add("light");}
+if(localStorage.getItem("cm_lang"))state.lang=localStorage.getItem("cm_lang");
+
+function saveFavs(){localStorage.setItem("cm_favs",JSON.stringify(state.favorites));}
+function saveStamps(){localStorage.setItem("cm_stamps",state.stamps);}
+function stars(n){let s="";for(let i=1;i<=5;i++)s+=`<span style="opacity:${i<=Math.round(n)?1:.3};color:#E8C86A">★</span>`;return s;}
+function badge(tx,c){return`<span class="badge ${c}">${tx}</span>`;}
+function showToast(msg){const d=document.createElement("div");d.className="toast";d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2500);}
+function toggleFav(id,e){if(e)e.stopPropagation();const i=state.favorites.indexOf(id);if(i>-1){state.favorites.splice(i,1);showToast("Favorit entfernt");}else{state.favorites.push(id);showToast("Zu Favoriten hinzugefügt ♡");}saveFavs();render();}
+function getFiltered(){let list=PROVS;if(state.catFilter!=="all")list=list.filter(p=>p.cat===state.catFilter);if(state.searchQuery){const q=state.searchQuery.toLowerCase();list=list.filter(p=>p.nm.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||p.tags.some(tg=>tg.toLowerCase().includes(q))||p.cat.toLowerCase().includes(q));}
+if(state.filterCity!=="all")list=list.filter(p=>p.city===state.filterCity);if(state.filterMinRating>0)list=list.filter(p=>p.rt>=state.filterMinRating);if(state.filterMaxPrice<500)list=list.filter(p=>p.svs.some(sv=>sv.pr<=state.filterMaxPrice));if(state.filterOnlyAvail)list=list.filter(p=>p.live);if(state.filterOnlyDisc)list=list.filter(p=>p.disc>0);return list;}
+function activeFilterCount(){let c=0;if(state.filterCity!=="all")c++;if(state.filterMinRating>0)c++;if(state.filterMaxPrice<500)c++;if(state.filterOnlyAvail)c++;if(state.filterOnlyDisc)c++;return c;}
+
+// ═══════════════ RENDER ═══════════════
+function render(){
+  const scr=document.getElementById("mainScreen");
+  const nav=document.getElementById("navBar");
+  if(!state.onboarded){nav.style.display="none";scr.innerHTML=renderOnboarding();return;}
+  if(state.subPage){nav.style.display="none";scr.innerHTML=renderSubPage();return;}
+  nav.style.display="flex";
+  ["home","explore","favorites","offers","account"].forEach(tb=>{
+    const a=state.tab===tb||(tb==="home"&&state.detail);
+    const el_i=document.getElementById("ni_"+tb);
+    const el_l=document.getElementById("nl_"+tb);
+    if(el_i)el_i.style.color=a?"var(--gold)":"var(--stone)";
+    if(el_l)el_l.style.color=a?"var(--gold)":"var(--stone2)";
+  });
+  if(state.detail)scr.innerHTML=renderDetail();
+  else if(state.tab==="home")scr.innerHTML=renderHome();
+  else if(state.tab==="explore")scr.innerHTML=renderExplore();
+  else if(state.tab==="favorites")scr.innerHTML=renderFavorites();
+  else if(state.tab==="offers")scr.innerHTML=renderOffers();
+  else if(state.tab==="account")scr.innerHTML=renderAccount();
+  const ov=document.getElementById("bookingOverlay");
+  if(state.bookingProv){ov.classList.add("active");document.getElementById("bookingSheet").innerHTML=renderBooking();}
+  else ov.classList.remove("active");
+  const fov=document.getElementById("filterOverlay");
+  if(state.showFilter){fov.classList.add("active");document.getElementById("filterSheet").innerHTML=renderFilterSheet();}
+  else fov.classList.remove("active");
+}
+
+// ─── ONBOARDING ───
+function renderOnboarding(){
+  const slides=[{icon:"💈",t:t("welcome"),s:t("subtitle")},{icon:"💺",t:t("chair"),s:t("chairSub")},{icon:"📅",t:t("book"),s:t("bookSub")}];
+  if(state.obStep>=3)return`<div style="padding:60px 26px 40px;display:flex;flex-direction:column;gap:12px">
+    <div style="text-align:center;margin-bottom:10px">${logoHeader(false)}</div>
+    <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">${t("iAm")}</p>
+    ${[[t("customer"),"CUSTOMER"],[t("provider"),"PROVIDER"],[t("b2b"),"B2B"]].map(([l,r])=>`<button class="boutline" style="padding:17px;font-size:14px;font-weight:700;text-align:left" onclick="finishOnboarding('${r}')">${l}</button>`).join("")}
+  </div>`;
+  const sl=slides[state.obStep];
+  const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
+  return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;justify-content:center;padding:30px">
+    ${state.obStep===0?`<div style="margin-bottom:10px">${logoHeader(false)}</div>`:`<div style="font-size:60px;margin-bottom:20px">${sl.icon}</div>`}
+    <p class="cinzel" style="font-size:22px;font-weight:600;margin-bottom:10px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
+    <p style="font-size:14px;color:var(--stone);line-height:1.7;margin-bottom:44px">${sl.s}</p>
+    <div style="display:flex;gap:8px;margin-bottom:30px">${dots}</div>
+    <button class="bgold" style="width:auto;padding:15px 36px;font-size:14px" onclick="nextOb()">
+      ${state.obStep<2?t("next"):t("go")}
+    </button>
+  </div>`;}
+
+// ─── HOME (v5.2 grid layout + v6.0 features) ───
 function renderHome(){
   const f=state.catFilter;
-  const list=PROVS.filter(p=>f==="all"||p.cat===f);
+  const list=getFiltered();
   const h2=new Date().getHours();
-  const gr=h2<12?"Guten Morgen":h2<17?"Guten Tag":"Guten Abend";
+  const gr=h2<12?t("morning"):h2<17?t("afternoon"):t("evening");
   const catIcons={barber:"💈",friseur:catSVG("friseur"),kosmetik:"✨",aesthetik:"⚕️",nail:"💅",massage:catSVG("massage")};
   const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890"};
+  const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
-    <div onclick="setCat('${c.id}')" style="width:calc(33.33% - 7px);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 12px;border-radius:16px;background:${f===c.id?"rgba(200,168,75,.07)":"var(--c2)"};border:1.5px solid ${f===c.id?"var(--gold)":"rgba(200,168,75,.08)"};cursor:pointer;position:relative">
+    <div onclick="setCat('${c.id}')" style="width:calc(33.33% - 7px);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 12px;border-radius:16px;background:${f===c.id?"rgba(200,168,75,.07)":"var(--c2)"};border:1.5px solid ${f===c.id?"var(--gold)":"var(--border)"};cursor:pointer;position:relative">
       ${f===c.id?`<div style="position:absolute;top:5px;right:5px;width:14px;height:14px;border-radius:50%;background:var(--gold);font-size:7px;font-weight:900;color:#080706;display:flex;align-items:center;justify-content:center">✓</div>`:""}
       <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--c3),var(--c4));border:1px solid rgba(200,168,75,.15);display:flex;align-items:center;justify-content:center;${["friseur","massage"].includes(c.id)?"":"font-size:22px"}">${catIcons[c.id]}</div>
       <span style="font-size:10px;font-weight:800;color:${f===c.id?"var(--gold2)":"var(--cream)"};text-align:center;letter-spacing:.03em">${c.lbl}</span>
       <span style="font-size:9px;color:var(--stone);text-align:center;line-height:1.2">${c.sub}</span>
     </div>`).join("");
   const provCards=list.map(p=>`
-    <div class="card" onclick="openDetail('${p.id}')" style="cursor:pointer">
+    <div class="card fu" onclick="openDetail('${p.id}')" style="cursor:pointer">
       <div style="height:3px;background:${p.bc}"></div>
       <div style="padding:13px 15px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px">
           <div style="flex:1">
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">
-              ${p.prom?badge("⚡ Top","bgd"):""}${p.ver?badge("✓ Verifiziert","bgr"):""}${p.disc>0?badge("−"+p.disc+"%","brd"):""}
+              ${p.prom?badge("⚡ Top","bgd"):""}${p.ver?badge("✓ "+t("verified"),"bgr"):""}${p.disc>0?badge("−"+p.disc+"%","brd"):""}
             </div>
             <p style="font-size:15px;font-weight:800">${p.nm}</p>
             <p style="font-size:12px;color:var(--stone)">${p.st} · ${p.city}</p>
           </div>
-          <div style="text-align:right;flex-shrink:0">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <span class="heart ${state.favorites.includes(p.id)?'liked':''}" onclick="toggleFav('${p.id}',event)" style="font-size:18px">${state.favorites.includes(p.id)?'♥':'♡'}</span>
             <div style="display:flex;align-items:center;gap:3px">${stars(p.rt)}<span style="font-size:12px;font-weight:700;color:var(--gold2)">${p.rt}</span></div>
             <span style="font-size:11px;color:var(--stone)">(${p.rc})</span>
           </div>
@@ -575,9 +483,9 @@ function renderHome(){
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;gap:4px;align-items:center">
             <div style="width:7px;height:7px;border-radius:50%;background:${p.live?"#4A8A5A":"#C04040"}"></div>
-            <span style="font-size:11px;color:${p.live?"#6ABF80":"var(--stone)"}">${p.live?p.frei+" verfügbar":"Ausgebucht"}</span>
+            <span style="font-size:11px;color:${p.live?"#6ABF80":"var(--stone)"}">${p.live?p.frei+" "+t("available"):t("soldOut")}</span>
           </div>
-          <span style="font-size:13px;font-weight:800;color:var(--gold2)">ab ${p.svs[0].pr} €</span>
+          <span style="font-size:13px;font-weight:800;color:var(--gold2)">${t("from")} ${p.svs[0].pr} €</span>
         </div>
       </div>
     </div>`).join("");
@@ -585,43 +493,52 @@ function renderHome(){
     <!-- LOGO HERO -->
     <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:center">
       ${logoHeader(true)}
-      <div style="text-align:right">
-        <p style="font-size:13px;font-weight:600;color:var(--cream)">${gr}</p>
-        <p style="font-size:11px;color:var(--stone)">Deutschlandweit buchen</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="goSub('notifications')" style="position:relative;font-size:20px">${state.notifications.filter(n=>!n.read).length>0?`<span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red)"></span>`:""} 🔔</button>
+        <div style="text-align:right">
+          <p style="font-size:13px;font-weight:600;color:var(--cream)">${gr}</p>
+          <p style="font-size:11px;color:var(--stone)">${t("nationwide")}</p>
+        </div>
       </div>
     </div>
 
     <!-- PROMO BANNER -->
     <div style="margin:14px 20px" class="fu d1">
       <div class="card" style="padding:18px;background:linear-gradient(135deg,#1E1A08,#141008)">
-        <span class="badge bgd" style="margin-bottom:10px">🎉 SONDERANGEBOT</span>
-        <p class="cinzel" style="font-size:18px;font-weight:600;line-height:1.3;margin-bottom:4px;color:var(--gold2)">Spare bis zu 15%<br/>auf erste Buchung</p>
-        <p style="font-size:12px;color:var(--stone);margin-bottom:12px">Code: CHAIR2026</p>
-        <button class="bgold" style="width:auto;padding:11px 22px;font-size:13px">Jetzt buchen</button>
+        <span class="badge bgd" style="margin-bottom:10px">🎉 ${t("special")}</span>
+        <p class="cinzel" style="font-size:18px;font-weight:600;line-height:1.3;margin-bottom:4px;color:var(--gold2)">${t("promoTitle")}<br/>${t("promoSub")}</p>
+        <p style="font-size:12px;color:var(--stone);margin-bottom:12px">${t("promoCode")}</p>
+        <button class="bgold" style="width:auto;padding:11px 22px;font-size:13px">${t("bookNow")}</button>
       </div>
     </div>
 
-    <!-- SEARCH -->
+    <!-- SEARCH + FILTER -->
     <div style="padding:0 20px 14px" class="fu d1">
-      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--c2);border-radius:13px;border:1px solid rgba(200,168,75,.1)">
-        <span>🔍</span><span style="color:var(--stone2);font-size:14px">Stadt, Name, Service...</span>
+      <div style="display:flex;gap:8px">
+        <div onclick="focusSearch()" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--c2);border-radius:13px;border:1px solid var(--border)">
+          <span>🔍</span>
+          <input id="searchInp" class="inp" style="padding:0;background:transparent;border:none;font-size:14px" placeholder="${t("search")}" value="${state.searchQuery}" oninput="onSearch(this.value)"/>
+        </div>
+        <button onclick="toggleFilter()" style="width:46px;height:46px;border-radius:13px;background:var(--c2);border:1px solid ${afc>0?"var(--gold)":"var(--border)"};display:flex;align-items:center;justify-content:center;font-size:18px;position:relative">
+          ⚙${afc>0?`<span style="position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--gold);color:#080706;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center">${afc}</span>`:""}
+        </button>
       </div>
     </div>
 
-    <!-- CATEGORIES -->
+    <!-- CATEGORIES 3x2 GRID -->
     <div style="padding:0 20px 18px" class="fu d2">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <p class="lsm">Kategorien</p>
-        <button onclick="setCat('all')" style="font-size:12px;color:var(--gold);cursor:pointer;border:none;background:none;font-family:inherit">Alle</button>
+        <p class="lsm">${t("categories")}</p>
+        <button onclick="setCat('all')" style="font-size:12px;color:var(--gold);cursor:pointer;border:none;background:none;font-family:inherit">${t("all")}</button>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:9px">${catCards}</div>
     </div>
 
-    <!-- SPECIALISTS -->
+    <!-- TOP SPECIALISTS -->
     <div style="margin-bottom:20px" class="fu d2">
       <div style="padding:0 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <p class="lsm">Top Spezialisten</p>
-        <span class="badge bgr" style="font-size:9px">Heute verfügbar</span>
+        <p class="lsm">${t("topSpecs")}</p>
+        <span class="badge bgr" style="font-size:9px">${t("availToday")}</span>
       </div>
       <div style="display:flex;gap:12px;overflow-x:auto;padding:0 20px 4px">
         ${SPECS.map(s=>`<div style="flex-shrink:0;text-align:center;width:65px">
@@ -632,186 +549,336 @@ function renderHome(){
       </div>
     </div>
 
-    <!-- PROVIDERS -->
-    <div style="padding:0 20px" class="fu d3">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <p class="lsm">${f==="all"?"Alle Anbieter":CATS.find(c=>c.id===f)?.lbl}</p>
-        <span style="font-size:12px;color:var(--stone)">${list.length} gefunden</span>
+    <!-- VIEW MODE + PROVIDERS -->
+    <div style="padding:0 20px 10px;display:flex;justify-content:space-between;align-items:center" class="fu d3">
+      <div style="display:flex;align-items:center;gap:6px">
+        <p class="lsm">${f==="all"?t("allProviders"):CATS.find(c=>c.id===f)?.lbl}</p>
+        <span style="font-size:11px;color:var(--stone)">(${list.length})</span>
       </div>
-      <div style="display:flex;flex-direction:column;gap:10px">${provCards}</div>
+      <div style="display:flex;gap:4px">
+        <button onclick="setView('list')" style="padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;background:${state.viewMode==='list'?'var(--gold)':'var(--c3)'};color:${state.viewMode==='list'?'#080706':'var(--stone)'}">${t("list")}</button>
+        <button onclick="setView('map')" style="padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;background:${state.viewMode==='map'?'var(--gold)':'var(--c3)'};color:${state.viewMode==='map'?'#080706':'var(--stone)'}">${t("map")}</button>
+      </div>
     </div>
-    <div style="height:20px"></div>`;}
+    <div style="padding:0 20px" class="fu d3">
+      ${state.viewMode==="map"?renderMapView(list):`
+        ${list.length===0?`<div style="text-align:center;padding:40px 0"><p style="font-size:36px;margin-bottom:12px">🔍</p><p style="font-size:15px;font-weight:700;margin-bottom:4px">${t("noResults")}</p><p style="font-size:13px;color:var(--stone)">${t("tryOther")}</p></div>`:`<div style="display:flex;flex-direction:column;gap:10px">${provCards}</div>`}
+      `}
+    </div>
+    <div style="height:20px"></div>`;
+}
 
-// ─── DETAIL ───
+// ─── MAP VIEW ───
+function renderMapView(list){
+  const cityPos={Frankfurt:{x:48,y:52},München:{x:72,y:82},Berlin:{x:72,y:22},Hamburg:{x:52,y:12},Düsseldorf:{x:32,y:42},Köln:{x:30,y:48},Stuttgart:{x:55,y:75}};
+  const pins=list.map(p=>{const pos=cityPos[p.city];if(!pos)return"";return`<div onclick="openDetail('${p.id}')" style="position:absolute;left:${pos.x}%;top:${pos.y}%;transform:translate(-50%,-100%);cursor:pointer;text-align:center;z-index:2">
+    <div style="background:${p.bc};color:#fff;padding:3px 8px;border-radius:8px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4)">${p.nm.split(" ")[0]}</div>
+    <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${p.bc};margin:0 auto"></div>
+  </div>`;}).join("");
+  return`<div style="position:relative;background:var(--c2);border-radius:18px;border:1px solid var(--border);height:380px;overflow:hidden">
+    <div style="position:absolute;inset:0;opacity:.15;background:radial-gradient(circle at 55% 45%,var(--gold) 0%,transparent 70%)"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.2" viewBox="0 0 100 100"><path d="M30 5 Q25 15 28 25 Q32 35 27 42 Q22 50 25 60 Q30 72 28 82 Q26 90 30 98" stroke="var(--gold)" fill="none" stroke-width=".3"/><path d="M70 2 Q75 12 72 22 Q68 32 73 42 Q78 52 75 62 Q70 72 72 85" stroke="var(--gold)" fill="none" stroke-width=".3"/><text x="50" y="50" text-anchor="middle" fill="var(--stone)" font-size="3" opacity=".5">DEUTSCHLAND</text></svg>
+    ${pins}
+    <div style="position:absolute;bottom:10px;left:10px;right:10px;display:flex;gap:6px;overflow-x:auto;padding:4px 0">
+      ${list.slice(0,4).map(p=>`<div onclick="openDetail('${p.id}')" style="flex-shrink:0;background:var(--c1);border-radius:12px;padding:10px;border:1px solid var(--border);min-width:160px;cursor:pointer">
+        <p style="font-size:12px;font-weight:700">${p.nm}</p>
+        <p style="font-size:10px;color:var(--stone)">${p.city} · ${stars(p.rt)}</p>
+      </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+// ─── FILTER SHEET ───
+function renderFilterSheet(){
+  return`<div style="padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <p style="font-size:18px;font-weight:800">${t("filter")}</p>
+      <button onclick="resetFilters()" style="font-size:13px;color:var(--gold)">${t("reset")}</button>
+    </div>
+    <p class="lsm" style="margin-bottom:8px">${t("city")}</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+      <button onclick="setFilterCity('all')" style="padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;background:${state.filterCity==="all"?"var(--gold)":"var(--c3)"};color:${state.filterCity==="all"?"#080706":"var(--stone)"};border:1px solid ${state.filterCity==="all"?"var(--gold)":"var(--border)"}">${t("allCities")}</button>
+      ${CITIES.map(c=>`<button onclick="setFilterCity('${c}')" style="padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;background:${state.filterCity===c?"var(--gold)":"var(--c3)"};color:${state.filterCity===c?"#080706":"var(--stone)"};border:1px solid ${state.filterCity===c?"var(--gold)":"var(--border)"}">${c}</button>`).join("")}
+    </div>
+    <p class="lsm" style="margin-bottom:8px">${t("minRating")}</p>
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      ${[0,4,4.5,4.8,5].map(r=>`<button onclick="setFilterRating(${r})" style="padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;background:${state.filterMinRating===r?"var(--gold)":"var(--c3)"};color:${state.filterMinRating===r?"#080706":"var(--stone)"};border:1px solid ${state.filterMinRating===r?"var(--gold)":"var(--border)"}">${r===0?t("all"):"★ "+r+"+"}</button>`).join("")}
+    </div>
+    <p class="lsm" style="margin-bottom:8px">${t("priceRange")}: max ${state.filterMaxPrice}€</p>
+    <input type="range" min="20" max="500" step="10" value="${state.filterMaxPrice}" oninput="setFilterPrice(this.value)" style="width:100%;margin-bottom:16px;accent-color:var(--gold)"/>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <div onclick="toggleFilterAvail()" style="flex:1;display:flex;align-items:center;gap:8px;padding:12px;background:var(--c2);border-radius:12px;border:1px solid ${state.filterOnlyAvail?"var(--gold)":"var(--border)"};cursor:pointer">
+        <div class="check ${state.filterOnlyAvail?"on":""}">${state.filterOnlyAvail?"✓":""}</div>
+        <span style="font-size:12px;font-weight:600">${t("onlyAvail")}</span>
+      </div>
+      <div onclick="toggleFilterDisc()" style="flex:1;display:flex;align-items:center;gap:8px;padding:12px;background:var(--c2);border-radius:12px;border:1px solid ${state.filterOnlyDisc?"var(--gold)":"var(--border)"};cursor:pointer">
+        <div class="check ${state.filterOnlyDisc?"on":""}">${state.filterOnlyDisc?"✓":""}</div>
+        <span style="font-size:12px;font-weight:600">${t("onlyDiscount")}</span>
+      </div>
+    </div>
+    <button class="bgold" onclick="toggleFilter()">${t("apply")} (${getFiltered().length})</button>
+  </div>`;
+}
+
+// ─── DETAIL (with gallery tab) ───
 function renderDetail(){
   const p=state.detail;const dt=state.detailTab;
   const specs=SPECS.filter(s=>p.sps.includes(s.id));
-  const tabs=["info","services","team","bewertungen"].map(t=>`
-    <button onclick="setDetailTab('${t}')" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;flex-shrink:0;background:${dt===t?"var(--gold)":"var(--c3)"};color:${dt===t?"#080706":"var(--stone)"};border:1px solid ${dt===t?"var(--gold)":"rgba(200,168,75,.1)"};cursor:pointer;font-family:inherit">
-      ${t.charAt(0).toUpperCase()+t.slice(1)}
-    </button>`).join("");
+  const tabs=["info","services","team","bewertungen","galerie"].map(tb=>{
+    const label=tb==="bewertungen"?t("reviews"):tb==="galerie"?t("gallery"):t(tb);
+    return`<button onclick="setDetailTab('${tb}')" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;flex-shrink:0;background:${dt===tb?"var(--gold)":"var(--c3)"};color:${dt===tb?"#080706":"var(--stone)"};border:1px solid ${dt===tb?"var(--gold)":"var(--border)"}">${label}</button>`;}).join("");
   let content="";
   if(dt==="info") content=`<p style="font-size:14px;color:var(--stone);line-height:1.7;margin-bottom:14px">${p.tl}</p>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">${p.tags.map(t=>badge(t,"bgd")).join("")}</div>
-    <div class="card" style="padding:14px"><p class="lgold" style="margin-bottom:10px">Warum ChairMatch?</p>
-      ${[["0 % Provision","vs. 35% bei Treatwell"],["Direktbuchung","Kein Umweg"],["Verifiziert","Gewerbeschein geprüft"]].map(([k,v])=>`
-        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(200,168,75,.06);font-size:13px">
-          <span style="font-weight:700;color:var(--gold2)">${k}</span>
-          <span style="color:var(--stone);font-size:12px">${v}</span>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">${p.tags.map(tg=>badge(tg,"bgd")).join("")}</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <a href="https://wa.me/?text=${encodeURIComponent(p.nm+' - '+p.st+', '+p.city)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:#25D366;color:#fff;border-radius:12px;font-size:13px;font-weight:700;text-decoration:none">💬 WhatsApp</a>
+      <button onclick="toggleFav('${p.id}')" style="flex:1;padding:12px;background:var(--c2);border-radius:12px;border:1px solid var(--border);font-size:13px;font-weight:700">${state.favorites.includes(p.id)?"♥ Favorit":"♡ "+t("favs")}</button>
+    </div>
+    <div class="card" style="padding:14px"><p class="lgold" style="margin-bottom:10px">${t("whyUs")}</p>
+      ${[[t("noComm"),t("vs")],[t("direct"),t("noDetour")],[t("verified"),t("checked")]].map(([k,v])=>`
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <span style="font-weight:700;color:var(--gold2)">${k}</span><span style="color:var(--stone);font-size:12px">${v}</span>
         </div>`).join("")}
     </div>`;
   if(dt==="services") content=`<div style="display:flex;flex-direction:column;gap:8px">
-    ${p.svs.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:var(--c2);border-radius:13px;border:1px solid rgba(200,168,75,.08)">
+    ${p.svs.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:var(--c2);border-radius:13px;border:1px solid var(--border)">
       <div><p style="font-size:14px;font-weight:700">${s.nm}</p><p style="font-size:12px;color:var(--stone)">${s.dur} min</p></div>
       <div style="display:flex;gap:10px;align-items:center">
         <span style="font-size:15px;font-weight:800;color:var(--gold2)">${s.pr} €</span>
-        <button class="bgold" style="width:auto;padding:8px 14px;font-size:12px" onclick="openBooking('${p.id}')">Buchen</button>
+        <button class="bgold" style="width:auto;padding:8px 14px;font-size:12px" onclick="openBooking('${p.id}')">${t("buchen")}</button>
       </div>
-    </div>`).join("")}
-  </div>`;
+    </div>`).join("")}</div>`;
   if(dt==="team") content=`<div style="display:flex;gap:10px;flex-wrap:wrap">
-    ${specs.map(s=>`<div style="flex:1 1 calc(50% - 5px);padding:14px;background:var(--c2);border-radius:16px;text-align:center;border:1px solid rgba(200,168,75,.08)">
+    ${specs.map(s=>`<div style="flex:1 1 calc(50% - 5px);padding:14px;background:var(--c2);border-radius:16px;text-align:center;border:1px solid var(--border)">
       <div style="width:48px;height:48px;border-radius:50%;background:${s.col};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;margin:0 auto 8px">${s.ini}</div>
       <p style="font-size:13px;font-weight:700">${s.nm}</p>
       <p style="font-size:11px;color:var(--stone);margin-bottom:5px">${s.role}</p>${stars(s.rt)}
-    </div>`).join("")}
-  </div>`;
+    </div>`).join("")}</div>`;
   if(dt==="bewertungen") content=`
-    <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--c2);border-radius:14px;border:1px solid rgba(200,168,75,.08);margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--c2);border-radius:14px;border:1px solid var(--border);margin-bottom:14px">
       <p class="cinzel" style="font-size:36px;font-weight:700;color:var(--gold2)">${p.rt}</p>
-      <div>${stars(p.rt)}<p style="font-size:12px;color:var(--stone);margin-top:4px">${p.rc} Bewertungen</p></div>
+      <div>${stars(p.rt)}<p style="font-size:12px;color:var(--stone);margin-top:4px">${p.rc} ${t("reviews")}</p></div>
     </div>
-    ${p.revs.map(r=>`<div style="padding:13px 15px;background:var(--c2);border-radius:13px;margin-bottom:8px;border:1px solid rgba(200,168,75,.06)">
+    ${p.revs.map(r=>`<div style="padding:13px 15px;background:var(--c2);border-radius:13px;margin-bottom:8px;border:1px solid var(--border)">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <p style="font-size:13px;font-weight:700">${r.u}</p>
-        <span style="font-size:11px;color:var(--stone)">${r.d}</span>
+        <p style="font-size:13px;font-weight:700">${r.u}</p><span style="font-size:11px;color:var(--stone)">${r.d}</span>
+      </div>${stars(r.s)}<p style="font-size:13px;color:var(--stone);line-height:1.6;margin-top:5px">${r.t}</p>
+    </div>`).join("")}
+    <div style="margin-top:18px;padding:16px;background:var(--c2);border-radius:14px;border:1px solid var(--border)">
+      <p class="lsm" style="margin-bottom:10px">${t("writeReview")}</p>
+      <div style="display:flex;gap:4px;margin-bottom:12px">
+        ${[1,2,3,4,5].map(i=>`<span onclick="setReviewRating(${i})" style="font-size:28px;cursor:pointer;opacity:${i<=state.reviewRating?1:.3};color:#E8C86A">★</span>`).join("")}
       </div>
-      ${stars(r.s)}<p style="font-size:13px;color:var(--stone);line-height:1.6;margin-top:5px">${r.t}</p>
-    </div>`).join("")}`;
+      <textarea class="inp" style="height:80px;resize:none" placeholder="${t("reviewPlaceholder")}" oninput="state.reviewText=this.value">${state.reviewText}</textarea>
+      <button class="bgold" style="margin-top:10px" ${state.reviewRating===0?"disabled":""} onclick="submitReview('${p.id}')">${t("submitReview")}</button>
+    </div>`;
+  if(dt==="galerie") content=p.gal&&p.gal.length>0?`<div style="display:flex;flex-direction:column;gap:12px">
+    ${p.gal.map(g=>`<div class="card" style="padding:14px">
+      <div style="display:flex;gap:8px;margin-bottom:8px"><span class="badge bgd">${g.sv}</span></div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;text-align:center">
+          <p style="font-size:10px;font-weight:700;color:var(--stone);margin-bottom:6px">${t("before")}</p>
+          <div style="height:120px;border-radius:12px;background:linear-gradient(135deg,${g.b},${g.b}88);display:flex;align-items:center;justify-content:center;font-size:28px;opacity:.7">📷</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:16px;color:var(--gold)">→</div>
+        <div style="flex:1;text-align:center">
+          <p style="font-size:10px;font-weight:700;color:var(--stone);margin-bottom:6px">${t("after")}</p>
+          <div style="height:120px;border-radius:12px;background:linear-gradient(135deg,${g.a},${g.a}88);display:flex;align-items:center;justify-content:center;font-size:28px">✨</div>
+        </div>
+      </div>
+    </div>`).join("")}</div>`:`<div style="text-align:center;padding:40px"><p style="font-size:40px;margin-bottom:10px">📸</p><p style="color:var(--stone)">Noch keine Galeriebilder</p></div>`;
   return`<div class="sticky">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <button onclick="goBack()" style="font-size:13px;color:var(--stone);cursor:pointer;border:none;background:none;font-family:inherit">← Zurück</button>
-      <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px" onclick="openBooking('${p.id}')">Buchen</button>
+      <button onclick="goBack()" style="font-size:13px;color:var(--stone)">${t("back")}</button>
+      <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px" onclick="openBooking('${p.id}')">${t("buchen")}</button>
     </div>
     <p style="font-size:18px;font-weight:800;margin-bottom:2px">${p.nm}</p>
     <p style="font-size:12px;color:var(--stone);margin-bottom:10px">${p.st} · ${p.city}</p>
     <div style="display:flex;gap:7px;overflow-x:auto">${tabs}</div>
   </div>
-  <div style="padding:18px 20px">${content}</div>`;}
+  <div style="padding:18px 20px">${content}</div>`;
+}
 
-// ─── EXPLORE / OFFERS / ACCOUNT ───
+// ─── EXPLORE ───
 function renderExplore(){return`<div style="padding:50px 20px 0">
   <div style="margin-bottom:16px">${logoHeader(true)}</div>
-  <p class="lsm" style="margin-bottom:12px">Jetzt buchen</p>
+  <p class="lsm" style="margin-bottom:12px">${t("bookNow")}</p>
   <div style="display:flex;flex-direction:column;gap:9px">
     ${PROVS.filter(p=>p.live).map(p=>`<div class="card" style="padding:13px 15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="openDetail('${p.id}')">
-      <div><p style="font-size:15px;font-weight:800">${p.nm}</p><p style="font-size:12px;color:var(--stone)">${p.st}</p></div>
-      <button class="bgold" style="width:auto;padding:9px 16px;font-size:12px" onclick="event.stopPropagation();openBooking('${p.id}')">Buchen</button>
+      <div><p style="font-size:15px;font-weight:800">${p.nm}</p><p style="font-size:12px;color:var(--stone)">${p.st} · ${p.city}</p></div>
+      <button class="bgold" style="width:auto;padding:9px 16px;font-size:12px" onclick="event.stopPropagation();openBooking('${p.id}')">${t("buchen")}</button>
     </div>`).join("")}
-  </div>
-</div>`;}
+  </div></div>`;}
 
+// ─── FAVORITES ───
+function renderFavorites(){
+  const favProvs=PROVS.filter(p=>state.favorites.includes(p.id));
+  return`<div style="padding:50px 20px 0">
+    <div style="margin-bottom:16px">${logoHeader(true)}</div>
+    <p class="lsm" style="margin-bottom:12px">${t("favs")} (${favProvs.length})</p>
+    ${favProvs.length===0?`<div style="text-align:center;padding:50px 20px"><p style="font-size:48px;margin-bottom:14px">♡</p><p style="font-size:16px;font-weight:700;margin-bottom:6px">${t("noFavs")}</p><p style="font-size:13px;color:var(--stone)">${t("noFavsSub")}</p></div>`:`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${favProvs.map(p=>`<div class="card" style="padding:13px 15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="openDetail('${p.id}')">
+        <div style="flex:1"><p style="font-size:15px;font-weight:800">${p.nm}</p><p style="font-size:12px;color:var(--stone)">${p.city} · ${stars(p.rt)}</p></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="heart liked" onclick="toggleFav('${p.id}',event)" style="font-size:18px">♥</span>
+          <button class="bgold" style="width:auto;padding:9px 14px;font-size:12px" onclick="event.stopPropagation();openBooking('${p.id}')">${t("buchen")}</button>
+        </div>
+      </div>`).join("")}
+    </div>`}
+  </div>`;}
+
+// ─── OFFERS ───
 function renderOffers(){return`<div style="padding:50px 20px 0">
   <div style="margin-bottom:16px">${logoHeader(true)}</div>
-  <p class="lsm" style="margin-bottom:12px">Angebote</p>
+  <p class="lsm" style="margin-bottom:12px">${t("offers")}</p>
   ${PROVS.filter(p=>p.disc>0).map(p=>`<div class="card" style="padding:15px;margin-bottom:10px;background:linear-gradient(135deg,#1E1A08,#141008)">
-    <span class="badge brd" style="margin-bottom:8px">−${p.disc}% Rabatt</span>
+    <span class="badge brd" style="margin-bottom:8px">−${p.disc}% ${t("discount")}</span>
     <p style="font-size:15px;font-weight:800;margin-bottom:2px">${p.nm}</p>
     <p style="font-size:12px;color:var(--stone);margin-bottom:10px">${p.tl}</p>
-    <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px" onclick="openDetail('${p.id}')">Jetzt buchen</button>
+    <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px" onclick="openDetail('${p.id}')">${t("bookNow")}</button>
   </div>`).join("")}
   <div class="card" style="padding:15px">
-    <p class="lgold" style="margin-bottom:7px">🎁 Freunde werben</p>
-    <p class="cinzel" style="font-size:17px;font-weight:600;margin-bottom:5px;color:var(--gold2)">5 € pro Empfehlung</p>
-    <p style="font-size:12px;color:var(--stone);margin-bottom:12px">Du & dein Freund erhalten je 5 €</p>
-    <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px">Link teilen</button>
+    <p class="lgold" style="margin-bottom:7px">🎁 ${t("refer")}</p>
+    <p class="cinzel" style="font-size:17px;font-weight:600;margin-bottom:5px;color:var(--gold2)">5 € ${t("perRef")}</p>
+    <p style="font-size:12px;color:var(--stone);margin-bottom:12px">${t("referSub")}</p>
+    <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px" onclick="shareReferral()">${t("shareLink")}</button>
   </div>
 </div>`;}
 
+// ─── ACCOUNT (with loyalty card, theme, lang, dbSeat) ───
 function renderAccount(){
   const r=state.role;
-  const bkgs=[{nm:"Ahmed K.",sv:"Skin Fade",t:"Mi 26.02 · 10:00",st:"Bestätigt",pr:48},{nm:"Sofia M.",sv:"Deep Cleanse",t:"Fr 28.02 · 14:00",st:"Ausstehend",pr:85}];
-  const sc={Bestätigt:"#4A8A5A",Ausstehend:"var(--gold)",Storniert:"#C04040"};
+  const bkgs=state.bookings.length>0?state.bookings:[{id:"demo1",nm:"Ahmed K.",sv:"Skin Fade",t:"Mi 26.02 · 10:00",st:"confirmed",pr:48,provNm:"BlackLabel Barbershop"},{id:"demo2",nm:"Sofia M.",sv:"Deep Cleanse",t:"Fr 28.02 · 14:00",st:"pending",pr:85,provNm:"Glow Studio"}];
+  const sc={confirmed:"#4A8A5A",pending:"var(--gold)",cancelled:"#C04040"};
+  const stLabel={confirmed:t("confirmed"),pending:t("pending"),cancelled:t("cancelled")};
+  const stampArr=Array.from({length:10},(_,i)=>i<state.stamps);
   return`<div style="padding:20px 20px 0">
     <div style="margin-bottom:18px">${logoHeader(true)}</div>
     <div style="display:flex;gap:7px;margin-bottom:18px">
-      ${[["CUSTOMER","Kunde"],["PROVIDER","Anbieter"],["B2B","B2B"]].map(([rv,lv])=>`
-        <button onclick="setRole('${rv}')" style="flex:1;padding:10px 0;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:${r===rv?"var(--gold)":"var(--c2)"};color:${r===rv?"#080706":"var(--stone)"};border:1px solid ${r===rv?"var(--gold)":"rgba(200,168,75,.12)"}">
+      ${[["CUSTOMER",t("customer").split("—")[0].trim()],["PROVIDER",t("provider").split("—")[0].trim()],["B2B","B2B"]].map(([rv,lv])=>`
+        <button onclick="setRole('${rv}')" style="flex:1;padding:10px 0;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:${r===rv?"var(--gold)":"var(--c2)"};color:${r===rv?"#080706":"var(--stone)"};border:1px solid ${r===rv?"var(--gold)":"var(--border)"}">
           ${lv}
         </button>`).join("")}
     </div>
+    <!-- LOYALTY CARD -->
+    <div class="card" style="padding:16px;margin-bottom:14px;background:linear-gradient(135deg,#1A1608,#100E04);border:1px solid rgba(200,168,75,.2)">
+      <p class="lgold" style="margin-bottom:10px">🏆 ${t("loyalty")}</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        ${stampArr.map((filled,i)=>`<div style="width:28px;height:28px;border-radius:50%;background:${filled?"var(--gold)":"var(--c4)"};border:2px solid ${filled?"var(--gold2)":"var(--c5)"};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:${filled?"#080706":"var(--stone2)"}">${filled?"★":i+1}</div>`).join("")}
+      </div>
+      <div class="pbar" style="margin-bottom:6px"><div class="pfill" style="width:${state.stamps/10*100}%"></div></div>
+      <p style="font-size:12px;color:var(--stone)">${state.stamps}/10 ${t("stampsOf")} ${state.stamps>=10?"— "+t("freeService"):""}</p>
+      <p style="font-size:11px;color:var(--stone2);margin-top:4px">${t("loyaltySub")}</p>
+      ${state.stamps>=10&&!state.loyaltyRedeemed?`<button class="bgold" style="margin-top:10px;width:auto;padding:10px 20px;font-size:13px" onclick="redeemLoyalty()">🎁 ${t("redeemNow")} — ${t("freeService")}</button>`:''}
+      ${state.loyaltyRedeemed?`<p style="font-size:12px;color:#6ABF80;margin-top:8px">✓ ${t("redeemed")}</p>`:''}
+    </div>
+    <!-- REFERRAL -->
     <div class="card" style="padding:15px;margin-bottom:14px;background:linear-gradient(135deg,#1E1A08,#141008)">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><p class="lgold" style="margin-bottom:3px">Referral Guthaben</p>
+        <div><p class="lgold" style="margin-bottom:3px">${t("refBalance")}</p>
           <p class="cinzel" style="font-size:24px;font-weight:700;color:var(--gold2)">15,00 €</p></div>
-        <button class="bgold" style="width:auto;padding:10px 14px;font-size:12px">✨ Empfehlen</button>
+        <button class="bgold" style="width:auto;padding:10px 14px;font-size:12px" onclick="shareReferral()">✨ ${t("recommend")}</button>
       </div>
     </div>
     ${r==="CUSTOMER"?`<div class="card" onclick="goSub('register')" style="padding:0;margin-bottom:14px;background:linear-gradient(135deg,#1A1608,#100E04);cursor:pointer;border:1px solid rgba(200,168,75,.2);overflow:hidden">
       <div style="display:flex;align-items:center;gap:0">
-        <!-- DB Seat showcase -->
         <div style="flex-shrink:0;width:130px;height:130px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0A0600,#180C04);border-right:1px solid rgba(200,168,75,.12);position:relative;overflow:hidden">
           <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(200,100,0,.08),transparent 70%)"></div>
           ${dbSeat()}
         </div>
-        <!-- Text content -->
         <div style="flex:1;padding:16px 14px">
-          <p class="lgold" style="margin-bottom:6px">💺 STUHL VERMIETEN</p>
-          <p class="cinzel" style="font-size:15px;font-weight:700;margin-bottom:6px;color:var(--gold2);line-height:1.3">Premium Stuhl<br/>& Kabinen</p>
-          <p style="font-size:11px;color:var(--stone);margin-bottom:12px;line-height:1.6">0 % Provision<br/>Deutschlandweit</p>
-          <span class="badge bgd" style="font-size:10px">→ Anbieter werden</span>
+          <p class="lgold" style="margin-bottom:6px">💺 ${t("chairRent").toUpperCase()}</p>
+          <p class="cinzel" style="font-size:15px;font-weight:700;margin-bottom:6px;color:var(--gold2);line-height:1.3">${t("premChair")}</p>
+          <p style="font-size:11px;color:var(--stone);margin-bottom:12px;line-height:1.6">${t("zeroComm")}</p>
+          <span class="badge bgd" style="font-size:10px">${t("becomeProvider")}</span>
         </div>
       </div>
     </div>`:""}
-    <p class="lsm" style="margin-bottom:10px">Buchungen</p>
-    ${bkgs.map(b=>`<div class="card" style="padding:13px 15px;margin-bottom:8px">
+    <!-- BOOKINGS -->
+    <p class="lsm" style="margin-bottom:10px">${t("bookings")}</p>
+    ${bkgs.length===0?`<div style="text-align:center;padding:30px 20px"><p style="font-size:36px;margin-bottom:10px">📅</p><p style="font-size:14px;font-weight:700;margin-bottom:4px">${t("noBookings")}</p><p style="font-size:13px;color:var(--stone)">${t("noBookingsSub")}</p></div>`:bkgs.map(b=>`<div class="card" style="padding:13px 15px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <p style="font-size:14px;font-weight:700">${b.nm}</p>
-        <span style="font-size:12px;font-weight:700;color:${sc[b.st]||"var(--stone)"}">${b.st}</span>
+        <p style="font-size:14px;font-weight:700">${b.provNm||b.nm}</p>
+        <span style="font-size:12px;font-weight:700;color:${sc[b.st]||"var(--stone)"}">${stLabel[b.st]||b.st}</span>
       </div>
       <p style="font-size:13px;color:var(--stone);margin-bottom:2px">${b.sv}</p>
-      <div style="display:flex;justify-content:space-between">
+      <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:12px;color:var(--stone)">${b.t}</span>
-        <span style="font-size:13px;font-weight:800;color:var(--gold2)">${b.pr} €</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:13px;font-weight:800;color:var(--gold2)">${b.pr} €</span>
+          ${b.st!=='cancelled'?`<button class="boutline" style="padding:6px 10px;font-size:11px" onclick="cancelBooking('${b.id}')">${t('cancelBooking')}</button>`:''}
+        </div>
       </div>
     </div>`).join("")}
-    <div style="margin-top:22px;padding-top:16px;border-top:1px solid rgba(200,168,75,.08)">
-      <p class="lsm" style="margin-bottom:10px">Rechtliches</p>
-      ${[["📋 Datenschutzerklärung (DSGVO)","dsgvo"],["📄 Impressum","impressum"],["💺 Als Anbieter registrieren","register"]].map(([lv,pg])=>`
-        <div onclick="goSub('${pg}')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(200,168,75,.06);cursor:pointer">
+    <!-- SETTINGS -->
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+      <p class="lsm" style="margin-bottom:12px">${t("theme")}</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;margin-bottom:8px">
+        <span style="font-size:13px">${state.theme==="dark"?t("darkMode"):t("lightMode")}</span>
+        <div class="switch ${state.theme==="light"?"on":""}" onclick="toggleTheme()"></div>
+      </div>
+      <p class="lsm" style="margin-bottom:8px">${t("lang")}</p>
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        ${[["de","🇩🇪 Deutsch"],["en","🇬🇧 English"],["tr","🇹🇷 Türkçe"]].map(([code,label])=>`
+          <button onclick="setLang('${code}')" style="flex:1;padding:10px;border-radius:10px;font-size:11px;font-weight:700;background:${state.lang===code?"var(--gold)":"var(--c2)"};color:${state.lang===code?"#080706":"var(--stone)"};border:1px solid ${state.lang===code?"var(--gold)":"var(--border)"}">${label}</button>`).join("")}
+      </div>
+    </div>
+    <!-- LEGAL -->
+    <div style="padding-top:12px;border-top:1px solid var(--border)">
+      <p class="lsm" style="margin-bottom:10px">${t("legal")}</p>
+      ${[["📋 "+t("privacy"),"dsgvo"],["📄 "+t("imprint"),"impressum"],["💺 "+t("register"),"register"]].map(([lv,pg])=>`
+        <div onclick="goSub('${pg}')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer">
           <span style="font-size:13px">${lv}</span><span style="color:var(--stone)">›</span>
         </div>`).join("")}
-      <p style="font-size:11px;color:var(--stone2);margin-top:14px;text-align:center;line-height:1.7">ChairMatch GmbH (i. Gr.) · Deutschland · v5.0 · © 2026</p>
+      <p style="font-size:11px;color:var(--stone2);margin-top:14px;text-align:center;line-height:1.7">ChairMatch GmbH (i. Gr.) · Deutschland · v6.1 · © 2026</p>
     </div>
     <div style="height:20px"></div>
-  </div>`;}
+  </div>`;
+}
 
 // ─── SUB PAGES ───
 function renderSubPage(){
-  const p=state.subPage;
-  if(p==="dsgvo")return renderDsgvo();
-  if(p==="impressum")return renderImpressum();
-  if(p==="register")return renderRegister();
+  if(state.subPage==="dsgvo")return renderDsgvo();
+  if(state.subPage==="impressum")return renderImpressum();
+  if(state.subPage==="register")return renderRegister();
+  if(state.subPage==="notifications")return renderNotifications();
   return"";}
+
+function renderNotifications(){
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone)">${t("back")}</button>
+    <h1 style="font-size:18px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:6px">${t("notifications")}</h1></div>
+  <div style="padding:14px 20px">
+    ${state.notifications.length===0?`<div style="text-align:center;padding:50px 20px"><p style="font-size:48px;margin-bottom:14px">🔔</p><p style="font-size:16px;font-weight:700;margin-bottom:6px">${t("noNotifications")}</p><p style="font-size:13px;color:var(--stone)">${t("noNotificationsSub")}</p></div>`:''}
+    ${state.notifications.map(n=>`<div onclick="markRead('${n.id}')" style="display:flex;gap:12px;padding:14px;margin-bottom:8px;background:${n.read?"var(--c2)":"rgba(200,168,75,.06)"};border-radius:14px;border:1px solid ${n.read?"var(--border)":"rgba(200,168,75,.15)"};cursor:pointer">
+      <div style="font-size:22px;flex-shrink:0">${n.icon}</div>
+      <div style="flex:1"><p style="font-size:13px;font-weight:${n.read?500:700}">${n.title}</p><p style="font-size:12px;color:var(--stone);margin-top:2px">${n.body}</p><p style="font-size:10px;color:var(--stone2);margin-top:4px">${n.time}</p></div>
+      ${!n.read?`<div style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:4px"></div>`:""}
+    </div>`).join("")}
+  </div>`;
+}
+
 function renderDsgvo(){
   const items=[["1. Verantwortlicher","ChairMatch GmbH (i. Gr.), Deutschland. datenschutz@chairmatch.de"],["2. Erhobene Daten","Name, E-Mail, Telefon, Buchungsdaten. Anbieter: Gewerbedaten, IBAN."],["3. Rechtsgrundlage","Vertragserfüllung Art. 6 I b DSGVO."],["4. Weitergabe","Keine Weitergabe zu Werbezwecken. Nur Auftragsverarbeiter (Art. 28 DSGVO)."],["5. Speicherdauer","Buchungsdaten: 10 Jahre. Logs: 90 Tage."],["6. Ihre Rechte","Auskunft · Berichtigung · Löschung · Widerspruch (Art. 15–21 DSGVO)"],["7. Beschwerderecht","HBDI Hessen, Postfach 3163, 65021 Wiesbaden"]];
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone);cursor:pointer;border:none;background:none;font-family:inherit;margin-bottom:6px">← Zurück</button>
-    <h1 style="font-size:20px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Datenschutz</h1>
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone)">${t("back")}</button>
+    <h1 style="font-size:20px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("privacy")}</h1>
     <p style="font-size:12px;color:var(--stone)">DSGVO · Stand 02/2026</p></div>
   <div style="padding:18px 20px 40px">
     <div style="background:rgba(74,138,90,.08);border:1px solid rgba(74,138,90,.2);border-radius:12px;padding:12px 14px;margin-bottom:18px">
       <p style="font-size:13px;font-weight:700;color:#6ABF80">✓ DSGVO-konform · App Store & Play Store geprüft</p>
     </div>
-    ${items.map(([t,tx])=>`<div style="margin-bottom:16px"><p style="font-size:13px;font-weight:800;color:var(--gold2);margin-bottom:5px">${t}</p><p style="font-size:13px;color:var(--stone);line-height:1.7">${tx}</p><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(200,168,75,.15),transparent);margin-top:14px"></div></div>`).join("")}
+    ${items.map(([ti,tx])=>`<div style="margin-bottom:16px"><p style="font-size:13px;font-weight:800;color:var(--gold2);margin-bottom:5px">${ti}</p><p style="font-size:13px;color:var(--stone);line-height:1.7">${tx}</p><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(200,168,75,.15),transparent);margin-top:14px"></div></div>`).join("")}
   </div>`;}
+
 function renderImpressum(){
   const items=[["Unternehmen","ChairMatch GmbH (i. Gr.)\nMünchener Str. 17\n60329 Frankfurt am Main"],["Kontakt","Tel: +49 (0) 69 XXX XXXX\ninfo@chairmatch.de"],["Handelsregister","Amtsgericht Frankfurt · HRB XXXXX"],["USt-ID","DE XXX XXX XXX"],["Haftung","ChairMatch ist Vermittlungsplattform."],["Streitbeilegung","https://ec.europa.eu/consumers/odr"]];
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone);cursor:pointer;border:none;background:none;font-family:inherit;margin-bottom:6px">← Zurück</button>
-    <h1 style="font-size:20px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Impressum</h1>
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone)">${t("back")}</button>
+    <h1 style="font-size:20px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("imprint")}</h1>
     <p style="font-size:12px;color:var(--stone)">§ 5 TMG</p></div>
   <div style="padding:18px 20px 40px">
-    ${items.map(([t,tx])=>`<div style="margin-bottom:16px"><p style="font-size:11px;font-weight:800;color:var(--gold2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">${t}</p><p style="font-size:13px;color:var(--stone);line-height:1.7;white-space:pre-line">${tx}</p><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(200,168,75,.15),transparent);margin-top:14px"></div></div>`).join("")}
+    ${items.map(([ti,tx])=>`<div style="margin-bottom:16px"><p style="font-size:11px;font-weight:800;color:var(--gold2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">${ti}</p><p style="font-size:13px;color:var(--stone);line-height:1.7;white-space:pre-line">${tx}</p><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(200,168,75,.15),transparent);margin-top:14px"></div></div>`).join("")}
   </div>`;}
+
 function renderRegister(){
   const s=state.regStep;const f=state.regData;
   const snames=["Persönliche Daten","Geschäftsdaten","Services & Stuhl","Bestätigung"];
@@ -819,151 +886,232 @@ function renderRegister(){
     <div style="margin-bottom:16px">${logoHeader(false)}</div>
     <h2 style="font-size:22px;margin-bottom:8px;font-family:'Cinzel',serif;color:var(--gold2)">Eingereicht!</h2>
     <p style="font-size:13px;color:var(--stone);margin-bottom:18px;line-height:1.7">Prüfung innerhalb 24h.<br/>E-Mail-Bestätigung folgt.</p>
-    <button class="bgold" onclick="goSub(null)">Zurück zur App</button>
-  </div>`;
+    <button class="bgold" onclick="goSub(null)">Zurück zur App</button></div>`;
   let body="";
   if(s===1)body=`<div style="display:flex;flex-direction:column;gap:12px">
-    ${[["Vorname","vn","text","Max"],["Nachname","nn","text","Mustermann"],["E-Mail","em","email","max@mail.de"],["Telefon","tel","tel","+49 170 ..."]].map(([l,k,t,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" type="${t}" value="${f[k]}" oninput="updateReg('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}
-  </div>`;
+    ${[["Vorname","vn","text","Max"],["Nachname","nn","text","Mustermann"],["E-Mail","em","email","max@mail.de"],["Telefon","tel","tel","+49 170 ..."]].map(([l,k,tp,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" type="${tp}" value="${f[k]}" oninput="updateReg('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}</div>`;
   if(s===2)body=`<div style="display:flex;flex-direction:column;gap:12px">
     ${[["Geschäftsname","geschaeft","Mein Studio"],["Straße + Nr.","st","Münchener Str. 17"],["PLZ","plz","60329"],["Stadt","city","Frankfurt"]].map(([l,k,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" value="${f[k]}" oninput="updateReg('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}
     <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:8px">Kategorie</label>
-    <div style="display:flex;gap:7px;flex-wrap:wrap">${["Barbershop","Friseur","Kosmetik","Ästhetik Arzt","Nail & Lash","Massage"].map(c=>`<button onclick="updateReg('kat','${c}')" style="padding:9px 13px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:${f.kat===c?"var(--gold)":"var(--c3)"};color:${f.kat===c?"#080706":"var(--stone)"};border:1px solid ${f.kat===c?"var(--gold)":"rgba(200,168,75,.12)"}">${c}</button>`).join("")}</div></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">${CATS.map(c=>`<button onclick="updateReg('kat','${c.lbl}')" style="padding:9px 13px;border-radius:10px;font-size:12px;font-weight:700;background:${f.kat===c.lbl?"var(--gold)":"var(--c3)"};color:${f.kat===c.lbl?"#080706":"var(--stone)"};border:1px solid ${f.kat===c.lbl?"var(--gold)":"var(--border)"}">${c.lbl}</button>`).join("")}</div></div>
     <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">IBAN</label><input class="inp" value="${f.iban}" oninput="updateReg('iban',this.value)" placeholder="DE89 3704 ..."/></div>
-    <div onclick="updateReg('gb',${!f.gb})" style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--c2);border-radius:12px;border:1px solid ${f.gb?"var(--gold)":"rgba(200,168,75,.1)"};cursor:pointer">
+    <div onclick="updateReg('gb',${!f.gb})" style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--c2);border-radius:12px;border:1px solid ${f.gb?"var(--gold)":"var(--border)"};cursor:pointer">
       <div class="check ${f.gb?"on":""}">${f.gb?"✓":""}</div>
       <div><p style="font-size:13px;font-weight:700">Gewerbeschein vorhanden</p><p style="font-size:11px;color:var(--stone)">Hochladen nach Registrierung</p></div>
-    </div>
-  </div>`;
+    </div></div>`;
   if(s===3)body=`<div style="display:flex;flex-direction:column;gap:14px">
     <p class="lgold">💺 Stuhl / Kabine vermieten</p>
     <p style="font-size:13px;color:var(--stone);line-height:1.6">Kerngeschäft: Freie Stühle vermieten. 0 % Provision.</p>
-    <div onclick="updateReg('chair',${!f.chair})" style="display:flex;gap:10px;align-items:center;padding:13px 15px;background:${f.chair?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f.chair?"var(--gold)":"rgba(200,168,75,.1)"};cursor:pointer">
+    <div onclick="updateReg('chair',${!f.chair})" style="display:flex;gap:10px;align-items:center;padding:13px 15px;background:${f.chair?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f.chair?"var(--gold)":"var(--border)"};cursor:pointer">
       <div class="check ${f.chair?"on":""}">${f.chair?"✓":""}</div>
       <div><p style="font-size:13px;font-weight:700">Ja, ich vermiete Stühle ✦</p><p style="font-size:11px;color:var(--stone)">Zusatzeinnahmen durch Untervermietung</p></div>
     </div>
-    ${f.chair?`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Preis/Tag (€)</label><input class="inp" type="number" value="${f.cpr}" oninput="updateReg('cpr',this.value)" placeholder="45"/></div>`:""}
-  </div>`;
+    ${f.chair?`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Preis/Tag (€)</label><input class="inp" type="number" value="${f.cpr}" oninput="updateReg('cpr',this.value)" placeholder="45"/></div>`:""}</div>`;
   if(s===4)body=`<div>
     <p class="lgold" style="margin-bottom:14px">✅ Zusammenfassung</p>
     <div class="card" style="padding:14px;margin-bottom:16px">
-      ${[["Name",f.vn+" "+f.nn],["E-Mail",f.em],["Geschäft",f.geschaeft],["Stadt",f.city],["Kategorie",f.kat],["Stuhlmiete",f.chair?f.cpr+"€/Tag":"Nein"]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(200,168,75,.06);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:600">${v||"—"}</span></div>`).join("")}
+      ${[["Name",f.vn+" "+f.nn],["E-Mail",f.em],["Geschäft",f.geschaeft],["Stadt",f.city],["Kategorie",f.kat],["Stuhlmiete",f.chair?f.cpr+"€/Tag":"Nein"]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:600">${v||"—"}</span></div>`).join("")}
     </div>
-    <div onclick="updateReg('agb',${!f.agb})" style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid rgba(200,168,75,.06);cursor:pointer;align-items:center"><div class="check ${f.agb?"on":""}">${f.agb?"✓":""}</div><p style="font-size:13px;font-weight:600">AGB akzeptieren</p></div>
-    <div onclick="updateReg('dsgvo',${!f.dsgvo})" style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid rgba(200,168,75,.06);cursor:pointer;align-items:center"><div class="check ${f.dsgvo?"on":""}">${f.dsgvo?"✓":""}</div><p style="font-size:13px;font-weight:600">Datenschutzerklärung akzeptieren</p></div>
-  </div>`;
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone);cursor:pointer;border:none;background:none;font-family:inherit;margin-bottom:6px">← Zurück</button>
-    <h1 style="font-size:18px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Anbieter registrieren</h1>
-    <p style="font-size:11px;color:var(--stone);margin-bottom:8px">Schritt ${s}/4 — ${snames[s-1]}</p>
+    <div onclick="updateReg('agb',${!f.agb})" style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center"><div class="check ${f.agb?"on":""}">${f.agb?"✓":""}</div><p style="font-size:13px;font-weight:600">AGB akzeptieren</p></div>
+    <div onclick="updateReg('dsgvo',${!f.dsgvo})" style="display:flex;gap:10px;padding:12px 0;cursor:pointer;align-items:center"><div class="check ${f.dsgvo?"on":""}">${f.dsgvo?"✓":""}</div><p style="font-size:13px;font-weight:600">Datenschutzerklärung akzeptieren</p></div></div>`;
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone)">${t("back")}</button>
+    <h1 style="font-size:18px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("register")}</h1>
+    <p style="font-size:11px;color:var(--stone);margin-bottom:8px">${t("step")} ${s}/4 — ${snames[s-1]}</p>
     <div class="pbar"><div class="pfill" style="width:${s/4*100}%"></div></div></div>
   <div style="padding:22px 20px 40px">
     ${body}
     <div style="display:flex;gap:10px;margin-top:22px">
       ${s>1?`<button class="boutline" style="flex:0 0 auto;padding:13px 18px" onclick="setRegStep(${s-1})">←</button>`:""}
-      <button class="bgold" style="flex:1;padding:14px 0;font-size:14px;font-weight:800" ${s===4&&(!f.agb||!f.dsgvo)?"disabled":""} onclick="${s===4?"submitReg()":"setRegStep("+(s+1)+")"}">
-        ${s===4?"Jetzt registrieren →":"Weiter →"}
-      </button>
-    </div>
-  </div>`;}
+      <button class="bgold" style="flex:1" ${s===4&&(!f.agb||!f.dsgvo)?"disabled":""} onclick="${s===4?"submitReg()":"setRegStep("+(s+1)+")"}">${s===4?"Jetzt registrieren →":t("next")}</button>
+    </div></div>`;
+}
 
-// ─── BOOKING ───
+// ─── SLOT AVAILABILITY (deterministic) ───
+function getSlotAvailability(provId,dayIndex,timeSlot){
+  let hash=0;const key=provId+'-'+dayIndex+'-'+timeSlot;
+  for(let i=0;i<key.length;i++){hash=((hash<<5)-hash)+key.charCodeAt(i);hash|=0;}
+  return(Math.abs(hash)%100)>35;
+}
+
+// ─── BOOKING (with WhatsApp sharing) ───
 function renderBooking(){
   const p=state.bookingProv;const s=state.bookStep;
   const today=new Date();
   const days=["So","Mo","Di","Mi","Do","Fr","Sa"];
-  const dl=Array.from({length:7},(_,i)=>{const d=new Date(today);d.setDate(today.getDate()+i);return{i,day:days[d.getDay()],dt:d.getDate()};});
+  const dl=Array.from({length:7},(_,i)=>{const d=new Date(today);d.setDate(today.getDate()+i);return{i,day:days[d.getDay()],dt:d.getDate(),mo:String(d.getMonth()+1).padStart(2,'0')};});
   const ts=["09:00","10:00","11:00","13:00","14:00","15:00","16:00","18:00","19:00"];
   const specs=SPECS.filter(sp=>p.sps.includes(sp.id));
   const sv=state.bookSv;const slot=state.bookSlot;const day=state.bookDay;const sp=state.bookSp;
-  if(state.bookDone)return`<div style="padding:36px 22px;text-align:center">
+  if(state.bookDone){
+    const lastBk=state.bookings[0];
+    const finalPr=lastBk?lastBk.pr:sv?.pr;
+    const waMsg=encodeURIComponent(`Mein Termin bei ${p.nm}: ${sv?.nm}, ${dl[day]?.day} ${dl[day]?.dt}.${dl[day]?.mo}, ${slot} Uhr. Gebucht über ChairMatch!`);
+    return`<div style="padding:36px 22px;text-align:center">
     <div style="width:60px;height:60px;border-radius:50%;background:rgba(74,138,90,.15);border:1px solid rgba(74,138,90,.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px">✓</div>
-    <h2 style="font-size:22px;margin-bottom:6px;font-family:'Cinzel',serif;color:var(--gold2)">Bestätigt!</h2>
-    <p style="font-size:13px;color:var(--stone);margin-bottom:18px">${p.nm} · ${sv?.nm} · ${dl[day]?.day} ${dl[day]?.dt}.02 · ${slot}</p>
+    <h2 style="font-size:22px;margin-bottom:6px;font-family:'Cinzel',serif;color:var(--gold2)">${t("confirm")}</h2>
+    <p style="font-size:13px;color:var(--stone);margin-bottom:18px">${p.nm} · ${sv?.nm} · ${dl[day]?.day} ${dl[day]?.dt}.${dl[day]?.mo} · ${slot}</p>
     <div class="card" style="padding:14px;margin-bottom:16px;text-align:left">
       <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:15px">
-        <span style="color:var(--gold2);font-weight:700">Gesamt</span>
-        <span style="font-weight:800;color:var(--gold2)">${sv?.pr} €</span>
+        <span style="color:var(--gold2);font-weight:700">${t("total")}</span>
+        <span style="font-weight:800;color:var(--gold2)">${finalPr} €</span>
       </div>
     </div>
-    <p style="font-size:11px;color:var(--stone);margin-bottom:16px">0 % Buchungsgebühr · Kostenlose Stornierung 24h</p>
-    <button class="bgold" onclick="closeBooking()">Fertig</button>
-  </div>`;
+    <p style="font-size:11px;color:var(--stone);margin-bottom:16px">${t("noFee")}</p>
+    <a href="https://wa.me/?text=${waMsg}" target="_blank" style="display:block;padding:14px;background:#25D366;color:#fff;border-radius:14px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:10px">💬 ${t("shareWA")}</a>
+    <button class="bgold" onclick="closeBooking()">${t("done")}</button>
+  </div>`;}
   let body="";
   if(s===1){body=`
-    <p class="lsm" style="margin-bottom:10px">Service</p>
+    <p class="lsm" style="margin-bottom:10px">${t("service")}</p>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
-      ${p.svs.map(sv2=>`<div onclick="selectSv('${sv2.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:${state.bookSv?.id===sv2.id?"rgba(200,168,75,.08)":"var(--c2)"};border-radius:13px;border:1.5px solid ${state.bookSv?.id===sv2.id?"var(--gold)":"rgba(200,168,75,.08)"};cursor:pointer">
+      ${p.svs.map(sv2=>`<div onclick="selectSv('${sv2.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:${state.bookSv?.id===sv2.id?"rgba(200,168,75,.08)":"var(--c2)"};border-radius:13px;border:1.5px solid ${state.bookSv?.id===sv2.id?"var(--gold)":"var(--border)"};cursor:pointer">
         <div><p style="font-size:14px;font-weight:700">${sv2.nm}</p><p style="font-size:12px;color:var(--stone)">${sv2.dur} min</p></div>
         <span style="font-size:15px;font-weight:800;color:var(--gold2)">${sv2.pr} €</span>
       </div>`).join("")}
     </div>
-    <p class="lsm" style="margin-bottom:10px">Tag</p>
+    <p class="lsm" style="margin-bottom:10px">${t("day")}</p>
     <div style="display:flex;gap:7px;margin-bottom:18px;overflow-x:auto;padding-bottom:4px">
-      ${dl.map((d,i)=>`<div onclick="selectDay(${i})" style="flex-shrink:0;width:46px;padding:9px 6px;border-radius:13px;text-align:center;cursor:pointer;background:${day===i?"var(--gold)":"var(--c2)"};border:1px solid ${day===i?"var(--gold)":"rgba(200,168,75,.1)"}">
+      ${dl.map((d,i)=>`<div onclick="selectDay(${i})" style="flex-shrink:0;width:46px;padding:9px 6px;border-radius:13px;text-align:center;cursor:pointer;background:${day===i?"var(--gold)":"var(--c2)"};border:1px solid ${day===i?"var(--gold)":"var(--border)"}">
         <p style="font-size:10px;font-weight:700;color:${day===i?"#080706":"var(--stone)"}">${d.day}</p>
         <p style="font-size:15px;font-weight:800;color:${day===i?"#080706":"var(--cream)"}">${d.dt}</p>
       </div>`).join("")}
     </div>
-    <p class="lsm" style="margin-bottom:10px">Uhrzeit</p>
+    <p class="lsm" style="margin-bottom:10px">${t("time")}</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-      ${ts.map(t=>{const av=Math.random()>.35;return`<div onclick="${av?`selectSlot('${t}')`:"return false"}" style="padding:9px 13px;border-radius:10px;font-size:13px;font-weight:700;cursor:${av?"pointer":"default"};background:${slot===t?"var(--gold)":av?"var(--c3)":"var(--c2)"};color:${slot===t?"#080706":av?"var(--cream)":"var(--stone2)"};border:1px solid ${slot===t?"var(--gold)":"rgba(200,168,75,.08)"};text-decoration:${av?"none":"line-through"};opacity:${av?1:.4}">${t}</div>`;}).join("")}
+      ${ts.map(tm=>{const av=getSlotAvailability(p.id,day,tm);return`<div onclick="${av?`selectSlot('${tm}')`:"return false"}" style="padding:9px 13px;border-radius:10px;font-size:13px;font-weight:700;cursor:${av?"pointer":"default"};background:${slot===tm?"var(--gold)":av?"var(--c3)":"var(--c2)"};color:${slot===tm?"#080706":av?"var(--cream)":"var(--stone2)"};border:1px solid ${slot===tm?"var(--gold)":"var(--border)"};opacity:${av?1:.4}">${tm}</div>`;}).join("")}
     </div>
-    <button class="bgold" ${!state.bookSv||!state.bookSlot?"disabled":""} onclick="setBookStep(2)">Weiter →</button>`;}
+    <button class="bgold" ${!state.bookSv||!state.bookSlot?"disabled":""} onclick="setBookStep(2)">${t("next")}</button>`;}
   if(s===2){body=`
-    <p class="lsm" style="margin-bottom:10px">Spezialist</p>
+    <p class="lsm" style="margin-bottom:10px">${t("specialist")}</p>
     <div style="display:flex;gap:10px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px">
-      ${specs.map(spec=>`<div onclick="selectSp('${spec.id}')" style="flex-shrink:0;width:106px;padding:13px 10px;border-radius:16px;text-align:center;cursor:pointer;background:${sp?.id===spec.id?"rgba(200,168,75,.08)":"var(--c2)"};border:1.5px solid ${sp?.id===spec.id?"var(--gold)":"rgba(200,168,75,.08)"}">
+      ${specs.map(spec=>`<div onclick="selectSp('${spec.id}')" style="flex-shrink:0;width:106px;padding:13px 10px;border-radius:16px;text-align:center;cursor:pointer;background:${sp?.id===spec.id?"rgba(200,168,75,.08)":"var(--c2)"};border:1.5px solid ${sp?.id===spec.id?"var(--gold)":"var(--border)"}">
         <div style="width:48px;height:48px;border-radius:50%;background:${spec.col};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;margin:0 auto 8px">${spec.ini}</div>
         <p style="font-size:11px;font-weight:700;margin-bottom:2px">${spec.nm}</p>${stars(spec.rt)}
       </div>`).join("")}
     </div>
     <div style="display:flex;gap:10px">
       <button class="boutline" style="flex:0 0 auto;padding:13px 18px" onclick="setBookStep(1)">←</button>
-      <button class="bgold" style="flex:1" onclick="setBookStep(3)">Weiter →</button>
+      <button class="bgold" style="flex:1" onclick="setBookStep(3)">${t("next")}</button>
     </div>`;}
-  if(s===3){body=`
-    <p class="lsm" style="margin-bottom:10px">Kontakt</p>
+  if(s===3){
+    const basePrice=sv?.pr||0;
+    const discPrice=state.promoValid&&PROMO_CODES[state.promoCode]?(PROMO_CODES[state.promoCode].type==='percent'?Math.round(basePrice*(1-PROMO_CODES[state.promoCode].discount/100)):Math.max(0,basePrice-PROMO_CODES[state.promoCode].discount)):basePrice;
+    const canConfirm=state.bookName.trim().length>0&&state.bookEmail.trim().length>0&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.bookEmail);
+    body=`
+    <p class="lsm" style="margin-bottom:10px">${t("contact")}</p>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-      <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Name</label><input class="inp" id="bkNm" placeholder="Max Mustermann"/></div>
-      <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">E-Mail</label><input class="inp" id="bkEm" type="email" placeholder="max@mail.de"/></div>
+      <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${t("name")}</label><input class="inp" value="${state.bookName}" oninput="updateBookContact('bookName',this.value)" placeholder="Max Mustermann"/></div>
+      <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${t("email")}</label><input class="inp" type="email" value="${state.bookEmail}" oninput="updateBookContact('bookEmail',this.value)" placeholder="max@mail.de" style="${state.bookEmail.length>0&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.bookEmail)?'border-color:var(--red)':''}"/></div>
+      <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${t("phone")}</label><input class="inp" type="tel" value="${state.bookPhone}" oninput="updateBookContact('bookPhone',this.value)" placeholder="+49 170 ..."/></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${t("specialRequests")}</label>
+      <textarea class="inp" style="height:60px;resize:none" placeholder="${t("notesPlaceholder")}" oninput="updateBookContact('bookNotes',this.value)">${state.bookNotes}</textarea>
     </div>
     <div class="card" style="padding:13px;margin-bottom:14px">
-      ${[[sv?.nm,sv?.pr+"€"],[dl[day]?.day+" "+dl[day]?.dt+".02",slot]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(200,168,75,.06);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:700">${v}</span></div>`).join("")}
+      ${[[sv?.nm,(state.promoValid?'<s style="color:var(--stone)">'+basePrice+'€</s> '+discPrice+'€':basePrice+"€")],[dl[day]?.day+" "+dl[day]?.dt+"."+dl[day]?.mo,slot]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:700">${v}</span></div>`).join("")}
+    </div>
+    <div style="margin-bottom:14px">
+      <p class="lsm" style="margin-bottom:6px">${t("enterPromo")}</p>
+      <div style="display:flex;gap:8px">
+        <input class="inp" style="flex:1" value="${state.promoCode}" oninput="updateBookContact('promoCode',this.value.toUpperCase())" placeholder="CHAIR2026"/>
+        <button class="boutline" style="flex:0 0 auto;padding:12px 16px" onclick="applyPromo()">${t("promoApply")}</button>
+      </div>
+      ${state.promoValid===true?`<p style="font-size:12px;color:#6ABF80;margin-top:6px">✓ ${t("promoApplied")} -${state.promoDiscount}${PROMO_CODES[state.promoCode]?.type==='percent'?'%':'€'}</p>`:''}
+      ${state.promoValid===false?`<p style="font-size:12px;color:var(--red);margin-top:6px">✕ ${t("promoInvalid")}</p>`:''}
     </div>
     <div style="display:flex;gap:10px">
       <button class="boutline" style="flex:0 0 auto;padding:13px 18px" onclick="setBookStep(2)">←</button>
-      <button class="bgold" style="flex:1" onclick="confirmBooking()">Jetzt buchen</button>
+      <button class="bgold" style="flex:1" ${canConfirm?'':"disabled"} onclick="confirmBooking()">${t("bookNow")}</button>
     </div>`;}
   return`<div class="sticky">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <button onclick="closeBooking()" style="font-size:13px;color:var(--stone);cursor:pointer;border:none;background:none;font-family:inherit">✕</button>
-      <span style="font-size:12px;color:var(--stone)">Schritt ${s}/3</span>
+      <button onclick="closeBooking()" style="font-size:13px;color:var(--stone)">✕</button>
+      <span style="font-size:12px;color:var(--stone)">${t("step")} ${s}/3</span>
     </div>
     <div class="pbar"><div class="pfill" style="width:${s/3*100}%"></div></div>
   </div>
-  <div style="padding:20px;padding-bottom:30px">${body}</div>`;}
+  <div style="padding:20px;padding-bottom:30px">${body}</div>`;
+}
 
 // ═══ ACTIONS ═══
 function nextOb(){state.obStep++;render();}
 function finishOnboarding(r){state.role=r;state.onboarded=true;state.tab="home";document.getElementById("mainScreen").scrollTop=0;render();}
-function goTab(t){state.tab=t;state.detail=null;state.subPage=null;document.getElementById("mainScreen").scrollTop=0;render();}
+function goTab(tb){state.tab=tb;state.detail=null;state.subPage=null;document.getElementById("mainScreen").scrollTop=0;render();}
 function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="info";document.getElementById("mainScreen").scrollTop=0;render();}
-function setDetailTab(t){state.detailTab=t;render();}
+function setDetailTab(tb){state.detailTab=tb;render();}
 function goBack(){state.detail=null;state.tab="home";render();}
 function setCat(c){state.catFilter=c;render();}
 function setRole(r){state.role=r;render();}
 function goSub(p){state.subPage=p;document.getElementById("mainScreen").scrollTop=0;render();}
-function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;render();}
-function closeBooking(){state.bookingProv=null;state.bookDone=false;render();}
+function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;state.bookName="";state.bookEmail="";state.bookPhone="";state.bookNotes="";state.promoCode="";state.promoValid=null;state.promoDiscount=0;render();}
+function closeBooking(){state.bookingProv=null;state.bookDone=false;state.stamps=Math.min(10,state.stamps+1);state.loyaltyRedeemed=false;localStorage.setItem("cm_redeemed","false");saveStamps();render();}
 function selectSv(id){state.bookSv=state.bookingProv.svs.find(s=>s.id===id);render();}
 function selectDay(i){state.bookDay=i;state.bookSlot=null;render();}
-function selectSlot(t){state.bookSlot=t;render();}
+function selectSlot(tm){state.bookSlot=tm;render();}
 function selectSp(id){state.bookSp=SPECS.find(s=>s.id===id);render();}
 function setBookStep(s){state.bookStep=s;render();}
-function confirmBooking(){state.bookDone=true;render();}
+function confirmBooking(){
+  const p=state.bookingProv;const today=new Date();const days=["So","Mo","Di","Mi","Do","Fr","Sa"];
+  const d=new Date(today);d.setDate(today.getDate()+state.bookDay);
+  const dateStr=days[d.getDay()]+" "+d.getDate()+"."+String(d.getMonth()+1).padStart(2,'0');
+  const sv=state.bookSv;
+  const basePrice=sv?.pr||0;
+  const finalPrice=state.promoValid&&PROMO_CODES[state.promoCode]?(PROMO_CODES[state.promoCode].type==='percent'?Math.round(basePrice*(1-PROMO_CODES[state.promoCode].discount/100)):Math.max(0,basePrice-PROMO_CODES[state.promoCode].discount)):basePrice;
+  const booking={id:'b'+Date.now(),provId:p.id,provNm:p.nm,nm:state.bookSp?.nm||state.bookName,sv:sv?.nm,t:dateStr+" · "+state.bookSlot,st:"confirmed",pr:finalPrice,notes:state.bookNotes};
+  state.bookings.unshift(booking);localStorage.setItem("cm_bookings",JSON.stringify(state.bookings));
+  state.bookDone=true;showToast(t("confirm")+" 🎉");render();
+}
 function updateReg(k,v){state.regData[k]=v==="true"?true:v==="false"?false:v;render();}
 function setRegStep(s){state.regStep=s;render();}
-function submitReg(){state.regDone=true;render();}
+function submitReg(){state.regDone=true;showToast("Registrierung eingereicht!");render();}
+function onSearch(v){state.searchQuery=v;render();}
+function focusSearch(){setTimeout(()=>{const el=document.getElementById("searchInp");if(el)el.focus();},50);}
+function toggleFilter(){state.showFilter=!state.showFilter;render();}
+function setFilterCity(c){state.filterCity=c;render();}
+function setFilterRating(r){state.filterMinRating=r;render();}
+function setFilterPrice(v){state.filterMaxPrice=parseInt(v);render();}
+function toggleFilterAvail(){state.filterOnlyAvail=!state.filterOnlyAvail;render();}
+function toggleFilterDisc(){state.filterOnlyDisc=!state.filterOnlyDisc;render();}
+function resetFilters(){state.filterCity="all";state.filterMinRating=0;state.filterMaxPrice=500;state.filterOnlyAvail=false;state.filterOnlyDisc=false;render();}
+function setView(m){state.viewMode=m;render();}
+function markRead(id){const n=state.notifications.find(x=>x.id===id);if(n)n.read=true;render();}
+function toggleTheme(){state.theme=state.theme==="dark"?"light":"dark";document.body.classList.toggle("light");localStorage.setItem("cm_theme",state.theme);showToast(state.theme==="dark"?t("darkMode"):t("lightMode"));render();}
+function setLang(code){state.lang=code;localStorage.setItem("cm_lang",code);showToast(t("lang")+": "+(code==="de"?"Deutsch":code==="en"?"English":"Türkçe"));render();}
+
+function updateBookContact(field,value){state[field]=value;}
+function shareReferral(){
+  const refLink='https://chairmatch.de/ref/USER123';
+  const text='Teste ChairMatch - die beste Beauty-Booking App! '+refLink;
+  if(navigator.share){navigator.share({title:'ChairMatch',text:text,url:refLink}).catch(()=>{});}
+  else if(navigator.clipboard){navigator.clipboard.writeText(refLink).then(()=>showToast(t('linkCopied')));}
+  else{showToast(t('linkCopied'));}
+}
+function setReviewRating(n){state.reviewRating=n;render();}
+function submitReview(provId){
+  if(state.reviewRating===0)return;
+  const prov=PROVS.find(p=>p.id===provId);if(!prov)return;
+  const today=new Date();
+  const dateStr=String(today.getDate()).padStart(2,'0')+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+today.getFullYear();
+  prov.revs.unshift({u:state.bookName||"Gast",s:state.reviewRating,t:state.reviewText,d:dateStr});
+  prov.rc++;showToast(t("reviewSubmitted"));state.reviewRating=0;state.reviewText="";render();
+}
+function applyPromo(){
+  const code=state.promoCode.trim().toUpperCase();
+  if(PROMO_CODES[code]){state.promoValid=true;state.promoDiscount=PROMO_CODES[code].discount;showToast(t("promoApplied"));}
+  else{state.promoValid=false;state.promoDiscount=0;}
+  render();
+}
+function redeemLoyalty(){
+  state.stamps=0;state.loyaltyRedeemed=true;saveStamps();localStorage.setItem("cm_redeemed","true");
+  showToast(t("loyaltyRedeemMsg"));render();
+}
+function cancelBooking(bookingId){
+  if(!confirm(t("cancelConfirm")))return;
+  const b=state.bookings.find(bk=>bk.id===bookingId);if(b){b.st="cancelled";}
+  localStorage.setItem("cm_bookings",JSON.stringify(state.bookings));
+  showToast(t("bookingCancelled"));render();
+}
 
 render();
 </script>
