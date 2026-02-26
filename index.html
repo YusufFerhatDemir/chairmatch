@@ -225,13 +225,13 @@ function LOGO(size){
 
 // ─── LOGO HEADER (v5.2 style with LOGO()) ───
 function logoHeader(small){
-  if(small) return `<div style="display:flex;align-items:center;gap:12px">
-    <div style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:inline-block">
-      ${LOGO(42)}
+  if(small) return `<div style="display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1">
+    <div style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:inline-block;flex-shrink:0">
+      ${LOGO(38)}
     </div>
-    <div>
-      <p class="cinzel" style="font-size:16px;font-weight:700;letter-spacing:3px;color:var(--gold2);line-height:1">CHAIR<span style="color:var(--gold3)">MATCH</span></p>
-      <p style="font-size:9px;letter-spacing:4px;color:var(--stone);margin-top:1px">DEUTSCHLAND</p>
+    <div style="min-width:0">
+      <p class="cinzel" style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--gold2);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">CHAIR<span style="color:var(--gold3)">MATCH</span></p>
+      <p style="font-size:8px;letter-spacing:3px;color:var(--stone);margin-top:2px">DEUTSCHLAND</p>
     </div>
   </div>`;
   return `<div style="display:flex;flex-direction:column;align-items:center;padding:16px 0 10px">
@@ -781,12 +781,12 @@ function renderHome(){
     <!-- LOGO HERO -->
     <div style="padding:var(--pad) var(--pad) 0;display:flex;justify-content:space-between;align-items:center;gap:12px">
       ${logoHeader(true)}
-      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-        <button onclick="goSub('notifications')" style="position:relative;font-size:20px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center">${state.notifications.filter(n=>!n.read).length>0?`<span style="position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--red)"></span>`:""} 🔔</button>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <div style="text-align:right">
-          <p style="font-size:var(--font-md);font-weight:600;color:var(--cream)">${gr}</p>
-          <p style="font-size:11px;color:var(--stone)">${t("nationwide")}</p>
+          <p style="font-size:var(--font-sm);font-weight:600;color:var(--cream);white-space:nowrap">${gr}</p>
+          <p style="font-size:10px;color:var(--stone);white-space:nowrap">${t("nationwide")}</p>
         </div>
+        <button onclick="goSub('notifications')" style="position:relative;font-size:18px;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center">${state.notifications.filter(n=>!n.read).length>0?`<span style="position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--red)"></span>`:""} 🔔</button>
       </div>
     </div>
 
