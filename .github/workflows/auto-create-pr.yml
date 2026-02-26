@@ -11,30 +11,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create PR
-        uses: actions/github-script@v7
         with:
-          script: |
-            const branch = context.ref.replace('refs/heads/', '');
-            const { data: prs } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              head: `${context.repo.owner}:${branch}`,
-              state: 'open'
-            });
-            if (prs.length === 0) {
-              const { data: pr } = await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `Auto: ${branch}`,
-                head: branch,
-                base: 'main',
-                body: 'Auto-created PR from Claude branch push'
-              });
-              await github.rest.pulls.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number,
-                merge_method: 'merge'
-              });
-            }
+          fetch-depth: 0
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "Branch: $BRANCH"
+          # Check if PR already exists
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -z "$EXISTING" ]; then
+            echo "Creating PR..."
+            PR_URL=$(gh pr create --title "Auto: $BRANCH" --body "Auto-created PR from Claude branch" --base main --head "$BRANCH" 2>&1)
+            echo "PR created: $PR_URL"
+            # Extract PR number and merge
+            PR_NUM=$(echo "$PR_URL" | grep -oP '\d+$')
+            if [ -n "$PR_NUM" ]; then
+              gh pr merge "$PR_NUM" --merge --auto 2>&1 || gh pr merge "$PR_NUM" --merge 2>&1 || true
+            fi
+          else
+            echo "PR already exists: #$EXISTING"
+            gh pr merge "$EXISTING" --merge --auto 2>&1 || gh pr merge "$EXISTING" --merge 2>&1 || true
+          fi
