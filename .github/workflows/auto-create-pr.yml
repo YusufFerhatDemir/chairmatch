@@ -1,4 +1,4 @@
-name: Auto-create PR for Claude branches
+name: Auto-deploy Claude branches to main
 on:
   push:
     branches:
@@ -7,22 +7,20 @@ permissions:
   contents: write
   pull-requests: write
 jobs:
-  create-pr:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Create and Merge PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge to main
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
-          echo "Creating PR for branch: $BRANCH"
-          PR_URL=$(gh pr create --title "Deploy: $BRANCH" --body "Auto-deploy from Claude branch" --base main --head "$BRANCH" 2>&1) || true
-          echo "Result: $PR_URL"
-          PR_NUM=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null)
-          echo "PR number: $PR_NUM"
-          if [ -n "$PR_NUM" ]; then
-            gh pr merge "$PR_NUM" --merge --admin 2>&1 || gh pr merge "$PR_NUM" --merge 2>&1 || echo "Merge failed"
-          fi
+          echo "Deploying $BRANCH to main..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git merge origin/$BRANCH --no-edit
+          git push origin main
+          echo "Successfully deployed to main!"
