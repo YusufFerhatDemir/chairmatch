@@ -260,160 +260,151 @@ function catSVG(type){
   </svg>`;
   return "";}
 
-// ─── PREMIUM LUXURY BARBER CHAIR ───
+// ─── PREMIUM CLASSIC BARBER CHAIR ───
 function dbSeat(){
-  return `<svg width="118" height="130" viewBox="0 0 118 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  return `<svg width="140" height="155" viewBox="0 0 280 310" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Rich burgundy/wine leather -->
-    <linearGradient id="bcLeath" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#8B1A2B"/><stop offset="40%" stop-color="#6A0E1E"/><stop offset="100%" stop-color="#3A0812"/>
+    <linearGradient id="bcBlk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3A3A3A"/><stop offset="30%" stop-color="#1A1A1A"/><stop offset="70%" stop-color="#0E0E0E"/><stop offset="100%" stop-color="#222"/>
     </linearGradient>
-    <linearGradient id="bcLeathH" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#5A1020"/><stop offset="35%" stop-color="#9A2238"/><stop offset="65%" stop-color="#7A1828"/><stop offset="100%" stop-color="#4A0C18"/>
+    <linearGradient id="bcBlkH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#111"/><stop offset="35%" stop-color="#383838"/><stop offset="55%" stop-color="#1E1E1E"/><stop offset="100%" stop-color="#0A0A0A"/>
     </linearGradient>
-    <!-- Gold chrome -->
-    <linearGradient id="bcGold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#F8ECC0"/><stop offset="20%" stop-color="#DCC070"/><stop offset="50%" stop-color="#F0D888"/><stop offset="80%" stop-color="#C8A040"/><stop offset="100%" stop-color="#A88030"/>
+    <linearGradient id="bcChr" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F0ECE8"/><stop offset="20%" stop-color="#D8D0C8"/><stop offset="45%" stop-color="#E8E4E0"/><stop offset="70%" stop-color="#A8A098"/><stop offset="100%" stop-color="#C8C0B8"/>
     </linearGradient>
-    <linearGradient id="bcGoldH" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#B89840"/><stop offset="30%" stop-color="#F8E8A0"/><stop offset="60%" stop-color="#D8B860"/><stop offset="100%" stop-color="#987020"/>
+    <linearGradient id="bcChrH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#908880"/><stop offset="25%" stop-color="#F0E8E0"/><stop offset="50%" stop-color="#B8B0A8"/><stop offset="75%" stop-color="#E0D8D0"/><stop offset="100%" stop-color="#807870"/>
     </linearGradient>
-    <!-- Silver chrome for base -->
-    <linearGradient id="bcSilv" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#F0ECE8"/><stop offset="25%" stop-color="#C8C0B8"/><stop offset="50%" stop-color="#E8E0D8"/><stop offset="75%" stop-color="#A8A098"/><stop offset="100%" stop-color="#D8D0C8"/>
+    <linearGradient id="bcGd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F5E8B0"/><stop offset="25%" stop-color="#D4B050"/><stop offset="50%" stop-color="#E8D078"/><stop offset="75%" stop-color="#C8A040"/><stop offset="100%" stop-color="#A88828"/>
     </linearGradient>
-    <linearGradient id="bcSilvH" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#989088"/><stop offset="30%" stop-color="#F0E8E0"/><stop offset="60%" stop-color="#C8C0B0"/><stop offset="100%" stop-color="#807870"/>
-    </linearGradient>
-    <!-- Deep leather highlight -->
-    <radialGradient id="bcShine" cx=".4" cy=".3" r=".7">
-      <stop offset="0%" stop-color="#C83050" stop-opacity=".5"/><stop offset="100%" stop-color="#3A0812" stop-opacity="0"/>
+    <radialGradient id="bcShn" cx=".35" cy=".25" r=".65">
+      <stop offset="0%" stop-color="#555" stop-opacity=".6"/><stop offset="100%" stop-color="#000" stop-opacity="0"/>
     </radialGradient>
-    <filter id="bcSh" x="-15%" y="-10%" width="130%" height="130%">
-      <feDropShadow dx="1" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity=".6"/>
-    </filter>
-    <filter id="bcGl" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#C8A84B" flood-opacity=".35"/>
-    </filter>
-    <filter id="bcInner" x="-5%" y="-5%" width="110%" height="110%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000" flood-opacity=".4"/>
-    </filter>
+    <filter id="bcS"><feDropShadow dx="1" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".55"/></filter>
+    <filter id="bcGw"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#C8A84B" flood-opacity=".3"/></filter>
   </defs>
 
-  <!-- === FLOOR SHADOW === -->
-  <ellipse cx="59" cy="127" rx="38" ry="4" fill="#000" opacity=".45"/>
+  <!-- FLOOR SHADOW -->
+  <ellipse cx="140" cy="302" rx="80" ry="8" fill="#000" opacity=".4"/>
 
-  <!-- === STAR BASE (5-point) === -->
-  <g filter="url(#bcSh)">
-    <path d="M59 122 L28 126 Q24 126 24 123 L24 120 Q24 118 28 118 L59 118 L90 118 Q94 118 94 120 L94 123 Q94 126 90 126 Z" fill="url(#bcSilv)"/>
-    <ellipse cx="24" cy="122" rx="5" ry="3.5" fill="url(#bcSilv)"/>
-    <ellipse cx="94" cy="122" rx="5" ry="3.5" fill="url(#bcSilv)"/>
-    <ellipse cx="24" cy="121" rx="3.5" ry="2" fill="#F0E8E0" opacity=".5"/>
-    <ellipse cx="94" cy="121" rx="3.5" ry="2" fill="#F0E8E0" opacity=".5"/>
-  </g>
-  <!-- Base highlight -->
-  <path d="M30 119 Q59 117 88 119" stroke="#FFF8E8" stroke-width="1" fill="none" opacity=".35"/>
-
-  <!-- === HYDRAULIC COLUMN === -->
-  <g filter="url(#bcSh)">
-    <rect x="51" y="96" width="16" height="24" rx="8" fill="url(#bcSilv)"/>
-    <rect x="53" y="97" width="4" height="22" rx="2" fill="#F8F0E8" opacity=".35"/>
-    <rect x="49" y="108" width="20" height="4" rx="2" fill="url(#bcSilvH)"/>
-    <rect x="50" y="109" width="18" height="1.5" rx=".75" fill="#FFF" opacity=".2"/>
+  <!-- === STAR BASE === -->
+  <g filter="url(#bcS)">
+    <path d="M140 290 L52 296 Q44 297 44 292 L44 286 Q44 282 52 282 L140 278 L228 282 Q236 282 236 286 L236 292 Q236 297 228 296 Z" fill="url(#bcChr)"/>
+    <ellipse cx="44" cy="290" rx="12" ry="7" fill="url(#bcChr)"/>
+    <ellipse cx="236" cy="290" rx="12" ry="7" fill="url(#bcChr)"/>
+    <ellipse cx="44" cy="288" rx="8" ry="4" fill="#F0E8E0" opacity=".4"/>
+    <ellipse cx="236" cy="288" rx="8" ry="4" fill="#F0E8E0" opacity=".4"/>
+    <path d="M60 283 Q140 278 220 283" stroke="#FFF" stroke-width="1.5" fill="none" opacity=".25"/>
   </g>
 
-  <!-- === FOOTREST RING === -->
-  <g filter="url(#bcSh)">
-    <rect x="26" y="102" width="66" height="8" rx="4" fill="url(#bcGold)" filter="url(#bcGl)"/>
-    <rect x="28" y="103" width="62" height="3" rx="1.5" fill="#FFF8D0" opacity=".4"/>
-    <ellipse cx="26" cy="106" rx="4.5" ry="4.5" fill="url(#bcGold)"/>
-    <ellipse cx="92" cy="106" rx="4.5" ry="4.5" fill="url(#bcGold)"/>
-    <ellipse cx="26" cy="105" rx="2.5" ry="2.5" fill="#FFF8D0" opacity=".4"/>
-    <ellipse cx="92" cy="105" rx="2.5" ry="2.5" fill="#FFF8D0" opacity=".4"/>
+  <!-- === HYDRAULIC PUMP === -->
+  <g filter="url(#bcS)">
+    <rect x="126" y="240" width="28" height="44" rx="14" fill="url(#bcChr)"/>
+    <rect x="129" y="242" width="6" height="40" rx="3" fill="#F8F0E8" opacity=".3"/>
+    <rect x="122" y="260" width="36" height="8" rx="4" fill="url(#bcChrH)"/>
+    <path d="M124 262 L156 262" stroke="#FFF" stroke-width="1" opacity=".2"/>
   </g>
 
-  <!-- === SEAT CUSHION === -->
-  <g filter="url(#bcSh)">
-    <path d="M18 72 Q18 63 28 63 L90 63 Q100 63 100 72 L100 82 Q100 90 90 90 L28 90 Q18 90 18 82 Z" fill="url(#bcLeath)"/>
-    <path d="M18 72 Q18 63 28 63 L90 63 Q100 63 100 72 L100 82 Q100 90 90 90 L28 90 Q18 90 18 82 Z" fill="url(#bcShine)"/>
-    <!-- Tufted diamond pattern -->
-    <circle cx="35" cy="72" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="50" cy="72" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="65" cy="72" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="80" cy="72" r="1.2" fill="#4A0C18" opacity=".7"/>
-    <circle cx="42" cy="80" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="57" cy="80" r="1.2" fill="#4A0C18" opacity=".7"/><circle cx="72" cy="80" r="1.2" fill="#4A0C18" opacity=".7"/>
-    <!-- Quilted lines -->
-    <path d="M35 72 L42 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/><path d="M50 72 L42 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/>
-    <path d="M50 72 L57 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/><path d="M65 72 L57 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/>
-    <path d="M65 72 L72 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/><path d="M80 72 L72 80" stroke="#4A0C18" stroke-width=".6" opacity=".5"/>
-    <!-- Seat piping -->
-    <path d="M22 64 Q59 60 96 64" stroke="#C8A84B" stroke-width="1.2" fill="none" opacity=".5"/>
-    <path d="M18 82 Q18 90 28 90 L90 90 Q100 90 100 82" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".45"/>
-    <!-- Leather sheen -->
-    <path d="M25 66 Q59 62 93 66" stroke="#C83050" stroke-width="2" fill="none" opacity=".25" stroke-linecap="round"/>
+  <!-- === FOOTREST === -->
+  <g filter="url(#bcS)">
+    <rect x="58" y="252" width="164" height="12" rx="6" fill="url(#bcGd)" filter="url(#bcGw)"/>
+    <rect x="62" y="254" width="156" height="5" rx="2.5" fill="#FFF8D0" opacity=".35"/>
+    <ellipse cx="58" cy="258" rx="8" ry="8" fill="url(#bcGd)"/>
+    <ellipse cx="222" cy="258" rx="8" ry="8" fill="url(#bcGd)"/>
+    <ellipse cx="58" cy="256" rx="5" ry="5" fill="#FFF8D0" opacity=".35"/>
+    <ellipse cx="222" cy="256" rx="5" ry="5" fill="#FFF8D0" opacity=".35"/>
   </g>
 
-  <!-- === ARMRESTS === -->
-  <!-- Left armrest -->
-  <g filter="url(#bcSh)">
-    <path d="M10 62 L10 84 Q10 89 15 89 L22 89 L22 84 L16 84 L16 62 Z" fill="url(#bcGold)"/>
-    <rect x="11" y="63" width="2.5" height="20" rx="1" fill="#FFF8D0" opacity=".35"/>
-    <path d="M5 55 Q5 49 11 49 L21 49 Q27 49 27 55 L27 66 Q27 70 21 70 L11 70 Q5 70 5 66 Z" fill="url(#bcLeath)"/>
-    <path d="M5 55 Q5 49 11 49 L21 49 Q27 49 27 55 L27 66 Q27 70 21 70 L11 70 Q5 70 5 66 Z" fill="url(#bcShine)"/>
-    <circle cx="12" cy="56" r=".9" fill="#4A0C18" opacity=".6"/><circle cx="20" cy="56" r=".9" fill="#4A0C18" opacity=".6"/>
-    <circle cx="12" cy="63" r=".9" fill="#4A0C18" opacity=".6"/><circle cx="20" cy="63" r=".9" fill="#4A0C18" opacity=".6"/>
-    <path d="M5 66 Q5 70 11 70 L21 70 Q27 70 27 66" stroke="#C8A84B" stroke-width="1.2" fill="none" opacity=".45"/>
+  <!-- === SEAT === -->
+  <g filter="url(#bcS)">
+    <path d="M46 175 Q46 158 62 158 L218 158 Q234 158 234 175 L234 200 Q234 216 218 216 L62 216 Q46 216 46 200 Z" fill="url(#bcBlk)"/>
+    <path d="M46 175 Q46 158 62 158 L218 158 Q234 158 234 175 L234 200 Q234 216 218 216 L62 216 Q46 216 46 200 Z" fill="url(#bcShn)"/>
+    <!-- seat stitching lines -->
+    <line x1="100" y1="162" x2="100" y2="212" stroke="#2A2A2A" stroke-width="1.5" opacity=".6"/>
+    <line x1="140" y1="160" x2="140" y2="214" stroke="#2A2A2A" stroke-width="1.5" opacity=".6"/>
+    <line x1="180" y1="162" x2="180" y2="212" stroke="#2A2A2A" stroke-width="1.5" opacity=".6"/>
+    <!-- seat highlight -->
+    <path d="M56 162 Q140 155 224 162" stroke="#555" stroke-width="2.5" fill="none" opacity=".35" stroke-linecap="round"/>
+    <!-- gold piping -->
+    <path d="M50 160 Q140 154 230 160" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".4"/>
+    <path d="M46 200 Q46 216 62 216 L218 216 Q234 216 234 200" stroke="#C8A84B" stroke-width="2" fill="none" opacity=".35"/>
   </g>
-  <!-- Right armrest -->
-  <g filter="url(#bcSh)">
-    <path d="M108 62 L108 84 Q108 89 103 89 L96 89 L96 84 L102 84 L102 62 Z" fill="url(#bcGold)"/>
-    <rect x="104.5" y="63" width="2.5" height="20" rx="1" fill="#FFF8D0" opacity=".35"/>
-    <path d="M91 55 Q91 49 97 49 L107 49 Q113 49 113 55 L113 66 Q113 70 107 70 L97 70 Q91 70 91 66 Z" fill="url(#bcLeath)"/>
-    <path d="M91 55 Q91 49 97 49 L107 49 Q113 49 113 55 L113 66 Q113 70 107 70 L97 70 Q91 70 91 66 Z" fill="url(#bcShine)"/>
-    <circle cx="98" cy="56" r=".9" fill="#4A0C18" opacity=".6"/><circle cx="106" cy="56" r=".9" fill="#4A0C18" opacity=".6"/>
-    <circle cx="98" cy="63" r=".9" fill="#4A0C18" opacity=".6"/><circle cx="106" cy="63" r=".9" fill="#4A0C18" opacity=".6"/>
-    <path d="M91 66 Q91 70 97 70 L107 70 Q113 70 113 66" stroke="#C8A84B" stroke-width="1.2" fill="none" opacity=".45"/>
+
+  <!-- === SEAT CONNECTOR TO BASE === -->
+  <g filter="url(#bcS)">
+    <path d="M110 216 L110 244 Q110 248 114 248 L166 248 Q170 248 170 244 L170 216" fill="url(#bcChr)"/>
+    <path d="M112 218 L112 242" stroke="#F8F0E8" stroke-width="3" opacity=".2" stroke-linecap="round"/>
+  </g>
+
+  <!-- === LEFT ARMREST === -->
+  <g filter="url(#bcS)">
+    <!-- arm support (chrome) -->
+    <path d="M30 152 L30 200 Q30 210 38 210 L52 210 L52 200 L40 200 L40 152 Z" fill="url(#bcGd)"/>
+    <rect x="32" y="154" width="3.5" height="44" rx="1.5" fill="#FFF8D0" opacity=".3"/>
+    <!-- arm pad (leather) -->
+    <path d="M18 132 Q18 122 28 122 L50 122 Q60 122 60 132 L60 158 Q60 166 50 166 L28 166 Q18 166 18 158 Z" fill="url(#bcBlk)"/>
+    <path d="M18 132 Q18 122 28 122 L50 122 Q60 122 60 132 L60 158 Q60 166 50 166 L28 166 Q18 166 18 158 Z" fill="url(#bcShn)"/>
+    <path d="M18 158 Q18 166 28 166 L50 166 Q60 166 60 158" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".4"/>
+    <path d="M24 126 Q39 123 56 126" stroke="#444" stroke-width="2" fill="none" opacity=".3" stroke-linecap="round"/>
+  </g>
+
+  <!-- === RIGHT ARMREST === -->
+  <g filter="url(#bcS)">
+    <path d="M250 152 L250 200 Q250 210 242 210 L228 210 L228 200 L240 200 L240 152 Z" fill="url(#bcGd)"/>
+    <rect x="244.5" y="154" width="3.5" height="44" rx="1.5" fill="#FFF8D0" opacity=".3"/>
+    <path d="M220 132 Q220 122 230 122 L252 122 Q262 122 262 132 L262 158 Q262 166 252 166 L230 166 Q220 166 220 158 Z" fill="url(#bcBlk)"/>
+    <path d="M220 132 Q220 122 230 122 L252 122 Q262 122 262 132 L262 158 Q262 166 252 166 L230 166 Q220 166 220 158 Z" fill="url(#bcShn)"/>
+    <path d="M220 158 Q220 166 230 166 L252 166 Q262 166 262 158" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".4"/>
+    <path d="M224 126 Q241 123 258 126" stroke="#444" stroke-width="2" fill="none" opacity=".3" stroke-linecap="round"/>
   </g>
 
   <!-- === BACKREST === -->
-  <g filter="url(#bcSh)">
-    <!-- Gold frame -->
-    <path d="M22 14 Q22 5 32 5 L86 5 Q96 5 96 14 L96 65 Q96 69 92 69 L26 69 Q22 69 22 65 Z" fill="url(#bcGold)"/>
-    <rect x="23" y="6" width="2.5" height="61" rx="1" fill="#FFF8D0" opacity=".3"/>
-    <!-- Leather pad -->
-    <path d="M25 17 Q25 9 33 9 L85 9 Q93 9 93 17 L93 63 Q93 67 87 67 L31 67 Q25 67 25 63 Z" fill="url(#bcLeath)"/>
-    <path d="M25 17 Q25 9 33 9 L85 9 Q93 9 93 17 L93 63 Q93 67 87 67 L31 67 Q25 67 25 63 Z" fill="url(#bcShine)"/>
-    <!-- Tufted diamond buttons -->
-    <circle cx="42" cy="20" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="59" cy="20" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="76" cy="20" r="1.3" fill="#4A0C18" opacity=".7"/>
-    <circle cx="50" cy="30" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="68" cy="30" r="1.3" fill="#4A0C18" opacity=".7"/>
-    <circle cx="42" cy="40" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="59" cy="40" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="76" cy="40" r="1.3" fill="#4A0C18" opacity=".7"/>
-    <circle cx="50" cy="50" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="68" cy="50" r="1.3" fill="#4A0C18" opacity=".7"/>
-    <circle cx="42" cy="60" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="59" cy="60" r="1.3" fill="#4A0C18" opacity=".7"/><circle cx="76" cy="60" r="1.3" fill="#4A0C18" opacity=".7"/>
-    <!-- Diamond quilted lines -->
-    <path d="M42 20 L50 30 L42 40 L50 50 L42 60" stroke="#4A0C18" stroke-width=".5" opacity=".45" fill="none"/>
-    <path d="M59 20 L50 30 M59 20 L68 30 L59 40 L50 50 M59 40 L68 50 L59 60" stroke="#4A0C18" stroke-width=".5" opacity=".45" fill="none"/>
-    <path d="M76 20 L68 30 L76 40 L68 50 L76 60" stroke="#4A0C18" stroke-width=".5" opacity=".45" fill="none"/>
-    <!-- Top sheen -->
-    <path d="M35 10 Q59 7 83 10" stroke="#C83050" stroke-width="2.5" fill="none" opacity=".2" stroke-linecap="round"/>
-    <!-- Gold piping around leather -->
-    <path d="M25 17 Q25 9 33 9 L85 9 Q93 9 93 17" stroke="#C8A84B" stroke-width="1" fill="none" opacity=".5"/>
-    <path d="M25 63 Q25 67 31 67 L87 67 Q93 67 93 63" stroke="#C8A84B" stroke-width="1" fill="none" opacity=".5"/>
+  <g filter="url(#bcS)">
+    <!-- chrome frame -->
+    <path d="M56 30 Q56 14 72 14 L208 14 Q224 14 224 30 L224 158 Q224 166 216 166 L64 166 Q56 166 56 158 Z" fill="url(#bcGd)"/>
+    <rect x="58" y="16" width="4" height="148" rx="2" fill="#FFF8D0" opacity=".25"/>
+    <!-- leather pad -->
+    <path d="M62 36 Q62 20 76 20 L204 20 Q218 20 218 36 L218 154 Q218 162 208 162 L72 162 Q62 162 62 154 Z" fill="url(#bcBlk)"/>
+    <path d="M62 36 Q62 20 76 20 L204 20 Q218 20 218 36 L218 154 Q218 162 208 162 L72 162 Q62 162 62 154 Z" fill="url(#bcShn)"/>
+    <!-- vertical stitch lines -->
+    <line x1="104" y1="26" x2="104" y2="156" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="140" y1="22" x2="140" y2="160" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="176" y1="26" x2="176" y2="156" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <!-- horizontal stitch lines -->
+    <line x1="66" y1="55" x2="214" y2="55" stroke="#2A2A2A" stroke-width="1" opacity=".35"/>
+    <line x1="66" y1="90" x2="214" y2="90" stroke="#2A2A2A" stroke-width="1" opacity=".35"/>
+    <line x1="66" y1="125" x2="214" y2="125" stroke="#2A2A2A" stroke-width="1" opacity=".35"/>
+    <!-- leather sheen -->
+    <path d="M76 24 Q140 18 204 24" stroke="#555" stroke-width="3" fill="none" opacity=".3" stroke-linecap="round"/>
+    <!-- gold piping -->
+    <path d="M62 36 Q62 20 76 20 L204 20 Q218 20 218 36" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".4"/>
+    <path d="M62 154 Q62 162 72 162 L208 162 Q218 162 218 154" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".4"/>
   </g>
 
   <!-- === HEADREST === -->
-  <g filter="url(#bcSh)">
-    <rect x="44" y="1" width="30" height="8" rx="3" fill="url(#bcGold)"/>
-    <path d="M38 0 Q38 -5 44 -5 L74 -5 Q80 -5 80 0 L80 8 Q80 12 74 12 L44 12 Q38 12 38 8 Z" fill="url(#bcLeath)"/>
-    <path d="M38 0 Q38 -5 44 -5 L74 -5 Q80 -5 80 0 L80 8 Q80 12 74 12 L44 12 Q38 12 38 8 Z" fill="url(#bcShine)"/>
-    <circle cx="50" cy="3" r="1" fill="#4A0C18" opacity=".6"/><circle cx="59" cy="3" r="1" fill="#4A0C18" opacity=".6"/><circle cx="68" cy="3" r="1" fill="#4A0C18" opacity=".6"/>
-    <path d="M38 8 Q38 12 44 12 L74 12 Q80 12 80 8" stroke="#C8A84B" stroke-width="1.2" fill="none" opacity=".5"/>
-    <path d="M42 -4 Q59 -6 76 -4" stroke="#C83050" stroke-width="1.5" fill="none" opacity=".2"/>
+  <g filter="url(#bcS)">
+    <!-- chrome bracket -->
+    <rect x="110" y="8" width="60" height="12" rx="4" fill="url(#bcGd)"/>
+    <!-- leather headrest -->
+    <path d="M92 2 Q92 -8 104 -8 L176 -8 Q188 -8 188 2 L188 18 Q188 28 176 28 L104 28 Q92 28 92 18 Z" fill="url(#bcBlk)"/>
+    <path d="M92 2 Q92 -8 104 -8 L176 -8 Q188 -8 188 2 L188 18 Q188 28 176 28 L104 28 Q92 28 92 18 Z" fill="url(#bcShn)"/>
+    <!-- headrest stitching -->
+    <line x1="124" y1="-4" x2="124" y2="24" stroke="#2A2A2A" stroke-width="1.2" opacity=".5"/>
+    <line x1="140" y1="-6" x2="140" y2="26" stroke="#2A2A2A" stroke-width="1.2" opacity=".5"/>
+    <line x1="156" y1="-4" x2="156" y2="24" stroke="#2A2A2A" stroke-width="1.2" opacity=".5"/>
+    <path d="M92 18 Q92 28 104 28 L176 28 Q188 28 188 18" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".4"/>
+    <path d="M100 -6 Q140 -10 180 -6" stroke="#444" stroke-width="2" fill="none" opacity=".25" stroke-linecap="round"/>
   </g>
 
-  <!-- === LEVER HANDLE (right side) === -->
-  <rect x="97" y="82" width="14" height="4" rx="2" fill="url(#bcGold)" filter="url(#bcSh)"/>
-  <ellipse cx="111" cy="84" rx="3.5" ry="3.5" fill="url(#bcGold)" filter="url(#bcGl)"/>
-  <ellipse cx="111" cy="83.5" rx="2" ry="2" fill="#FFF8D0" opacity=".5"/>
+  <!-- === LEVER HANDLE === -->
+  <rect x="230" y="200" width="24" height="6" rx="3" fill="url(#bcGd)" filter="url(#bcS)"/>
+  <ellipse cx="254" cy="203" rx="6" ry="6" fill="url(#bcGd)" filter="url(#bcGw)"/>
+  <ellipse cx="254" cy="202" rx="3.5" ry="3.5" fill="#FFF8D0" opacity=".45"/>
 
-  <!-- === AMBIENT GOLD GLOW === -->
-  <ellipse cx="59" cy="50" rx="50" ry="60" fill="#C8A84B" opacity=".03"/>
+  <!-- === SUBTLE GOLD AMBIENT === -->
+  <ellipse cx="140" cy="130" rx="90" ry="110" fill="#C8A84B" opacity=".02"/>
 </svg>`;}
 
 // ═══════════════ i18n ═══════════════
