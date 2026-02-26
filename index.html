@@ -2,54 +2,56 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#080706"/>
 <title>ChairMatch</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:'DM Sans',sans-serif;overflow:hidden;transition:background .3s,color .3s}
+html,body{height:100%;font-family:'DM Sans',sans-serif;overflow:hidden;transition:background .3s,color .3s;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{--bg:#060504;--c1:#0D0B08;--c2:#141108;--c3:#1C1810;--c4:#232018;--c5:#2E2A1E;
 --gold:#C8A84B;--gold2:#E8D06A;--gold3:#F5E080;--goldlo:rgba(200,168,75,0.08);
 --cream:#F0E8D8;--stone:#8A8070;--stone2:#5A5448;--red:#E85040;--green:#4A8A5A;
---cardbg:#141108;--sheetbg:#0D0B08;--border:rgba(200,168,75,0.08);--borderhi:rgba(200,168,75,0.15)}
+--cardbg:#141108;--sheetbg:#0D0B08;--border:rgba(200,168,75,0.08);--borderhi:rgba(200,168,75,0.15);
+--sai-top:env(safe-area-inset-top,0px);--sai-bottom:env(safe-area-inset-bottom,0px);--sai-left:env(safe-area-inset-left,0px);--sai-right:env(safe-area-inset-right,0px);
+--shell-max:430px;--pad:20px;--nav-h:72px;--font-xs:10px;--font-sm:12px;--font-md:14px;--font-lg:18px;--font-xl:22px;--card-radius:18px;--btn-radius:14px}
 html,body{background:var(--bg);color:var(--cream)}
 .light{--bg:#F5F0E8;--c1:#FFFFFF;--c2:#F8F4EE;--c3:#EDE8E0;--c4:#E0D8CC;--c5:#D0C8B8;
 --cream:#1A1408;--stone:#6A6458;--stone2:#9A9488;--cardbg:#FFFFFF;--sheetbg:#FFFFFF;--border:rgba(0,0,0,0.06);--borderhi:rgba(0,0,0,0.12)}
 .serif{font-family:'Cormorant Garamond',serif}
 .cinzel{font-family:'Cinzel',serif}
-.shell{width:100%;max-width:430px;margin:0 auto;height:100vh;background:var(--c1);position:relative;display:flex;flex-direction:column;overflow:hidden}
-.screen{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:72px;-webkit-overflow-scrolling:touch}
+.shell{width:100%;max-width:var(--shell-max);margin:0 auto;height:100vh;height:100dvh;background:var(--c1);position:relative;display:flex;flex-direction:column;overflow:hidden}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav-h) + var(--sai-bottom));scroll-behavior:smooth;overscroll-behavior-y:contain}
 .screen::-webkit-scrollbar{display:none}
 button{border:none;background:none;cursor:pointer;font-family:inherit;color:inherit}
-.bgold{background:linear-gradient(135deg,#D4AE54,#C8A84B,#B8982B);color:#080706;font-weight:800;border-radius:14px;padding:14px 22px;font-size:14px;width:100%;border:none;cursor:pointer;font-family:inherit;display:block;box-shadow:0 4px 20px rgba(200,168,75,0.3);transition:transform .15s,box-shadow .15s}
+.bgold{background:linear-gradient(135deg,#D4AE54,#C8A84B,#B8982B);color:#080706;font-weight:800;border-radius:var(--btn-radius);padding:14px 22px;font-size:var(--font-md);width:100%;border:none;cursor:pointer;font-family:inherit;display:block;box-shadow:0 4px 20px rgba(200,168,75,0.3);transition:transform .15s,box-shadow .15s;min-height:48px}
 .bgold:active{transform:scale(.97);box-shadow:0 2px 10px rgba(200,168,75,0.2)}
 .bgold:disabled{opacity:.4;box-shadow:none;transform:none}
-.boutline{background:transparent;border:1.5px solid rgba(200,168,75,.35);color:var(--gold2);font-weight:700;border-radius:14px;padding:14px 22px;font-size:14px;cursor:pointer;font-family:inherit;transition:background .2s}
+.boutline{background:transparent;border:1.5px solid rgba(200,168,75,.35);color:var(--gold2);font-weight:700;border-radius:var(--btn-radius);padding:14px 22px;font-size:var(--font-md);cursor:pointer;font-family:inherit;transition:background .2s;min-height:48px}
 .boutline:active{background:rgba(200,168,75,.08)}
-.inp{width:100%;background:var(--c3);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--cream);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s}
+.inp{width:100%;background:var(--c3);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--cream);font-family:inherit;font-size:16px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
 .inp:focus{border-color:var(--gold)}
 .inp::placeholder{color:var(--stone2)}
-.card{background:var(--cardbg);border-radius:18px;border:1px solid var(--border);overflow:hidden;transition:transform .2s}
+.card{background:var(--cardbg);border-radius:var(--card-radius);border:1px solid var(--border);overflow:hidden;transition:transform .2s}
 .card:active{transform:scale(.985)}
-.lsm{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--stone);text-transform:uppercase}
-.lgold{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
-.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.lsm{font-size:var(--font-xs);font-weight:800;letter-spacing:.12em;color:var(--stone);text-transform:uppercase}
+.lgold{font-size:var(--font-xs);font-weight:800;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:var(--font-xs);font-weight:700}
 .bgd{background:rgba(200,168,75,.12);color:var(--gold2);border:1px solid rgba(200,168,75,.2)}
 .bgr{background:rgba(74,138,90,.15);color:#6ABF80;border:1px solid rgba(74,138,90,.25)}
 .brd{background:rgba(232,80,64,.12);color:#F07060;border:1px solid rgba(232,80,64,.2)}
-.nav{position:absolute;bottom:0;left:0;right:0;background:rgba(6,5,4,.97);border-top:1px solid rgba(200,168,75,.12);display:flex;justify-content:space-around;padding:10px 0 20px;z-index:50;backdrop-filter:blur(12px)}
+.nav{position:absolute;bottom:0;left:0;right:0;background:rgba(6,5,4,.97);border-top:1px solid rgba(200,168,75,.12);display:flex;justify-content:space-around;padding:10px 0 calc(10px + var(--sai-bottom));z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .light .nav{background:rgba(255,255,255,.95)}
-.nbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:2px 16px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative}
-.nbtn .notif-dot{position:absolute;top:0;right:8px;width:8px;height:8px;border-radius:50%;background:var(--red)}
-.sticky{position:sticky;top:0;background:var(--c1);z-index:40;border-bottom:1px solid var(--border);padding:14px 20px}
+.nbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 16px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;min-width:48px;min-height:48px;justify-content:center}
+.nbtn .notif-dot{position:absolute;top:2px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.sticky{position:sticky;top:0;background:var(--c1);z-index:40;border-bottom:1px solid var(--border);padding:14px var(--pad)}
 .pbar{height:3px;background:var(--c4);border-radius:2px}
 .pfill{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold3));border-radius:2px;transition:width .3s}
-.check{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;border:2px solid var(--c5);background:var(--c4);cursor:pointer}
+.check{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;border:2px solid var(--c5);background:var(--c4);cursor:pointer}
 .check.on{background:var(--gold);border-color:var(--gold);color:#080706}
-.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);align-items:flex-end}
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);align-items:flex-end;justify-content:center}
 .overlay.active{display:flex}
-.sheet{width:100%;max-width:430px;margin:0 auto;max-height:93vh;overflow-y:auto;background:var(--sheetbg);border-radius:24px 24px 0 0;border:1px solid var(--borderhi);animation:sheetUp .3s ease}
+.sheet{width:100%;max-width:var(--shell-max);margin:0 auto;max-height:93vh;max-height:93dvh;overflow-y:auto;background:var(--sheetbg);border-radius:24px 24px 0 0;border:1px solid var(--borderhi);animation:sheetUp .3s ease;padding-bottom:var(--sai-bottom)}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 /* Logo Animations */
 @keyframes logoFloat{0%,100%{transform:translateY(0px)}50%{transform:translateY(-4px)}}
@@ -62,18 +64,44 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 .d1{animation-delay:.07s}.d2{animation-delay:.14s}.d3{animation-delay:.22s}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--gold);color:#080706;padding:12px 24px;border-radius:12px;font-size:13px;font-weight:700;z-index:999;animation:toastIn .3s ease,toastOut .3s ease 2s forwards;pointer-events:none;max-width:380px;text-align:center}
+.toast{position:fixed;top:calc(20px + var(--sai-top));left:50%;transform:translateX(-50%);background:var(--gold);color:#080706;padding:12px 24px;border-radius:12px;font-size:13px;font-weight:700;z-index:999;animation:toastIn .3s ease,toastOut .3s ease 2s forwards;pointer-events:none;max-width:calc(100vw - 40px);text-align:center}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes toastOut{from{opacity:1}to{opacity:0}}
 .skel{background:linear-gradient(90deg,var(--c3) 25%,var(--c4) 50%,var(--c3) 75%);background-size:200% 100%;animation:skel 1.5s infinite;border-radius:8px}
 @keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.heart{cursor:pointer;transition:transform .2s}
+.heart{cursor:pointer;transition:transform .2s;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
 .heart:active{transform:scale(1.3)}
 .heart.liked{color:#E85040}
-.switch{width:44px;height:24px;border-radius:12px;background:var(--c4);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.switch{width:48px;height:26px;border-radius:13px;background:var(--c4);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
 .switch.on{background:var(--gold)}
-.switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
-.switch.on::after{transform:translateX(20px)}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch.on::after{transform:translateX(22px)}
+/* ═══ RESPONSIVE: Small phones (iPhone SE, Galaxy S mini) ═══ */
+@media(max-width:374px){:root{--pad:14px;--font-xs:9px;--font-sm:11px;--font-md:13px;--font-lg:16px;--font-xl:19px;--card-radius:14px;--btn-radius:12px}
+.nbtn{padding:4px 10px;min-width:40px}.nbtn span:last-child{font-size:8px!important}
+.badge{padding:3px 8px;font-size:9px}
+.bgold,.boutline{padding:12px 16px}
+}
+/* ═══ RESPONSIVE: Standard phones (375-429px) - default ═══ */
+/* ═══ RESPONSIVE: Large phones (430-519px, iPhone Pro Max, Galaxy Ultra) ═══ */
+@media(min-width:430px){:root{--pad:22px;--font-md:15px;--font-lg:19px;--font-xl:24px}}
+/* ═══ RESPONSIVE: Small tablets / landscape phones (520-767px) ═══ */
+@media(min-width:520px){:root{--shell-max:520px;--pad:28px;--font-xs:11px;--font-sm:13px;--font-md:15px;--font-lg:20px;--font-xl:26px;--card-radius:20px}
+.badge{padding:5px 12px;font-size:11px}
+.bgold,.boutline{padding:16px 24px;font-size:15px}
+}
+/* ═══ RESPONSIVE: Tablets (768px+) ═══ */
+@media(min-width:768px){:root{--shell-max:560px;--pad:32px;--font-xs:11px;--font-sm:13px;--font-md:15px;--font-lg:22px;--font-xl:28px}
+.sheet{max-width:560px;border-radius:24px 24px 0 0}
+}
+/* ═══ RESPONSIVE: Landscape mode ═══ */
+@media(max-height:500px) and (orientation:landscape){
+.screen{padding-bottom:calc(60px + var(--sai-bottom))}
+.nav{padding:6px 0 calc(6px + var(--sai-bottom))}
+.nbtn{gap:2px;padding:2px 12px}
+}
+/* ═══ Hover devices (desktop/mouse) ═══ */
+@media(hover:hover){.card:hover{transform:scale(1.01);border-color:var(--borderhi)}.bgold:hover:not(:disabled){box-shadow:0 6px 28px rgba(200,168,75,0.4)}.boutline:hover{background:rgba(200,168,75,.06)}}
 </style>
 </head>
 <body>
@@ -594,22 +622,22 @@ function render(){
 // ─── ONBOARDING ───
 function renderOnboarding(){
   const slides=[{icon:"💈",t:t("welcome"),s:t("subtitle")},{icon:"chair",t:t("chair"),s:t("chairSub")},{icon:"booking",t:t("book"),s:t("bookSub")}];
-  if(state.obStep>=3)return`<div style="padding:60px 26px 40px;display:flex;flex-direction:column;gap:12px">
-    <button onclick="state.obStep=2;render()" style="align-self:flex-start;color:var(--gold);font-size:14px;font-weight:700;margin-bottom:8px;background:none;border:none;cursor:pointer;font-family:inherit">← ${t("back")}</button>
+  if(state.obStep>=3)return`<div style="padding:60px var(--pad) 40px;display:flex;flex-direction:column;gap:12px">
+    <button onclick="state.obStep=2;render()" style="align-self:flex-start;color:var(--gold);font-size:var(--font-md);font-weight:700;margin-bottom:8px;background:none;border:none;cursor:pointer;font-family:inherit;min-height:44px;display:flex;align-items:center">← ${t("back")}</button>
     <div style="text-align:center;margin-bottom:10px">${logoHeader(false)}</div>
-    <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">${t("iAm")}</p>
-    ${[[t("customer"),"CUSTOMER"],[t("provider"),"PROVIDER"],[t("b2b"),"B2B"]].map(([l,r])=>`<button class="boutline" style="padding:17px;font-size:14px;font-weight:700;text-align:left" onclick="finishOnboarding('${r}')">${l}</button>`).join("")}
+    <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">${t("iAm")}</p>
+    ${[[t("customer"),"CUSTOMER"],[t("provider"),"PROVIDER"],[t("b2b"),"B2B"]].map(([l,r])=>`<button class="boutline" style="padding:17px;font-size:var(--font-md);font-weight:700;text-align:left" onclick="finishOnboarding('${r}')">${l}</button>`).join("")}
   </div>`;
   const sl=slides[state.obStep];
   const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
-  return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;justify-content:center;padding:30px">
+  return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;min-height:100dvh;justify-content:center;padding:30px var(--pad)">
     ${state.obStep===0?`<div style="margin-bottom:10px">${logoHeader(false)}</div>`:sl.icon==="chair"?`<div style="margin-bottom:20px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbSeat()}</div>`:sl.icon==="booking"?`<div style="margin-bottom:20px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbBooking()}</div>`:`<div style="font-size:60px;margin-bottom:20px">${sl.icon}</div>`}
-    <p class="cinzel" style="font-size:22px;font-weight:600;margin-bottom:10px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
-    <p style="font-size:14px;color:var(--stone);line-height:1.7;margin-bottom:44px">${sl.s}</p>
+    <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;margin-bottom:10px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
+    <p style="font-size:var(--font-md);color:var(--stone);line-height:1.7;margin-bottom:44px;max-width:360px">${sl.s}</p>
     <div style="display:flex;gap:8px;margin-bottom:30px">${dots}</div>
-    <div style="display:flex;gap:14px;align-items:center">
-      ${state.obStep>0?`<button onclick="state.obStep--;render()" style="color:var(--gold);font-size:14px;font-weight:700;padding:15px 20px;background:none;border:1.5px solid rgba(200,168,75,.3);border-radius:14px;cursor:pointer;font-family:inherit">← ${t("back")}</button>`:""}
-      <button class="bgold" style="width:auto;padding:15px 36px;font-size:14px" onclick="nextOb()">
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center">
+      ${state.obStep>0?`<button onclick="state.obStep--;render()" style="color:var(--gold);font-size:var(--font-md);font-weight:700;padding:15px 20px;background:none;border:1.5px solid rgba(200,168,75,.3);border-radius:14px;cursor:pointer;font-family:inherit;min-height:48px">← ${t("back")}</button>`:""}
+      <button class="bgold" style="width:auto;padding:15px 36px;font-size:var(--font-md)" onclick="nextOb()">
         ${state.obStep<2?t("next"):t("go")}
       </button>
     </div>
@@ -625,27 +653,27 @@ function renderHome(){
   const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890"};
   const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
-    <div onclick="setCat('${c.id}')" style="width:calc(33.33% - 7px);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 12px;border-radius:16px;background:${f===c.id?"rgba(200,168,75,.07)":"var(--c2)"};border:1.5px solid ${f===c.id?"var(--gold)":"var(--border)"};cursor:pointer;position:relative">
+    <div onclick="setCat('${c.id}')" style="width:calc(33.33% - 7px);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 12px;border-radius:16px;background:${f===c.id?"rgba(200,168,75,.07)":"var(--c2)"};border:1.5px solid ${f===c.id?"var(--gold)":"var(--border)"};cursor:pointer;position:relative;min-height:88px">
       ${f===c.id?`<div style="position:absolute;top:5px;right:5px;width:14px;height:14px;border-radius:50%;background:var(--gold);font-size:7px;font-weight:900;color:#080706;display:flex;align-items:center;justify-content:center">✓</div>`:""}
       <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--c3),var(--c4));border:1px solid rgba(200,168,75,.15);display:flex;align-items:center;justify-content:center;${["friseur","massage"].includes(c.id)?"":"font-size:22px"}">${catIcons[c.id]}</div>
-      <span style="font-size:10px;font-weight:800;color:${f===c.id?"var(--gold2)":"var(--cream)"};text-align:center;letter-spacing:.03em">${c.lbl}</span>
+      <span style="font-size:var(--font-xs);font-weight:800;color:${f===c.id?"var(--gold2)":"var(--cream)"};text-align:center;letter-spacing:.03em">${c.lbl}</span>
       <span style="font-size:9px;color:var(--stone);text-align:center;line-height:1.2">${c.sub}</span>
     </div>`).join("");
   const provCards=list.map(p=>`
     <div class="card fu" onclick="openDetail('${p.id}')" style="cursor:pointer">
       <div style="height:3px;background:${p.bc}"></div>
       <div style="padding:13px 15px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px">
-          <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;gap:10px">
+          <div style="flex:1;min-width:0">
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">
               ${p.prom?badge("⚡ Top","bgd"):""}${p.ver?badge("✓ "+t("verified"),"bgr"):""}${p.disc>0?badge("−"+p.disc+"%","brd"):""}
             </div>
-            <p style="font-size:15px;font-weight:800">${p.nm}</p>
-            <p style="font-size:12px;color:var(--stone)">${p.st} · ${p.city}</p>
+            <p style="font-size:var(--font-md);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nm}</p>
+            <p style="font-size:var(--font-sm);color:var(--stone);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.st} · ${p.city}</p>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
             <span class="heart ${state.favorites.includes(p.id)?'liked':''}" onclick="toggleFav('${p.id}',event)" style="font-size:18px">${state.favorites.includes(p.id)?'♥':'♡'}</span>
-            <div style="display:flex;align-items:center;gap:3px">${stars(p.rt)}<span style="font-size:12px;font-weight:700;color:var(--gold2)">${p.rt}</span></div>
+            <div style="display:flex;align-items:center;gap:3px">${stars(p.rt)}<span style="font-size:var(--font-sm);font-weight:700;color:var(--gold2)">${p.rt}</span></div>
             <span style="font-size:11px;color:var(--stone)">(${p.rc})</span>
           </div>
         </div>
@@ -654,63 +682,63 @@ function renderHome(){
             <div style="width:7px;height:7px;border-radius:50%;background:${p.live?"#4A8A5A":"#C04040"}"></div>
             <span style="font-size:11px;color:${p.live?"#6ABF80":"var(--stone)"}">${p.live?p.frei+" "+t("available"):t("soldOut")}</span>
           </div>
-          <span style="font-size:13px;font-weight:800;color:var(--gold2)">${t("from")} ${p.svs[0].pr} €</span>
+          <span style="font-size:var(--font-md);font-weight:800;color:var(--gold2)">${t("from")} ${p.svs[0].pr} €</span>
         </div>
       </div>
     </div>`).join("");
   return`
     <!-- LOGO HERO -->
-    <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:center">
+    <div style="padding:var(--pad) var(--pad) 0;display:flex;justify-content:space-between;align-items:center;gap:12px">
       ${logoHeader(true)}
-      <div style="display:flex;align-items:center;gap:10px">
-        <button onclick="goSub('notifications')" style="position:relative;font-size:20px">${state.notifications.filter(n=>!n.read).length>0?`<span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red)"></span>`:""} 🔔</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <button onclick="goSub('notifications')" style="position:relative;font-size:20px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center">${state.notifications.filter(n=>!n.read).length>0?`<span style="position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--red)"></span>`:""} 🔔</button>
         <div style="text-align:right">
-          <p style="font-size:13px;font-weight:600;color:var(--cream)">${gr}</p>
+          <p style="font-size:var(--font-md);font-weight:600;color:var(--cream)">${gr}</p>
           <p style="font-size:11px;color:var(--stone)">${t("nationwide")}</p>
         </div>
       </div>
     </div>
 
     <!-- PROMO BANNER -->
-    <div style="margin:14px 20px" class="fu d1">
-      <div class="card" style="padding:18px;background:linear-gradient(135deg,#1E1A08,#141008)">
+    <div style="margin:14px var(--pad)" class="fu d1">
+      <div class="card" style="padding:var(--pad);background:linear-gradient(135deg,#1E1A08,#141008)">
         <span class="badge bgd" style="margin-bottom:10px">🎉 ${t("special")}</span>
-        <p class="cinzel" style="font-size:18px;font-weight:600;line-height:1.3;margin-bottom:4px;color:var(--gold2)">${t("promoTitle")}<br/>${t("promoSub")}</p>
-        <p style="font-size:12px;color:var(--stone);margin-bottom:12px">${t("promoCode")}</p>
-        <button class="bgold" style="width:auto;padding:11px 22px;font-size:13px" onclick="goTab('explore')">${t("bookNow")}</button>
+        <p class="cinzel" style="font-size:var(--font-lg);font-weight:600;line-height:1.3;margin-bottom:4px;color:var(--gold2)">${t("promoTitle")}<br/>${t("promoSub")}</p>
+        <p style="font-size:var(--font-sm);color:var(--stone);margin-bottom:12px">${t("promoCode")}</p>
+        <button class="bgold" style="width:auto;padding:11px 22px;font-size:var(--font-md)" onclick="goTab('explore')">${t("bookNow")}</button>
       </div>
     </div>
 
     <!-- SEARCH + FILTER -->
-    <div style="padding:0 20px 14px" class="fu d1">
+    <div style="padding:0 var(--pad) 14px" class="fu d1">
       <div style="display:flex;gap:8px">
         <div onclick="focusSearch()" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--c2);border-radius:13px;border:1px solid var(--border)">
           <span>🔍</span>
-          <input id="searchInp" class="inp" style="padding:0;background:transparent;border:none;font-size:14px" placeholder="${t("search")}" value="${state.searchQuery}" oninput="onSearch(this.value)"/>
+          <input id="searchInp" class="inp" style="padding:0;background:transparent;border:none;font-size:16px" placeholder="${t("search")}" value="${state.searchQuery}" oninput="onSearch(this.value)"/>
         </div>
-        <button onclick="toggleFilter()" style="width:46px;height:46px;border-radius:13px;background:var(--c2);border:1px solid ${afc>0?"var(--gold)":"var(--border)"};display:flex;align-items:center;justify-content:center;font-size:18px;position:relative">
+        <button onclick="toggleFilter()" style="width:48px;height:48px;border-radius:13px;background:var(--c2);border:1px solid ${afc>0?"var(--gold)":"var(--border)"};display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;flex-shrink:0">
           ⚙${afc>0?`<span style="position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--gold);color:#080706;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center">${afc}</span>`:""}
         </button>
       </div>
     </div>
 
     <!-- CATEGORIES 3x2 GRID -->
-    <div style="padding:0 20px 18px" class="fu d2">
+    <div style="padding:0 var(--pad) 18px" class="fu d2">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <p class="lsm">${t("categories")}</p>
-        <button onclick="setCat('all')" style="font-size:12px;color:var(--gold);cursor:pointer;border:none;background:none;font-family:inherit">${t("all")}</button>
+        <button onclick="setCat('all')" style="font-size:var(--font-sm);color:var(--gold);cursor:pointer;border:none;background:none;font-family:inherit;min-height:44px;display:flex;align-items:center">${t("all")}</button>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:9px">${catCards}</div>
     </div>
 
     <!-- TOP SPECIALISTS -->
     <div style="margin-bottom:20px" class="fu d2">
-      <div style="padding:0 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="padding:0 var(--pad);display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <p class="lsm">${t("topSpecs")}</p>
         <span class="badge bgr" style="font-size:9px">${t("availToday")}</span>
       </div>
-      <div style="display:flex;gap:12px;overflow-x:auto;padding:0 20px 4px">
-        ${SPECS.map(s=>`<div style="flex-shrink:0;text-align:center;width:65px">
+      <div style="display:flex;gap:12px;overflow-x:auto;padding:0 var(--pad) 4px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity">
+        ${SPECS.map(s=>`<div style="flex-shrink:0;text-align:center;width:68px;scroll-snap-align:start">
           <div style="width:54px;height:54px;border-radius:50%;background:${s.col};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;border:2px solid rgba(200,168,75,.2);margin:0 auto 5px">${s.ini}</div>
           <p style="font-size:11px;font-weight:700">${s.nm.split(" ")[0]}</p>
           <p style="font-size:9px;color:var(--stone)">${s.role.split(" ")[0]}</p>
@@ -719,19 +747,19 @@ function renderHome(){
     </div>
 
     <!-- VIEW MODE + PROVIDERS -->
-    <div style="padding:0 20px 10px;display:flex;justify-content:space-between;align-items:center" class="fu d3">
+    <div style="padding:0 var(--pad) 10px;display:flex;justify-content:space-between;align-items:center" class="fu d3">
       <div style="display:flex;align-items:center;gap:6px">
         <p class="lsm">${f==="all"?t("allProviders"):CATS.find(c=>c.id===f)?.lbl}</p>
         <span style="font-size:11px;color:var(--stone)">(${list.length})</span>
       </div>
       <div style="display:flex;gap:4px">
-        <button onclick="setView('list')" style="padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;background:${state.viewMode==='list'?'var(--gold)':'var(--c3)'};color:${state.viewMode==='list'?'#080706':'var(--stone)'}">${t("list")}</button>
-        <button onclick="setView('map')" style="padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;background:${state.viewMode==='map'?'var(--gold)':'var(--c3)'};color:${state.viewMode==='map'?'#080706':'var(--stone)'}">${t("map")}</button>
+        <button onclick="setView('list')" style="padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;min-height:36px;background:${state.viewMode==='list'?'var(--gold)':'var(--c3)'};color:${state.viewMode==='list'?'#080706':'var(--stone)'}">${t("list")}</button>
+        <button onclick="setView('map')" style="padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;min-height:36px;background:${state.viewMode==='map'?'var(--gold)':'var(--c3)'};color:${state.viewMode==='map'?'#080706':'var(--stone)'}">${t("map")}</button>
       </div>
     </div>
-    <div style="padding:0 20px" class="fu d3">
+    <div style="padding:0 var(--pad)" class="fu d3">
       ${state.viewMode==="map"?renderMapView(list):`
-        ${list.length===0?`<div style="text-align:center;padding:40px 0"><p style="font-size:36px;margin-bottom:12px">🔍</p><p style="font-size:15px;font-weight:700;margin-bottom:4px">${t("noResults")}</p><p style="font-size:13px;color:var(--stone)">${t("tryOther")}</p></div>`:`<div style="display:flex;flex-direction:column;gap:10px">${provCards}</div>`}
+        ${list.length===0?`<div style="text-align:center;padding:40px 0"><p style="font-size:36px;margin-bottom:12px">🔍</p><p style="font-size:var(--font-md);font-weight:700;margin-bottom:4px">${t("noResults")}</p><p style="font-size:var(--font-md);color:var(--stone)">${t("tryOther")}</p></div>`:`<div style="display:flex;flex-direction:column;gap:10px">${provCards}</div>`}
       `}
     </div>
     <div style="height:20px"></div>`;
@@ -759,7 +787,7 @@ function renderMapView(list){
 
 // ─── FILTER SHEET ───
 function renderFilterSheet(){
-  return`<div style="padding:20px">
+  return`<div style="padding:var(--pad)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <p style="font-size:18px;font-weight:800">${t("filter")}</p>
       <button onclick="resetFilters()" style="font-size:13px;color:var(--gold)">${t("reset")}</button>
@@ -857,61 +885,61 @@ function renderDetail(){
       </div>
     </div>`).join("")}</div>`:`<div style="text-align:center;padding:40px"><p style="font-size:40px;margin-bottom:10px">📸</p><p style="color:var(--stone)">Noch keine Galeriebilder</p></div>`;
   return`<div class="sticky">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <button onclick="goBack()" style="font-size:13px;color:var(--stone)">${t("back")}</button>
-      <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px" onclick="openBooking('${p.id}')">${t("buchen")}</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:12px">
+      <button onclick="goBack()" style="font-size:var(--font-md);color:var(--stone);min-height:44px;min-width:44px;display:flex;align-items:center">${t("back")}</button>
+      <button class="bgold" style="width:auto;padding:10px 20px;font-size:var(--font-md);flex-shrink:0" onclick="openBooking('${p.id}')">${t("buchen")}</button>
     </div>
-    <p style="font-size:18px;font-weight:800;margin-bottom:2px">${p.nm}</p>
-    <p style="font-size:12px;color:var(--stone);margin-bottom:10px">${p.st} · ${p.city}</p>
-    <div style="display:flex;gap:7px;overflow-x:auto">${tabs}</div>
+    <p style="font-size:var(--font-lg);font-weight:800;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nm}</p>
+    <p style="font-size:var(--font-sm);color:var(--stone);margin-bottom:10px">${p.st} · ${p.city}</p>
+    <div style="display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch">${tabs}</div>
   </div>
-  <div style="padding:18px 20px">${content}</div>`;
+  <div style="padding:18px var(--pad)">${content}</div>`;
 }
 
 // ─── EXPLORE ───
-function renderExplore(){return`<div style="padding:50px 20px 0">
+function renderExplore(){return`<div style="padding:50px var(--pad) 0">
   <div style="margin-bottom:16px">${logoHeader(true)}</div>
   <p class="lsm" style="margin-bottom:12px">${t("bookNow")}</p>
   <div style="display:flex;flex-direction:column;gap:9px">
-    ${PROVS.filter(p=>p.live).map(p=>`<div class="card" style="padding:13px 15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="openDetail('${p.id}')">
-      <div><p style="font-size:15px;font-weight:800">${p.nm}</p><p style="font-size:12px;color:var(--stone)">${p.st} · ${p.city}</p></div>
-      <button class="bgold" style="width:auto;padding:9px 16px;font-size:12px" onclick="event.stopPropagation();openBooking('${p.id}')">${t("buchen")}</button>
+    ${PROVS.filter(p=>p.live).map(p=>`<div class="card" style="padding:13px 15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px" onclick="openDetail('${p.id}')">
+      <div style="flex:1;min-width:0"><p style="font-size:var(--font-md);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nm}</p><p style="font-size:var(--font-sm);color:var(--stone);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.st} · ${p.city}</p></div>
+      <button class="bgold" style="width:auto;padding:9px 16px;font-size:var(--font-sm);flex-shrink:0;min-height:40px" onclick="event.stopPropagation();openBooking('${p.id}')">${t("buchen")}</button>
     </div>`).join("")}
   </div></div>`;}
 
 // ─── FAVORITES ───
 function renderFavorites(){
   const favProvs=PROVS.filter(p=>state.favorites.includes(p.id));
-  return`<div style="padding:50px 20px 0">
+  return`<div style="padding:50px var(--pad) 0">
     <div style="margin-bottom:16px">${logoHeader(true)}</div>
     <p class="lsm" style="margin-bottom:12px">${t("favs")} (${favProvs.length})</p>
-    ${favProvs.length===0?`<div style="text-align:center;padding:50px 20px"><p style="font-size:48px;margin-bottom:14px">♡</p><p style="font-size:16px;font-weight:700;margin-bottom:6px">${t("noFavs")}</p><p style="font-size:13px;color:var(--stone)">${t("noFavsSub")}</p></div>`:`
+    ${favProvs.length===0?`<div style="text-align:center;padding:50px var(--pad)"><p style="font-size:48px;margin-bottom:14px">♡</p><p style="font-size:var(--font-lg);font-weight:700;margin-bottom:6px">${t("noFavs")}</p><p style="font-size:var(--font-md);color:var(--stone)">${t("noFavsSub")}</p></div>`:`
     <div style="display:flex;flex-direction:column;gap:10px">
-      ${favProvs.map(p=>`<div class="card" style="padding:13px 15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="openDetail('${p.id}')">
-        <div style="flex:1"><p style="font-size:15px;font-weight:800">${p.nm}</p><p style="font-size:12px;color:var(--stone)">${p.city} · ${stars(p.rt)}</p></div>
-        <div style="display:flex;gap:8px;align-items:center">
+      ${favProvs.map(p=>`<div class="card" style="padding:13px 15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px" onclick="openDetail('${p.id}')">
+        <div style="flex:1;min-width:0"><p style="font-size:var(--font-md);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nm}</p><p style="font-size:var(--font-sm);color:var(--stone)">${p.city} · ${stars(p.rt)}</p></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
           <span class="heart liked" onclick="toggleFav('${p.id}',event)" style="font-size:18px">♥</span>
-          <button class="bgold" style="width:auto;padding:9px 14px;font-size:12px" onclick="event.stopPropagation();openBooking('${p.id}')">${t("buchen")}</button>
+          <button class="bgold" style="width:auto;padding:9px 14px;font-size:var(--font-sm);min-height:40px" onclick="event.stopPropagation();openBooking('${p.id}')">${t("buchen")}</button>
         </div>
       </div>`).join("")}
     </div>`}
   </div>`;}
 
 // ─── OFFERS ───
-function renderOffers(){return`<div style="padding:50px 20px 0">
+function renderOffers(){return`<div style="padding:50px var(--pad) 0">
   <div style="margin-bottom:16px">${logoHeader(true)}</div>
   <p class="lsm" style="margin-bottom:12px">${t("offers")}</p>
   ${PROVS.filter(p=>p.disc>0).map(p=>`<div class="card" style="padding:15px;margin-bottom:10px;background:linear-gradient(135deg,#1E1A08,#141008)">
     <span class="badge brd" style="margin-bottom:8px">−${p.disc}% ${t("discount")}</span>
-    <p style="font-size:15px;font-weight:800;margin-bottom:2px">${p.nm}</p>
-    <p style="font-size:12px;color:var(--stone);margin-bottom:10px">${p.tl}</p>
-    <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px" onclick="openBooking('${p.id}')">${t("bookNow")}</button>
+    <p style="font-size:var(--font-md);font-weight:800;margin-bottom:2px">${p.nm}</p>
+    <p style="font-size:var(--font-sm);color:var(--stone);margin-bottom:10px">${p.tl}</p>
+    <button class="bgold" style="width:auto;padding:10px 20px;font-size:var(--font-md)" onclick="openBooking('${p.id}')">${t("bookNow")}</button>
   </div>`).join("")}
   <div class="card" style="padding:15px">
     <p class="lgold" style="margin-bottom:7px">🎁 ${t("refer")}</p>
-    <p class="cinzel" style="font-size:17px;font-weight:600;margin-bottom:5px;color:var(--gold2)">5 € ${t("perRef")}</p>
-    <p style="font-size:12px;color:var(--stone);margin-bottom:12px">${t("referSub")}</p>
-    <button class="bgold" style="width:auto;padding:10px 20px;font-size:13px" onclick="shareReferral()">${t("shareLink")}</button>
+    <p class="cinzel" style="font-size:var(--font-lg);font-weight:600;margin-bottom:5px;color:var(--gold2)">5 € ${t("perRef")}</p>
+    <p style="font-size:var(--font-sm);color:var(--stone);margin-bottom:12px">${t("referSub")}</p>
+    <button class="bgold" style="width:auto;padding:10px 20px;font-size:var(--font-md)" onclick="shareReferral()">${t("shareLink")}</button>
   </div>
 </div>`;}
 
@@ -922,7 +950,7 @@ function renderAccount(){
   const sc={confirmed:"#4A8A5A",pending:"var(--gold)",cancelled:"#C04040"};
   const stLabel={confirmed:t("confirmed"),pending:t("pending"),cancelled:t("cancelled")};
   const stampArr=Array.from({length:10},(_,i)=>i<state.stamps);
-  return`<div style="padding:20px 20px 0">
+  return`<div style="padding:var(--pad) var(--pad) 0">
     <div style="margin-bottom:18px">${logoHeader(true)}</div>
     <div style="display:flex;gap:7px;margin-bottom:18px">
       ${[["CUSTOMER",t("customer").split("—")[0].trim()],["PROVIDER",t("provider").split("—")[0].trim()],["B2B","B2B"]].map(([rv,lv])=>`
@@ -1015,9 +1043,9 @@ function renderSubPage(){
   return"";}
 
 function renderNotifications(){
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone)">${t("back")}</button>
-    <h1 style="font-size:18px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:6px">${t("notifications")}</h1></div>
-  <div style="padding:14px 20px">
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+    <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:6px">${t("notifications")}</h1></div>
+  <div style="padding:14px var(--pad)">
     ${state.notifications.length===0?`<div style="text-align:center;padding:50px 20px"><p style="font-size:48px;margin-bottom:14px">🔔</p><p style="font-size:16px;font-weight:700;margin-bottom:6px">${t("noNotifications")}</p><p style="font-size:13px;color:var(--stone)">${t("noNotificationsSub")}</p></div>`:''}
     ${state.notifications.map(n=>`<div onclick="markRead('${n.id}')" style="display:flex;gap:12px;padding:14px;margin-bottom:8px;background:${n.read?"var(--c2)":"rgba(200,168,75,.06)"};border-radius:14px;border:1px solid ${n.read?"var(--border)":"rgba(200,168,75,.15)"};cursor:pointer">
       <div style="font-size:22px;flex-shrink:0">${n.icon}</div>
@@ -1029,10 +1057,10 @@ function renderNotifications(){
 
 function renderDsgvo(){
   const items=[["1. Verantwortlicher","ChairMatch GmbH (i. Gr.), Deutschland. datenschutz@chairmatch.de"],["2. Erhobene Daten","Name, E-Mail, Telefon, Buchungsdaten. Anbieter: Gewerbedaten, IBAN."],["3. Rechtsgrundlage","Vertragserfüllung Art. 6 I b DSGVO."],["4. Weitergabe","Keine Weitergabe zu Werbezwecken. Nur Auftragsverarbeiter (Art. 28 DSGVO)."],["5. Speicherdauer","Buchungsdaten: 10 Jahre. Logs: 90 Tage."],["6. Ihre Rechte","Auskunft · Berichtigung · Löschung · Widerspruch (Art. 15–21 DSGVO)"],["7. Beschwerderecht","HBDI Hessen, Postfach 3163, 65021 Wiesbaden"]];
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone)">${t("back")}</button>
-    <h1 style="font-size:20px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("privacy")}</h1>
-    <p style="font-size:12px;color:var(--stone)">DSGVO · Stand 02/2026</p></div>
-  <div style="padding:18px 20px 40px">
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+    <h1 style="font-size:var(--font-xl);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("privacy")}</h1>
+    <p style="font-size:var(--font-sm);color:var(--stone)">DSGVO · Stand 02/2026</p></div>
+  <div style="padding:18px var(--pad) 40px">
     <div style="background:rgba(74,138,90,.08);border:1px solid rgba(74,138,90,.2);border-radius:12px;padding:12px 14px;margin-bottom:18px">
       <p style="font-size:13px;font-weight:700;color:#6ABF80">✓ DSGVO-konform · App Store & Play Store geprüft</p>
     </div>
@@ -1041,10 +1069,10 @@ function renderDsgvo(){
 
 function renderImpressum(){
   const items=[["Unternehmen","ChairMatch GmbH (i. Gr.)\nMünchener Str. 17\n60329 Frankfurt am Main"],["Kontakt","Tel: +49 (0) 69 XXX XXXX\ninfo@chairmatch.de"],["Handelsregister","Amtsgericht Frankfurt · HRB XXXXX"],["USt-ID","DE XXX XXX XXX"],["Haftung","ChairMatch ist Vermittlungsplattform."],["Streitbeilegung","https://ec.europa.eu/consumers/odr"]];
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone)">${t("back")}</button>
-    <h1 style="font-size:20px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("imprint")}</h1>
-    <p style="font-size:12px;color:var(--stone)">§ 5 TMG</p></div>
-  <div style="padding:18px 20px 40px">
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+    <h1 style="font-size:var(--font-xl);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("imprint")}</h1>
+    <p style="font-size:var(--font-sm);color:var(--stone)">§ 5 TMG</p></div>
+  <div style="padding:18px var(--pad) 40px">
     ${items.map(([ti,tx])=>`<div style="margin-bottom:16px"><p style="font-size:11px;font-weight:800;color:var(--gold2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">${ti}</p><p style="font-size:13px;color:var(--stone);line-height:1.7;white-space:pre-line">${tx}</p><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(200,168,75,.15),transparent);margin-top:14px"></div></div>`).join("")}
   </div>`;}
 
@@ -1083,11 +1111,11 @@ function renderRegister(){
     </div>
     <div onclick="updateReg('agb',${!f.agb})" style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center"><div class="check ${f.agb?"on":""}">${f.agb?"✓":""}</div><p style="font-size:13px;font-weight:600">AGB akzeptieren</p></div>
     <div onclick="updateReg('dsgvo',${!f.dsgvo})" style="display:flex;gap:10px;padding:12px 0;cursor:pointer;align-items:center"><div class="check ${f.dsgvo?"on":""}">${f.dsgvo?"✓":""}</div><p style="font-size:13px;font-weight:600">Datenschutzerklärung akzeptieren</p></div></div>`;
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:13px;color:var(--stone)">${t("back")}</button>
-    <h1 style="font-size:18px;font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("register")}</h1>
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+    <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("register")}</h1>
     <p style="font-size:11px;color:var(--stone);margin-bottom:8px">${t("step")} ${s}/4 — ${snames[s-1]}</p>
     <div class="pbar"><div class="pfill" style="width:${s/4*100}%"></div></div></div>
-  <div style="padding:22px 20px 40px">
+  <div style="padding:22px var(--pad) 40px">
     ${body}
     <div style="display:flex;gap:10px;margin-top:22px">
       ${s>1?`<button class="boutline" style="flex:0 0 auto;padding:13px 18px" onclick="setRegStep(${s-1})">←</button>`:""}
@@ -1195,12 +1223,12 @@ function renderBooking(){
     </div>`;}
   return`<div class="sticky">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <button onclick="closeBooking()" style="font-size:13px;color:var(--stone)">✕</button>
-      <span style="font-size:12px;color:var(--stone)">${t("step")} ${s}/3</span>
+      <button onclick="closeBooking()" style="font-size:var(--font-md);color:var(--stone);min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center">✕</button>
+      <span style="font-size:var(--font-sm);color:var(--stone)">${t("step")} ${s}/3</span>
     </div>
     <div class="pbar"><div class="pfill" style="width:${s/3*100}%"></div></div>
   </div>
-  <div style="padding:20px;padding-bottom:30px">${body}</div>`;
+  <div style="padding:var(--pad);padding-bottom:30px">${body}</div>`;
 }
 
 // ═══ HISTORY / BACK NAVIGATION ═══
