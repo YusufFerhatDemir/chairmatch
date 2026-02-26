@@ -516,7 +516,7 @@ function render(){
 
 // ─── ONBOARDING ───
 function renderOnboarding(){
-  const slides=[{icon:"💈",t:t("welcome"),s:t("subtitle")},{icon:"💺",t:t("chair"),s:t("chairSub")},{icon:"📅",t:t("book"),s:t("bookSub")}];
+  const slides=[{icon:"💈",t:t("welcome"),s:t("subtitle")},{icon:"chair",t:t("chair"),s:t("chairSub")},{icon:"📅",t:t("book"),s:t("bookSub")}];
   if(state.obStep>=3)return`<div style="padding:60px 26px 40px;display:flex;flex-direction:column;gap:12px">
     <div style="text-align:center;margin-bottom:10px">${logoHeader(false)}</div>
     <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">${t("iAm")}</p>
@@ -525,7 +525,7 @@ function renderOnboarding(){
   const sl=slides[state.obStep];
   const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
   return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;justify-content:center;padding:30px">
-    ${state.obStep===0?`<div style="margin-bottom:10px">${logoHeader(false)}</div>`:`<div style="font-size:60px;margin-bottom:20px">${sl.icon}</div>`}
+    ${state.obStep===0?`<div style="margin-bottom:10px">${logoHeader(false)}</div>`:sl.icon==="chair"?`<div style="margin-bottom:20px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbSeat()}</div>`:`<div style="font-size:60px;margin-bottom:20px">${sl.icon}</div>`}
     <p class="cinzel" style="font-size:22px;font-weight:600;margin-bottom:10px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
     <p style="font-size:14px;color:var(--stone);line-height:1.7;margin-bottom:44px">${sl.s}</p>
     <div style="display:flex;gap:8px;margin-bottom:30px">${dots}</div>
