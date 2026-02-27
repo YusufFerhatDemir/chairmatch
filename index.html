@@ -1166,89 +1166,110 @@ function renderProvSetup(){
 
   // ═══ STEP 1: Choose your craft ═══
   if(s===1){
-    const _g=`<defs><linearGradient id="ig" x1="0" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#E8C860"/><stop offset="50%" stop-color="#D4AE54"/><stop offset="100%" stop-color="#B8923C"/></linearGradient><filter id="gl"><feDropShadow dx="0" dy="0" stdDeviation="1.5" flood-color="#D4AE54" flood-opacity=".4"/></filter></defs>`;
-    const _s=`<path d="M6 3l1.5 1.5L6 6M34 3l1.5 1.5L34 6" stroke="#D4AE54" stroke-width=".8" stroke-linecap="round" opacity=".5"/>`;
+    const _d=`<defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F2D872"/><stop offset="45%" stop-color="#D4AE54"/><stop offset="100%" stop-color="#B8923C"/></linearGradient><filter id="gl"><feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#E8C860" flood-opacity=".55"/></filter></defs>`;
+    const _sp=(x,y,s=1)=>`<g opacity=".7"><path d="M${x} ${y-3*s}l0 ${6*s}" stroke="#F2D872" stroke-width="${.7*s}" stroke-linecap="round"/><path d="M${x-3*s} ${y}l${6*s} 0" stroke="#F2D872" stroke-width="${.7*s}" stroke-linecap="round"/></g>`;
     const cats=[
-      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <ellipse cx="22" cy="6" rx="5" ry="2.5" fill="url(#ig)" opacity=".3" stroke="url(#ig)" stroke-width="1.2"/>
-        <rect x="17" y="6" width="10" height="30" rx="5" fill="none" stroke="url(#ig)" stroke-width="1.6"/>
-        <rect x="17" y="6" width="10" height="30" rx="5" fill="url(#ig)" opacity=".06"/>
-        <path d="M17 12l10 6M17 18l10 6M17 24l10 6" stroke="url(#ig)" stroke-width="1.3" opacity=".5"/>
-        <ellipse cx="22" cy="36" rx="5" ry="2" fill="url(#ig)" opacity=".25"/>
-        <circle cx="22" cy="5" r="1.5" fill="#E8C860" opacity=".6"/>
-        ${_s}</g></svg>`},
-      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <path d="M14 10c0 3 4 6 4 10l4 4 4-4c0-4 4-7 4-10" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round"/>
-        <circle cx="14" cy="8" r="3.5" fill="url(#ig)" opacity=".15" stroke="url(#ig)" stroke-width="1.5"/>
-        <circle cx="30" cy="8" r="3.5" fill="url(#ig)" opacity=".15" stroke="url(#ig)" stroke-width="1.5"/>
-        <line x1="22" y1="24" x2="22" y2="36" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round"/>
-        <line x1="19" y1="36" x2="25" y2="36" stroke="url(#ig)" stroke-width="2" stroke-linecap="round"/>
-        <path d="M30 20v16" stroke="url(#ig)" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M28 20h4M28 24h4M28 28h4M28 32h4M28 36h4" stroke="url(#ig)" stroke-width="1" opacity=".6" stroke-linecap="round"/>
-        ${_s}</g></svg>`},
-      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <path d="M14 18c0-8 4-13 8-13s6 3 6 6c0 4-3 6-3 10v8c0 4-1 7-3 9-2-2-5-3-7-5s-1-3-1-5v-6c-1-1 0-3 0-4z" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="19" cy="17" r="1" fill="#E8C860"/>
-        <path d="M17 24c2 1.5 4 1.5 6 0" stroke="url(#ig)" stroke-width="1.2" stroke-linecap="round"/>
-        <path d="M32 10v20" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round"/>
-        <rect x="30" y="6" width="4" height="6" rx="2" fill="url(#ig)" opacity=".25" stroke="url(#ig)" stroke-width="1.2"/>
-        <path d="M30.5 30l3-2v6l-3-2z" fill="url(#ig)" opacity=".4"/>
-        ${_s}</g></svg>`},
-      {id:"aesthetik",nm:"Ästhetik",sub:"Botox · Filler · Anti-Aging",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <rect x="19" y="4" width="6" height="18" rx="3" fill="url(#ig)" opacity=".12" stroke="url(#ig)" stroke-width="1.5"/>
-        <path d="M22 22l-3 14h6z" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="1.5" stroke-linejoin="round"/>
-        <line x1="18" y1="8" x2="26" y2="8" stroke="url(#ig)" stroke-width="1" opacity=".4"/>
-        <circle cx="22" cy="12" r="1.5" fill="#E8C860" opacity=".7"/>
-        <path d="M22 36l-1-2h2z" fill="#E8C860" opacity=".8"/>
-        <path d="M10 8l2-2 2 2M32 8l2-2 2 2" stroke="#E8C860" stroke-width=".8" stroke-linecap="round" opacity=".5"/>
-        <path d="M8 18l1.5-1.5L8 15M36 18l-1.5-1.5L36 15" stroke="#E8C860" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
-        ${_s}</g></svg>`},
-      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <rect x="13" y="14" width="10" height="20" rx="3" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="1.5"/>
-        <rect x="15" y="10" width="6" height="6" rx="1.5" fill="url(#ig)" opacity=".2" stroke="url(#ig)" stroke-width="1.2"/>
-        <line x1="18" y1="16" x2="18" y2="24" stroke="url(#ig)" stroke-width="1.2" stroke-linecap="round"/>
-        <path d="M27 8c0-2 2-4 4-4s4 2 4 4v14a4 4 0 01-8 0z" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="1.5"/>
-        <path d="M27 14h8" stroke="url(#ig)" stroke-width="1" opacity=".4"/>
-        <circle cx="31" cy="10" r="1" fill="#E8C860" opacity=".6"/>
-        <path d="M29 30l2-4 2 4" stroke="url(#ig)" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>
-        ${_s}</g></svg>`},
-      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <path d="M6 28h32" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M8 28c0-1 1-2 2-2h24c1 0 2 1 2 2v4a2 2 0 01-2 2H10a2 2 0 01-2-2z" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="1.2"/>
-        <ellipse cx="14" cy="24" rx="8" ry="3" fill="url(#ig)" opacity=".06"/>
-        <path d="M10 26c2-6 4-10 4-14" stroke="url(#ig)" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="14" cy="11" r="3.5" fill="url(#ig)" opacity=".12" stroke="url(#ig)" stroke-width="1.5"/>
-        <path d="M28 22c-1-2-2-3-4-3" stroke="url(#ig)" stroke-width="1.3" stroke-linecap="round"/>
-        <path d="M30 20c-1-2-1.5-3-3-4" stroke="url(#ig)" stroke-width="1.3" stroke-linecap="round"/>
-        <path d="M24 37l-2 2M22 37l-2 2M32 37l-2 2M30 37l-2 2" stroke="url(#ig)" stroke-width="1" stroke-linecap="round" opacity=".4"/>
-        ${_s}</g></svg>`},
-      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <path d="M8 24q14-16 28 0" fill="url(#ig)" opacity=".06" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M8 24q14 10 28 0" fill="url(#ig)" opacity=".06" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round"/>
-        <ellipse cx="22" cy="24" rx="5" ry="4" fill="url(#ig)" opacity=".15" stroke="url(#ig)" stroke-width="1.3"/>
-        <circle cx="22" cy="24" r="2" fill="#E8C860" opacity=".7"/>
-        <circle cx="22.5" cy="23.5" r=".7" fill="#080706"/>
-        <path d="M12 16l-3-6M16 13l-2-6M20 12l0-6M24 12l0-6M28 13l2-6M32 16l3-6" stroke="url(#ig)" stroke-width="1.3" stroke-linecap="round"/>
-        <path d="M10 16q12-4 24 0" fill="none" stroke="url(#ig)" stroke-width="1.5" stroke-linecap="round"/>
-        ${_s}</g></svg>`},
-      {id:"arzt",nm:"Arzt / Klinik",sub:"Derma · Laser · Behandlung",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <rect x="15" y="8" width="14" height="28" rx="3" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="1.6"/>
-        <rect x="8" y="15" width="28" height="14" rx="3" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="1.6"/>
-        <circle cx="22" cy="22" r="4" fill="url(#ig)" opacity=".12" stroke="url(#ig)" stroke-width="1.2"/>
-        <path d="M22 19v6M19 22h6" stroke="#E8C860" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M9 8l1.5-2L9 4M35 8l1.5-2L35 4" stroke="#E8C860" stroke-width="1" stroke-linecap="round" opacity=".5"/>
-        <circle cx="36" cy="10" r="1" fill="#E8C860" opacity=".4"/>
-        ${_s}</g></svg>`},
-      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:`<svg viewBox="0 0 44 44" width="36" height="36">${_g}<g filter="url(#gl)">
-        <circle cx="22" cy="10" r="7" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="1.6"/>
-        <circle cx="22" cy="10" r="3" fill="url(#ig)" opacity=".2"/>
-        <circle cx="22" cy="10" r="1" fill="#E8C860"/>
-        <line x1="22" y1="17" x2="22" y2="22" stroke="url(#ig)" stroke-width="2" stroke-linecap="round"/>
-        <path d="M14 22h16" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round"/>
-        <rect x="10" y="24" width="24" height="12" rx="3" fill="url(#ig)" opacity=".06" stroke="url(#ig)" stroke-width="1.5"/>
-        <path d="M14 28h16M14 32h16" stroke="url(#ig)" stroke-width=".8" opacity=".3"/>
-        <path d="M12 36v2M32 36v2" stroke="url(#ig)" stroke-width="1.5" stroke-linecap="round"/>
-        ${_s}</g></svg>`}
+      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <rect x="23" y="10" width="18" height="44" rx="9" fill="url(#ig)" opacity=".12" stroke="url(#ig)" stroke-width="2.2"/>
+        <ellipse cx="32" cy="10" rx="9" ry="3.5" fill="url(#ig)" opacity=".25" stroke="url(#ig)" stroke-width="1.8"/>
+        <circle cx="32" cy="8" r="3" fill="#E8C860" opacity=".5"/>
+        <ellipse cx="32" cy="54" rx="9" ry="3" fill="url(#ig)" opacity=".2"/>
+        <path d="M23 18l18 8M23 26l18 8M23 34l18 8" stroke="#E8C860" stroke-width="2" opacity=".45" stroke-linecap="round"/>
+        <path d="M23 22l18 8M23 30l18 8M23 38l18 8" stroke="#B8923C" stroke-width="1.5" opacity=".3" stroke-linecap="round"/>
+        ${_sp(50,8,1.1)}${_sp(12,14,.9)}${_sp(52,48,.8)}</g></svg>`},
+      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <circle cx="16" cy="12" r="5.5" fill="url(#ig)" opacity=".12" stroke="url(#ig)" stroke-width="2"/>
+        <circle cx="16" cy="12" r="2" fill="url(#ig)" opacity=".3"/>
+        <circle cx="36" cy="12" r="5.5" fill="url(#ig)" opacity=".12" stroke="url(#ig)" stroke-width="2"/>
+        <circle cx="36" cy="12" r="2" fill="url(#ig)" opacity=".3"/>
+        <path d="M16 17.5C16 22 22 28 26 32L26 32 16 17.5Z" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M36 17.5C36 22 30 28 26 32L26 32 36 17.5Z" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="2" stroke-linejoin="round"/>
+        <line x1="26" y1="32" x2="26" y2="52" stroke="url(#ig)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="22" y1="52" x2="30" y2="52" stroke="url(#ig)" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="42" y="14" width="6" height="38" rx="1.5" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="1.8"/>
+        <line x1="42" y1="18" x2="48" y2="18" stroke="url(#ig)" stroke-width="1.2" opacity=".5"/>
+        <line x1="42" y1="22" x2="48" y2="22" stroke="url(#ig)" stroke-width="1.2" opacity=".5"/>
+        <line x1="42" y1="26" x2="48" y2="26" stroke="url(#ig)" stroke-width="1.2" opacity=".5"/>
+        <line x1="42" y1="30" x2="48" y2="30" stroke="url(#ig)" stroke-width="1.2" opacity=".5"/>
+        <line x1="42" y1="34" x2="48" y2="34" stroke="url(#ig)" stroke-width="1.2" opacity=".5"/>
+        <line x1="42" y1="38" x2="48" y2="38" stroke="url(#ig)" stroke-width="1.2" opacity=".5"/>
+        <line x1="42" y1="42" x2="48" y2="42" stroke="url(#ig)" stroke-width="1.2" opacity=".5"/>
+        <line x1="42" y1="46" x2="48" y2="46" stroke="url(#ig)" stroke-width="1.2" opacity=".5"/>
+        ${_sp(8,50,.9)}${_sp(54,8,1)}${_sp(52,54,.8)}</g></svg>`},
+      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <path d="M22 52C14 48 10 40 10 32c0-10 6-20 14-24c2-1 4 0 4 2v4c0 2-2 4-4 6c-3 4-4 8-4 12c0 6 3 10 6 14z" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="2" stroke-linejoin="round"/>
+        <circle cx="19" cy="24" r="1.8" fill="#E8C860" opacity=".7"/>
+        <path d="M20 36c3 2 6 2 8-1" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <path d="M24 12c2-1 3-2 3-4" stroke="url(#ig)" stroke-width="1.5" stroke-linecap="round" opacity=".6"/>
+        <rect x="40" y="8" width="8" height="14" rx="4" fill="url(#ig)" opacity=".2" stroke="url(#ig)" stroke-width="1.8"/>
+        <line x1="44" y1="22" x2="44" y2="48" stroke="url(#ig)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M41 48l3 6 3-6" fill="url(#ig)" opacity=".3" stroke="url(#ig)" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="44" cy="50" r="1" fill="#F2D872" opacity=".8"/>
+        ${_sp(52,6,1)}${_sp(8,54,.9)}${_sp(34,6,.8)}</g></svg>`},
+      {id:"aesthetik",nm:"Ästhetik",sub:"Botox · Filler · Anti-Aging",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <rect x="26" y="6" width="12" height="30" rx="6" fill="url(#ig)" opacity=".12" stroke="url(#ig)" stroke-width="2.2"/>
+        <line x1="26" y1="14" x2="38" y2="14" stroke="url(#ig)" stroke-width="1.5" opacity=".4"/>
+        <rect x="28" y="8" width="8" height="6" rx="2" fill="url(#ig)" opacity=".15"/>
+        <circle cx="32" cy="22" r="2.5" fill="#E8C860" opacity=".6"/>
+        <path d="M32 36l-5 18h10z" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M32 54l-1.5-3h3z" fill="#E8C860" opacity=".7"/>
+        ${_sp(14,10,1.1)}${_sp(50,12,1)}${_sp(12,48,.9)}${_sp(52,44,.85)}</g></svg>`},
+      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <rect x="14" y="20" width="14" height="28" rx="4" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="2"/>
+        <rect x="17" y="14" width="8" height="8" rx="2.5" fill="url(#ig)" opacity=".2" stroke="url(#ig)" stroke-width="1.5"/>
+        <line x1="21" y1="24" x2="21" y2="38" stroke="url(#ig)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+        <circle cx="21" cy="42" r="1.5" fill="#E8C860" opacity=".5"/>
+        <path d="M38 10c0-3 2.5-5 5.5-5S49 7 49 10v18c0 4-2.5 7-5.5 7S38 32 38 28z" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="2"/>
+        <path d="M38 16h11" stroke="url(#ig)" stroke-width="1.3" opacity=".4"/>
+        <ellipse cx="43.5" cy="12" rx="2" ry="2.5" fill="url(#ig)" opacity=".2"/>
+        <path d="M40 38l3.5-6 3.5 6" stroke="url(#ig)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/>
+        ${_sp(10,10,1)}${_sp(54,40,.9)}${_sp(54,8,.8)}</g></svg>`},
+      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <rect x="6" y="36" width="52" height="8" rx="4" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="2"/>
+        <line x1="6" y1="36" x2="58" y2="36" stroke="url(#ig)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="16" cy="22" r="5" fill="url(#ig)" opacity=".12" stroke="url(#ig)" stroke-width="2"/>
+        <path d="M16 27c2-2 4-6 6-12" stroke="url(#ig)" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <path d="M22 15c4 2 10 6 14 8" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".6"/>
+        <path d="M36 23l-2 13" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" opacity=".5"/>
+        <path d="M46 28c-2-1-3-3-4-5" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M50 26c-2-1-3-2-4-4" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="14" y1="44" x2="12" y2="52" stroke="url(#ig)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+        <line x1="50" y1="44" x2="52" y2="52" stroke="url(#ig)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+        ${_sp(54,12,1)}${_sp(8,52,.85)}${_sp(40,8,.9)}</g></svg>`},
+      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <path d="M8 34q24-22 48 0" fill="url(#ig)" opacity=".06" stroke="url(#ig)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M8 34q24 14 48 0" fill="url(#ig)" opacity=".06" stroke="url(#ig)" stroke-width="2.5" stroke-linecap="round"/>
+        <ellipse cx="32" cy="34" rx="8" ry="6" fill="url(#ig)" opacity=".15" stroke="url(#ig)" stroke-width="2"/>
+        <circle cx="32" cy="34" r="3.5" fill="#E8C860" opacity=".6"/>
+        <circle cx="33" cy="33" r="1.2" fill="#080706"/>
+        <path d="M14 22l-4-10" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M20 18l-3-10" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M26 16l-1-10" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M32 15l0-9" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M38 16l1-10" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M44 18l3-10" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M50 22l4-10" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M12 22q20-6 40 0" fill="none" stroke="url(#ig)" stroke-width="2.2" stroke-linecap="round"/>
+        ${_sp(6,50,.9)}${_sp(58,50,.9)}</g></svg>`},
+      {id:"arzt",nm:"Arzt / Klinik",sub:"Derma · Laser · Behandlung",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <rect x="18" y="10" width="28" height="44" rx="5" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="2.2"/>
+        <rect x="10" y="20" width="44" height="24" rx="5" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="2.2"/>
+        <rect x="26" y="26" width="12" height="12" rx="3" fill="url(#ig)" opacity=".15"/>
+        <path d="M32 24v16" stroke="#E8C860" stroke-width="3" stroke-linecap="round"/>
+        <path d="M24 32h16" stroke="#E8C860" stroke-width="3" stroke-linecap="round"/>
+        ${_sp(10,10,1.1)}${_sp(54,10,1)}${_sp(10,54,.9)}${_sp(54,54,.85)}</g></svg>`},
+      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:`<svg viewBox="0 0 64 64" width="52" height="52">${_d}<g filter="url(#gl)">
+        <circle cx="32" cy="14" r="10" fill="url(#ig)" opacity=".1" stroke="url(#ig)" stroke-width="2.2"/>
+        <circle cx="32" cy="14" r="5" fill="url(#ig)" opacity=".2"/>
+        <circle cx="32" cy="14" r="2" fill="#E8C860" opacity=".7"/>
+        <line x1="32" y1="24" x2="32" y2="32" stroke="url(#ig)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="24" y1="28" x2="40" y2="28" stroke="url(#ig)" stroke-width="2" stroke-linecap="round"/>
+        <rect x="12" y="36" width="40" height="14" rx="4" fill="url(#ig)" opacity=".08" stroke="url(#ig)" stroke-width="2"/>
+        <line x1="18" y1="40" x2="46" y2="40" stroke="url(#ig)" stroke-width="1" opacity=".3"/>
+        <line x1="18" y1="44" x2="46" y2="44" stroke="url(#ig)" stroke-width="1" opacity=".3"/>
+        <line x1="16" y1="50" x2="14" y2="56" stroke="url(#ig)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+        <line x1="48" y1="50" x2="50" y2="56" stroke="url(#ig)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+        ${_sp(10,8,1)}${_sp(54,8,.9)}${_sp(8,56,.8)}</g></svg>`}
     ];
     body=`
     <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Was ist dein Handwerk?</p>
@@ -1256,7 +1277,7 @@ function renderProvSetup(){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       ${cats.map(c=>{const sel=state.provCat===c.id;return`<div onclick="pickProvCat('${c.id}')" style="padding:16px 10px 14px;border-radius:16px;border:1.5px solid ${sel?"var(--gold)":"var(--border)"};background:${sel?"linear-gradient(135deg,rgba(200,168,75,.08),rgba(200,168,75,.02))":"var(--c2)"};cursor:pointer;text-align:center;position:relative;transition:all .2s;${sel?"box-shadow:0 0 20px rgba(200,168,75,.15)":""}">
         ${sel?`<div style="position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#080706;box-shadow:0 0 8px rgba(200,168,75,.5)">✓</div>`:""}
-        <div style="margin:0 auto 8px;width:48px;height:48px;border-radius:14px;background:${sel?"radial-gradient(circle,rgba(200,168,75,.12),transparent)":"radial-gradient(circle,rgba(200,168,75,.05),transparent)"};display:flex;align-items:center;justify-content:center">${c.ic}</div>
+        <div style="margin:0 auto 8px;width:64px;height:64px;border-radius:16px;background:${sel?"radial-gradient(circle,rgba(200,168,75,.15),transparent)":"radial-gradient(circle,rgba(200,168,75,.06),transparent)"};display:flex;align-items:center;justify-content:center">${c.ic}</div>
         <p style="font-size:13px;font-weight:700;color:${sel?"var(--gold2)":"var(--cream)"}">${c.nm}</p>
         <p style="font-size:10px;color:var(--stone);margin-top:2px">${c.sub}</p>
       </div>`;}).join("")}
