@@ -22,13 +22,13 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:'DM Sans',sans-serif;overflow:hidden;transition:background .3s,color .3s;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{height:100%;font-family:'DM Sans',sans-serif;overflow:hidden;transition:background .3s,color .3s;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;-webkit-touch-callout:none}
 :root{--bg:#060504;--c1:#0D0B08;--c2:#141108;--c3:#1C1810;--c4:#232018;--c5:#2E2A1E;
 --gold:#C8A84B;--gold2:#E8D06A;--gold3:#F5E080;--goldlo:rgba(200,168,75,0.08);
 --cream:#F0E8D8;--stone:#8A8070;--stone2:#5A5448;--red:#E85040;--green:#4A8A5A;
 --cardbg:#141108;--sheetbg:#0D0B08;--border:rgba(200,168,75,0.08);--borderhi:rgba(200,168,75,0.15);
 --sai-top:env(safe-area-inset-top,0px);--sai-bottom:env(safe-area-inset-bottom,0px);--sai-left:env(safe-area-inset-left,0px);--sai-right:env(safe-area-inset-right,0px);
---shell-max:430px;--pad:20px;--nav-h:72px;--font-xs:10px;--font-sm:12px;--font-md:14px;--font-lg:18px;--font-xl:22px;--card-radius:18px;--btn-radius:14px}
+--shell-max:430px;--pad:20px;--nav-h:56px;--font-xs:10px;--font-sm:12px;--font-md:14px;--font-lg:18px;--font-xl:22px;--card-radius:18px;--btn-radius:14px}
 html,body{background:var(--bg);color:var(--cream)}
 .light{--bg:#F5F0E8;--c1:#FFFFFF;--c2:#F8F4EE;--c3:#EDE8E0;--c4:#E0D8CC;--c5:#D0C8B8;
 --cream:#1A1408;--stone:#6A6458;--stone2:#9A9488;--cardbg:#FFFFFF;--sheetbg:#FFFFFF;--border:rgba(0,0,0,0.06);--borderhi:rgba(0,0,0,0.12)}
@@ -54,9 +54,9 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 .bgd{background:rgba(200,168,75,.12);color:var(--gold2);border:1px solid rgba(200,168,75,.2)}
 .bgr{background:rgba(74,138,90,.15);color:#6ABF80;border:1px solid rgba(74,138,90,.25)}
 .brd{background:rgba(232,80,64,.12);color:#F07060;border:1px solid rgba(232,80,64,.2)}
-.nav{position:absolute;bottom:0;left:0;right:0;background:rgba(6,5,4,.97);border-top:1px solid rgba(200,168,75,.12);display:flex;justify-content:space-around;padding:10px 0 calc(10px + var(--sai-bottom));z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.nav{position:absolute;bottom:0;left:0;right:0;background:rgba(6,5,4,.97);border-top:1px solid rgba(200,168,75,.12);display:flex;justify-content:space-around;padding:6px 0 calc(4px + var(--sai-bottom));z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .light .nav{background:rgba(255,255,255,.95)}
-.nbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 16px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;min-width:48px;min-height:48px;justify-content:center}
+.nbtn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 14px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;min-width:44px;min-height:44px;justify-content:center}
 .nbtn .notif-dot{position:absolute;top:2px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--red)}
 .sticky{position:sticky;top:0;background:var(--c1);z-index:40;border-bottom:1px solid var(--border);padding:14px var(--pad)}
 .pbar{height:3px;background:var(--c4);border-radius:2px}
@@ -110,9 +110,9 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 }
 /* ═══ RESPONSIVE: Landscape mode ═══ */
 @media(max-height:500px) and (orientation:landscape){
-.screen{padding-bottom:calc(60px + var(--sai-bottom))}
-.nav{padding:6px 0 calc(6px + var(--sai-bottom))}
-.nbtn{gap:2px;padding:2px 12px}
+.screen{padding-bottom:calc(50px + var(--sai-bottom))}
+.nav{padding:4px 0 calc(2px + var(--sai-bottom))}
+.nbtn{gap:1px;padding:2px 10px}
 }
 /* ═══ Hover devices (desktop/mouse) ═══ */
 @media(hover:hover){.card:hover{transform:scale(1.01);border-color:var(--borderhi)}.bgold:hover:not(:disabled){box-shadow:0 6px 28px rgba(200,168,75,0.4)}.boutline:hover{background:rgba(200,168,75,.06)}}
@@ -1240,7 +1240,7 @@ function renderDetail(){
     </div>`).join("")}</div>`:`<div style="text-align:center;padding:40px"><p style="font-size:40px;margin-bottom:10px">📸</p><p style="color:var(--stone)">Noch keine Galeriebilder</p></div>`;
   return`<div class="sticky">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:12px">
-      <button onclick="goBack()" style="font-size:var(--font-md);color:var(--stone);min-height:44px;min-width:44px;display:flex;align-items:center">${t("back")}</button>
+      <button onclick="goBack()" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;min-width:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
       <button class="bgold" style="width:auto;padding:10px 20px;font-size:var(--font-md);flex-shrink:0" onclick="openBooking('${p.id}')">${t("buchen")}</button>
     </div>
     <p style="font-size:var(--font-lg);font-weight:800;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nm}</p>
@@ -1457,7 +1457,7 @@ function renderAccount(){
         </div>`).join("")}
       <!-- SUPER ADMIN (hidden entry - triple tap version) -->
       <div onclick="toggleSuperAdmin()" style="cursor:pointer">
-        <p style="font-size:11px;color:var(--stone2);margin-top:14px;text-align:center;line-height:1.7">ChairMatch GmbH (i. Gr.) · Deutschland · v7.0 · © 2026</p>
+        <p style="font-size:11px;color:var(--stone2);margin-top:14px;text-align:center;line-height:1.7">ChairMatch · Yusuf Ferhat Demir · Deutschland · v7.1 · © 2026</p>
       </div>
       ${state.superAdmin?`<div onclick="goSub('superadmin')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--border);cursor:pointer;margin-top:8px">
         <span style="font-size:13px;color:var(--gold2)">🛡 ${t("saPanel")}</span><span style="color:var(--gold)">›</span>
@@ -1479,7 +1479,7 @@ function renderSubPage(){
   return"";}
 
 function renderNotifications(){
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:6px">${t("notifications")}</h1></div>
   <div style="padding:14px var(--pad)">
     ${state.notifications.length===0?`<div style="text-align:center;padding:50px 20px"><p style="font-size:48px;margin-bottom:14px">🔔</p><p style="font-size:16px;font-weight:700;margin-bottom:6px">${t("noNotifications")}</p><p style="font-size:13px;color:var(--stone)">${t("noNotificationsSub")}</p></div>`:''}
@@ -1493,7 +1493,7 @@ function renderNotifications(){
 
 function renderDsgvo(){
   const items=[["1. Verantwortlicher","ChairMatch GmbH (i. Gr.), Deutschland. datenschutz@chairmatch.de"],["2. Erhobene Daten","Name, E-Mail, Telefon, Buchungsdaten. Anbieter: Gewerbedaten, IBAN."],["3. Rechtsgrundlage","Vertragserfüllung Art. 6 I b DSGVO."],["4. Weitergabe","Keine Weitergabe zu Werbezwecken. Nur Auftragsverarbeiter (Art. 28 DSGVO)."],["5. Speicherdauer","Buchungsdaten: 10 Jahre. Logs: 90 Tage."],["6. Ihre Rechte","Auskunft · Berichtigung · Löschung · Widerspruch (Art. 15–21 DSGVO)"],["7. Beschwerderecht","HBDI Hessen, Postfach 3163, 65021 Wiesbaden"]];
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-xl);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("privacy")}</h1>
     <p style="font-size:var(--font-sm);color:var(--stone)">DSGVO · Stand 02/2026</p></div>
   <div style="padding:18px var(--pad) 40px">
@@ -1504,8 +1504,8 @@ function renderDsgvo(){
   </div>`;}
 
 function renderImpressum(){
-  const items=[["Unternehmen","ChairMatch GmbH (i. Gr.)\nMünchener Str. 17\n60329 Frankfurt am Main"],["Kontakt","Tel: +49 (0) 69 XXX XXXX\ninfo@chairmatch.de"],["Handelsregister","Amtsgericht Frankfurt · HRB XXXXX"],["USt-ID","DE XXX XXX XXX"],["Haftung","ChairMatch ist Vermittlungsplattform."],["Streitbeilegung","https://ec.europa.eu/consumers/odr"]];
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+  const items=[["Angaben gemäß § 5 TMG","Yusuf Ferhat Demir\nChairMatch\nDeutschland"],["Kontakt","E-Mail: info@chairmatch.de"],["Verantwortlich für den Inhalt","Yusuf Ferhat Demir"],["Haftungsausschluss","Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für die Inhalte externer Links. Für den Inhalt der verlinkten Seiten sind ausschließlich deren Betreiber verantwortlich."],["Plattform","ChairMatch ist eine Vermittlungsplattform für Beauty- und Wellness-Dienstleistungen. 0 % Provision."],["Streitbeilegung","Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:\nhttps://ec.europa.eu/consumers/odr"]];
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-xl);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("imprint")}</h1>
     <p style="font-size:var(--font-sm);color:var(--stone)">§ 5 TMG</p></div>
   <div style="padding:18px var(--pad) 40px">
@@ -1598,7 +1598,7 @@ function renderSuperAdmin(){
     </div>`;
   }
   return`<div class="sticky">
-    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:4px">🛡 ${t("saPanel")}</h1>
     <div style="display:flex;gap:5px;margin-top:10px">${tabBar}</div>
   </div>
@@ -1615,7 +1615,7 @@ function renderPricing(){
     {id:"gold",nm:t("pricingGold"),sub:t("pricingGoldSub"),price:"99",features:["Premium-Profil","Unbegrenzte Services","Top-Listing garantiert","AI-Icon Feature","24/7 VIP Support","Rabatt-Aktionen","Boost inklusive","Analytics Dashboard","Social Media Kit"],color:"#F5E080",border:"rgba(245,224,128,.5)"}
   ];
   return`<div class="sticky">
-    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:4px">${t("pricingTitle")}</h1>
   </div>
   <div style="padding:16px var(--pad) 40px">
@@ -1645,7 +1645,7 @@ function renderPricing(){
 function renderSocial(){
   const p=PROVS[0];
   return`<div class="sticky">
-    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:4px">📱 Social Media Kit</h1>
   </div>
   <div style="padding:16px var(--pad) 40px">
@@ -1898,7 +1898,7 @@ function renderAdmin(){
   }
   return`<div class="sticky">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+      <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     </div>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:4px">${t("adminPanel")}</h1>
     <div style="display:flex;gap:5px;margin-top:10px">${tabBar}</div>
@@ -2031,7 +2031,7 @@ function renderRegister(){
     </div>
     <div onclick="updateReg('agb',${!f.agb})" style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center"><div class="check ${f.agb?"on":""}">${f.agb?"✓":""}</div><p style="font-size:13px;font-weight:600">AGB akzeptieren</p></div>
     <div onclick="updateReg('dsgvo',${!f.dsgvo})" style="display:flex;gap:10px;padding:12px 0;cursor:pointer;align-items:center"><div class="check ${f.dsgvo?"on":""}">${f.dsgvo?"✓":""}</div><p style="font-size:13px;font-weight:600">Datenschutzerklärung akzeptieren</p></div></div>`;
-  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--stone);min-height:44px;display:flex;align-items:center">${t("back")}</button>
+  return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("register")}</h1>
     <p style="font-size:11px;color:var(--stone);margin-bottom:8px">${t("step")} ${s}/4 — ${snames[s-1]}</p>
     <div class="pbar"><div class="pfill" style="width:${s/4*100}%"></div></div></div>
