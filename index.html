@@ -1017,6 +1017,7 @@ const NOTIFS=[
 
 // ═══════════════ STATE ═══════════════
 let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,
+  provSetup:0,provCat:localStorage.getItem("cm_prov_cat")||null,
   lang:"de",theme:"dark",favorites:JSON.parse(localStorage.getItem("cm_favs")||"[]"),stamps:parseInt(localStorage.getItem("cm_stamps")||"4"),
   searchQuery:"",searchOpen:false,showFilter:false,filterCity:"all",filterMinRating:0,filterMaxPrice:500,filterOnlyAvail:false,filterOnlyDisc:false,
   viewMode:"list",notifications:[...NOTIFS],
@@ -1089,6 +1090,9 @@ function render(){
 
 // ─── ONBOARDING ───
 function renderOnboarding(){
+  // ═══ PROVIDER QUICK-SETUP WIZARD ═══
+  if(state.provSetup>0)return renderProvSetup();
+
   const slides=[{icon:"💈",t:t("welcome"),s:t("subtitle")},{icon:"chair",t:t("chair"),s:t("chairSub")},{icon:"booking",t:t("book"),s:t("bookSub")}];
   if(state.obStep>=3)return`<div style="padding:40px var(--pad) 30px;display:flex;flex-direction:column;gap:12px">
     <button onclick="state.obStep=2;render()" style="align-self:flex-start;color:var(--gold);font-size:var(--font-md);font-weight:700;margin-bottom:4px;background:none;border:none;cursor:pointer;font-family:inherit;min-height:44px;display:flex;align-items:center">← ${t("back")}</button>
@@ -1110,6 +1114,142 @@ function renderOnboarding(){
       </button>
     </div>
   </div>`;}
+
+// ─── PROVIDER QUICK-SETUP WIZARD (3 steps) ───
+function renderProvSetup(){
+  const s=state.provSetup;
+  const catIcons={barber:catSVG("barber"),friseur:catSVG("friseur"),kosmetik:catSVG("kosmetik"),aesthetik:catSVG("aesthetik"),nail:catSVG("nail"),massage:catSVG("massage"),lash:catSVG("lash"),arzt:catSVG("arzt"),raum:catSVG("raum"),opraum:catSVG("opraum")};
+  const stepNames=["","Dein Handwerk","Deine Services","Deine Ausstattung"];
+  let body="";
+
+  // ═══ STEP 1: Choose your craft ═══
+  if(s===1){
+    const cats=[
+      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart"},
+      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling"},
+      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser"},
+      {id:"aesthetik",nm:"Ästhetik / Schönheit",sub:"Botox · Filler · Anti-Aging"},
+      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre"},
+      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone"},
+      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting · Lamination"},
+      {id:"arzt",nm:"Arzt / Klinik",sub:"Dermatologie · Laser · Behandlung"},
+      {id:"opraum",nm:"OP-Raum Anbieter",sub:"Sterile Räume · Chirurgie"}
+    ];
+    body=`
+    <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Was ist dein Handwerk?</p>
+    <p style="font-size:var(--font-md);color:var(--stone);text-align:center;margin-bottom:20px">Wähle deine Branche — du kannst es später ändern.</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${cats.map(c=>`<div onclick="pickProvCat('${c.id}')" style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;border:1.5px solid ${state.provCat===c.id?"var(--gold)":"var(--border)"};background:${state.provCat===c.id?"rgba(200,168,75,.06)":"var(--c2)"};cursor:pointer">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--c3),var(--c4));border:1px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">${catIcons[c.id]||""}</div>
+        <div style="flex:1"><p style="font-size:var(--font-md);font-weight:700">${c.nm}</p><p style="font-size:12px;color:var(--stone)">${c.sub}</p></div>
+        ${state.provCat===c.id?`<div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#080706;flex-shrink:0">✓</div>`:""}
+      </div>`).join("")}
+    </div>
+    <button class="bgold" style="margin-top:20px" ${state.provCat?"":"disabled"} onclick="state.provSetup=2;initProvServices();render()">Weiter →</button>`;
+  }
+
+  // ═══ STEP 2: Toggle services ═══
+  if(s===2){
+    const cat=state.provCat||"barber";
+    const catalog=SVC_CATALOG[cat]||[];
+    if(!state.provServices)state.provServices=[];
+    body=`
+    <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Deine Services</p>
+    <p style="font-size:var(--font-md);color:var(--stone);text-align:center;margin-bottom:16px">Was bietest du an? Tippe zum Ein-/Ausschalten.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1);margin-bottom:14px">
+      <span style="font-size:12px;color:var(--stone)">${state.provServices.length}/${catalog.length} aktiv</span>
+      <button onclick="toggleAllServices();render()" style="padding:5px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:11px;color:var(--gold);font-weight:700;cursor:pointer">${state.provServices.length===catalog.length?"Alle aus":"Alle an"}</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+      ${catalog.map(sv=>{const on=state.provServices.includes(sv.nm);return`
+      <div onclick="toggleService('${sv.nm.replace(/'/g,"\\'")}')" style="padding:10px 14px;border-radius:12px;border:1.5px solid ${on?"var(--gold)":"var(--border)"};background:${on?"rgba(200,168,75,.08)":"var(--c2)"};cursor:pointer;display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;font-weight:${on?700:400};color:${on?"var(--cream)":"var(--stone)"}">${sv.nm}</span>
+        <span style="font-size:11px;color:var(--stone)">${sv.dur}min</span>
+        ${on?`<span style="font-size:12px;color:var(--gold2);font-weight:700">${sv.pr}€</span>`:""}
+      </div>`;}).join("")}
+    </div>
+    <button class="bgold" ${state.provServices.length===0?"disabled":""} onclick="state.provSetup=3;initProvEquip();render()">Weiter → Ausstattung</button>`;
+  }
+
+  // ═══ STEP 3: Toggle equipment ═══
+  if(s===3){
+    const cat=state.provCat||"barber";
+    const equipCat=EQUIP_CATALOG[cat]||[];
+    if(!state.provEquip)state.provEquip=[];
+    if(equipCat.length===0){
+      body=`
+      <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Fast fertig!</p>
+      <p style="font-size:var(--font-md);color:var(--stone);text-align:center;margin-bottom:30px">Für deine Kategorie gibt es keine Geräte-Optionen — du kannst direkt loslegen.</p>
+      <button class="bgold" onclick="finishProvSetup()">Fertig — Loslegen! 🚀</button>`;
+    } else {
+      body=`
+      <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Deine Ausstattung</p>
+      <p style="font-size:var(--font-md);color:var(--stone);text-align:center;margin-bottom:6px">Geräte & Werkzeuge die Mieter nutzen können.</p>
+      <p style="font-size:12px;color:var(--stone2);text-align:center;margin-bottom:16px">0 € = inklusive · Aufpreis pro Tag</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1);margin-bottom:14px">
+        <span style="font-size:12px;color:var(--stone)">${state.provEquip.length}/${equipCat.length} aktiv</span>
+        <button onclick="toggleAllEquip();render()" style="padding:5px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:11px;color:var(--gold);font-weight:700;cursor:pointer">${state.provEquip.length===equipCat.length?"Alle aus":"Alle an"}</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+        ${equipCat.map(eq=>{const on=state.provEquip.includes(eq.nm);return`
+        <div onclick="toggleEquip('${eq.nm.replace(/'/g,"\\'")}')" style="padding:10px 14px;border-radius:12px;border:1.5px solid ${on?"var(--gold)":"var(--border)"};background:${on?"rgba(200,168,75,.08)":"var(--c2)"};cursor:pointer;display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">${eq.icon}</span>
+          <span style="font-size:13px;font-weight:${on?700:400};color:${on?"var(--cream)":"var(--stone)"}">${eq.nm}</span>
+          ${on?`<span style="font-size:11px;color:${eq.pr===0?"#6ABF80":"var(--gold2)"};font-weight:700">${eq.pr===0?"Inkl.":eq.pr+"€"}</span>`:""}
+        </div>`;}).join("")}
+      </div>
+      <p style="font-size:11px;color:var(--stone);text-align:center;margin-bottom:16px">Preise kannst du jederzeit in den Einstellungen anpassen.</p>
+      <button class="bgold" onclick="finishProvSetup()">Fertig — Loslegen! 🚀</button>`;
+    }
+  }
+
+  return`<div style="padding:40px var(--pad) 40px;min-height:100vh;min-height:100dvh">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <button onclick="provSetupBack()" style="color:var(--gold);font-size:var(--font-md);font-weight:700;background:none;border:none;cursor:pointer;font-family:inherit;min-height:44px;display:flex;align-items:center;gap:4px">← Zurück</button>
+      <span style="font-size:var(--font-sm);color:var(--stone)">Schritt ${s}/3</span>
+    </div>
+    <div class="pbar" style="margin-bottom:20px"><div class="pfill" style="width:${s/3*100}%"></div></div>
+    ${body}
+  </div>`;
+}
+function pickProvCat(cat){
+  state.provCat=cat;
+  localStorage.setItem("cm_prov_cat",cat);
+  // Reset services & equip for new category
+  state.provServices=[];state.provEquip=[];
+  localStorage.setItem("cm_prov_svcs",JSON.stringify([]));
+  localStorage.setItem("cm_prov_equip",JSON.stringify([]));
+  render();
+}
+function initProvServices(){
+  const cat=state.provCat||"barber";
+  const catalog=SVC_CATALOG[cat]||[];
+  if(!state.provServices||state.provServices.length===0){
+    state.provServices=catalog.map(s=>s.nm);
+    localStorage.setItem("cm_prov_svcs",JSON.stringify(state.provServices));
+  }
+}
+function initProvEquip(){
+  const cat=state.provCat||"barber";
+  const equipCat=EQUIP_CATALOG[cat]||[];
+  if(!state.provEquip||state.provEquip.length===0){
+    state.provEquip=equipCat.map(e=>e.nm);
+    localStorage.setItem("cm_prov_equip",JSON.stringify(state.provEquip));
+  }
+}
+function provSetupBack(){
+  if(state.provSetup>1){state.provSetup--;render();}
+  else{state.provSetup=0;state.obStep=3;render();}
+}
+function finishProvSetup(){
+  state.provSetup=0;state.onboarded=true;state.tab="home";
+  localStorage.setItem("cm_prov_cat",state.provCat);
+  // Update first provider to match chosen category
+  PROVS[0].cat=state.provCat;
+  pushNav("home");document.getElementById("mainScreen").scrollTop=0;
+  showToast("Willkommen! Dein Profil ist eingerichtet 🎉");
+  render();
+}
 
 // ─── HOME (v5.2 grid layout + v6.0 features) ───
 function renderHome(){
@@ -2904,6 +3044,8 @@ window.addEventListener("popstate",function(){
   if(state.detail){state.detail=null;state.tab="home";render();skipPush=false;return;}
   // On a non-home tab? Go home
   if(state.tab!=="home"){state.tab="home";render();skipPush=false;return;}
+  // Provider setup? Go back one step
+  if(state.provSetup>0){provSetupBack();skipPush=false;return;}
   // Onboarding step >0? Go back one step
   if(!state.onboarded&&state.obStep>0){state.obStep--;render();skipPush=false;return;}
   // Nothing left to go back to — let browser handle it
@@ -2912,7 +3054,10 @@ window.addEventListener("popstate",function(){
 
 // ═══ ACTIONS ═══
 function nextOb(){state.obStep++;pushNav("ob"+state.obStep);render();}
-function finishOnboarding(r){state.role=r;state.onboarded=true;state.tab="home";pushNav("home");document.getElementById("mainScreen").scrollTop=0;render();}
+function finishOnboarding(r){
+  if(r==="PROVIDER"||r==="B2B"){state.role=r;state.provSetup=1;pushNav("provsetup");render();return;}
+  state.role=r;state.onboarded=true;state.tab="home";pushNav("home");document.getElementById("mainScreen").scrollTop=0;render();
+}
 function goTab(t){state.tab=t;state.detail=null;state.subPage=null;pushNav("tab-"+t);document.getElementById("mainScreen").scrollTop=0;render();}
 function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="info";pushNav("detail-"+id);document.getElementById("mainScreen").scrollTop=0;render();}
 function setDetailTab(t){state.detailTab=t;render();}
@@ -2950,7 +3095,7 @@ function toggleService(nm){
   localStorage.setItem("cm_prov_svcs",JSON.stringify(state.provServices));render();
 }
 function toggleAllServices(){
-  const p=PROVS[0];const catalog=SVC_CATALOG[p.cat]||[];
+  const cat=state.provCat||PROVS[0].cat;const catalog=SVC_CATALOG[cat]||[];
   if(state.provServices&&state.provServices.length===catalog.length){state.provServices=[];showToast("Alle deaktiviert");}
   else{state.provServices=catalog.map(s=>s.nm);showToast("Alle aktiviert");}
   localStorage.setItem("cm_prov_svcs",JSON.stringify(state.provServices));render();
@@ -2968,7 +3113,7 @@ function toggleEquip(nm){
   localStorage.setItem("cm_prov_equip",JSON.stringify(state.provEquip));render();
 }
 function toggleAllEquip(){
-  const p=PROVS[0];const catalog=EQUIP_CATALOG[p.cat]||[];
+  const cat=state.provCat||PROVS[0].cat;const catalog=EQUIP_CATALOG[cat]||[];
   if(state.provEquip&&state.provEquip.length===catalog.length){state.provEquip=[];showToast("Alle deaktiviert");}
   else{state.provEquip=catalog.map(e=>e.nm);showToast("Alle aktiviert");}
   localStorage.setItem("cm_prov_equip",JSON.stringify(state.provEquip));render();
