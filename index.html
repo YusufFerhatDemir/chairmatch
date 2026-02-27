@@ -956,6 +956,19 @@ const PROVS=[
   {id:"p16",cat:"opraum",nm:"SterileSpace München",st:"Prinzregentenstr. 22",city:"München",rt:4.9,rc:67,tl:"Premium OP-Räume & Behandlungszimmer",tags:["OP-Raum","Steril","Ambulante Chirurgie","Haartransplantation","Implantate","Operationssaal"],disc:10,bc:"#40A890",prom:true,ver:true,live:true,frei:1,tier:"premium",boost:65,logo:null,sps:["s3"],rental:[{type:"opraum",pr:400},{type:"raum",pr:120}],svs:[{id:"sv43",nm:"OP-Raum Premium (Ganztag)",dur:480,pr:400},{id:"sv44",nm:"Behandlungsraum Steril",dur:240,pr:180}],revs:[{u:"Dr. Berger",s:5,t:"Top Ausstattung, alles steril.",d:"18.02.2026"}],gal:[]}
 ];
 const CITIES=[...new Set(PROVS.map(p=>p.city))].sort();
+// Service catalog per category — providers can toggle these on/off
+const SVC_CATALOG={
+  barber:[{nm:"Herrenschnitt",dur:30,pr:28},{nm:"Skin Fade",dur:40,pr:35},{nm:"Beard Trim",dur:20,pr:15},{nm:"Bart Design",dur:30,pr:25},{nm:"Hot Towel Shave",dur:30,pr:28},{nm:"Full Service (Cut + Bart)",dur:60,pr:50},{nm:"Kinderschnitt",dur:20,pr:18},{nm:"Kopfmassage",dur:15,pr:12},{nm:"Augenbrauen",dur:10,pr:8},{nm:"Nasenhaare Waxing",dur:5,pr:5}],
+  friseur:[{nm:"Damenschnitt",dur:45,pr:45},{nm:"Herrenschnitt",dur:30,pr:32},{nm:"Waschen & Föhnen",dur:30,pr:25},{nm:"Balayage / Highlights",dur:120,pr:120},{nm:"Komplett-Coloration",dur:90,pr:85},{nm:"Strähnchen",dur:90,pr:95},{nm:"Haarverlängerung",dur:180,pr:250},{nm:"Brautfrisur",dur:90,pr:120},{nm:"Kinderschnitt",dur:20,pr:18},{nm:"Kopfhaut-Treatment",dur:30,pr:35}],
+  kosmetik:[{nm:"Klassisches Facial",dur:60,pr:75},{nm:"Anti-Aging Behandlung",dur:75,pr:120},{nm:"Chemical Peeling",dur:45,pr:65},{nm:"Microdermabrasion",dur:45,pr:80},{nm:"Hautreinigung",dur:60,pr:55},{nm:"Augenbrauen Waxing",dur:15,pr:12},{nm:"Wimpern Lifting",dur:60,pr:55},{nm:"Rückenbehandlung",dur:50,pr:70},{nm:"Fruchtsäurepeeling",dur:40,pr:60},{nm:"Ultraschall-Behandlung",dur:45,pr:85}],
+  aesthetik:[{nm:"Botox",dur:30,pr:280},{nm:"Hyaluron Filler",dur:45,pr:380},{nm:"Lippen Unterspritzung",dur:30,pr:350},{nm:"Profhilo",dur:45,pr:420},{nm:"Mesotherapie",dur:45,pr:200},{nm:"PRP Behandlung",dur:60,pr:350},{nm:"Faltenunterspritzung",dur:30,pr:300},{nm:"Haartransplantation Beratung",dur:60,pr:0}],
+  nail:[{nm:"Gel Maniküre",dur:60,pr:45},{nm:"Shellac",dur:45,pr:35},{nm:"Nail Art Design",dur:90,pr:75},{nm:"Acryl Verlängerung",dur:90,pr:65},{nm:"French Nails",dur:60,pr:50},{nm:"Pediküre",dur:50,pr:40},{nm:"Chrome Nails",dur:75,pr:60},{nm:"Nail Repair",dur:30,pr:20}],
+  massage:[{nm:"Klassische Massage",dur:60,pr:65},{nm:"Tiefengewebsmassage",dur:60,pr:80},{nm:"Hot Stone Massage",dur:90,pr:100},{nm:"Thai Massage",dur:60,pr:70},{nm:"Sportmassage",dur:45,pr:60},{nm:"Lymphdrainage",dur:60,pr:75},{nm:"Fußreflexzonen",dur:30,pr:40},{nm:"Aromatherapie",dur:75,pr:85},{nm:"Shiatsu",dur:60,pr:75}],
+  lash:[{nm:"Classic Lash Extensions",dur:90,pr:85},{nm:"Volume Lash Extensions",dur:120,pr:120},{nm:"Lash Lifting & Tinting",dur:60,pr:55},{nm:"Wimpern Auffüllen",dur:60,pr:50},{nm:"Brow Lamination",dur:45,pr:45},{nm:"Brow Shaping",dur:30,pr:25},{nm:"Lash Removal",dur:30,pr:25}],
+  arzt:[{nm:"Hautkrebs-Screening",dur:30,pr:95},{nm:"Laser Haarentfernung",dur:45,pr:150},{nm:"Akne Behandlung",dur:40,pr:120},{nm:"Derma-Beratung",dur:30,pr:80},{nm:"Narbenbehandlung",dur:60,pr:200},{nm:"Pigmentflecken Laser",dur:45,pr:180},{nm:"Haartransplantation",dur:180,pr:2500}],
+  raum:[],
+  opraum:[{nm:"OP-Raum Tagesmiete",dur:480,pr:450},{nm:"OP-Raum Halbtag",dur:240,pr:280},{nm:"Sterilisation & Aufbereitung",dur:60,pr:80}]
+};
 // Opening hours per provider
 const defaultHrs={Mo:"09:00–19:00",Di:"09:00–19:00",Mi:"09:00–19:00",Do:"09:00–19:00",Fr:"09:00–19:00",Sa:"10:00–16:00",So:"Geschlossen"};
 const HOURS={
@@ -1000,7 +1013,10 @@ let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:n
   adminSelectedIcon:localStorage.getItem("cm_admin_selicon")||null,
   adminGenerated:false,
   superAdmin:JSON.parse(localStorage.getItem("cm_superadmin")||"false"),saTab:"providers",
-  unlockRequests:JSON.parse(localStorage.getItem("cm_unlock")||"[]")
+  unlockRequests:JSON.parse(localStorage.getItem("cm_unlock")||"[]"),
+  provServices:JSON.parse(localStorage.getItem("cm_prov_svcs")||"null"),
+  provPrices:JSON.parse(localStorage.getItem("cm_prov_prices")||"{}"),
+  b2bRentals:JSON.parse(localStorage.getItem("cm_b2b")||"null")
 };
 if(localStorage.getItem("cm_theme")==="light"){state.theme="light";document.body.classList.add("light");}
 if(localStorage.getItem("cm_lang"))state.lang=localStorage.getItem("cm_lang");
@@ -1447,6 +1463,116 @@ function renderOffers(){
   </div>`}
 </div>`;}
 
+// ─── PROVIDER SERVICE SECTION (visible in Account for role=PROVIDER) ───
+function renderProviderSection(){
+  const p=PROVS[0];
+  const cat=p.cat;
+  const catalog=SVC_CATALOG[cat]||[];
+  if(!state.provServices)state.provServices=JSON.parse(localStorage.getItem("cm_prov_svcs")||"null")||p.svs.map(s=>s.nm);
+  const activeCount=state.provServices.length;
+  return`
+    <!-- MEINE SERVICES -->
+    <div class="card" style="padding:16px;margin-bottom:14px;background:linear-gradient(135deg,#141008,#1A1608);border:1.5px solid rgba(200,168,75,.25)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><p class="lgold" style="margin-bottom:3px">Meine Services</p>
+          <p style="font-size:11px;color:var(--stone)">${activeCount} von ${catalog.length} aktiv · So sehen Kunden dein Angebot</p></div>
+        <button onclick="state.adminTab='services';goSub('admin')" style="padding:6px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--gold);color:var(--gold2);font-size:11px;font-weight:700;cursor:pointer">Bearbeiten</button>
+      </div>
+      ${state.provServices.length===0?`<p style="font-size:12px;color:var(--stone2);padding:14px 0;text-align:center">Noch keine Services aktiviert. Tippe "Bearbeiten" um deine Dienste freizuschalten.</p>`:""}
+      ${catalog.filter(sv=>state.provServices.includes(sv.nm)).slice(0,4).map(sv=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div><p style="font-size:13px;font-weight:700">${sv.nm}</p><p style="font-size:11px;color:var(--stone)">${sv.dur} min</p></div>
+        <span style="font-size:14px;font-weight:800;color:var(--gold2)">${sv.pr} €</span>
+      </div>`).join("")}
+      ${activeCount>4?`<p style="font-size:11px;color:var(--stone);margin-top:8px;text-align:center">+ ${activeCount-4} weitere Services</p>`:""}
+    </div>`;
+}
+// ─── B2B RENTAL SECTION (visible in Account for role=B2B) ───
+function renderB2BSection(){
+  const p=PROVS[0];
+  if(!state.b2bRentals)state.b2bRentals=JSON.parse(localStorage.getItem("cm_b2b")||"null")||(p.rental||[]).map(r=>({type:r.type,pr:r.pr,active:true,size:"",photo:null,desc:""}));
+  const allTypes=[
+    {type:"stuhl",svg:rentalIcon("stuhl"),nm:"Barber-Stuhl",desc:"Friseur-/Barber-Arbeitsplatz mit Stuhl"},
+    {type:"liege",svg:rentalIcon("liege"),nm:"Liege",desc:"Massage-/Kosmetik-Liege"},
+    {type:"raum",svg:rentalIcon("raum"),nm:"Kosmetik-Kabine",desc:"Behandlungsraum / geschlossene Kabine"},
+    {type:"opraum",svg:rentalIcon("opraum"),nm:"OP-Raum",desc:"Steriler Operationssaal"}
+  ];
+  return`
+    <!-- B2B VERMIETUNG -->
+    <div class="card" style="padding:16px;margin-bottom:14px;background:linear-gradient(135deg,#141008,#1A1608);border:1.5px solid rgba(200,168,75,.25)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <p class="lgold">B2B — Mein Angebot</p>
+        <span style="font-size:10px;color:var(--stone);background:var(--c3);padding:4px 8px;border-radius:6px">Business to Business</span>
+      </div>
+      <p style="font-size:11px;color:var(--stone);margin-bottom:14px;line-height:1.5">Schalte frei, was du an andere Profis vermieten möchtest. Mieter sehen Fotos, Größe und Preis direkt in der App.</p>
+      ${allTypes.map(at=>{
+        const item=state.b2bRentals.find(r=>r.type===at.type);
+        const isActive=item&&item.active;
+        return`
+      <div style="margin-bottom:12px;border:1.5px solid ${isActive?"rgba(200,168,75,.25)":"var(--border)"};border-radius:14px;overflow:hidden;background:${isActive?"rgba(200,168,75,.03)":"var(--c2)"}">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px">
+          <div style="width:40px;display:flex;align-items:center;justify-content:center">${at.svg}</div>
+          <div style="flex:1"><p style="font-size:14px;font-weight:700">${at.nm}</p><p style="font-size:11px;color:var(--stone)">${at.desc}</p></div>
+          <div onclick="toggleB2B('${at.type}')" style="width:44px;height:26px;border-radius:13px;background:${isActive?"var(--gold)":"var(--c4)"};cursor:pointer;position:relative;transition:background .2s">
+            <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;${isActive?"right:3px":"left:3px"};transition:all .2s"></div>
+          </div>
+        </div>
+        ${isActive?`
+        <div style="padding:0 14px 14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="display:flex;gap:10px">
+            <div style="flex:1"><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Preis / Tag (€)</label>
+              <input class="inp" type="number" value="${item.pr||""}" oninput="updateB2B('${at.type}','pr',this.value)" placeholder="z.B. 45" style="font-size:15px;font-weight:700"/></div>
+            <div style="flex:1"><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Größe (m²)</label>
+              <input class="inp" value="${item.size||""}" oninput="updateB2B('${at.type}','size',this.value)" placeholder="z.B. 12 m²"/></div>
+          </div>
+          <div><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Beschreibung (optional)</label>
+            <input class="inp" value="${item.desc||""}" oninput="updateB2B('${at.type}','desc',this.value)" placeholder="z.B. Klimatisiert, eigener Eingang..."/></div>
+          <div>
+            <label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Foto hochladen</label>
+            ${item.photo?`
+            <div style="position:relative;border-radius:10px;overflow:hidden;margin-bottom:6px">
+              <img src="${item.photo}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"/>
+              <button onclick="removeB2BPhoto('${at.type}')" style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid var(--border);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+            </div>`:`
+            <div onclick="document.getElementById('b2bPhoto_${at.type}').click()" style="border:2px dashed var(--c5);border-radius:12px;padding:20px;text-align:center;cursor:pointer">
+              <p style="font-size:11px;color:var(--stone)">📸 Tippe zum Hochladen</p>
+              <p style="font-size:10px;color:var(--stone2)">So sehen Mieter deinen ${at.nm}</p>
+            </div>`}
+            <input type="file" id="b2bPhoto_${at.type}" accept="image/*" style="display:none" onchange="handleB2BPhoto('${at.type}',event)"/>
+          </div>
+          <div style="padding:10px 12px;background:rgba(74,138,90,.06);border-radius:10px;border:1px solid rgba(74,138,90,.12)">
+            <p style="font-size:11px;color:#6ABF80;font-weight:700">✓ Sichtbar für Mieter</p>
+            <p style="font-size:10px;color:var(--stone);margin-top:2px">Freelancer sehen Preis, Foto & Größe direkt — ohne extra hinfahren.</p>
+          </div>
+        </div>`:""}
+      </div>`;}).join("")}
+    </div>`;
+}
+function toggleB2B(type){
+  if(!state.b2bRentals)state.b2bRentals=[];
+  const item=state.b2bRentals.find(r=>r.type===type);
+  if(item){item.active=!item.active;showToast(item.active?"Freigeschaltet":"Deaktiviert");}
+  else{state.b2bRentals.push({type,pr:0,active:true,size:"",photo:null,desc:""});showToast("Freigeschaltet");}
+  localStorage.setItem("cm_b2b",JSON.stringify(state.b2bRentals));render();
+}
+function updateB2B(type,field,val){
+  if(!state.b2bRentals)return;
+  const item=state.b2bRentals.find(r=>r.type===type);
+  if(item){item[field]=field==="pr"?(parseFloat(val)||0):val;localStorage.setItem("cm_b2b",JSON.stringify(state.b2bRentals));}
+}
+function handleB2BPhoto(type,e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>3*1024*1024){showToast("Max 3 MB!");return;}
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const item=state.b2bRentals.find(r=>r.type===type);
+    if(item){item.photo=ev.target.result;localStorage.setItem("cm_b2b",JSON.stringify(state.b2bRentals));render();showToast("Foto hochgeladen!");}
+  };reader.readAsDataURL(file);
+}
+function removeB2BPhoto(type){
+  const item=state.b2bRentals.find(r=>r.type===type);
+  if(item){item.photo=null;localStorage.setItem("cm_b2b",JSON.stringify(state.b2bRentals));render();}
+}
 // ─── ACCOUNT (with loyalty card, theme, lang, dbSeat) ───
 function renderAccount(){
   const r=state.role;
@@ -1506,6 +1632,8 @@ function renderAccount(){
         </div>
       </div>
     </div>`:""}
+    ${r==="PROVIDER"?renderProviderSection():""}
+    ${r==="B2B"?renderB2BSection():""}
     ${r!=="CUSTOMER"?`<!-- ADMIN PANEL ENTRY -->
     <div class="card" onclick="goSub('admin')" style="padding:16px;margin-bottom:14px;background:linear-gradient(135deg,#141008,#1A1608);border:1.5px solid rgba(200,168,75,.25);cursor:pointer">
       <div style="display:flex;align-items:center;gap:14px">
@@ -2182,16 +2310,42 @@ function renderAdmin(){
     </div>`:""}`;
   }
   if(tb==="services"){
+    const cat=p.cat;
+    const catalog=SVC_CATALOG[cat]||[];
+    if(!state.provServices)state.provServices=JSON.parse(localStorage.getItem("cm_prov_svcs")||"null")||p.svs.map(s=>s.nm);
+    if(!state.provPrices)state.provPrices=JSON.parse(localStorage.getItem("cm_prov_prices")||"{}");
+    const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik",aesthetik:"Ästhetik",nail:"Nails",massage:"Massage",lash:"Lash & Brows",arzt:"Arzt/Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum"};
     content=`
-    <p class="lsm" style="margin-bottom:10px">${t("services")}</p>
-    ${p.svs.map((sv,i)=>`
-    <div class="card" style="padding:14px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><p style="font-size:14px;font-weight:700">${sv.nm}</p><p style="font-size:12px;color:var(--stone)">${sv.dur} min</p></div>
-        <div style="text-align:right"><p style="font-size:16px;font-weight:800;color:var(--gold2)">${sv.pr} €</p></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <p class="lgold">Meine Dienste</p>
+      <span style="font-size:11px;color:var(--stone);background:var(--c3);padding:4px 10px;border-radius:8px">${catLabels[cat]||cat}</span>
+    </div>
+    <p style="font-size:12px;color:var(--stone);margin-bottom:14px;line-height:1.5">Schalte die Services frei, die du anbietest. Kunden sehen dein Angebot wie eine digitale Speisekarte.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1);margin-bottom:14px">
+      <span style="font-size:12px;color:var(--stone)">${state.provServices.length}/${catalog.length} aktiv</span>
+      <button onclick="toggleAllServices()" style="padding:5px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:11px;color:var(--gold);font-weight:700;cursor:pointer">${state.provServices.length===catalog.length?"Alle deaktivieren":"Alle aktivieren"}</button>
+    </div>
+    ${catalog.map((sv,i)=>{
+      const active=state.provServices.includes(sv.nm);
+      const customPr=state.provPrices[sv.nm];
+      const displayPr=customPr!==undefined?customPr:sv.pr;
+      return`
+    <div style="margin-bottom:8px;border:1.5px solid ${active?"rgba(200,168,75,.2)":"var(--border)"};border-radius:12px;overflow:hidden;background:${active?"rgba(200,168,75,.03)":"var(--c2)"}">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px">
+        <div onclick="toggleService('${sv.nm.replace(/'/g,"\\'")}')" style="width:44px;height:26px;border-radius:13px;background:${active?"var(--gold)":"var(--c4)"};cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+          <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;${active?"right:3px":"left:3px"};transition:all .2s"></div>
+        </div>
+        <div style="flex:1"><p style="font-size:13px;font-weight:700;color:${active?"var(--fg)":"var(--stone)"}">${sv.nm}</p><p style="font-size:11px;color:var(--stone2)">${sv.dur} min · Standard: ${sv.pr} €</p></div>
+        ${active?`<div style="display:flex;align-items:center;gap:4px">
+          <input class="inp" type="number" value="${displayPr}" oninput="updateServicePrice('${sv.nm.replace(/'/g,"\\'")}',this.value)" style="width:60px;text-align:right;font-size:15px;font-weight:700;padding:6px 8px"/>
+          <span style="font-size:13px;font-weight:700;color:var(--gold2)">€</span>
+        </div>`:`<span style="font-size:12px;color:var(--stone2)">Aus</span>`}
       </div>
-    </div>`).join("")}
-    <button class="boutline" style="width:100%;margin-top:10px;padding:14px">+ Neuen Service hinzufügen</button>`;
+    </div>`;}).join("")}
+    <div style="margin-top:14px;padding:14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.1)">
+      <p style="font-size:12px;color:var(--gold2);font-weight:700;margin-bottom:4px">💡 So funktioniert's</p>
+      <p style="font-size:11px;color:var(--stone);line-height:1.5">Aktiviere deine Dienste → Kunden sehen sie in deinem Profil als Servicekarte. Du kannst die Preise jederzeit individuell anpassen.</p>
+    </div>`;
   }
   if(tb==="settings"){
     content=`
@@ -2584,6 +2738,24 @@ function confirmBooking(){
 function updateReg(k,v){state.regData[k]=v==="true"?true:v==="false"?false:v;render();}
 function setRegStep(s){state.regStep=s;render();}
 function submitReg(){state.regDone=true;showToast("Registrierung eingereicht!");render();}
+function toggleService(nm){
+  if(!state.provServices)state.provServices=[];
+  const idx=state.provServices.indexOf(nm);
+  if(idx>-1){state.provServices.splice(idx,1);showToast("Deaktiviert");}
+  else{state.provServices.push(nm);showToast("Freigeschaltet");}
+  localStorage.setItem("cm_prov_svcs",JSON.stringify(state.provServices));render();
+}
+function toggleAllServices(){
+  const p=PROVS[0];const catalog=SVC_CATALOG[p.cat]||[];
+  if(state.provServices&&state.provServices.length===catalog.length){state.provServices=[];showToast("Alle deaktiviert");}
+  else{state.provServices=catalog.map(s=>s.nm);showToast("Alle aktiviert");}
+  localStorage.setItem("cm_prov_svcs",JSON.stringify(state.provServices));render();
+}
+function updateServicePrice(nm,val){
+  if(!state.provPrices)state.provPrices={};
+  state.provPrices[nm]=parseFloat(val)||0;
+  localStorage.setItem("cm_prov_prices",JSON.stringify(state.provPrices));
+}
 function onSearch(v){state.searchQuery=v;render();}
 function focusSearch(){setTimeout(()=>{const el=document.getElementById("searchInp");if(el)el.focus();},50);}
 function toggleFilter(){state.showFilter=!state.showFilter;render();}
