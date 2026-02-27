@@ -1039,7 +1039,7 @@ function badge(tx,c){return`<span class="badge ${c}">${tx}</span>`;}
 function showToast(msg){const d=document.createElement("div");d.className="toast";d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2500);}
 function toggleFav(id,e){if(e)e.stopPropagation();const i=state.favorites.indexOf(id);if(i>-1){state.favorites.splice(i,1);showToast("Favorit entfernt");}else{state.favorites.push(id);showToast("Zu Favoriten hinzugefügt ♡");}saveFavs();render();}
 function tierWeight(t){return t==="gold"?3:t==="premium"?2:1;}
-function getFiltered(){let list=[...PROVS];if(state.catFilter!=="all")list=list.filter(p=>p.cat===state.catFilter);if(state.searchQuery){const q=state.searchQuery.toLowerCase();list=list.filter(p=>p.nm.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||p.tags.some(tg=>tg.toLowerCase().includes(q))||p.cat.toLowerCase().includes(q)||p.tl.toLowerCase().includes(q)||p.svs.some(sv=>sv.nm.toLowerCase().includes(q)));}
+function getFiltered(){let list=[...PROVS];if(state.catFilter!=="all")list=list.filter(p=>p.cat===state.catFilter);if(state.searchQuery){const q=state.searchQuery.toLowerCase();list=list.filter(p=>p.nm.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||p.tags.some(tg=>tg.toLowerCase().includes(q))||p.cat.toLowerCase().includes(q)||p.tl.toLowerCase().includes(q)||p.svs.some(sv=>sv.nm.toLowerCase().includes(q))||getProviderServices(p).some(sv=>sv.nm.toLowerCase().includes(q)));}
 if(state.filterCity!=="all")list=list.filter(p=>p.city===state.filterCity);if(state.filterMinRating>0)list=list.filter(p=>p.rt>=state.filterMinRating);if(state.filterMaxPrice<500)list=list.filter(p=>p.svs.some(sv=>sv.pr<=state.filterMaxPrice));if(state.filterOnlyAvail)list=list.filter(p=>p.live);if(state.filterOnlyDisc)list=list.filter(p=>p.disc>0);
 list.sort((a,b)=>{const tw=tierWeight(b.tier)-tierWeight(a.tier);if(tw!==0)return tw;const bw=(b.boost||0)-(a.boost||0);if(bw!==0)return bw;return b.rt-a.rt;});return list;}
 function activeFilterCount(){let c=0;if(state.filterCity!=="all")c++;if(state.filterMinRating>0)c++;if(state.filterMaxPrice<500)c++;if(state.filterOnlyAvail)c++;if(state.filterOnlyDisc)c++;return c;}
@@ -2827,7 +2827,7 @@ function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="i
 function setDetailTab(t){state.detailTab=t;render();}
 function goBack(){state.detail=null;state.tab="home";history.back();}
 function setCat(c){state.catFilter=c;render();}
-function setRole(r){state.role=r;render();}
+function setRole(r){state.role=r;if(r==="CUSTOMER"){state.tab="home";state.detail=null;state.subPage=null;pushNav("home");document.getElementById("mainScreen").scrollTop=0;}render();}
 function goSub(p){if(p){pushNav("sub-"+p);}else{history.back();return;}state.subPage=p;document.getElementById("mainScreen").scrollTop=0;render();}
 function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;state.bookName="";state.bookEmail="";state.bookPhone="";state.bookNotes="";state.promoCode="";state.promoValid=null;state.promoDiscount=0;pushNav("booking");render();}
 function closeBooking(){state.bookingProv=null;state.bookDone=false;state.stamps=Math.min(10,state.stamps+1);state.loyaltyRedeemed=false;localStorage.setItem("cm_redeemed","false");saveStamps();history.back();}
@@ -2869,8 +2869,8 @@ function updateServicePrice(nm,val){
   state.provPrices[nm]=parseFloat(val)||0;
   localStorage.setItem("cm_prov_prices",JSON.stringify(state.provPrices));
 }
-function onSearch(v){state.searchQuery=v;render();}
-function focusSearch(){setTimeout(()=>{const el=document.getElementById("searchInp");if(el)el.focus();},50);}
+function onSearch(v){state.searchQuery=v;render();const el=document.getElementById("searchInp");if(el){el.focus();el.setSelectionRange(v.length,v.length);}}
+function focusSearch(){requestAnimationFrame(()=>{const el=document.getElementById("searchInp");if(el)el.focus();});}
 function toggleFilter(){state.showFilter=!state.showFilter;render();}
 function setFilterCity(c){state.filterCity=c;render();}
 function setFilterRating(r){state.filterMinRating=r;render();}
