@@ -254,7 +254,7 @@ function logoHeader(small){
 
 // ─── CATEGORY SVG ICONS (luxury gold, detailed) ───
 function catSVG(type){
-  const ids={barber:"gBa",friseur:"gFr",kosmetik:"gKo",aesthetik:"gAe",nail:"gNa",massage:"gMa",lash:"gLa",arzt:"gAr"};
+  const ids={barber:"gBa",friseur:"gFr",kosmetik:"gKo",aesthetik:"gAe",nail:"gNa",massage:"gMa",lash:"gLa",arzt:"gAr",raum:"gRa"};
   const id=ids[type];if(!id)return"";
   const hd=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="64" y2="64"><stop offset="0%" stop-color="#FFF0C0"/><stop offset="30%" stop-color="#E0C060"/><stop offset="60%" stop-color="#C8A84B"/><stop offset="100%" stop-color="#A08030"/></linearGradient><linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF8D0" stop-opacity=".5"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></linearGradient></defs>`;
   const g=`url(#${id})`;const gh=`url(#${id}h)`;
@@ -303,18 +303,30 @@ function catSVG(type){
   </svg>`;
 
   if(type==="kosmetik") return `${w}${hd}
-    <path d="M28 8 Q18 10 15 18 Q12 28 14 36 Q16 42 20 46 Q24 50 28 52 L30 54" fill="none" stroke="${g}" stroke-width="2.2" stroke-linecap="round"/>
-    <path d="M28 8 Q36 6 40 10 Q44 16 42 24 Q40 30 36 32" fill="${g}" opacity=".2"/>
-    <path d="M28 8 Q36 6 40 10 Q44 16 42 24 Q40 30 36 32" fill="none" stroke="${g}" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="23" cy="22" r="1.5" fill="${g}"/>
-    <path d="M19 32 Q22 35 26 32" fill="none" stroke="${g}" stroke-width="1.2" stroke-linecap="round"/>
-    <path d="M15 18 Q12 14 14 10" fill="none" stroke="${g}" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
-    <path d="M28 8 Q30 6 34 6" fill="none" stroke="${g}" stroke-width="1.2" stroke-linecap="round" opacity=".4"/>
-    <rect x="46" y="28" width="10" height="20" rx="3" fill="${gh}"/>
-    <rect x="46" y="28" width="10" height="20" rx="3" fill="none" stroke="${g}" stroke-width="1.5" opacity=".8"/>
-    <rect x="48" y="23" width="6" height="7" rx="1.5" fill="none" stroke="${g}" stroke-width="1.2" opacity=".6"/>
-    <circle cx="51" cy="35" r="1.2" fill="${g}" opacity=".6"/>
-    ${sk(50,18,3,.85)}${sk(8,8,3.5,.8)}${sk(36,54,2.5,.7)}${sk(58,52,2,.6)}
+    <!-- Kosmetik-Liege (reclined chair with mirror) -->
+    <rect x="8" y="32" width="38" height="24" rx="4" fill="${gh}"/>
+    <rect x="8" y="32" width="38" height="24" rx="4" fill="none" stroke="${g}" stroke-width="2"/>
+    <!-- liege body stitching -->
+    <line x1="18" y1="34" x2="18" y2="54" stroke="${g}" stroke-width=".7" opacity=".3"/>
+    <line x1="28" y1="33" x2="28" y2="55" stroke="${g}" stroke-width=".7" opacity=".3"/>
+    <line x1="38" y1="34" x2="38" y2="54" stroke="${g}" stroke-width=".7" opacity=".3"/>
+    <!-- reclined backrest -->
+    <path d="M8 32 L4 14 Q3 8 9 8 L30 8 Q36 8 35 14 L32 32" fill="${gh}"/>
+    <path d="M8 32 L4 14 Q3 8 9 8 L30 8 Q36 8 35 14 L32 32" fill="none" stroke="${g}" stroke-width="2"/>
+    <line x1="14" y1="10" x2="12" y2="30" stroke="${g}" stroke-width=".7" opacity=".3"/>
+    <line x1="22" y1="9" x2="21" y2="31" stroke="${g}" stroke-width=".7" opacity=".3"/>
+    <!-- headrest pillow -->
+    <path d="M6 12 Q4 6 10 6 L28 6 Q34 6 33 12" fill="none" stroke="${g}" stroke-width="1.5" opacity=".5"/>
+    <!-- legs -->
+    <rect x="12" y="56" width="3" height="6" rx="1" fill="${g}" opacity=".6"/>
+    <rect x="38" y="56" width="3" height="6" rx="1" fill="${g}" opacity=".6"/>
+    <!-- magnifying lamp -->
+    <circle cx="52" cy="16" r="8" fill="none" stroke="${g}" stroke-width="2" opacity=".75"/>
+    <circle cx="52" cy="16" r="4" fill="${g}" opacity=".15"/>
+    <circle cx="50" cy="14" r="1.2" fill="#FFF0C0" opacity=".4"/>
+    <rect x="51" y="24" width="2" height="16" rx="1" fill="${g}" opacity=".5"/>
+    <rect x="48" y="40" width="8" height="3" rx="1.5" fill="${g}" opacity=".5"/>
+    ${sk(58,8,3,.85)}${sk(4,50,2.5,.7)}${sk(50,54,2,.6)}
   </svg>`;
 
   if(type==="aesthetik") return `${w}${hd}
@@ -347,14 +359,31 @@ function catSVG(type){
   </svg>`;
 
   if(type==="massage") return `${w}${hd}
-    <path d="M10 34 Q8 26 12 20 Q14 16 18 16 L18 14 Q18 10 22 12 L22 16 Q24 14 26 16 L26 12 Q26 8 30 10 L28 16 Q30 14 32 16" fill="none" stroke="${g}" stroke-width="2" stroke-linecap="round"/>
-    <path d="M10 34 Q8 38 10 42 Q14 48 20 46 L22 40 Q24 36 28 34 L32 32" fill="none" stroke="${g}" stroke-width="2" stroke-linecap="round"/>
-    <path d="M54 34 Q56 26 52 20 Q50 16 46 16 L46 14 Q46 10 42 12 L42 16 Q40 14 38 16 L38 12 Q38 8 34 10 L36 16 Q34 14 32 16" fill="none" stroke="${g}" stroke-width="2" stroke-linecap="round"/>
-    <path d="M54 34 Q56 38 54 42 Q50 48 44 46 L42 40 Q40 36 36 34 L32 32" fill="none" stroke="${g}" stroke-width="2" stroke-linecap="round"/>
-    <ellipse cx="32" cy="32" rx="6" ry="5" fill="${g}" opacity=".25"/>
-    <ellipse cx="32" cy="32" rx="3.5" ry="3" fill="${g}" opacity=".4"/>
-    <circle cx="32" cy="32" r="1.5" fill="#FFF0C0" opacity=".35"/>
-    ${sk(14,8,3,.8)}${sk(50,8,3,.8)}${sk(8,50,2.5,.65)}${sk(56,50,2.5,.65)}
+    <!-- Massage-Liege (flat table with face hole) -->
+    <rect x="4" y="24" width="48" height="20" rx="5" fill="${gh}"/>
+    <rect x="4" y="24" width="48" height="20" rx="5" fill="none" stroke="${g}" stroke-width="2"/>
+    <!-- stitching -->
+    <line x1="16" y1="26" x2="16" y2="42" stroke="${g}" stroke-width=".7" opacity=".3"/>
+    <line x1="28" y1="25" x2="28" y2="43" stroke="${g}" stroke-width=".7" opacity=".3"/>
+    <line x1="40" y1="26" x2="40" y2="42" stroke="${g}" stroke-width=".7" opacity=".3"/>
+    <!-- top cushion shine -->
+    <path d="M8 28 Q28 24 48 28" stroke="#FFF0C0" stroke-width="1.2" fill="none" opacity=".15"/>
+    <!-- face hole cutout -->
+    <ellipse cx="10" cy="22" rx="6" ry="4" fill="none" stroke="${g}" stroke-width="1.8" opacity=".7"/>
+    <ellipse cx="10" cy="22" rx="3" ry="2" fill="${g}" opacity=".15"/>
+    <!-- pillow/towel roll -->
+    <ellipse cx="28" cy="16" rx="16" ry="5" fill="${gh}" opacity=".6"/>
+    <ellipse cx="28" cy="16" rx="16" ry="5" fill="none" stroke="${g}" stroke-width="1.2" opacity=".5"/>
+    <ellipse cx="28" cy="15" rx="8" ry="2" fill="#FFF0C0" opacity=".15"/>
+    <!-- 4 legs -->
+    <rect x="8" y="44" width="2.5" height="10" rx="1" fill="${g}" opacity=".6"/>
+    <rect x="44" y="44" width="2.5" height="10" rx="1" fill="${g}" opacity=".6"/>
+    <rect x="20" y="44" width="2.5" height="10" rx="1" fill="${g}" opacity=".5"/>
+    <rect x="32" y="44" width="2.5" height="10" rx="1" fill="${g}" opacity=".5"/>
+    <!-- spa hands icon -->
+    <path d="M52 40 Q56 36 58 32 Q59 28 57 26 Q55 24 53 26 Q51 28 51 32" fill="none" stroke="${g}" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+    <path d="M53 26 L53 22 Q53 20 55 20" fill="none" stroke="${g}" stroke-width="1.2" stroke-linecap="round" opacity=".4"/>
+    ${sk(56,14,3,.8)}${sk(4,10,2.5,.7)}${sk(56,52,2.5,.65)}${sk(4,52,2,.6)}
   </svg>`;
 
   if(type==="lash") return `${w}${hd}
@@ -383,6 +412,26 @@ function catSVG(type){
     <rect x="28" y="18" width="8" height="28" rx="1.5" fill="#FFF0C0" opacity=".12"/>
     <rect x="18" y="28" width="28" height="8" rx="1.5" fill="#FFF0C0" opacity=".12"/>
     ${sk(32,32,3.5,.95)}${sk(14,14,2.5,.7)}${sk(50,14,2,.65)}${sk(50,50,2.5,.7)}${sk(14,50,2,.6)}
+  </svg>`;
+
+  if(type==="raum") return `${w}${hd}
+    <!-- Raum / Kabine / Freelancer Space (door + key) -->
+    <rect x="10" y="8" width="34" height="48" rx="3" fill="${gh}"/>
+    <rect x="10" y="8" width="34" height="48" rx="3" fill="none" stroke="${g}" stroke-width="2.2"/>
+    <!-- door panel lines -->
+    <rect x="14" y="12" width="26" height="18" rx="1.5" fill="none" stroke="${g}" stroke-width="1" opacity=".35"/>
+    <rect x="14" y="34" width="26" height="18" rx="1.5" fill="none" stroke="${g}" stroke-width="1" opacity=".35"/>
+    <!-- door handle -->
+    <circle cx="38" cy="32" r="3" fill="${g}" opacity=".7"/>
+    <circle cx="38" cy="32" r="1.5" fill="#FFF0C0" opacity=".3"/>
+    <!-- key icon (right side) -->
+    <circle cx="54" cy="22" r="6" fill="none" stroke="${g}" stroke-width="2" opacity=".75"/>
+    <circle cx="54" cy="22" r="2.5" fill="${g}" opacity=".25"/>
+    <line x1="54" y1="28" x2="54" y2="42" stroke="${g}" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>
+    <line x1="54" y1="36" x2="58" y2="36" stroke="${g}" stroke-width="1.8" stroke-linecap="round" opacity=".5"/>
+    <line x1="54" y1="40" x2="58" y2="40" stroke="${g}" stroke-width="1.8" stroke-linecap="round" opacity=".5"/>
+    <!-- sparkle accents -->
+    ${sk(6,6,3,.85)}${sk(48,10,2.5,.7)}${sk(8,54,2.5,.65)}${sk(56,52,2,.6)}
   </svg>`;
 
   return "";}
@@ -611,11 +660,171 @@ function dbBooking(){
   <ellipse cx="140" cy="170" rx="90" ry="110" fill="#C8A84B" opacity=".02"/>
 </svg>`;}
 
+// ─── MASSAGE TABLE (Premium SVG — same quality as dbSeat) ───
+function dbMassage(){
+  return `<svg width="140" height="155" viewBox="0 0 280 310" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mtBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3A3A3A"/><stop offset="30%" stop-color="#1A1A1A"/><stop offset="70%" stop-color="#0E0E0E"/><stop offset="100%" stop-color="#222"/></linearGradient>
+    <linearGradient id="mtChr" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0ECE8"/><stop offset="20%" stop-color="#D8D0C8"/><stop offset="45%" stop-color="#E8E4E0"/><stop offset="70%" stop-color="#A8A098"/><stop offset="100%" stop-color="#C8C0B8"/></linearGradient>
+    <linearGradient id="mtGd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F5E8B0"/><stop offset="25%" stop-color="#D4B050"/><stop offset="50%" stop-color="#E8D078"/><stop offset="75%" stop-color="#C8A040"/><stop offset="100%" stop-color="#A88828"/></linearGradient>
+    <radialGradient id="mtShn" cx=".35" cy=".25" r=".65"><stop offset="0%" stop-color="#555" stop-opacity=".6"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <filter id="mtS"><feDropShadow dx="1" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".55"/></filter>
+    <filter id="mtGw"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#C8A84B" flood-opacity=".3"/></filter>
+  </defs>
+  <!-- FLOOR SHADOW -->
+  <ellipse cx="140" cy="298" rx="100" ry="10" fill="#000" opacity=".35"/>
+  <!-- === 4 LEGS (chrome) === -->
+  <g filter="url(#mtS)">
+    <rect x="48" y="200" width="10" height="96" rx="3" fill="url(#mtChr)"/>
+    <rect x="50" y="202" width="3" height="92" rx="1.5" fill="#F8F0E8" opacity=".25"/>
+    <rect x="222" y="200" width="10" height="96" rx="3" fill="url(#mtChr)"/>
+    <rect x="224" y="202" width="3" height="92" rx="1.5" fill="#F8F0E8" opacity=".25"/>
+    <rect x="88" y="200" width="10" height="96" rx="3" fill="url(#mtChr)"/>
+    <rect x="182" y="200" width="10" height="96" rx="3" fill="url(#mtChr)"/>
+  </g>
+  <!-- === LEG CROSSBAR (gold) === -->
+  <g filter="url(#mtGw)">
+    <rect x="52" y="260" width="176" height="6" rx="3" fill="url(#mtGd)"/>
+    <rect x="56" y="261" width="120" height="2.5" rx="1" fill="#FFF8D0" opacity=".3"/>
+  </g>
+  <!-- === MATTRESS (main body — black leather) === -->
+  <g filter="url(#mtS)">
+    <path d="M30 130 Q30 112 48 112 L232 112 Q250 112 250 130 L250 200 Q250 212 232 212 L48 212 Q30 212 30 200 Z" fill="url(#mtBlk)"/>
+    <path d="M30 130 Q30 112 48 112 L232 112 Q250 112 250 130 L250 200 Q250 212 232 212 L48 212 Q30 212 30 200 Z" fill="url(#mtShn)"/>
+    <!-- stitching lines -->
+    <line x1="80" y1="118" x2="80" y2="206" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="140" y1="114" x2="140" y2="210" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="200" y1="118" x2="200" y2="206" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="36" y1="160" x2="244" y2="160" stroke="#2A2A2A" stroke-width="1" opacity=".35"/>
+    <!-- top highlight -->
+    <path d="M48 116 Q140 110 232 116" stroke="#555" stroke-width="2.5" fill="none" opacity=".35" stroke-linecap="round"/>
+    <!-- gold piping top -->
+    <path d="M34 130 Q34 114 48 114 L232 114 Q246 114 246 130" stroke="#C8A84B" stroke-width="1.8" fill="none" opacity=".4"/>
+    <!-- gold piping bottom -->
+    <path d="M30 200 Q30 212 48 212 L232 212 Q250 212 250 200" stroke="#C8A84B" stroke-width="2" fill="none" opacity=".35"/>
+  </g>
+  <!-- === FACE HOLE SECTION (left end) === -->
+  <g filter="url(#mtS)">
+    <path d="M30 140 Q12 140 12 155 L12 175 Q12 190 30 190" fill="url(#mtBlk)"/>
+    <path d="M30 140 Q12 140 12 155 L12 175 Q12 190 30 190" fill="url(#mtShn)"/>
+    <ellipse cx="22" cy="165" rx="8" ry="16" fill="#080706" stroke="#2A2A2A" stroke-width="1.5"/>
+    <path d="M30 142 Q14 142 14 155" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".35"/>
+  </g>
+  <!-- === PILLOW (top — cream leather) === -->
+  <g filter="url(#mtS)">
+    <path d="M30 80 Q30 62 50 62 L230 62 Q250 62 250 80 L250 118 Q250 128 230 128 L50 128 Q30 128 30 118 Z" fill="url(#mtBlk)"/>
+    <path d="M30 80 Q30 62 50 62 L230 62 Q250 62 250 80 L250 118 Q250 128 230 128 L50 128 Q30 128 30 118 Z" fill="url(#mtShn)"/>
+    <!-- pillow puff -->
+    <path d="M50 66 Q140 58 230 66" stroke="#555" stroke-width="3" fill="none" opacity=".3" stroke-linecap="round"/>
+    <line x1="100" y1="68" x2="100" y2="122" stroke="#2A2A2A" stroke-width="1.2" opacity=".4"/>
+    <line x1="140" y1="64" x2="140" y2="126" stroke="#2A2A2A" stroke-width="1.2" opacity=".4"/>
+    <line x1="180" y1="68" x2="180" y2="122" stroke="#2A2A2A" stroke-width="1.2" opacity=".4"/>
+    <!-- gold border -->
+    <path d="M34 80 Q34 66 50 66 L230 66 Q246 66 246 80" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".4"/>
+    <path d="M30 118 Q30 128 50 128 L230 128 Q250 128 250 118" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".35"/>
+  </g>
+  <!-- === TOWEL ROLL (gold accent) === -->
+  <g filter="url(#mtGw)">
+    <ellipse cx="140" cy="48" rx="50" ry="14" fill="url(#mtGd)"/>
+    <ellipse cx="140" cy="46" rx="30" ry="8" fill="#FFF8D0" opacity=".25"/>
+    <ellipse cx="90" cy="48" rx="6" ry="14" fill="url(#mtGd)"/>
+    <ellipse cx="190" cy="48" rx="6" ry="14" fill="url(#mtGd)"/>
+  </g>
+  <!-- === HAND ICON (spa touch) === -->
+  <g filter="url(#mtGw)" opacity=".6">
+    <path d="M204 80 Q210 72 216 76 Q222 80 218 90 Q216 96 210 96 Q204 96 202 90 Z" fill="url(#mtGd)" opacity=".4"/>
+    <path d="M212 82 L210 72 Q210 66 214 64 L218 62 Q222 62 222 66 L220 76" fill="none" stroke="url(#mtGd)" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+  </g>
+  <!-- === SUBTLE GOLD AMBIENT === -->
+  <ellipse cx="140" cy="150" rx="100" ry="100" fill="#C8A84B" opacity=".02"/>
+</svg>`;}
+
+// ─── KOSMETIK CHAIR/BED (Premium SVG) ───
+function dbKosmetik(){
+  return `<svg width="140" height="155" viewBox="0 0 280 310" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ksBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3A3A3A"/><stop offset="30%" stop-color="#1A1A1A"/><stop offset="70%" stop-color="#0E0E0E"/><stop offset="100%" stop-color="#222"/></linearGradient>
+    <linearGradient id="ksChr" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0ECE8"/><stop offset="20%" stop-color="#D8D0C8"/><stop offset="45%" stop-color="#E8E4E0"/><stop offset="70%" stop-color="#A8A098"/><stop offset="100%" stop-color="#C8C0B8"/></linearGradient>
+    <linearGradient id="ksGd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F5E8B0"/><stop offset="25%" stop-color="#D4B050"/><stop offset="50%" stop-color="#E8D078"/><stop offset="75%" stop-color="#C8A040"/><stop offset="100%" stop-color="#A88828"/></linearGradient>
+    <linearGradient id="ksPnk" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8C0D0"/><stop offset="50%" stop-color="#C86090"/><stop offset="100%" stop-color="#A04878"/></linearGradient>
+    <radialGradient id="ksShn" cx=".35" cy=".25" r=".65"><stop offset="0%" stop-color="#555" stop-opacity=".6"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <filter id="ksS"><feDropShadow dx="1" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".55"/></filter>
+    <filter id="ksGw"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#C8A84B" flood-opacity=".3"/></filter>
+  </defs>
+  <!-- FLOOR SHADOW -->
+  <ellipse cx="140" cy="300" rx="90" ry="9" fill="#000" opacity=".35"/>
+  <!-- === HYDRAULIC BASE (chrome) === -->
+  <g filter="url(#ksS)">
+    <ellipse cx="140" cy="290" rx="55" ry="10" fill="url(#ksChr)"/>
+    <ellipse cx="140" cy="288" rx="35" ry="5" fill="#F0E8E0" opacity=".25"/>
+    <rect x="130" y="240" width="20" height="52" rx="10" fill="url(#ksChr)"/>
+    <rect x="132" y="242" width="5" height="48" rx="2.5" fill="#F8F0E8" opacity=".25"/>
+    <rect x="124" y="260" width="32" height="8" rx="4" fill="url(#ksChr)"/>
+  </g>
+  <!-- === RECLINED SEAT (black leather) === -->
+  <g filter="url(#ksS)">
+    <path d="M40 165 Q40 148 56 148 L224 148 Q240 148 240 165 L240 210 Q240 225 224 225 L56 225 Q40 225 40 210 Z" fill="url(#ksBlk)"/>
+    <path d="M40 165 Q40 148 56 148 L224 148 Q240 148 240 165 L240 210 Q240 225 224 225 L56 225 Q40 225 40 210 Z" fill="url(#ksShn)"/>
+    <!-- stitching -->
+    <line x1="100" y1="152" x2="100" y2="221" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="140" y1="150" x2="140" y2="223" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="180" y1="152" x2="180" y2="221" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <path d="M56 152 Q140 146 224 152" stroke="#555" stroke-width="2.5" fill="none" opacity=".35" stroke-linecap="round"/>
+    <!-- gold piping -->
+    <path d="M44 165 Q44 150 56 150 L224 150 Q236 150 236 165" stroke="#C8A84B" stroke-width="1.8" fill="none" opacity=".4"/>
+    <path d="M40 210 Q40 225 56 225 L224 225 Q240 225 240 210" stroke="#C8A84B" stroke-width="2" fill="none" opacity=".35"/>
+  </g>
+  <!-- === SEAT CONNECTOR === -->
+  <g filter="url(#ksS)">
+    <path d="M110 225 L110 244 Q110 248 114 248 L166 248 Q170 248 170 244 L170 225" fill="url(#ksChr)"/>
+  </g>
+  <!-- === RECLINED BACKREST (tilted 25°) === -->
+  <g filter="url(#ksS)" transform="rotate(-20 140 148)">
+    <path d="M50 26 Q50 10 66 10 L214 10 Q230 10 230 26 L230 148 Q230 158 214 158 L66 158 Q50 158 50 148 Z" fill="url(#ksBlk)"/>
+    <path d="M50 26 Q50 10 66 10 L214 10 Q230 10 230 26 L230 148 Q230 158 214 158 L66 158 Q50 158 50 148 Z" fill="url(#ksShn)"/>
+    <!-- stitching -->
+    <line x1="100" y1="16" x2="100" y2="152" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="140" y1="12" x2="140" y2="156" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="180" y1="16" x2="180" y2="152" stroke="#2A2A2A" stroke-width="1.5" opacity=".5"/>
+    <line x1="56" y1="55" x2="224" y2="55" stroke="#2A2A2A" stroke-width="1" opacity=".35"/>
+    <line x1="56" y1="95" x2="224" y2="95" stroke="#2A2A2A" stroke-width="1" opacity=".35"/>
+    <path d="M66 14 Q140 8 214 14" stroke="#555" stroke-width="2.5" fill="none" opacity=".3" stroke-linecap="round"/>
+    <!-- gold piping -->
+    <path d="M54 26 Q54 12 66 12 L214 12 Q226 12 226 26" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".4"/>
+    <path d="M50 148 Q50 158 66 158 L214 158 Q230 158 230 148" stroke="#C8A84B" stroke-width="1.5" fill="none" opacity=".35"/>
+  </g>
+  <!-- === MAGNIFYING LAMP (gold) === -->
+  <g filter="url(#ksGw)">
+    <rect x="244" y="80" width="4" height="120" rx="2" fill="url(#ksChr)"/>
+    <rect x="232" y="74" width="28" height="6" rx="3" fill="url(#ksChr)"/>
+    <circle cx="246" cy="60" r="18" fill="none" stroke="url(#ksGd)" stroke-width="3"/>
+    <circle cx="246" cy="60" r="12" fill="rgba(200,168,75,.06)"/>
+    <circle cx="246" cy="60" r="12" fill="none" stroke="url(#ksGd)" stroke-width="1" opacity=".5"/>
+    <circle cx="243" cy="56" r="3" fill="#FFF8D0" opacity=".3"/>
+    <!-- lamp glow -->
+    <circle cx="246" cy="60" r="22" fill="#C8A84B" opacity=".04"/>
+  </g>
+  <!-- === PRODUCT TRAY (side) === -->
+  <g filter="url(#ksS)">
+    <rect x="4" y="140" width="30" height="50" rx="6" fill="url(#ksChr)"/>
+    <rect x="6" y="142" width="3" height="46" rx="1.5" fill="#F8F0E8" opacity=".2"/>
+    <!-- bottles -->
+    <rect x="8" y="144" width="8" height="18" rx="3" fill="url(#ksPnk)" opacity=".6"/>
+    <rect x="18" y="148" width="8" height="14" rx="3" fill="url(#ksGd)" opacity=".5"/>
+    <rect x="10" y="142" width="4" height="4" rx="2" fill="url(#ksPnk)" opacity=".4"/>
+    <rect x="20" y="146" width="4" height="4" rx="2" fill="url(#ksGd)" opacity=".4"/>
+    <!-- tray border -->
+    <rect x="4" y="140" width="30" height="50" rx="6" fill="none" stroke="#C8A84B" stroke-width="1" opacity=".25"/>
+  </g>
+  <!-- === SUBTLE GOLD AMBIENT === -->
+  <ellipse cx="140" cy="140" rx="100" ry="110" fill="#C8A84B" opacity=".02"/>
+</svg>`;}
+
 // ═══════════════ i18n ═══════════════
 const LANG={
-  de:{welcome:"Willkommen bei ChairMatch",subtitle:"Dein Beauty-Partner in ganz Deutschland",chair:"Stuhl-Vermittlung",chairSub:"Freie Stühle & Kabinen · 0 % Provision",book:"Sofort buchen",bookSub:"Termin in 30 Sekunden · Ohne Kommission",iAm:"Ich bin...",customer:"Kunde — ich suche Termine",provider:"Anbieter — ich biete Services",b2b:"B2B — Stuhl / Kabine mieten",next:"Weiter →",go:"Los geht's",morning:"Guten Morgen",afternoon:"Guten Tag",evening:"Guten Abend",nationwide:"Deutschlandweit buchen",search:"Stadt, Name, Service...",categories:"Kategorien",all:"Alle",topSpecs:"Top Spezialisten",availToday:"Heute verfügbar",allProviders:"Alle Anbieter",found:"gefunden",from:"ab",available:"verfügbar",soldOut:"Ausgebucht",offers:"Angebote",discount:"Rabatt",bookNow:"Jetzt buchen",refer:"Freunde werben",referSub:"Du & dein Freund erhalten je 5 €",shareLink:"Link teilen",perRef:"pro Empfehlung",back:"← Zurück",buchen:"Buchen",info:"Info",services:"Services",team:"Team",reviews:"Bewertungen",gallery:"Galerie",whyUs:"Warum ChairMatch?",noComm:"0 % Provision",vs:"vs. 35% bei Treatwell",direct:"Direktbuchung",noDetour:"Kein Umweg",verified:"Verifiziert",checked:"Gewerbeschein geprüft",service:"Service",day:"Tag",time:"Uhrzeit",specialist:"Spezialist",contact:"Kontakt",name:"Name",email:"E-Mail",step:"Schritt",confirm:"Bestätigt!",total:"Gesamt",noFee:"0 % Buchungsgebühr · Kostenlose Stornierung 24h",done:"Fertig",shareWA:"Per WhatsApp teilen",favs:"Favoriten",noFavs:"Noch keine Favoriten",noFavsSub:"Tippe ♡ um Salons zu speichern",account:"Konto",bookings:"Buchungen",legal:"Rechtliches",privacy:"Datenschutzerklärung (DSGVO)",imprint:"Impressum",register:"Als Anbieter registrieren",loyalty:"Treuekarte",stampsOf:"Stempel",freeService:"Gratis-Service!",loyaltySub:"Sammle Stempel bei jeder Buchung",lang:"Sprache",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Benachrichtigungen",filter:"Filter",priceRange:"Preis",minRating:"Min. Bewertung",city:"Stadt",allCities:"Alle Städte",onlyAvail:"Nur verfügbar",onlyDiscount:"Nur Rabatt",apply:"Anwenden",reset:"Zurücksetzen",map:"Karte",list:"Liste",promoTitle:"Spare bis zu 15%",promoSub:"auf erste Buchung",promoCode:"Code: CHAIR2026",noResults:"Keine Ergebnisse",tryOther:"Versuche andere Filter",confirmed:"Bestätigt",pending:"Ausstehend",cancelled:"Storniert",chairRent:"Stuhl vermieten",premChair:"Premium Stuhl & Kabinen",zeroComm:"0 % Provision · Deutschlandweit",becomeProvider:"→ Anbieter werden",refBalance:"Referral Guthaben",recommend:"Empfehlen",special:"SONDERANGEBOT",before:"Vorher",after:"Nachher",phone:"Telefon",linkCopied:"Link kopiert!",writeReview:"Bewertung schreiben",reviewPlaceholder:"Wie war dein Erlebnis?",submitReview:"Absenden",reviewSubmitted:"Bewertung abgeschickt!",promoApply:"Anwenden",promoInvalid:"Ungültiger Code",promoApplied:"Code angewendet!",enterPromo:"Promo-Code eingeben",redeemNow:"Jetzt einlösen",redeemed:"Eingelöst!",loyaltyRedeemMsg:"Gratis-Service eingelöst!",cancelBooking:"Stornieren",cancelConfirm:"Termin wirklich stornieren?",bookingCancelled:"Termin storniert",noBookings:"Keine Buchungen",noBookingsSub:"Buche deinen ersten Termin",specialRequests:"Besondere Wünsche",notesPlaceholder:"z.B. Allergien, Wünsche...",noNotifications:"Keine Benachrichtigungen",noNotificationsSub:"Du bist auf dem neuesten Stand!",nlTitle:"Exklusive Angebote erhalten",nlSub:"Melde dich für unseren Newsletter an und erhalte sofort 10% Rabatt!",nlPlaceholder:"Deine E-Mail-Adresse",nlButton:"Anmelden & 10% sichern",nlSuccess:"Willkommen! Dein 10%-Code: WELCOME10",nlAlready:"Du bist bereits angemeldet!",refTitle:"Freunde einladen, Geld verdienen",refSteps:"So geht's:",refStep1:"Teile deinen Link mit Freunden",refStep2:"Dein Freund bucht seinen ersten Termin",refStep3:"Ihr beide erhaltet 5 € Guthaben",refCode:"Dein Empfehlungscode",refCopied:"Code kopiert!",refInvited:"Eingeladene Freunde",refEarned:"Verdient",premBadge:"PREMIUM",premFeatured:"Empfohlen",adminPanel:"Admin-Panel",adminDash:"Dashboard",adminLogo:"Logo & Branding",adminServices:"Services verwalten",adminStats:"Statistiken",adminSettings:"Einstellungen",todayBookings:"Termine heute",totalRevenue:"Umsatz (Monat)",avgRating:"Ø Bewertung",totalReviews:"Bewertungen",uploadLogo:"Logo hochladen",logoDesc:"Lade dein Geschäftslogo hoch (JPG, PNG)",generateIcons:"AI-Icons generieren",iconDesc:"Wir erstellen 3 professionelle Varianten aus deinem Logo",iconStyle1:"Geometric",iconStyle2:"Minimal",iconStyle3:"Luxury",selectIcon:"Dieses Icon verwenden",selectedIcon:"Aktives Icon",removeLogo:"Logo entfernen",generating:"Generiere Varianten...",adminNoShop:"Noch kein Geschäft registriert",adminRegFirst:"Registriere dich zuerst als Anbieter",saPanel:"Super Admin",saProviders:"Anbieter",saFeatures:"Features",saAnalytics:"Analyse",saTogglePrem:"Premium aktivieren/deaktivieren",saTier:"Tier ändern",saBoost:"Boost anpassen",saActive:"Aktiv",saInactive:"Inaktiv",saIconFeature:"AI-Icon Feature",saTotalProviders:"Anbieter gesamt",saPremiumCount:"Premium Anbieter",saGoldCount:"Gold Anbieter",saFreeCount:"Free Anbieter",pricingTitle:"Abonnement-Pakete",pricingFree:"Starter",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/Monat",pricingFreeSub:"Kostenlos starten",pricingPremSub:"Mehr Sichtbarkeit",pricingGoldSub:"Maximale Reichweite",pricingCurrent:"Aktuelles Paket",pricingUpgrade:"Upgrade",pricingFeatures:"Inklusive"},
-  en:{welcome:"Welcome to ChairMatch",subtitle:"Your Beauty Partner across Germany",chair:"Chair Brokerage",chairSub:"Free chairs & cabins · 0% commission",book:"Book instantly",bookSub:"Appointment in 30 seconds · No commission",iAm:"I am...",customer:"Customer — looking for appointments",provider:"Provider — offering services",b2b:"B2B — rent a chair / cabin",next:"Next →",go:"Let's go!",morning:"Good Morning",afternoon:"Good Afternoon",evening:"Good Evening",nationwide:"Book nationwide",search:"City, name, service...",categories:"Categories",all:"All",topSpecs:"Top Specialists",availToday:"Available today",allProviders:"All Providers",found:"found",from:"from",available:"available",soldOut:"Sold out",offers:"Offers",discount:"Discount",bookNow:"Book now",refer:"Refer Friends",referSub:"You & your friend each get €5",shareLink:"Share link",perRef:"per referral",back:"← Back",buchen:"Book",info:"Info",services:"Services",team:"Team",reviews:"Reviews",gallery:"Gallery",whyUs:"Why ChairMatch?",noComm:"0% commission",vs:"vs. 35% at Treatwell",direct:"Direct booking",noDetour:"No detour",verified:"Verified",checked:"Business license checked",service:"Service",day:"Day",time:"Time",specialist:"Specialist",contact:"Contact",name:"Name",email:"Email",step:"Step",confirm:"Confirmed!",total:"Total",noFee:"0% booking fee · Free cancellation 24h",done:"Done",shareWA:"Share via WhatsApp",favs:"Favorites",noFavs:"No favorites yet",noFavsSub:"Tap ♡ to save salons",account:"Account",bookings:"Bookings",legal:"Legal",privacy:"Privacy Policy (GDPR)",imprint:"Imprint",register:"Register as provider",loyalty:"Loyalty Card",stampsOf:"stamps",freeService:"Free service!",loyaltySub:"Collect stamps with every booking",lang:"Language",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Notifications",filter:"Filter",priceRange:"Price",minRating:"Min. Rating",city:"City",allCities:"All cities",onlyAvail:"Available only",onlyDiscount:"Discount only",apply:"Apply",reset:"Reset",map:"Map",list:"List",promoTitle:"Save up to 15%",promoSub:"on first booking",promoCode:"Code: CHAIR2026",noResults:"No results",tryOther:"Try different filters",confirmed:"Confirmed",pending:"Pending",cancelled:"Cancelled",chairRent:"Rent a chair",premChair:"Premium Chairs & Cabins",zeroComm:"0% Commission · Nationwide",becomeProvider:"→ Become a provider",refBalance:"Referral Balance",recommend:"Recommend",special:"SPECIAL OFFER",before:"Before",after:"After",phone:"Phone",linkCopied:"Link copied!",writeReview:"Write a review",reviewPlaceholder:"How was your experience?",submitReview:"Submit",reviewSubmitted:"Review submitted!",promoApply:"Apply",promoInvalid:"Invalid code",promoApplied:"Code applied!",enterPromo:"Enter promo code",redeemNow:"Redeem now",redeemed:"Redeemed!",loyaltyRedeemMsg:"Free service redeemed!",cancelBooking:"Cancel",cancelConfirm:"Really cancel appointment?",bookingCancelled:"Booking cancelled",noBookings:"No bookings",noBookingsSub:"Book your first appointment",specialRequests:"Special requests",notesPlaceholder:"e.g. allergies, preferences...",noNotifications:"No notifications",noNotificationsSub:"You're all caught up!",nlTitle:"Get exclusive offers",nlSub:"Sign up for our newsletter and get 10% off instantly!",nlPlaceholder:"Your email address",nlButton:"Sign up & get 10% off",nlSuccess:"Welcome! Your 10% code: WELCOME10",nlAlready:"You're already subscribed!",refTitle:"Invite friends, earn money",refSteps:"How it works:",refStep1:"Share your link with friends",refStep2:"Your friend books their first appointment",refStep3:"You both receive €5 credit",refCode:"Your referral code",refCopied:"Code copied!",refInvited:"Friends invited",refEarned:"Earned",premBadge:"PREMIUM",premFeatured:"Featured",adminPanel:"Admin Panel",adminDash:"Dashboard",adminLogo:"Logo & Branding",adminServices:"Manage Services",adminStats:"Statistics",adminSettings:"Settings",todayBookings:"Bookings today",totalRevenue:"Revenue (month)",avgRating:"Avg. Rating",totalReviews:"Reviews",uploadLogo:"Upload Logo",logoDesc:"Upload your business logo (JPG, PNG)",generateIcons:"Generate AI Icons",iconDesc:"We create 3 professional variants from your logo",iconStyle1:"Geometric",iconStyle2:"Minimal",iconStyle3:"Luxury",selectIcon:"Use this icon",selectedIcon:"Active icon",removeLogo:"Remove logo",generating:"Generating variants...",adminNoShop:"No business registered yet",adminRegFirst:"Register as a provider first",saPanel:"Super Admin",saProviders:"Providers",saFeatures:"Features",saAnalytics:"Analytics",saTogglePrem:"Activate/deactivate premium",saTier:"Change tier",saBoost:"Adjust boost",saActive:"Active",saInactive:"Inactive",saIconFeature:"AI Icon Feature",saTotalProviders:"Total providers",saPremiumCount:"Premium providers",saGoldCount:"Gold providers",saFreeCount:"Free providers",pricingTitle:"Subscription Plans",pricingFree:"Starter",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/month",pricingFreeSub:"Start for free",pricingPremSub:"More visibility",pricingGoldSub:"Maximum reach",pricingCurrent:"Current plan",pricingUpgrade:"Upgrade",pricingFeatures:"Included"},
-  tr:{welcome:"ChairMatch'e Hoş Geldiniz",subtitle:"Almanya genelinde güzellik ortağınız",chair:"Koltuk Aracılığı",chairSub:"Boş koltuklar & kabinler · %0 komisyon",book:"Hemen randevu al",bookSub:"30 saniyede randevu · Komisyonsuz",iAm:"Ben...",customer:"Müşteri — randevu arıyorum",provider:"Hizmet veren — hizmet sunuyorum",b2b:"B2B — koltuk / kabin kiralama",next:"İleri →",go:"Başlayalım!",morning:"Günaydın",afternoon:"İyi Günler",evening:"İyi Akşamlar",nationwide:"Almanya genelinde rezervasyon",search:"Şehir, isim, hizmet...",categories:"Kategoriler",all:"Tümü",topSpecs:"En İyi Uzmanlar",availToday:"Bugün müsait",allProviders:"Tüm Sağlayıcılar",found:"bulundu",from:"dan",available:"müsait",soldOut:"Dolu",offers:"Teklifler",discount:"İndirim",bookNow:"Şimdi rezerve et",refer:"Arkadaşını Davet Et",referSub:"Sen ve arkadaşın 5€ kazanır",shareLink:"Link paylaş",perRef:"davet başına",back:"← Geri",buchen:"Rezerve Et",info:"Bilgi",services:"Hizmetler",team:"Ekip",reviews:"Değerlendirmeler",gallery:"Galeri",whyUs:"Neden ChairMatch?",noComm:"%0 komisyon",vs:"Treatwell'de %35'e karşı",direct:"Direkt rezervasyon",noDetour:"Aracısız",verified:"Doğrulanmış",checked:"İşletme belgesi kontrol edildi",service:"Hizmet",day:"Gün",time:"Saat",specialist:"Uzman",contact:"İletişim",name:"İsim",email:"E-Posta",step:"Adım",confirm:"Onaylandı!",total:"Toplam",noFee:"%0 rezervasyon ücreti · 24 saat ücretsiz iptal",done:"Tamam",shareWA:"WhatsApp ile paylaş",favs:"Favoriler",noFavs:"Henüz favori yok",noFavsSub:"Salonları kaydetmek için ♡ tıklayın",account:"Hesap",bookings:"Rezervasyonlar",legal:"Yasal",privacy:"Gizlilik Politikası (KVKK)",imprint:"Künye",register:"Sağlayıcı olarak kayıt ol",loyalty:"Sadakat Kartı",stampsOf:"damga",freeService:"Ücretsiz hizmet!",loyaltySub:"Her rezervasyonda damga toplayın",lang:"Dil",theme:"Tasarım",darkMode:"Koyu Mod",lightMode:"Açık Mod",notifications:"Bildirimler",filter:"Filtre",priceRange:"Fiyat",minRating:"Min. Puan",city:"Şehir",allCities:"Tüm şehirler",onlyAvail:"Sadece müsait",onlyDiscount:"Sadece indirimli",apply:"Uygula",reset:"Sıfırla",map:"Harita",list:"Liste",promoTitle:"%15'e kadar tasarruf",promoSub:"ilk rezervasyonda",promoCode:"Kod: CHAIR2026",noResults:"Sonuç yok",tryOther:"Farklı filtre deneyin",confirmed:"Onaylandı",pending:"Beklemede",cancelled:"İptal",chairRent:"Koltuk kirala",premChair:"Premium Koltuk & Kabinler",zeroComm:"%0 Komisyon · Almanya Geneli",becomeProvider:"→ Sağlayıcı ol",refBalance:"Referans Bakiyesi",recommend:"Tavsiye Et",special:"ÖZEL TEKLİF",before:"Önce",after:"Sonra",phone:"Telefon",linkCopied:"Link kopyalandı!",writeReview:"Değerlendirme yaz",reviewPlaceholder:"Deneyimin nasıldı?",submitReview:"Gönder",reviewSubmitted:"Değerlendirme gönderildi!",promoApply:"Uygula",promoInvalid:"Geçersiz kod",promoApplied:"Kod uygulandı!",enterPromo:"Promo kodu girin",redeemNow:"Şimdi kullan",redeemed:"Kullanıldı!",loyaltyRedeemMsg:"Ücretsiz hizmet kullanıldı!",cancelBooking:"İptal et",cancelConfirm:"Randevuyu iptal etmek istiyor musunuz?",bookingCancelled:"Randevu iptal edildi",noBookings:"Rezervasyon yok",noBookingsSub:"İlk randevunuzu alın",specialRequests:"Özel istekler",notesPlaceholder:"ör. alerji, tercihler...",noNotifications:"Bildirim yok",noNotificationsSub:"Her şey güncel!",nlTitle:"Özel tekliflerden haberdar ol",nlSub:"Bültenimize kaydol, anında %10 indirim kazan!",nlPlaceholder:"E-posta adresiniz",nlButton:"Kaydol & %10 kazan",nlSuccess:"Hoş geldin! %10 kodun: WELCOME10",nlAlready:"Zaten kayıtlısınız!",refTitle:"Arkadaşlarını davet et, para kazan",refSteps:"Nasıl çalışır:",refStep1:"Linkini arkadaşlarınla paylaş",refStep2:"Arkadaşın ilk randevusunu alsın",refStep3:"İkiniz de 5€ bakiye kazanın",refCode:"Davet kodun",refCopied:"Kod kopyalandı!",refInvited:"Davet edilen arkadaşlar",refEarned:"Kazanılan",premBadge:"PREMİUM",premFeatured:"Öne Çıkan",adminPanel:"Yönetim Paneli",adminDash:"Gösterge Paneli",adminLogo:"Logo & Marka",adminServices:"Hizmet Yönetimi",adminStats:"İstatistikler",adminSettings:"Ayarlar",todayBookings:"Bugünkü randevular",totalRevenue:"Gelir (aylık)",avgRating:"Ort. Puan",totalReviews:"Değerlendirmeler",uploadLogo:"Logo yükle",logoDesc:"İşletme logonuzu yükleyin (JPG, PNG)",generateIcons:"AI İkon üret",iconDesc:"Logonuzdan 3 profesyonel varyant oluşturuyoruz",iconStyle1:"Geometrik",iconStyle2:"Minimal",iconStyle3:"Lüks",selectIcon:"Bu ikonu kullan",selectedIcon:"Aktif ikon",removeLogo:"Logoyu kaldır",generating:"Varyantlar oluşturuluyor...",adminNoShop:"Henüz kayıtlı işletme yok",adminRegFirst:"Önce hizmet veren olarak kayıt olun",saPanel:"Süper Admin",saProviders:"Sağlayıcılar",saFeatures:"Özellikler",saAnalytics:"Analiz",saTogglePrem:"Premium aktif/deaktif",saTier:"Tier değiştir",saBoost:"Boost ayarla",saActive:"Aktif",saInactive:"Pasif",saIconFeature:"AI İkon Özelliği",saTotalProviders:"Toplam sağlayıcı",saPremiumCount:"Premium sağlayıcı",saGoldCount:"Gold sağlayıcı",saFreeCount:"Ücretsiz sağlayıcı",pricingTitle:"Abonelik Paketleri",pricingFree:"Başlangıç",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/ay",pricingFreeSub:"Ücretsiz başla",pricingPremSub:"Daha fazla görünürlük",pricingGoldSub:"Maksimum erişim",pricingCurrent:"Mevcut paket",pricingUpgrade:"Yükselt",pricingFeatures:"Dahil"}
+  de:{welcome:"Willkommen bei ChairMatch",subtitle:"Dein Beauty-Partner in ganz Deutschland",chair:"Stuhl · Liege · Kabine",chairSub:"Stühle, Liegen & Räume vermieten · 0 % Provision",book:"Sofort buchen",bookSub:"Termin in 30 Sekunden · Ohne Kommission",iAm:"Ich bin...",customer:"Kunde — ich suche Termine",provider:"Anbieter — ich biete Services",b2b:"B2B — Stuhl / Kabine mieten",next:"Weiter →",go:"Los geht's",morning:"Guten Morgen",afternoon:"Guten Tag",evening:"Guten Abend",nationwide:"Deutschlandweit buchen",search:"Stadt, Name, Service...",categories:"Kategorien",all:"Alle",topSpecs:"Top Spezialisten",availToday:"Heute verfügbar",allProviders:"Alle Anbieter",found:"gefunden",from:"ab",available:"verfügbar",soldOut:"Ausgebucht",offers:"Angebote",discount:"Rabatt",bookNow:"Jetzt buchen",refer:"Freunde werben",referSub:"Du & dein Freund erhalten je 5 €",shareLink:"Link teilen",perRef:"pro Empfehlung",back:"← Zurück",buchen:"Buchen",info:"Info",services:"Services",team:"Team",reviews:"Bewertungen",gallery:"Galerie",whyUs:"Warum ChairMatch?",noComm:"0 % Provision",vs:"vs. 35% bei Treatwell",direct:"Direktbuchung",noDetour:"Kein Umweg",verified:"Verifiziert",checked:"Gewerbeschein geprüft",service:"Service",day:"Tag",time:"Uhrzeit",specialist:"Spezialist",contact:"Kontakt",name:"Name",email:"E-Mail",step:"Schritt",confirm:"Bestätigt!",total:"Gesamt",noFee:"0 % Buchungsgebühr · Kostenlose Stornierung 24h",done:"Fertig",shareWA:"Per WhatsApp teilen",favs:"Favoriten",noFavs:"Noch keine Favoriten",noFavsSub:"Tippe ♡ um Salons zu speichern",account:"Konto",bookings:"Buchungen",legal:"Rechtliches",privacy:"Datenschutzerklärung (DSGVO)",imprint:"Impressum",register:"Als Anbieter registrieren",loyalty:"Treuekarte",stampsOf:"Stempel",freeService:"Gratis-Service!",loyaltySub:"Sammle Stempel bei jeder Buchung",lang:"Sprache",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Benachrichtigungen",filter:"Filter",priceRange:"Preis",minRating:"Min. Bewertung",city:"Stadt",allCities:"Alle Städte",onlyAvail:"Nur verfügbar",onlyDiscount:"Nur Rabatt",apply:"Anwenden",reset:"Zurücksetzen",map:"Karte",list:"Liste",promoTitle:"Spare bis zu 15%",promoSub:"auf erste Buchung",promoCode:"Code: CHAIR2026",noResults:"Keine Ergebnisse",tryOther:"Versuche andere Filter",confirmed:"Bestätigt",pending:"Ausstehend",cancelled:"Storniert",chairRent:"Stuhl vermieten",premChair:"Premium Stuhl & Kabinen",zeroComm:"0 % Provision · Deutschlandweit",becomeProvider:"→ Anbieter werden",refBalance:"Referral Guthaben",recommend:"Empfehlen",special:"SONDERANGEBOT",before:"Vorher",after:"Nachher",phone:"Telefon",linkCopied:"Link kopiert!",writeReview:"Bewertung schreiben",reviewPlaceholder:"Wie war dein Erlebnis?",submitReview:"Absenden",reviewSubmitted:"Bewertung abgeschickt!",promoApply:"Anwenden",promoInvalid:"Ungültiger Code",promoApplied:"Code angewendet!",enterPromo:"Promo-Code eingeben",redeemNow:"Jetzt einlösen",redeemed:"Eingelöst!",loyaltyRedeemMsg:"Gratis-Service eingelöst!",cancelBooking:"Stornieren",cancelConfirm:"Termin wirklich stornieren?",bookingCancelled:"Termin storniert",noBookings:"Keine Buchungen",noBookingsSub:"Buche deinen ersten Termin",specialRequests:"Besondere Wünsche",notesPlaceholder:"z.B. Allergien, Wünsche...",noNotifications:"Keine Benachrichtigungen",noNotificationsSub:"Du bist auf dem neuesten Stand!",nlTitle:"Exklusive Angebote erhalten",nlSub:"Melde dich für unseren Newsletter an und erhalte sofort 10% Rabatt!",nlPlaceholder:"Deine E-Mail-Adresse",nlButton:"Anmelden & 10% sichern",nlSuccess:"Willkommen! Dein 10%-Code: WELCOME10",nlAlready:"Du bist bereits angemeldet!",refTitle:"Freunde einladen, Geld verdienen",refSteps:"So geht's:",refStep1:"Teile deinen Link mit Freunden",refStep2:"Dein Freund bucht seinen ersten Termin",refStep3:"Ihr beide erhaltet 5 € Guthaben",refCode:"Dein Empfehlungscode",refCopied:"Code kopiert!",refInvited:"Eingeladene Freunde",refEarned:"Verdient",premBadge:"PREMIUM",premFeatured:"Empfohlen",adminPanel:"Admin-Panel",adminDash:"Dashboard",adminLogo:"Logo & Branding",adminServices:"Services verwalten",adminStats:"Statistiken",adminSettings:"Einstellungen",todayBookings:"Termine heute",totalRevenue:"Umsatz (Monat)",avgRating:"Ø Bewertung",totalReviews:"Bewertungen",uploadLogo:"Logo hochladen",logoDesc:"Lade dein Geschäftslogo hoch (JPG, PNG)",generateIcons:"AI-Icons generieren",iconDesc:"Wir erstellen 3 professionelle Varianten aus deinem Logo",iconStyle1:"Geometric",iconStyle2:"Minimal",iconStyle3:"Luxury",selectIcon:"Dieses Icon verwenden",selectedIcon:"Aktives Icon",removeLogo:"Logo entfernen",generating:"Generiere Varianten...",adminNoShop:"Noch kein Geschäft registriert",adminRegFirst:"Registriere dich zuerst als Anbieter",saPanel:"Super Admin",saProviders:"Anbieter",saFeatures:"Features",saAnalytics:"Analyse",saTogglePrem:"Premium aktivieren/deaktivieren",saTier:"Tier ändern",saBoost:"Boost anpassen",saActive:"Aktiv",saInactive:"Inaktiv",saIconFeature:"AI-Icon Feature",saTotalProviders:"Anbieter gesamt",saPremiumCount:"Premium Anbieter",saGoldCount:"Gold Anbieter",saFreeCount:"Free Anbieter",pricingTitle:"Abonnement-Pakete",pricingFree:"Starter",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/Monat",pricingFreeSub:"Kostenlos starten",pricingPremSub:"Mehr Sichtbarkeit",pricingGoldSub:"Maximale Reichweite",pricingCurrent:"Aktuelles Paket",pricingUpgrade:"Upgrade",pricingFeatures:"Inklusive"},
+  en:{welcome:"Welcome to ChairMatch",subtitle:"Your Beauty Partner across Germany",chair:"Chair · Bed · Room",chairSub:"Rent chairs, beds & rooms · 0% commission",book:"Book instantly",bookSub:"Appointment in 30 seconds · No commission",iAm:"I am...",customer:"Customer — looking for appointments",provider:"Provider — offering services",b2b:"B2B — rent a chair / cabin",next:"Next →",go:"Let's go!",morning:"Good Morning",afternoon:"Good Afternoon",evening:"Good Evening",nationwide:"Book nationwide",search:"City, name, service...",categories:"Categories",all:"All",topSpecs:"Top Specialists",availToday:"Available today",allProviders:"All Providers",found:"found",from:"from",available:"available",soldOut:"Sold out",offers:"Offers",discount:"Discount",bookNow:"Book now",refer:"Refer Friends",referSub:"You & your friend each get €5",shareLink:"Share link",perRef:"per referral",back:"← Back",buchen:"Book",info:"Info",services:"Services",team:"Team",reviews:"Reviews",gallery:"Gallery",whyUs:"Why ChairMatch?",noComm:"0% commission",vs:"vs. 35% at Treatwell",direct:"Direct booking",noDetour:"No detour",verified:"Verified",checked:"Business license checked",service:"Service",day:"Day",time:"Time",specialist:"Specialist",contact:"Contact",name:"Name",email:"Email",step:"Step",confirm:"Confirmed!",total:"Total",noFee:"0% booking fee · Free cancellation 24h",done:"Done",shareWA:"Share via WhatsApp",favs:"Favorites",noFavs:"No favorites yet",noFavsSub:"Tap ♡ to save salons",account:"Account",bookings:"Bookings",legal:"Legal",privacy:"Privacy Policy (GDPR)",imprint:"Imprint",register:"Register as provider",loyalty:"Loyalty Card",stampsOf:"stamps",freeService:"Free service!",loyaltySub:"Collect stamps with every booking",lang:"Language",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Notifications",filter:"Filter",priceRange:"Price",minRating:"Min. Rating",city:"City",allCities:"All cities",onlyAvail:"Available only",onlyDiscount:"Discount only",apply:"Apply",reset:"Reset",map:"Map",list:"List",promoTitle:"Save up to 15%",promoSub:"on first booking",promoCode:"Code: CHAIR2026",noResults:"No results",tryOther:"Try different filters",confirmed:"Confirmed",pending:"Pending",cancelled:"Cancelled",chairRent:"Rent a chair",premChair:"Premium Chairs & Cabins",zeroComm:"0% Commission · Nationwide",becomeProvider:"→ Become a provider",refBalance:"Referral Balance",recommend:"Recommend",special:"SPECIAL OFFER",before:"Before",after:"After",phone:"Phone",linkCopied:"Link copied!",writeReview:"Write a review",reviewPlaceholder:"How was your experience?",submitReview:"Submit",reviewSubmitted:"Review submitted!",promoApply:"Apply",promoInvalid:"Invalid code",promoApplied:"Code applied!",enterPromo:"Enter promo code",redeemNow:"Redeem now",redeemed:"Redeemed!",loyaltyRedeemMsg:"Free service redeemed!",cancelBooking:"Cancel",cancelConfirm:"Really cancel appointment?",bookingCancelled:"Booking cancelled",noBookings:"No bookings",noBookingsSub:"Book your first appointment",specialRequests:"Special requests",notesPlaceholder:"e.g. allergies, preferences...",noNotifications:"No notifications",noNotificationsSub:"You're all caught up!",nlTitle:"Get exclusive offers",nlSub:"Sign up for our newsletter and get 10% off instantly!",nlPlaceholder:"Your email address",nlButton:"Sign up & get 10% off",nlSuccess:"Welcome! Your 10% code: WELCOME10",nlAlready:"You're already subscribed!",refTitle:"Invite friends, earn money",refSteps:"How it works:",refStep1:"Share your link with friends",refStep2:"Your friend books their first appointment",refStep3:"You both receive €5 credit",refCode:"Your referral code",refCopied:"Code copied!",refInvited:"Friends invited",refEarned:"Earned",premBadge:"PREMIUM",premFeatured:"Featured",adminPanel:"Admin Panel",adminDash:"Dashboard",adminLogo:"Logo & Branding",adminServices:"Manage Services",adminStats:"Statistics",adminSettings:"Settings",todayBookings:"Bookings today",totalRevenue:"Revenue (month)",avgRating:"Avg. Rating",totalReviews:"Reviews",uploadLogo:"Upload Logo",logoDesc:"Upload your business logo (JPG, PNG)",generateIcons:"Generate AI Icons",iconDesc:"We create 3 professional variants from your logo",iconStyle1:"Geometric",iconStyle2:"Minimal",iconStyle3:"Luxury",selectIcon:"Use this icon",selectedIcon:"Active icon",removeLogo:"Remove logo",generating:"Generating variants...",adminNoShop:"No business registered yet",adminRegFirst:"Register as a provider first",saPanel:"Super Admin",saProviders:"Providers",saFeatures:"Features",saAnalytics:"Analytics",saTogglePrem:"Activate/deactivate premium",saTier:"Change tier",saBoost:"Adjust boost",saActive:"Active",saInactive:"Inactive",saIconFeature:"AI Icon Feature",saTotalProviders:"Total providers",saPremiumCount:"Premium providers",saGoldCount:"Gold providers",saFreeCount:"Free providers",pricingTitle:"Subscription Plans",pricingFree:"Starter",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/month",pricingFreeSub:"Start for free",pricingPremSub:"More visibility",pricingGoldSub:"Maximum reach",pricingCurrent:"Current plan",pricingUpgrade:"Upgrade",pricingFeatures:"Included"},
+  tr:{welcome:"ChairMatch'e Hoş Geldiniz",subtitle:"Almanya genelinde güzellik ortağınız",chair:"Koltuk · Şezlong · Oda",chairSub:"Koltuk, şezlong & oda kiralama · %0 komisyon",book:"Hemen randevu al",bookSub:"30 saniyede randevu · Komisyonsuz",iAm:"Ben...",customer:"Müşteri — randevu arıyorum",provider:"Hizmet veren — hizmet sunuyorum",b2b:"B2B — koltuk / kabin kiralama",next:"İleri →",go:"Başlayalım!",morning:"Günaydın",afternoon:"İyi Günler",evening:"İyi Akşamlar",nationwide:"Almanya genelinde rezervasyon",search:"Şehir, isim, hizmet...",categories:"Kategoriler",all:"Tümü",topSpecs:"En İyi Uzmanlar",availToday:"Bugün müsait",allProviders:"Tüm Sağlayıcılar",found:"bulundu",from:"dan",available:"müsait",soldOut:"Dolu",offers:"Teklifler",discount:"İndirim",bookNow:"Şimdi rezerve et",refer:"Arkadaşını Davet Et",referSub:"Sen ve arkadaşın 5€ kazanır",shareLink:"Link paylaş",perRef:"davet başına",back:"← Geri",buchen:"Rezerve Et",info:"Bilgi",services:"Hizmetler",team:"Ekip",reviews:"Değerlendirmeler",gallery:"Galeri",whyUs:"Neden ChairMatch?",noComm:"%0 komisyon",vs:"Treatwell'de %35'e karşı",direct:"Direkt rezervasyon",noDetour:"Aracısız",verified:"Doğrulanmış",checked:"İşletme belgesi kontrol edildi",service:"Hizmet",day:"Gün",time:"Saat",specialist:"Uzman",contact:"İletişim",name:"İsim",email:"E-Posta",step:"Adım",confirm:"Onaylandı!",total:"Toplam",noFee:"%0 rezervasyon ücreti · 24 saat ücretsiz iptal",done:"Tamam",shareWA:"WhatsApp ile paylaş",favs:"Favoriler",noFavs:"Henüz favori yok",noFavsSub:"Salonları kaydetmek için ♡ tıklayın",account:"Hesap",bookings:"Rezervasyonlar",legal:"Yasal",privacy:"Gizlilik Politikası (KVKK)",imprint:"Künye",register:"Sağlayıcı olarak kayıt ol",loyalty:"Sadakat Kartı",stampsOf:"damga",freeService:"Ücretsiz hizmet!",loyaltySub:"Her rezervasyonda damga toplayın",lang:"Dil",theme:"Tasarım",darkMode:"Koyu Mod",lightMode:"Açık Mod",notifications:"Bildirimler",filter:"Filtre",priceRange:"Fiyat",minRating:"Min. Puan",city:"Şehir",allCities:"Tüm şehirler",onlyAvail:"Sadece müsait",onlyDiscount:"Sadece indirimli",apply:"Uygula",reset:"Sıfırla",map:"Harita",list:"Liste",promoTitle:"%15'e kadar tasarruf",promoSub:"ilk rezervasyonda",promoCode:"Kod: CHAIR2026",noResults:"Sonuç yok",tryOther:"Farklı filtre deneyin",confirmed:"Onaylandı",pending:"Beklemede",cancelled:"İptal",chairRent:"Koltuk kirala",premChair:"Premium Koltuk & Kabinler",zeroComm:"%0 Komisyon · Almanya Geneli",becomeProvider:"→ Sağlayıcı ol",refBalance:"Referans Bakiyesi",recommend:"Tavsiye Et",special:"ÖZEL TEKLİF",before:"Önce",after:"Sonra",phone:"Telefon",linkCopied:"Link kopyalandı!",writeReview:"Değerlendirme yaz",reviewPlaceholder:"Deneyimin nasıldı?",submitReview:"Gönder",reviewSubmitted:"Değerlendirme gönderildi!",promoApply:"Uygula",promoInvalid:"Geçersiz kod",promoApplied:"Kod uygulandı!",enterPromo:"Promo kodu girin",redeemNow:"Şimdi kullan",redeemed:"Kullanıldı!",loyaltyRedeemMsg:"Ücretsiz hizmet kullanıldı!",cancelBooking:"İptal et",cancelConfirm:"Randevuyu iptal etmek istiyor musunuz?",bookingCancelled:"Randevu iptal edildi",noBookings:"Rezervasyon yok",noBookingsSub:"İlk randevunuzu alın",specialRequests:"Özel istekler",notesPlaceholder:"ör. alerji, tercihler...",noNotifications:"Bildirim yok",noNotificationsSub:"Her şey güncel!",nlTitle:"Özel tekliflerden haberdar ol",nlSub:"Bültenimize kaydol, anında %10 indirim kazan!",nlPlaceholder:"E-posta adresiniz",nlButton:"Kaydol & %10 kazan",nlSuccess:"Hoş geldin! %10 kodun: WELCOME10",nlAlready:"Zaten kayıtlısınız!",refTitle:"Arkadaşlarını davet et, para kazan",refSteps:"Nasıl çalışır:",refStep1:"Linkini arkadaşlarınla paylaş",refStep2:"Arkadaşın ilk randevusunu alsın",refStep3:"İkiniz de 5€ bakiye kazanın",refCode:"Davet kodun",refCopied:"Kod kopyalandı!",refInvited:"Davet edilen arkadaşlar",refEarned:"Kazanılan",premBadge:"PREMİUM",premFeatured:"Öne Çıkan",adminPanel:"Yönetim Paneli",adminDash:"Gösterge Paneli",adminLogo:"Logo & Marka",adminServices:"Hizmet Yönetimi",adminStats:"İstatistikler",adminSettings:"Ayarlar",todayBookings:"Bugünkü randevular",totalRevenue:"Gelir (aylık)",avgRating:"Ort. Puan",totalReviews:"Değerlendirmeler",uploadLogo:"Logo yükle",logoDesc:"İşletme logonuzu yükleyin (JPG, PNG)",generateIcons:"AI İkon üret",iconDesc:"Logonuzdan 3 profesyonel varyant oluşturuyoruz",iconStyle1:"Geometrik",iconStyle2:"Minimal",iconStyle3:"Lüks",selectIcon:"Bu ikonu kullan",selectedIcon:"Aktif ikon",removeLogo:"Logoyu kaldır",generating:"Varyantlar oluşturuluyor...",adminNoShop:"Henüz kayıtlı işletme yok",adminRegFirst:"Önce hizmet veren olarak kayıt olun",saPanel:"Süper Admin",saProviders:"Sağlayıcılar",saFeatures:"Özellikler",saAnalytics:"Analiz",saTogglePrem:"Premium aktif/deaktif",saTier:"Tier değiştir",saBoost:"Boost ayarla",saActive:"Aktif",saInactive:"Pasif",saIconFeature:"AI İkon Özelliği",saTotalProviders:"Toplam sağlayıcı",saPremiumCount:"Premium sağlayıcı",saGoldCount:"Gold sağlayıcı",saFreeCount:"Ücretsiz sağlayıcı",pricingTitle:"Abonelik Paketleri",pricingFree:"Başlangıç",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/ay",pricingFreeSub:"Ücretsiz başla",pricingPremSub:"Daha fazla görünürlük",pricingGoldSub:"Maksimum erişim",pricingCurrent:"Mevcut paket",pricingUpgrade:"Yükselt",pricingFeatures:"Dahil"}
 };
 function t(key){return LANG[state.lang]?.[key]||LANG.de[key]||key;}
 
@@ -628,7 +837,8 @@ const CATS=[
   {id:"nail",lbl:"Nails",sub:"Gel · Nail Art"},
   {id:"massage",lbl:"Massage",sub:"Wellness · Therapie"},
   {id:"lash",lbl:"Lash & Brows",sub:"Extensions · Lifting"},
-  {id:"arzt",lbl:"Arzt/Klinik",sub:"Derma · Behandlung"}
+  {id:"arzt",lbl:"Arzt/Klinik",sub:"Derma · Behandlung"},
+  {id:"raum",lbl:"Raum/Kabine",sub:"Freelancer · Miete"}
 ];
 const SPECS=[
   {id:"s1",nm:"Ahmed K.",role:"Master Barber",rt:4.9,cat:"barber",ini:"AK",col:"#2A4A3A"},
@@ -748,7 +958,7 @@ function renderOnboarding(){
   const sl=slides[state.obStep];
   const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
   return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;min-height:100dvh;justify-content:center;padding:20px var(--pad)">
-    ${state.obStep===0?`<div style="margin-bottom:8px">${logoHeader(false)}</div>`:sl.icon==="chair"?`<div style="margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbSeat()}</div>`:sl.icon==="booking"?`<div style="margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbBooking()}</div>`:`<div style="font-size:60px;margin-bottom:14px">${sl.icon}</div>`}
+    ${state.obStep===0?`<div style="margin-bottom:8px">${logoHeader(false)}</div>`:sl.icon==="chair"?`<div style="margin-bottom:14px;display:flex;gap:4px;align-items:flex-end;justify-content:center;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))"><div style="opacity:.55;transform:scale(.6);transform-origin:bottom center">${dbKosmetik()}</div><div>${dbSeat()}</div><div style="opacity:.55;transform:scale(.6);transform-origin:bottom center">${dbMassage()}</div></div>`:sl.icon==="booking"?`<div style="margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbBooking()}</div>`:`<div style="font-size:60px;margin-bottom:14px">${sl.icon}</div>`}
     <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;margin-bottom:8px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
     <p style="font-size:var(--font-md);color:var(--stone);line-height:1.6;margin-bottom:28px;max-width:360px">${sl.s}</p>
     <div style="display:flex;gap:8px;margin-bottom:20px">${dots}</div>
@@ -766,8 +976,8 @@ function renderHome(){
   const list=getFiltered();
   const h2=new Date().getHours();
   const gr=h2<12?t("morning"):h2<17?t("afternoon"):t("evening");
-  const catIcons={barber:catSVG("barber"),friseur:catSVG("friseur"),kosmetik:catSVG("kosmetik"),aesthetik:catSVG("aesthetik"),nail:catSVG("nail"),massage:catSVG("massage"),lash:catSVG("lash"),arzt:catSVG("arzt")};
-  const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8"};
+  const catIcons={barber:catSVG("barber"),friseur:catSVG("friseur"),kosmetik:catSVG("kosmetik"),aesthetik:catSVG("aesthetik"),nail:catSVG("nail"),massage:catSVG("massage"),lash:catSVG("lash"),arzt:catSVG("arzt"),raum:catSVG("raum")};
+  const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8",raum:"#D0A870"};
   const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
     <div onclick="setCat('${c.id}')" style="width:calc(25% - 7px);display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 2px 10px;border-radius:14px;background:${f===c.id?"rgba(200,168,75,.07)":"var(--c2)"};border:1.5px solid ${f===c.id?"var(--gold)":"var(--border)"};cursor:pointer;position:relative;min-height:82px">
@@ -1167,9 +1377,11 @@ function renderAccount(){
     </div>
     ${r==="CUSTOMER"?`<div class="card" onclick="goSub('register')" style="padding:0;margin-bottom:14px;background:linear-gradient(135deg,#1A1608,#100E04);cursor:pointer;border:1px solid rgba(200,168,75,.2);overflow:hidden">
       <div style="display:flex;align-items:center;gap:0">
-        <div style="flex-shrink:0;width:130px;height:130px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0A0600,#180C04);border-right:1px solid rgba(200,168,75,.12);position:relative;overflow:hidden">
+        <div style="flex-shrink:0;width:130px;height:130px;display:flex;align-items:flex-end;justify-content:center;gap:1px;background:linear-gradient(135deg,#0A0600,#180C04);border-right:1px solid rgba(200,168,75,.12);position:relative;overflow:hidden;padding-bottom:4px">
           <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(200,100,0,.08),transparent 70%)"></div>
-          ${dbSeat()}
+          <div style="opacity:.45;transform:scale(.42);transform-origin:bottom center">${dbKosmetik()}</div>
+          <div style="transform:scale(.7);transform-origin:bottom center">${dbSeat()}</div>
+          <div style="opacity:.45;transform:scale(.42);transform-origin:bottom center">${dbMassage()}</div>
         </div>
         <div style="flex:1;padding:16px 14px">
           <p class="lgold" style="margin-bottom:6px">💺 ${t("chairRent").toUpperCase()}</p>
@@ -1745,17 +1957,24 @@ function renderRegister(){
       <div><p style="font-size:13px;font-weight:700">Gewerbeschein vorhanden</p><p style="font-size:11px;color:var(--stone)">Hochladen nach Registrierung</p></div>
     </div></div>`;
   if(s===3)body=`<div style="display:flex;flex-direction:column;gap:14px">
-    <p class="lgold">💺 Stuhl / Kabine vermieten</p>
-    <p style="font-size:13px;color:var(--stone);line-height:1.6">Kerngeschäft: Freie Stühle vermieten. 0 % Provision.</p>
-    <div onclick="updateReg('chair',${!f.chair})" style="display:flex;gap:10px;align-items:center;padding:13px 15px;background:${f.chair?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f.chair?"var(--gold)":"var(--border)"};cursor:pointer">
-      <div class="check ${f.chair?"on":""}">${f.chair?"✓":""}</div>
-      <div><p style="font-size:13px;font-weight:700">Ja, ich vermiete Stühle ✦</p><p style="font-size:11px;color:var(--stone)">Zusatzeinnahmen durch Untervermietung</p></div>
+    <p class="lgold">💺 Was vermietest du?</p>
+    <p style="font-size:13px;color:var(--stone);line-height:1.6">Wähle aus, was du an Freiberufler vermieten möchtest. 0 % Provision.</p>
+    ${[
+      {k:"chair",icon:"💺",nm:"Stuhl vermieten",desc:"Barbershop / Friseur-Stuhl",ph:"45"},
+      {k:"liege",icon:"🛏",nm:"Liege vermieten",desc:"Massage-Liege / Kosmetik-Liege",ph:"40"},
+      {k:"kabine",icon:"🚪",nm:"Kabine / Raum vermieten",desc:"Behandlungsraum / Kabine für Freelancer",ph:"55"}
+    ].map(opt=>`
+    <div onclick="updateReg('${opt.k}',${!f[opt.k]})" style="display:flex;gap:10px;align-items:center;padding:13px 15px;background:${f[opt.k]?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f[opt.k]?"var(--gold)":"var(--border)"};cursor:pointer">
+      <div style="font-size:22px;width:36px;text-align:center">${opt.icon}</div>
+      <div style="flex:1"><p style="font-size:13px;font-weight:700">${opt.nm} ✦</p><p style="font-size:11px;color:var(--stone)">${opt.desc}</p></div>
+      <div class="check ${f[opt.k]?"on":""}">${f[opt.k]?"✓":""}</div>
     </div>
-    ${f.chair?`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Preis/Tag (€)</label><input class="inp" type="number" value="${f.cpr}" oninput="updateReg('cpr',this.value)" placeholder="45"/></div>`:""}</div>`;
+    ${f[opt.k]?`<div style="margin-left:46px"><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Preis/Tag (€)</label><input class="inp" type="number" value="${f[opt.k+"_pr"]||""}" oninput="updateReg('${opt.k}_pr',this.value)" placeholder="${opt.ph}"/></div>`:""}`).join("")}
+  </div>`;
   if(s===4)body=`<div>
     <p class="lgold" style="margin-bottom:14px">✅ Zusammenfassung</p>
     <div class="card" style="padding:14px;margin-bottom:16px">
-      ${[["Name",f.vn+" "+f.nn],["E-Mail",f.em],["Geschäft",f.geschaeft],["Stadt",f.city],["Kategorie",f.kat],["Stuhlmiete",f.chair?f.cpr+"€/Tag":"Nein"]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:600">${v||"—"}</span></div>`).join("")}
+      ${[["Name",f.vn+" "+f.nn],["E-Mail",f.em],["Geschäft",f.geschaeft],["Stadt",f.city],["Kategorie",f.kat],["💺 Stuhl",f.chair?(f.chair_pr||"—")+"€/Tag":"—"],["🛏 Liege",f.liege?(f.liege_pr||"—")+"€/Tag":"—"],["🚪 Kabine/Raum",f.kabine?(f.kabine_pr||"—")+"€/Tag":"—"]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:600">${v||"—"}</span></div>`).join("")}
     </div>
     <div onclick="updateReg('agb',${!f.agb})" style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center"><div class="check ${f.agb?"on":""}">${f.agb?"✓":""}</div><p style="font-size:13px;font-weight:600">AGB akzeptieren</p></div>
     <div onclick="updateReg('dsgvo',${!f.dsgvo})" style="display:flex;gap:10px;padding:12px 0;cursor:pointer;align-items:center"><div class="check ${f.dsgvo?"on":""}">${f.dsgvo?"✓":""}</div><p style="font-size:13px;font-weight:600">Datenschutzerklärung akzeptieren</p></div></div>`;
