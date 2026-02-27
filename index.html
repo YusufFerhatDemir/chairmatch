@@ -257,213 +257,186 @@ function logoHeader(small){
 function catSVG(type){
   const ids={barber:"gBa",friseur:"gFr",kosmetik:"gKo",aesthetik:"gAe",nail:"gNa",massage:"gMa",lash:"gLa",arzt:"gAr",raum:"gRa",opraum:"gOp"};
   const id=ids[type];if(!id)return"";
-  const hd=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="64" y2="64"><stop offset="0%" stop-color="#FFF0C0"/><stop offset="30%" stop-color="#E0C060"/><stop offset="60%" stop-color="#C8A84B"/><stop offset="100%" stop-color="#A08030"/></linearGradient><linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF8D0" stop-opacity=".5"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></linearGradient></defs>`;
-  const g=`url(#${id})`;const gh=`url(#${id}h)`;
-  const sk=(x,y,r,o)=>`<path d="M${x} ${y-r}L${x+r*.32} ${y-r*.32}L${x+r} ${y}L${x+r*.32} ${y+r*.32}L${x} ${y+r}L${x-r*.32} ${y+r*.32}L${x-r} ${y}L${x-r*.32} ${y-r*.32}Z" fill="${g}" opacity="${o}"/>`;
+  const hd=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFF8E0"/><stop offset="20%" stop-color="#F0D878"/><stop offset="50%" stop-color="#D4B050"/><stop offset="75%" stop-color="#B89838"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><linearGradient id="${id}2" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#FFF5D0"/><stop offset="50%" stop-color="#E0C050"/><stop offset="100%" stop-color="#A08030"/></linearGradient><linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFEF5" stop-opacity=".9"/><stop offset="50%" stop-color="#FFF0C0" stop-opacity=".3"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></linearGradient><radialGradient id="${id}s" cx=".3" cy=".22" r=".65"><stop offset="0%" stop-color="#FFFEF5" stop-opacity=".75"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></radialGradient><linearGradient id="${id}c" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#9A7828"/><stop offset="20%" stop-color="#FFF8E0"/><stop offset="40%" stop-color="#F0D878"/><stop offset="65%" stop-color="#C8A84B"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><filter id="${id}gl"><feGaussianBlur in="SourceAlpha" stdDeviation="1.8" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.85 0 0 0 0 0.72 0 0 0 0 0.3 0 0 0 0.45 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  const g=`url(#${id})`;const g2=`url(#${id}2)`;const gh=`url(#${id}h)`;const gs=`url(#${id}s)`;const gc=`url(#${id}c)`;const fl=`url(#${id}gl)`;
   const w=`<svg width="34" height="34" viewBox="0 0 64 64" fill="none">`;
 
   if(type==="barber") return `${w}${hd}
-    <rect x="24" y="10" width="16" height="46" rx="8" fill="${gh}"/>
-    <rect x="24" y="10" width="16" height="46" rx="8" fill="none" stroke="${g}" stroke-width="2.2"/>
-    <ellipse cx="32" cy="10" rx="9" ry="5" fill="${g}" opacity=".8"/>
-    <ellipse cx="32" cy="9" rx="5" ry="2.5" fill="#FFF0C0" opacity=".3"/>
-    <rect x="20" y="55" width="24" height="5" rx="2.5" fill="${g}" opacity=".6"/>
+    <g filter="${fl}">
+    <ellipse cx="32" cy="58" rx="11" ry="3" fill="${g}" opacity=".5"/>
+    <rect x="24" y="10" width="16" height="46" rx="8" fill="${gc}"/>
     <clipPath id="cpBa"><rect x="24" y="10" width="16" height="46" rx="8"/></clipPath>
-    <g clip-path="url(#cpBa)"><path d="M22 16L42 26M22 26L42 36M22 36L42 46M22 46L42 56" stroke="${g}" stroke-width="3.5" opacity=".3"/></g>
-    <line x1="24" y1="14" x2="24" y2="56" stroke="${g}" stroke-width=".5" opacity=".25"/>
-    <line x1="40" y1="14" x2="40" y2="56" stroke="${g}" stroke-width=".5" opacity=".25"/>
-    ${sk(14,14,4,.9)}${sk(52,10,3,.75)}${sk(54,48,3.5,.8)}${sk(12,48,2.5,.6)}
-  </svg>`;
+    <g clip-path="url(#cpBa)"><rect x="24" y="10" width="16" height="46" fill="white" opacity=".8"/>
+    <path d="M22 14l18 8M22 22l18 8M22 30l18 8M22 38l18 8M22 46l18 8" stroke="#C0392B" stroke-width="4" opacity=".65"/>
+    <path d="M22 18l18 8M22 26l18 8M22 34l18 8M22 42l18 8M22 50l18 8" stroke="#2E86C1" stroke-width="3" opacity=".45"/></g>
+    <rect x="26" y="10" width="4" height="46" rx="2" fill="${gh}" opacity=".3"/>
+    <circle cx="32" cy="9" r="5" fill="${g}"/>
+    <circle cx="32" cy="9" r="5" fill="${gs}"/>
+    <circle cx="31" cy="8" r="2" fill="#FFFEF5" opacity=".5"/>
+    <ellipse cx="32" cy="56" rx="8" ry="2.5" fill="${g}"/>
+    </g></svg>`;
 
   if(type==="friseur") return `${w}${hd}
-    <g transform="rotate(-25 32 28)" opacity=".4">
-      <rect x="29" y="2" width="6" height="52" rx="1.5" fill="none" stroke="${g}" stroke-width="1.5"/>
-      <line x1="29" y1="7" x2="35" y2="7" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="11" x2="35" y2="11" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="15" x2="35" y2="15" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="19" x2="35" y2="19" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="23" x2="35" y2="23" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="27" x2="35" y2="27" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="31" x2="35" y2="31" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="35" x2="35" y2="35" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="39" x2="35" y2="39" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="43" x2="35" y2="43" stroke="${g}" stroke-width=".8"/>
-      <line x1="29" y1="47" x2="35" y2="47" stroke="${g}" stroke-width=".8"/>
+    <g filter="${fl}">
+    <g transform="translate(4,2)">
+    <path d="M22 28L10 6" stroke="${g}" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M26 28L38 6" stroke="${g}" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <circle cx="24" cy="28" r="4" fill="${g}"/><circle cx="24" cy="28" r="4" fill="${gs}"/>
+    <circle cx="23" cy="27" r="1.5" fill="#FFFEF5" opacity=".4"/>
+    <circle cx="7" cy="4" r="6" fill="none" stroke="${g}" stroke-width="3"/>
+    <circle cx="41" cy="4" r="6" fill="none" stroke="${g}" stroke-width="3"/>
+    <path d="M10 6C13 14 18 22 22 28" stroke="${g}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M38 6C35 14 30 22 26 28" stroke="${g}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M22 28L14 46" stroke="${g}" stroke-width="3" stroke-linecap="round" fill="none" opacity=".45"/>
+    <path d="M26 28L34 46" stroke="${g}" stroke-width="3" stroke-linecap="round" fill="none" opacity=".45"/>
     </g>
-    <path d="M20 10 Q28 22 31 32" fill="none" stroke="${g}" stroke-width="2.8" stroke-linecap="round"/>
-    <path d="M44 10 Q36 22 33 32" fill="none" stroke="${g}" stroke-width="2.8" stroke-linecap="round"/>
-    <circle cx="32" cy="30" r="2.5" fill="${g}"/>
-    <circle cx="32" cy="30" r="1" fill="#FFF0C0" opacity=".4"/>
-    <path d="M27 36 Q30 33 32 30" fill="none" stroke="${g}" stroke-width="2.2" stroke-linecap="round"/>
-    <path d="M37 36 Q34 33 32 30" fill="none" stroke="${g}" stroke-width="2.2" stroke-linecap="round"/>
-    <circle cx="24" cy="42" r="6.5" fill="none" stroke="${g}" stroke-width="2"/>
-    <circle cx="24" cy="42" r="2.5" fill="${g}" opacity=".2"/>
-    <circle cx="40" cy="42" r="6.5" fill="none" stroke="${g}" stroke-width="2"/>
-    <circle cx="40" cy="42" r="2.5" fill="${g}" opacity=".2"/>
-    ${sk(12,16,3,.85)}${sk(52,14,2.5,.7)}${sk(50,56,2,.6)}
-  </svg>`;
+    <g transform="translate(46,14)" opacity=".5">
+    <rect x="0" y="0" width="8" height="38" rx="2" fill="${g}"/><rect x="0" y="0" width="8" height="38" rx="2" fill="${gs}"/>
+    <line x1="0" y1="4" x2="8" y2="4" stroke="#8B6914" stroke-width=".8"/>
+    <line x1="0" y1="8" x2="8" y2="8" stroke="#8B6914" stroke-width=".8"/>
+    <line x1="0" y1="12" x2="8" y2="12" stroke="#8B6914" stroke-width=".8"/>
+    <line x1="0" y1="16" x2="8" y2="16" stroke="#8B6914" stroke-width=".8"/>
+    <line x1="0" y1="20" x2="8" y2="20" stroke="#8B6914" stroke-width=".8"/>
+    <line x1="0" y1="24" x2="8" y2="24" stroke="#8B6914" stroke-width=".8"/>
+    <line x1="0" y1="28" x2="8" y2="28" stroke="#8B6914" stroke-width=".8"/>
+    <line x1="0" y1="32" x2="8" y2="32" stroke="#8B6914" stroke-width=".8"/>
+    </g></g></svg>`;
 
   if(type==="kosmetik") return `${w}${hd}
-    <!-- Kosmetik-Liege (reclined chair with mirror) -->
-    <rect x="8" y="32" width="38" height="24" rx="4" fill="${gh}"/>
-    <rect x="8" y="32" width="38" height="24" rx="4" fill="none" stroke="${g}" stroke-width="2"/>
-    <!-- liege body stitching -->
-    <line x1="18" y1="34" x2="18" y2="54" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <line x1="28" y1="33" x2="28" y2="55" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <line x1="38" y1="34" x2="38" y2="54" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <!-- reclined backrest -->
-    <path d="M8 32 L4 14 Q3 8 9 8 L30 8 Q36 8 35 14 L32 32" fill="${gh}"/>
-    <path d="M8 32 L4 14 Q3 8 9 8 L30 8 Q36 8 35 14 L32 32" fill="none" stroke="${g}" stroke-width="2"/>
-    <line x1="14" y1="10" x2="12" y2="30" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <line x1="22" y1="9" x2="21" y2="31" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <!-- headrest pillow -->
-    <path d="M6 12 Q4 6 10 6 L28 6 Q34 6 33 12" fill="none" stroke="${g}" stroke-width="1.5" opacity=".5"/>
-    <!-- legs -->
-    <rect x="12" y="56" width="3" height="6" rx="1" fill="${g}" opacity=".6"/>
-    <rect x="38" y="56" width="3" height="6" rx="1" fill="${g}" opacity=".6"/>
-    <!-- magnifying lamp -->
-    <circle cx="52" cy="16" r="8" fill="none" stroke="${g}" stroke-width="2" opacity=".75"/>
-    <circle cx="52" cy="16" r="4" fill="${g}" opacity=".15"/>
-    <circle cx="50" cy="14" r="1.2" fill="#FFF0C0" opacity=".4"/>
-    <rect x="51" y="24" width="2" height="16" rx="1" fill="${g}" opacity=".5"/>
-    <rect x="48" y="40" width="8" height="3" rx="1.5" fill="${g}" opacity=".5"/>
-    ${sk(58,8,3,.85)}${sk(4,50,2.5,.7)}${sk(50,54,2,.6)}
-  </svg>`;
+    <g filter="${fl}">
+    <rect x="20" y="26" width="18" height="24" rx="3" fill="${g}"/><rect x="20" y="26" width="18" height="24" rx="3" fill="${gs}"/>
+    <rect x="22" y="28" width="5" height="18" rx="1.5" fill="${gh}" opacity=".25"/>
+    <rect x="22" y="26" width="14" height="5" rx="1.5" fill="${g2}"/><rect x="22" y="26" width="14" height="5" rx="1.5" fill="${gh}" opacity=".35"/>
+    <rect x="24" y="20" width="10" height="8" rx="2.5" fill="${g}"/><rect x="24" y="20" width="10" height="8" rx="2.5" fill="${gs}"/>
+    <ellipse cx="29" cy="20" rx="5" ry="2" fill="${g2}"/>
+    <ellipse cx="28" cy="19.5" rx="2.5" ry="1" fill="#FFFEF5" opacity=".4"/>
+    <line x1="22" y1="36" x2="36" y2="36" stroke="#8B6914" stroke-width=".8" opacity=".3"/>
+    <line x1="22" y1="41" x2="36" y2="41" stroke="#8B6914" stroke-width=".8" opacity=".3"/>
+    <circle cx="29" cy="46" r="2" fill="#FFF8E0" opacity=".4"/>
+    <path d="M8 36c-2-5-1-11 2-16s7-7 12-7" fill="none" stroke="${g}" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>
+    <circle cx="8" cy="38" r="2.5" fill="${g}" opacity=".4"/>
+    <path d="M48 18c1-3 2-6 1-9" stroke="${g}" stroke-width="2" stroke-linecap="round" fill="none" opacity=".4"/>
+    <path d="M52 16c1-2 2-5 1-7" stroke="${g}" stroke-width="2" stroke-linecap="round" fill="none" opacity=".3"/>
+    <circle cx="49" cy="20" r="1.2" fill="${g}" opacity=".5"/>
+    <circle cx="53" cy="18" r="1.2" fill="${g}" opacity=".4"/>
+    </g></svg>`;
 
   if(type==="aesthetik") return `${w}${hd}
-    <g transform="rotate(-45 32 32)">
-      <rect x="16" y="26" width="36" height="12" rx="2" fill="${gh}"/>
-      <rect x="16" y="26" width="36" height="12" rx="2" fill="none" stroke="${g}" stroke-width="2"/>
-      <rect x="20" y="29" width="5" height="6" rx="1" fill="${g}" opacity=".35"/>
-      <line x1="30" y1="27" x2="30" y2="37" stroke="${g}" stroke-width=".7" opacity=".35"/>
-      <line x1="34" y1="27" x2="34" y2="37" stroke="${g}" stroke-width=".7" opacity=".35"/>
-      <line x1="38" y1="27" x2="38" y2="37" stroke="${g}" stroke-width=".7" opacity=".35"/>
-      <line x1="42" y1="27" x2="42" y2="37" stroke="${g}" stroke-width=".7" opacity=".35"/>
-      <line x1="46" y1="27" x2="46" y2="37" stroke="${g}" stroke-width=".7" opacity=".35"/>
-      <rect x="6" y="28" width="12" height="8" rx="1.5" fill="${g}" opacity=".5"/>
-      <rect x="6" y="28" width="12" height="8" rx="1.5" fill="none" stroke="${g}" stroke-width="1"/>
-      <path d="M52 30 L58 32 L52 34" fill="${g}" opacity=".6"/>
-      <line x1="58" y1="32" x2="63" y2="32" stroke="${g}" stroke-width="1.8" stroke-linecap="round"/>
-    </g>
-    ${sk(10,10,3.5,.9)}${sk(54,8,2.5,.7)}${sk(56,54,3,.8)}${sk(8,52,2.5,.65)}
-  </svg>`;
+    <g filter="${fl}">
+    <g transform="translate(12,2)">
+    <rect x="12" y="0" width="16" height="6" rx="1.5" fill="${g2}"/><rect x="12" y="0" width="16" height="6" rx="1.5" fill="${gs}"/>
+    <rect x="18" y="0" width="4" height="9" rx="2" fill="${g}" opacity=".6"/>
+    <rect x="10" y="6" width="20" height="32" rx="4" fill="${g}"/><rect x="10" y="6" width="20" height="32" rx="4" fill="${gs}"/>
+    <rect x="13" y="9" width="5" height="26" rx="1.5" fill="${gh}" opacity=".25"/>
+    <line x1="12" y1="13" x2="28" y2="13" stroke="#8B6914" stroke-width=".8" opacity=".3"/>
+    <line x1="12" y1="18" x2="28" y2="18" stroke="#8B6914" stroke-width=".6" opacity=".2"/>
+    <line x1="12" y1="23" x2="28" y2="23" stroke="#8B6914" stroke-width=".6" opacity=".2"/>
+    <line x1="12" y1="28" x2="28" y2="28" stroke="#8B6914" stroke-width=".6" opacity=".2"/>
+    <line x1="12" y1="33" x2="28" y2="33" stroke="#8B6914" stroke-width=".6" opacity=".2"/>
+    <path d="M20 38l-3 18h6z" fill="${g}"/><path d="M20 38l-3 18h6z" fill="${gs}"/>
+    <path d="M20 56l-.8 3h1.6z" fill="#FFF8E0" opacity=".7"/>
+    </g></g></svg>`;
 
   if(type==="nail") return `${w}${hd}
-    <path d="M18 56 Q14 44 16 34 Q18 24 22 18 Q26 14 30 16 Q34 18 35 26 L36 56 Z" fill="${gh}"/>
-    <path d="M18 56 Q14 44 16 34 Q18 24 22 18 Q26 14 30 16 Q34 18 35 26 L36 56" fill="none" stroke="${g}" stroke-width="2.2" stroke-linecap="round"/>
-    <path d="M20 36 Q22 24 26 18" fill="none" stroke="${g}" stroke-width="1" opacity=".35" stroke-linecap="round"/>
-    <path d="M24 56 Q22 48 22 40" fill="none" stroke="${g}" stroke-width=".8" opacity=".25" stroke-linecap="round"/>
-    <path d="M44 12 L46 8 Q48 5 50 8 L48 14 L42 40 Q40 46 38 48" fill="none" stroke="${g}" stroke-width="2.2" stroke-linecap="round"/>
-    <path d="M44 12 L46 8 Q48 5 50 8 L48 14 Z" fill="${g}" opacity=".6"/>
-    <line x1="45" y1="14" x2="42" y2="36" stroke="${g}" stroke-width="1.2" opacity=".4" stroke-linecap="round"/>
-    ${sk(52,4,3,.9)}${sk(10,12,2.5,.7)}${sk(50,46,3,.8)}${sk(8,46,2,.6)}
-  </svg>`;
+    <g filter="${fl}">
+    <g transform="translate(4,4)">
+    <path d="M6 42Q3 32 5 24Q7 16 12 10Q15 7 18 8Q21 10 22 16L23 42Z" fill="${g}"/><path d="M6 42Q3 32 5 24Q7 16 12 10Q15 7 18 8Q21 10 22 16L23 42Z" fill="${gs}"/>
+    <path d="M8 34Q6 26 8 20Q10 14 14 10" fill="none" stroke="${gh}" stroke-width="2" stroke-linecap="round" opacity=".3"/>
+    <line x1="8" y1="42" x2="21" y2="42" stroke="#8B6914" stroke-width="1" opacity=".35"/>
+    </g>
+    <g transform="translate(36,2)">
+    <rect x="4" y="22" width="12" height="14" rx="3" fill="${g}"/><rect x="4" y="22" width="12" height="14" rx="3" fill="${gs}"/>
+    <rect x="6" y="24" width="3" height="10" rx="1" fill="${gh}" opacity=".25"/>
+    <rect x="7" y="17" width="6" height="7" rx="2" fill="${g2}"/><rect x="7" y="17" width="6" height="7" rx="2" fill="${gh}" opacity=".35"/>
+    <rect x="8" y="11" width="4" height="8" rx="2" fill="${g}"/>
+    <circle cx="10" cy="11" r="2" fill="${g2}"/><circle cx="9.5" cy="10.5" r="1" fill="#FFFEF5" opacity=".5"/>
+    <path d="M10 36l-1.5 12" stroke="${g}" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+    <circle cx="8.5" cy="50" r="1.5" fill="${g}" opacity=".4"/>
+    </g></g></svg>`;
 
   if(type==="massage") return `${w}${hd}
-    <!-- Massage-Liege (flat table with face hole) -->
-    <rect x="4" y="24" width="48" height="20" rx="5" fill="${gh}"/>
-    <rect x="4" y="24" width="48" height="20" rx="5" fill="none" stroke="${g}" stroke-width="2"/>
-    <!-- stitching -->
-    <line x1="16" y1="26" x2="16" y2="42" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <line x1="28" y1="25" x2="28" y2="43" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <line x1="40" y1="26" x2="40" y2="42" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <!-- top cushion shine -->
-    <path d="M8 28 Q28 24 48 28" stroke="#FFF0C0" stroke-width="1.2" fill="none" opacity=".15"/>
-    <!-- face hole cutout -->
-    <ellipse cx="10" cy="22" rx="6" ry="4" fill="none" stroke="${g}" stroke-width="1.8" opacity=".7"/>
-    <ellipse cx="10" cy="22" rx="3" ry="2" fill="${g}" opacity=".15"/>
-    <!-- pillow/towel roll -->
-    <ellipse cx="28" cy="16" rx="16" ry="5" fill="${gh}" opacity=".6"/>
-    <ellipse cx="28" cy="16" rx="16" ry="5" fill="none" stroke="${g}" stroke-width="1.2" opacity=".5"/>
-    <ellipse cx="28" cy="15" rx="8" ry="2" fill="#FFF0C0" opacity=".15"/>
-    <!-- 4 legs -->
-    <rect x="8" y="44" width="2.5" height="10" rx="1" fill="${g}" opacity=".6"/>
-    <rect x="44" y="44" width="2.5" height="10" rx="1" fill="${g}" opacity=".6"/>
-    <rect x="20" y="44" width="2.5" height="10" rx="1" fill="${g}" opacity=".5"/>
-    <rect x="32" y="44" width="2.5" height="10" rx="1" fill="${g}" opacity=".5"/>
-    <!-- spa hands icon -->
-    <path d="M52 40 Q56 36 58 32 Q59 28 57 26 Q55 24 53 26 Q51 28 51 32" fill="none" stroke="${g}" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
-    <path d="M53 26 L53 22 Q53 20 55 20" fill="none" stroke="${g}" stroke-width="1.2" stroke-linecap="round" opacity=".4"/>
-    ${sk(56,14,3,.8)}${sk(4,10,2.5,.7)}${sk(56,52,2.5,.65)}${sk(4,52,2,.6)}
-  </svg>`;
+    <g filter="${fl}">
+    <rect x="4" y="34" width="52" height="10" rx="5" fill="${g}"/><rect x="4" y="34" width="52" height="10" rx="5" fill="${gs}"/>
+    <rect x="8" y="36" width="14" height="5" rx="2.5" fill="${gh}" opacity=".2"/>
+    <ellipse cx="10" cy="33" rx="5" ry="3" fill="${g2}" opacity=".4"/>
+    <line x1="10" y1="44" x2="8" y2="52" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="50" y1="44" x2="52" y2="52" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="8" cy="53" r="1.5" fill="${g}" opacity=".5"/>
+    <circle cx="52" cy="53" r="1.5" fill="${g}" opacity=".5"/>
+    <circle cx="30" cy="16" r="5" fill="${g}"/><circle cx="30" cy="16" r="5" fill="${gs}"/>
+    <circle cx="29" cy="15" r="2" fill="#FFFEF5" opacity=".35"/>
+    <path d="M35 16c2 1 4 2 5 5" stroke="${g}" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M40 21c1 2 1 5 0 7" stroke="${g}" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M44 24c2-1 3-3 4-4" stroke="${g}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M48 20c1-2 1-3 0-5" stroke="${g}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    </g></svg>`;
 
   if(type==="lash") return `${w}${hd}
-    <path d="M6 34 Q18 20 32 20 Q46 20 58 34" fill="none" stroke="${g}" stroke-width="2.2" stroke-linecap="round"/>
-    <path d="M6 34 Q18 46 32 46 Q46 46 58 34" fill="none" stroke="${g}" stroke-width="2.2" stroke-linecap="round"/>
-    <ellipse cx="32" cy="33" rx="8" ry="7" fill="${g}" opacity=".25"/>
-    <circle cx="32" cy="33" r="4.5" fill="${g}" opacity=".6"/>
-    <circle cx="32" cy="33" r="2.2" fill="${g}"/>
-    <circle cx="33.5" cy="31.5" r="1" fill="#FFF0C0" opacity=".45"/>
-    <path d="M12 28 L9 18" stroke="${g}" stroke-width="2" stroke-linecap="round" opacity=".7"/>
-    <path d="M18 24 L15 14" stroke="${g}" stroke-width="2" stroke-linecap="round" opacity=".75"/>
-    <path d="M24 21 L22 10" stroke="${g}" stroke-width="2" stroke-linecap="round" opacity=".8"/>
-    <path d="M32 20 L32 8" stroke="${g}" stroke-width="2" stroke-linecap="round" opacity=".85"/>
-    <path d="M40 21 L42 10" stroke="${g}" stroke-width="2" stroke-linecap="round" opacity=".8"/>
-    <path d="M46 24 L49 14" stroke="${g}" stroke-width="2" stroke-linecap="round" opacity=".75"/>
-    <path d="M52 28 L55 18" stroke="${g}" stroke-width="2" stroke-linecap="round" opacity=".7"/>
-    <path d="M9 14 Q20 6 32 6 Q44 6 55 14" fill="none" stroke="${g}" stroke-width="1.8" stroke-linecap="round" opacity=".45"/>
-    ${sk(4,10,2.5,.8)}${sk(60,10,2.5,.8)}${sk(32,54,2,.6)}
-  </svg>`;
+    <g filter="${fl}">
+    <path d="M6 34Q32 16 58 34" fill="${g}"/><path d="M6 34Q32 16 58 34" fill="${gs}"/>
+    <path d="M6 34Q32 46 58 34" fill="${g}"/><path d="M6 34Q32 40 58 34" fill="${gh}" opacity=".25"/>
+    <ellipse cx="32" cy="34" rx="9" ry="7" fill="${g}" stroke="#8B6914" stroke-width="1.2"/><ellipse cx="32" cy="34" rx="9" ry="7" fill="${gs}"/>
+    <circle cx="32" cy="34" r="4.5" fill="${g2}"/>
+    <circle cx="32" cy="34" r="2.5" fill="#1a1508"/>
+    <circle cx="33.5" cy="32.5" r="1" fill="#FFFEF5" opacity=".85"/>
+    <path d="M12 26l-3-12" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M18 22l-1.5-12" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M24 19l0-11" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M32 18l0-10" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M40 19l0-11" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M46 22l1.5-12" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M52 26l3-12" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M9 14Q22 6 32 6Q42 6 55 14" fill="none" stroke="${g}" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
+    </g></svg>`;
 
   if(type==="arzt") return `${w}${hd}
-    <rect x="8" y="8" width="48" height="48" rx="12" fill="${gh}"/>
-    <rect x="8" y="8" width="48" height="48" rx="12" fill="none" stroke="${g}" stroke-width="2.2"/>
-    <rect x="26" y="16" width="12" height="32" rx="2.5" fill="${g}" opacity=".7"/>
-    <rect x="16" y="26" width="32" height="12" rx="2.5" fill="${g}" opacity=".7"/>
-    <rect x="28" y="18" width="8" height="28" rx="1.5" fill="#FFF0C0" opacity=".12"/>
-    <rect x="18" y="28" width="28" height="8" rx="1.5" fill="#FFF0C0" opacity=".12"/>
-    ${sk(32,32,3.5,.95)}${sk(14,14,2.5,.7)}${sk(50,14,2,.65)}${sk(50,50,2.5,.7)}${sk(14,50,2,.6)}
-  </svg>`;
+    <g filter="${fl}">
+    <rect x="20" y="6" width="24" height="52" rx="5" fill="${g}"/><rect x="20" y="6" width="24" height="52" rx="5" fill="${gs}"/>
+    <rect x="6" y="20" width="52" height="24" rx="5" fill="${g}"/><rect x="6" y="20" width="52" height="24" rx="5" fill="${gs}"/>
+    <rect x="24" y="10" width="16" height="44" rx="2" fill="${gh}" opacity=".12"/>
+    <rect x="10" y="24" width="44" height="16" rx="2" fill="${gh}" opacity=".12"/>
+    <line x1="32" y1="14" x2="32" y2="50" stroke="#FFF8E0" stroke-width="6" stroke-linecap="round" opacity=".2"/>
+    <line x1="14" y1="32" x2="50" y2="32" stroke="#FFF8E0" stroke-width="6" stroke-linecap="round" opacity=".2"/>
+    <line x1="32" y1="16" x2="32" y2="48" stroke="#FFFEF5" stroke-width="3" stroke-linecap="round" opacity=".3"/>
+    <line x1="16" y1="32" x2="48" y2="32" stroke="#FFFEF5" stroke-width="3" stroke-linecap="round" opacity=".3"/>
+    </g></svg>`;
 
   if(type==="raum") return `${w}${hd}
-    <!-- Raum / Kabine / Freelancer Space (door + key) -->
-    <rect x="10" y="8" width="34" height="48" rx="3" fill="${gh}"/>
-    <rect x="10" y="8" width="34" height="48" rx="3" fill="none" stroke="${g}" stroke-width="2.2"/>
-    <!-- door panel lines -->
-    <rect x="14" y="12" width="26" height="18" rx="1.5" fill="none" stroke="${g}" stroke-width="1" opacity=".35"/>
-    <rect x="14" y="34" width="26" height="18" rx="1.5" fill="none" stroke="${g}" stroke-width="1" opacity=".35"/>
-    <!-- door handle -->
-    <circle cx="38" cy="32" r="3" fill="${g}" opacity=".7"/>
-    <circle cx="38" cy="32" r="1.5" fill="#FFF0C0" opacity=".3"/>
-    <!-- key icon (right side) -->
-    <circle cx="54" cy="22" r="6" fill="none" stroke="${g}" stroke-width="2" opacity=".75"/>
-    <circle cx="54" cy="22" r="2.5" fill="${g}" opacity=".25"/>
-    <line x1="54" y1="28" x2="54" y2="42" stroke="${g}" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>
-    <line x1="54" y1="36" x2="58" y2="36" stroke="${g}" stroke-width="1.8" stroke-linecap="round" opacity=".5"/>
-    <line x1="54" y1="40" x2="58" y2="40" stroke="${g}" stroke-width="1.8" stroke-linecap="round" opacity=".5"/>
-    <!-- sparkle accents -->
-    ${sk(6,6,3,.85)}${sk(48,10,2.5,.7)}${sk(8,54,2.5,.65)}${sk(56,52,2,.6)}
-  </svg>`;
+    <g filter="${fl}">
+    <rect x="8" y="6" width="28" height="40" rx="2.5" fill="${g}"/><rect x="8" y="6" width="28" height="40" rx="2.5" fill="${gs}"/>
+    <rect x="11" y="9" width="22" height="14" rx="1.5" fill="none" stroke="${g}" stroke-width=".8" opacity=".3"/>
+    <rect x="11" y="27" width="22" height="14" rx="1.5" fill="none" stroke="${g}" stroke-width=".8" opacity=".3"/>
+    <circle cx="30" cy="26" r="2.5" fill="${g2}" opacity=".7"/>
+    <circle cx="30" cy="26" r="1.2" fill="#FFF0C0" opacity=".3"/>
+    <circle cx="46" cy="18" r="5" fill="none" stroke="${g}" stroke-width="1.8" opacity=".65"/>
+    <circle cx="46" cy="18" r="2" fill="${g}" opacity=".2"/>
+    <line x1="46" y1="23" x2="46" y2="36" stroke="${g}" stroke-width="1.8" stroke-linecap="round" opacity=".6"/>
+    <line x1="46" y1="30" x2="50" y2="30" stroke="${g}" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
+    <line x1="46" y1="34" x2="50" y2="34" stroke="${g}" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
+    </g></svg>`;
 
   if(type==="opraum") return `${w}${hd}
-    <!-- OP-Raum / Steriler Operationssaal -->
-    <!-- OP-Tisch -->
-    <rect x="6" y="30" width="42" height="14" rx="3" fill="${gh}"/>
-    <rect x="6" y="30" width="42" height="14" rx="3" fill="none" stroke="${g}" stroke-width="2"/>
-    <line x1="16" y1="32" x2="16" y2="42" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <line x1="27" y1="31" x2="27" y2="43" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <line x1="38" y1="32" x2="38" y2="42" stroke="${g}" stroke-width=".7" opacity=".3"/>
-    <!-- Tischbein (Hydraulik) -->
-    <rect x="22" y="44" width="10" height="4" rx="1" fill="${g}" opacity=".5"/>
-    <rect x="25" y="48" width="4" height="8" rx="1" fill="${g}" opacity=".6"/>
-    <rect x="18" y="56" width="18" height="3" rx="1.5" fill="${g}" opacity=".5"/>
-    <!-- OP-Lampe (oben) -->
-    <line x1="32" y1="4" x2="32" y2="14" stroke="${g}" stroke-width="2" opacity=".6"/>
-    <line x1="24" y1="4" x2="40" y2="4" stroke="${g}" stroke-width="1.5" opacity=".5"/>
-    <ellipse cx="32" cy="18" rx="12" ry="5" fill="${gh}" opacity=".5"/>
-    <ellipse cx="32" cy="18" rx="12" ry="5" fill="none" stroke="${g}" stroke-width="2" opacity=".8"/>
-    <ellipse cx="32" cy="17" rx="6" ry="2.5" fill="#FFF0C0" opacity=".25"/>
-    <circle cx="28" cy="17" r="1.5" fill="#FFF0C0" opacity=".4"/>
-    <circle cx="32" cy="17" r="1.5" fill="#FFF0C0" opacity=".4"/>
-    <circle cx="36" cy="17" r="1.5" fill="#FFF0C0" opacity=".4"/>
-    <!-- Kreuz-Symbol (steril) -->
-    <rect x="52" y="10" width="8" height="2.5" rx="1" fill="${g}" opacity=".7"/>
-    <rect x="55" y="7" width="2.5" height="8" rx="1" fill="${g}" opacity=".7"/>
-    <!-- Monitor/Puls -->
-    <rect x="50" y="26" width="12" height="10" rx="2" fill="none" stroke="${g}" stroke-width="1.5" opacity=".6"/>
-    <path d="M52 31 L54 31 L55 28 L56.5 34 L58 31 L60 31" fill="none" stroke="${g}" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>
-    ${sk(4,8,3,.85)}${sk(60,4,2.5,.7)}${sk(4,52,2.5,.65)}${sk(60,54,2,.6)}
-  </svg>`;
+    <g filter="${fl}">
+    <line x1="32" y1="4" x2="32" y2="12" stroke="${g}" stroke-width="2" opacity=".5"/>
+    <line x1="24" y1="4" x2="40" y2="4" stroke="${g}" stroke-width="1.2" opacity=".4"/>
+    <ellipse cx="32" cy="15" rx="10" ry="4.5" fill="${g}"/><ellipse cx="32" cy="15" rx="10" ry="4.5" fill="${gs}"/>
+    <ellipse cx="32" cy="14" rx="5.5" ry="2" fill="${gh}" opacity=".35"/>
+    <circle cx="28" cy="14" r="1.2" fill="#FFF8E0" opacity=".45"/>
+    <circle cx="32" cy="14" r="1.2" fill="#FFF8E0" opacity=".45"/>
+    <circle cx="36" cy="14" r="1.2" fill="#FFF8E0" opacity=".45"/>
+    <rect x="30" y="20" width="4" height="8" rx="2" fill="${g}" opacity=".6"/>
+    <line x1="24" y1="26" x2="40" y2="26" stroke="${g}" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>
+    <rect x="10" y="34" width="42" height="12" rx="4" fill="${g}"/><rect x="10" y="34" width="42" height="12" rx="4" fill="${gs}"/>
+    <rect x="14" y="36" width="10" height="6" rx="2.5" fill="${gh}" opacity=".2"/>
+    <line x1="18" y1="38" x2="44" y2="38" stroke="#8B6914" stroke-width=".8" opacity=".2"/>
+    <line x1="18" y1="42" x2="44" y2="42" stroke="#8B6914" stroke-width=".8" opacity=".2"/>
+    <line x1="16" y1="46" x2="13" y2="54" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="46" y1="46" x2="49" y2="54" stroke="${g}" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="13" cy="55" r="1.5" fill="${g}" opacity=".4"/>
+    <circle cx="49" cy="55" r="1.5" fill="${g}" opacity=".4"/>
+    <rect x="48" y="8" width="6" height="2" rx=".8" fill="${g}" opacity=".5"/>
+    <rect x="50" y="6" width="2" height="6" rx=".8" fill="${g}" opacity=".5"/>
+    </g></svg>`;
 
   return "";}
 
@@ -1158,6 +1131,227 @@ function finishCustomerSetup(){
   render();
 }
 
+// ─── PREMIUM 3D CATEGORY ICONS (provider setup) ───
+function provIcon(type){
+  const d=`<defs><linearGradient id="pig" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFF8E0"/><stop offset="18%" stop-color="#F0D878"/><stop offset="45%" stop-color="#D4B050"/><stop offset="72%" stop-color="#B89838"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><linearGradient id="pig2" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#FFF5D0"/><stop offset="50%" stop-color="#E0C050"/><stop offset="100%" stop-color="#A08030"/></linearGradient><linearGradient id="pih" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFEF5" stop-opacity=".9"/><stop offset="50%" stop-color="#FFF0C0" stop-opacity=".3"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></linearGradient><radialGradient id="pis" cx=".3" cy=".22" r=".65"><stop offset="0%" stop-color="#FFFEF5" stop-opacity=".8"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></radialGradient><linearGradient id="pcyl" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#9A7828"/><stop offset="20%" stop-color="#FFF8E0"/><stop offset="40%" stop-color="#F0D878"/><stop offset="65%" stop-color="#C8A84B"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><linearGradient id="prd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E84040"/><stop offset="100%" stop-color="#B02020"/></linearGradient><linearGradient id="pbl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4090D8"/><stop offset="100%" stop-color="#2060A0"/></linearGradient><filter id="pgl"><feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.85 0 0 0 0 0.72 0 0 0 0 0.3 0 0 0 0.5 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="pds"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0a0800" flood-opacity=".25"/></filter></defs>`;
+  const w=`<svg viewBox="0 0 80 80" width="56" height="56">${d}<g filter="url(#pgl)">`;
+  const e=`</g></svg>`;
+
+  if(type==="barber") return `${w}
+    <ellipse cx="40" cy="72" rx="14" ry="3.5" fill="#8B6914" opacity=".5"/>
+    <rect x="36" y="66" width="8" height="6" fill="url(#pig)"/>
+    <rect x="30" y="14" width="20" height="54" rx="10" fill="url(#pcyl)"/>
+    <clipPath id="pbp"><rect x="30" y="14" width="20" height="54" rx="10"/></clipPath>
+    <g clip-path="url(#pbp)">
+      <rect x="30" y="14" width="20" height="54" fill="white" opacity=".85"/>
+      <path d="M28 18l22 10M28 28l22 10M28 38l22 10M28 48l22 10M28 58l22 10" stroke="url(#prd)" stroke-width="6" opacity=".75"/>
+      <path d="M28 23l22 10M28 33l22 10M28 43l22 10M28 53l22 10M28 63l22 10" stroke="url(#pbl)" stroke-width="4.5" opacity=".55"/>
+    </g>
+    <rect x="33" y="14" width="5" height="54" rx="2.5" fill="url(#pih)" opacity=".35"/>
+    <ellipse cx="40" cy="68" rx="10" ry="3" fill="url(#pig)"/>
+    <ellipse cx="40" cy="67.5" rx="7" ry="1.5" fill="url(#pih)" opacity=".35"/>
+    <circle cx="40" cy="12" r="6.5" fill="url(#pig)"/>
+    <circle cx="40" cy="12" r="6.5" fill="url(#pis)"/>
+    <circle cx="38" cy="10" r="2.8" fill="#FFFEF5" opacity=".5"/>
+    <ellipse cx="40" cy="14" rx="10" ry="3.5" fill="url(#pig)"/>
+    <ellipse cx="40" cy="13.5" rx="7" ry="2" fill="url(#pih)" opacity=".3"/>
+  ${e}`;
+
+  if(type==="friseur") return `${w}
+    <g transform="translate(6,6)">
+      <path d="M30 36L14 8" stroke="url(#pig)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M34 36L50 8" stroke="url(#pig)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <circle cx="32" cy="36" r="5" fill="url(#pig)"/>
+      <circle cx="32" cy="36" r="5" fill="url(#pis)"/>
+      <circle cx="31" cy="35" r="2" fill="#FFFEF5" opacity=".45"/>
+      <circle cx="10" cy="6" r="7.5" fill="none" stroke="url(#pig)" stroke-width="3.5"/>
+      <circle cx="10" cy="6" r="3" fill="url(#pig)" opacity=".2"/>
+      <circle cx="54" cy="6" r="7.5" fill="none" stroke="url(#pig)" stroke-width="3.5"/>
+      <circle cx="54" cy="6" r="3" fill="url(#pig)" opacity=".2"/>
+      <path d="M14 8C18 18 24 28 30 36" stroke="url(#pig)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <path d="M14 8C18 18 24 28 30 36" stroke="url(#pih)" stroke-width="2" stroke-linecap="round" fill="none" opacity=".3"/>
+      <path d="M50 8C46 18 40 28 34 36" stroke="url(#pig)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <path d="M30 36L20 58" stroke="url(#pig)" stroke-width="4" stroke-linecap="round" fill="none" opacity=".5"/>
+      <path d="M34 36L44 58" stroke="url(#pig)" stroke-width="4" stroke-linecap="round" fill="none" opacity=".5"/>
+    </g>
+    <g transform="translate(54,22)" opacity=".55">
+      <rect x="0" y="0" width="9" height="42" rx="2" fill="url(#pig)"/>
+      <rect x="0" y="0" width="9" height="42" rx="2" fill="url(#pis)"/>
+      <line x1="0" y1="5" x2="9" y2="5" stroke="#8B6914" stroke-width="1"/>
+      <line x1="0" y1="9" x2="9" y2="9" stroke="#8B6914" stroke-width="1"/>
+      <line x1="0" y1="13" x2="9" y2="13" stroke="#8B6914" stroke-width="1"/>
+      <line x1="0" y1="17" x2="9" y2="17" stroke="#8B6914" stroke-width="1"/>
+      <line x1="0" y1="21" x2="9" y2="21" stroke="#8B6914" stroke-width="1"/>
+      <line x1="0" y1="25" x2="9" y2="25" stroke="#8B6914" stroke-width="1"/>
+      <line x1="0" y1="29" x2="9" y2="29" stroke="#8B6914" stroke-width="1"/>
+      <line x1="0" y1="33" x2="9" y2="33" stroke="#8B6914" stroke-width="1"/>
+      <line x1="0" y1="37" x2="9" y2="37" stroke="#8B6914" stroke-width="1"/>
+    </g>
+  ${e}`;
+
+  if(type==="kosmetik") return `${w}
+    <rect x="24" y="32" width="24" height="30" rx="4" fill="url(#pig)"/>
+    <rect x="24" y="32" width="24" height="30" rx="4" fill="url(#pis)"/>
+    <rect x="27" y="35" width="7" height="24" rx="2" fill="url(#pih)" opacity=".3"/>
+    <rect x="26" y="32" width="20" height="6" rx="2" fill="url(#pig2)"/>
+    <rect x="26" y="32" width="20" height="6" rx="2" fill="url(#pih)" opacity=".4"/>
+    <rect x="30" y="24" width="12" height="10" rx="3" fill="url(#pig)"/>
+    <rect x="30" y="24" width="12" height="10" rx="3" fill="url(#pis)"/>
+    <ellipse cx="36" cy="24" rx="6" ry="2.5" fill="url(#pig2)"/>
+    <ellipse cx="35" cy="23.5" rx="3" ry="1.2" fill="#FFFEF5" opacity=".45"/>
+    <line x1="28" y1="44" x2="44" y2="44" stroke="#8B6914" stroke-width="1" opacity=".3"/>
+    <line x1="28" y1="50" x2="44" y2="50" stroke="#8B6914" stroke-width="1" opacity=".3"/>
+    <circle cx="36" cy="56" r="2.5" fill="#FFF8E0" opacity=".5"/>
+    <path d="M10 44c-3-6-2-14 2-20s10-10 16-10" fill="none" stroke="url(#pig)" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+    <path d="M12 44c-2-5-1-12 2-17s8-8 13-8" fill="none" stroke="url(#pih)" stroke-width="1.5" stroke-linecap="round" opacity=".3"/>
+    <circle cx="10" cy="46" r="3" fill="url(#pig)" opacity=".5"/>
+    <circle cx="10" cy="46" r="1.5" fill="#FFF8E0" opacity=".4"/>
+    <path d="M60 22c2-4 3-8 2-12" stroke="url(#pig)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity=".5"/>
+    <path d="M64 20c2-3 3-7 2-10" stroke="url(#pig)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity=".4"/>
+    <path d="M68 24c1-3 2-6 1-9" stroke="url(#pig)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity=".3"/>
+    <circle cx="61" cy="24" r="1.5" fill="url(#pig)" opacity=".6"/>
+    <circle cx="65" cy="22" r="1.5" fill="url(#pig)" opacity=".5"/>
+    <circle cx="69" cy="26" r="1.5" fill="url(#pig)" opacity=".4"/>
+  ${e}`;
+
+  if(type==="aesthetik") return `${w}
+    <g transform="translate(14,4)">
+      <rect x="16" y="0" width="20" height="8" rx="2" fill="url(#pig2)"/>
+      <rect x="16" y="0" width="20" height="8" rx="2" fill="url(#pis)"/>
+      <rect x="24" y="0" width="4" height="12" rx="2" fill="url(#pig)" opacity=".7"/>
+      <rect x="14" y="8" width="24" height="38" rx="5" fill="url(#pig)"/>
+      <rect x="14" y="8" width="24" height="38" rx="5" fill="url(#pis)"/>
+      <rect x="17" y="11" width="7" height="32" rx="2" fill="url(#pih)" opacity=".3"/>
+      <line x1="16" y1="16" x2="36" y2="16" stroke="#8B6914" stroke-width="1" opacity=".3"/>
+      <line x1="16" y1="21" x2="36" y2="21" stroke="#8B6914" stroke-width=".8" opacity=".25"/>
+      <line x1="16" y1="26" x2="36" y2="26" stroke="#8B6914" stroke-width=".8" opacity=".25"/>
+      <line x1="16" y1="31" x2="36" y2="31" stroke="#8B6914" stroke-width=".8" opacity=".25"/>
+      <line x1="16" y1="36" x2="36" y2="36" stroke="#8B6914" stroke-width=".8" opacity=".25"/>
+      <line x1="16" y1="41" x2="36" y2="41" stroke="#8B6914" stroke-width=".8" opacity=".25"/>
+      <rect x="20" y="18" width="12" height="6" rx="1.5" fill="url(#pig2)" opacity=".15"/>
+      <path d="M26 46l-4 20h8z" fill="url(#pig)"/>
+      <path d="M26 46l-4 20h8z" fill="url(#pis)"/>
+      <path d="M26 66l-1 4h2z" fill="#FFF8E0" opacity=".7"/>
+    </g>
+  ${e}`;
+
+  if(type==="nail") return `${w}
+    <g transform="translate(8,4)">
+      <path d="M8 50Q4 38 6 28Q8 18 14 12Q18 8 22 10Q26 12 27 20L28 50Z" fill="url(#pig)"/>
+      <path d="M8 50Q4 38 6 28Q8 18 14 12Q18 8 22 10Q26 12 27 20L28 50Z" fill="url(#pis)"/>
+      <path d="M10 40Q8 30 10 22Q12 16 16 12" fill="none" stroke="url(#pih)" stroke-width="2.5" stroke-linecap="round" opacity=".35"/>
+      <ellipse cx="18" cy="16" rx="5" ry="6" fill="url(#pig2)" opacity=".2"/>
+      <line x1="10" y1="50" x2="26" y2="50" stroke="#8B6914" stroke-width="1.5" opacity=".4"/>
+    </g>
+    <g transform="translate(42,2)">
+      <rect x="6" y="28" width="14" height="18" rx="4" fill="url(#pig)"/>
+      <rect x="6" y="28" width="14" height="18" rx="4" fill="url(#pis)"/>
+      <rect x="9" y="30" width="4" height="14" rx="1.5" fill="url(#pih)" opacity=".3"/>
+      <rect x="10" y="22" width="6" height="8" rx="2.5" fill="url(#pig2)"/>
+      <rect x="10" y="22" width="6" height="8" rx="2.5" fill="url(#pih)" opacity=".4"/>
+      <rect x="11" y="14" width="4" height="10" rx="2" fill="url(#pig)"/>
+      <circle cx="13" cy="14" r="2.5" fill="url(#pig2)"/>
+      <circle cx="12.5" cy="13.5" r="1.2" fill="#FFFEF5" opacity=".5"/>
+      <path d="M13 46l-2 14" stroke="url(#pig)" stroke-width="2.5" stroke-linecap="round" opacity=".6"/>
+      <circle cx="11" cy="62" r="2" fill="url(#pig)" opacity=".5"/>
+      <path d="M7 46l1 4" stroke="url(#pig)" stroke-width="2" stroke-linecap="round" opacity=".4"/>
+      <path d="M19 46l-1 4" stroke="url(#pig)" stroke-width="2" stroke-linecap="round" opacity=".4"/>
+    </g>
+  ${e}`;
+
+  if(type==="massage") return `${w}
+    <ellipse cx="40" cy="72" rx="28" ry="3" fill="#8B6914" opacity=".2"/>
+    <rect x="8" y="44" width="64" height="12" rx="6" fill="url(#pig)"/>
+    <rect x="8" y="44" width="64" height="12" rx="6" fill="url(#pis)"/>
+    <rect x="12" y="46" width="18" height="6" rx="3" fill="url(#pih)" opacity=".25"/>
+    <ellipse cx="14" cy="42" rx="7" ry="4" fill="url(#pig2)" opacity=".5"/>
+    <ellipse cx="14" cy="41" rx="4" ry="2" fill="url(#pih)" opacity=".3"/>
+    <line x1="14" y1="56" x2="11" y2="66" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="66" y1="56" x2="69" y2="66" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="11" cy="67" r="2" fill="url(#pig)" opacity=".6"/>
+    <circle cx="69" cy="67" r="2" fill="url(#pig)" opacity=".6"/>
+    <circle cx="38" cy="20" r="6" fill="url(#pig)"/>
+    <circle cx="38" cy="20" r="6" fill="url(#pis)"/>
+    <circle cx="37" cy="19" r="2.5" fill="#FFFEF5" opacity=".4"/>
+    <path d="M44 20c3 1 5 3 6 6" stroke="url(#pig)" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M50 26c1 3 1 6 0 9" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 35c-1 3-3 5-5 7" stroke="url(#pig)" stroke-width="3" stroke-linecap="round" fill="none" opacity=".7"/>
+    <path d="M56 30c2-1 4-3 5-5" stroke="url(#pig)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+    <path d="M61 25c1-2 1-4 0-6" stroke="url(#pig)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+    <path d="M56 30c1 1 2 1 3 0" stroke="url(#pig)" stroke-width="3" stroke-linecap="round" fill="none" opacity=".6"/>
+    <path d="M61 25c1 0 2 0 3-1" stroke="url(#pig)" stroke-width="3" stroke-linecap="round" fill="none" opacity=".5"/>
+  ${e}`;
+
+  if(type==="lash") return `${w}
+    <path d="M8 44Q40 20 72 44" fill="url(#pig)"/>
+    <path d="M8 44Q40 20 72 44" fill="url(#pis)"/>
+    <path d="M8 44Q40 60 72 44" fill="url(#pig)"/>
+    <path d="M8 44Q40 52 72 44" fill="url(#pih)" opacity=".3"/>
+    <ellipse cx="40" cy="44" rx="12" ry="9" fill="url(#pig)" stroke="#8B6914" stroke-width="1.5"/>
+    <ellipse cx="40" cy="44" rx="12" ry="9" fill="url(#pis)"/>
+    <radialGradient id="piris" cx=".4" cy=".35" r=".5"><stop offset="0%" stop-color="#FFF8E0"/><stop offset="40%" stop-color="#E8C860"/><stop offset="100%" stop-color="#A08030"/></radialGradient>
+    <circle cx="40" cy="44" r="5.5" fill="url(#piris)"/>
+    <circle cx="40" cy="44" r="3" fill="#1a1508"/>
+    <circle cx="42" cy="42" r="1.3" fill="#FFFEF5" opacity=".9"/>
+    <circle cx="39" cy="45" r=".6" fill="#FFFEF5" opacity=".5"/>
+    <path d="M14 34l-4-16" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M20 28l-2-16" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M28 24l0-15" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M36 22l1-14" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M44 22l-1-14" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M52 24l0-15" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M60 28l2-16" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M66 34l4-16" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M10 18Q28 6 40 6Q52 6 70 18" fill="none" stroke="url(#pig)" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>
+    <path d="M14 34l-4-16" stroke="url(#pih)" stroke-width="1.5" stroke-linecap="round" opacity=".3"/>
+    <path d="M20 28l-2-16" stroke="url(#pih)" stroke-width="1.5" stroke-linecap="round" opacity=".3"/>
+    <path d="M28 24l0-15" stroke="url(#pih)" stroke-width="1.5" stroke-linecap="round" opacity=".3"/>
+  ${e}`;
+
+  if(type==="arzt") return `${w}
+    <rect x="26" y="8" width="28" height="64" rx="6" fill="url(#pig)"/>
+    <rect x="26" y="8" width="28" height="64" rx="6" fill="url(#pis)"/>
+    <rect x="8" y="26" width="64" height="28" rx="6" fill="url(#pig)"/>
+    <rect x="8" y="26" width="64" height="28" rx="6" fill="url(#pis)"/>
+    <rect x="30" y="12" width="20" height="56" rx="3" fill="url(#pih)" opacity=".15"/>
+    <rect x="12" y="30" width="56" height="20" rx="3" fill="url(#pih)" opacity=".15"/>
+    <line x1="40" y1="18" x2="40" y2="62" stroke="#FFF8E0" stroke-width="8" stroke-linecap="round" opacity=".25"/>
+    <line x1="18" y1="40" x2="62" y2="40" stroke="#FFF8E0" stroke-width="8" stroke-linecap="round" opacity=".25"/>
+    <line x1="40" y1="20" x2="40" y2="60" stroke="#FFFEF5" stroke-width="4" stroke-linecap="round" opacity=".35"/>
+    <line x1="20" y1="40" x2="60" y2="40" stroke="#FFFEF5" stroke-width="4" stroke-linecap="round" opacity=".35"/>
+    <rect x="29" y="11" width="8" height="14" rx="2" fill="url(#pih)" opacity=".2"/>
+    <rect x="11" y="29" width="14" height="8" rx="2" fill="url(#pih)" opacity=".2"/>
+  ${e}`;
+
+  if(type==="opraum") return `${w}
+    <line x1="40" y1="4" x2="40" y2="16" stroke="url(#pig)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="30" y1="4" x2="50" y2="4" stroke="url(#pig)" stroke-width="2" opacity=".6"/>
+    <ellipse cx="40" cy="20" rx="14" ry="6" fill="url(#pig)"/>
+    <ellipse cx="40" cy="20" rx="14" ry="6" fill="url(#pis)"/>
+    <ellipse cx="40" cy="19" rx="8" ry="3" fill="url(#pih)" opacity=".4"/>
+    <circle cx="34" cy="19" r="2" fill="#FFF8E0" opacity=".5"/>
+    <circle cx="40" cy="19" r="2" fill="#FFF8E0" opacity=".5"/>
+    <circle cx="46" cy="19" r="2" fill="#FFF8E0" opacity=".5"/>
+    <rect x="37" y="26" width="6" height="10" rx="3" fill="url(#pig)" opacity=".7"/>
+    <line x1="30" y1="32" x2="50" y2="32" stroke="url(#pig)" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+    <rect x="14" y="42" width="52" height="14" rx="5" fill="url(#pig)"/>
+    <rect x="14" y="42" width="52" height="14" rx="5" fill="url(#pis)"/>
+    <rect x="18" y="44" width="14" height="8" rx="3" fill="url(#pih)" opacity=".25"/>
+    <line x1="22" y1="46" x2="56" y2="46" stroke="#8B6914" stroke-width="1" opacity=".25"/>
+    <line x1="22" y1="50" x2="56" y2="50" stroke="#8B6914" stroke-width="1" opacity=".25"/>
+    <rect x="24" y="56" width="8" height="4" rx="1" fill="url(#pig)" opacity=".6"/>
+    <rect x="48" y="56" width="8" height="4" rx="1" fill="url(#pig)" opacity=".6"/>
+    <line x1="22" y1="60" x2="18" y2="70" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="58" y1="60" x2="62" y2="70" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="18" cy="71" r="2" fill="url(#pig)" opacity=".5"/>
+    <circle cx="62" cy="71" r="2" fill="url(#pig)" opacity=".5"/>
+    <rect x="60" y="10" width="8" height="2.5" rx="1" fill="url(#pig)" opacity=".6"/>
+    <rect x="63" y="7" width="2.5" height="8" rx="1" fill="url(#pig)" opacity=".6"/>
+  ${e}`;
+
+  return "";
+}
+
 // ─── PROVIDER QUICK-SETUP WIZARD (5 steps) ───
 function renderProvSetup(){
   const s=state.provSetup;
@@ -1166,140 +1360,16 @@ function renderProvSetup(){
 
   // ═══ STEP 1: Choose your craft ═══
   if(s===1){
-    const _d=`<defs><linearGradient id="ig" x1="0" y1="0" x2=".5" y2="1"><stop offset="0%" stop-color="#FBE88A"/><stop offset="30%" stop-color="#E8C860"/><stop offset="60%" stop-color="#C8A84B"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><linearGradient id="ih" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF8DC" stop-opacity=".9"/><stop offset="100%" stop-color="#E8C860" stop-opacity="0"/></linearGradient><radialGradient id="is" cx=".3" cy=".2" r=".8"><stop offset="0%" stop-color="#FFFDE8" stop-opacity=".7"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></radialGradient><filter id="gl"><feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.9 0 0 0 0 0.78 0 0 0 0 0.3 0 0 0 0.6 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
-    const _star=(x,y,sz=5)=>`<g opacity=".85"><line x1="${x}" y1="${y-sz}" x2="${x}" y2="${y+sz}" stroke="#FBE88A" stroke-width="1.2" stroke-linecap="round"/><line x1="${x-sz}" y1="${y}" x2="${x+sz}" y2="${y}" stroke="#FBE88A" stroke-width="1.2" stroke-linecap="round"/><line x1="${x-sz*.6}" y1="${y-sz*.6}" x2="${x+sz*.6}" y2="${y+sz*.6}" stroke="#FBE88A" stroke-width=".7" stroke-linecap="round"/><line x1="${x+sz*.6}" y1="${y-sz*.6}" x2="${x-sz*.6}" y2="${y+sz*.6}" stroke="#FBE88A" stroke-width=".7" stroke-linecap="round"/></g>`;
-    const cats=[
-      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <rect x="28" y="12" width="24" height="56" rx="12" fill="url(#ig)"/>
-        <rect x="28" y="12" width="24" height="56" rx="12" fill="url(#is)"/>
-        <ellipse cx="40" cy="12" rx="12" ry="4.5" fill="url(#ig)"/>
-        <ellipse cx="40" cy="12" rx="12" ry="4.5" fill="url(#ih)" opacity=".5"/>
-        <circle cx="40" cy="9" r="4" fill="url(#ig)"/>
-        <circle cx="40" cy="8" r="2" fill="#FFFDE8" opacity=".7"/>
-        <ellipse cx="40" cy="68" rx="12" ry="4" fill="#8B6914"/>
-        <clipPath id="bp"><rect x="28" y="12" width="24" height="56" rx="12"/></clipPath>
-        <g clip-path="url(#bp)">
-          <path d="M28 20l24 10M28 30l24 10M28 40l24 10M28 50l24 10" stroke="#C0392B" stroke-width="5" opacity=".7"/>
-          <path d="M28 25l24 10M28 35l24 10M28 45l24 10M28 55l24 10" stroke="#2E86C1" stroke-width="4" opacity=".5"/>
-        </g>
-        ${_star(60,10,5)}${_star(16,22,4)}${_star(62,60,3.5)}</g></svg>`},
-      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <g transform="translate(4,4)">
-          <circle cx="14" cy="10" r="7" fill="url(#ig)"/><circle cx="14" cy="9" r="3" fill="url(#ih)" opacity=".5"/>
-          <circle cx="38" cy="10" r="7" fill="url(#ig)"/><circle cx="38" cy="9" r="3" fill="url(#ih)" opacity=".5"/>
-          <path d="M14 17C14 24 22 32 26 38" stroke="url(#ig)" stroke-width="5" stroke-linecap="round" fill="none"/>
-          <path d="M38 17C38 24 30 32 26 38" stroke="url(#ig)" stroke-width="5" stroke-linecap="round" fill="none"/>
-          <line x1="26" y1="38" x2="26" y2="62" stroke="url(#ig)" stroke-width="4.5" stroke-linecap="round"/>
-          <line x1="20" y1="62" x2="32" y2="62" stroke="url(#ig)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M26 38l-12 21M26 38l12 21" stroke="url(#ig)" stroke-width="4" stroke-linecap="round" fill="none" opacity=".6"/>
-        </g>
-        <g transform="translate(52,16)">
-          <rect x="0" y="0" width="10" height="48" rx="2.5" fill="url(#ig)"/>
-          <rect x="0" y="0" width="10" height="48" rx="2.5" fill="url(#is)"/>
-          <line x1="0" y1="5" x2="10" y2="5" stroke="#8B6914" stroke-width="1.5"/>
-          <line x1="0" y1="10" x2="10" y2="10" stroke="#8B6914" stroke-width="1.5"/>
-          <line x1="0" y1="15" x2="10" y2="15" stroke="#8B6914" stroke-width="1.5"/>
-          <line x1="0" y1="20" x2="10" y2="20" stroke="#8B6914" stroke-width="1.5"/>
-          <line x1="0" y1="25" x2="10" y2="25" stroke="#8B6914" stroke-width="1.5"/>
-          <line x1="0" y1="30" x2="10" y2="30" stroke="#8B6914" stroke-width="1.5"/>
-          <line x1="0" y1="35" x2="10" y2="35" stroke="#8B6914" stroke-width="1.5"/>
-          <line x1="0" y1="40" x2="10" y2="40" stroke="#8B6914" stroke-width="1.5"/>
-          <line x1="0" y1="45" x2="10" y2="45" stroke="#8B6914" stroke-width="1.5"/>
-        </g>
-        ${_star(68,10,4.5)}${_star(8,62,3.5)}${_star(46,68,3)}</g></svg>`},
-      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <path d="M28 62C16 56 8 44 8 32c0-12 6-22 16-26c3-1.2 5 .5 5 3v3c0 3-3 5-5 8c-4 5-5 10-5 14c0 8 4 14 9 18z" fill="url(#ig)"/>
-        <path d="M28 62C16 56 8 44 8 32c0-12 6-22 16-26c3-1.2 5 .5 5 3v3c0 3-3 5-5 8c-4 5-5 10-5 14c0 8 4 14 9 18z" fill="url(#is)"/>
-        <circle cx="20" cy="28" r="2.5" fill="#FBE88A" opacity=".8"/>
-        <path d="M22 42c4 2.5 8 2 11-2" stroke="url(#ig)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-        <path d="M27 13c2-2 4-4 4-7" stroke="url(#ig)" stroke-width="2" stroke-linecap="round" opacity=".6"/>
-        <rect x="50" y="8" width="12" height="18" rx="6" fill="url(#ig)"/>
-        <rect x="50" y="8" width="12" height="18" rx="6" fill="url(#ih)" opacity=".5"/>
-        <rect x="53" y="26" width="6" height="34" rx="3" fill="url(#ig)"/>
-        <rect x="53" y="26" width="6" height="34" rx="3" fill="url(#is)"/>
-        <path d="M53 60l-2 6h10l-2-6" fill="url(#ig)"/>
-        <circle cx="56" cy="63" r="2" fill="#FBE88A" opacity=".9"/>
-        ${_star(66,6,5)}${_star(10,66,4)}${_star(42,6,3.5)}</g></svg>`},
-      {id:"aesthetik",nm:"Ästhetik",sub:"Botox · Filler · Anti-Aging",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <rect x="30" y="6" width="20" height="36" rx="10" fill="url(#ig)"/>
-        <rect x="30" y="6" width="20" height="36" rx="10" fill="url(#is)"/>
-        <rect x="33" y="8" width="14" height="10" rx="5" fill="url(#ih)" opacity=".4"/>
-        <line x1="30" y1="18" x2="50" y2="18" stroke="#8B6914" stroke-width="1.8"/>
-        <rect x="34" y="20" width="12" height="8" rx="2" fill="#FBE88A" opacity=".3"/>
-        <path d="M40 42l-8 28h16z" fill="url(#ig)"/>
-        <path d="M40 42l-8 28h16z" fill="url(#is)"/>
-        <path d="M40 70l-2.5-5h5z" fill="#FBE88A" opacity=".9"/>
-        <circle cx="40" cy="30" r="3" fill="#FBE88A" opacity=".5"/>
-        ${_star(16,12,5.5)}${_star(64,14,5)}${_star(14,58,4)}${_star(66,56,4.5)}</g></svg>`},
-      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <rect x="14" y="24" width="20" height="36" rx="5" fill="url(#ig)"/>
-        <rect x="14" y="24" width="20" height="36" rx="5" fill="url(#is)"/>
-        <rect x="18" y="16" width="12" height="12" rx="4" fill="url(#ig)"/>
-        <rect x="18" y="16" width="12" height="12" rx="4" fill="url(#ih)" opacity=".5"/>
-        <line x1="24" y1="28" x2="24" y2="48" stroke="#8B6914" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>
-        <circle cx="24" cy="54" r="2" fill="#FBE88A" opacity=".6"/>
-        <path d="M48 8c0-4 3.5-6 7.5-6S63 4 63 8v24c0 5-3.5 9-7.5 9S48 37 48 33z" fill="url(#ig)"/>
-        <path d="M48 8c0-4 3.5-6 7.5-6S63 4 63 8v24c0 5-3.5 9-7.5 9S48 37 48 33z" fill="url(#is)"/>
-        <line x1="48" y1="16" x2="63" y2="16" stroke="#8B6914" stroke-width="1.5" opacity=".5"/>
-        <ellipse cx="55.5" cy="10" rx="3.5" ry="4" fill="#FBE88A" opacity=".35"/>
-        <path d="M51 46l4.5-8 4.5 8" fill="url(#ig)" opacity=".7"/>
-        ${_star(10,10,5)}${_star(68,48,4.5)}${_star(40,70,3.5)}</g></svg>`},
-      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <rect x="6" y="42" width="68" height="10" rx="5" fill="url(#ig)"/>
-        <rect x="6" y="42" width="68" height="10" rx="5" fill="url(#is)"/>
-        <circle cx="18" cy="24" r="7" fill="url(#ig)"/>
-        <circle cx="17" cy="22" r="3" fill="url(#ih)" opacity=".5"/>
-        <path d="M18 31c1-2 3-6 6-14" stroke="url(#ig)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-        <path d="M24 17c5 2 12 6 18 10" stroke="url(#ig)" stroke-width="4" stroke-linecap="round" fill="none"/>
-        <path d="M42 27c1 4 0 10-2 15" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round" fill="none" opacity=".6"/>
-        <path d="M56 34c-2-2-4-5-5-8" stroke="url(#ig)" stroke-width="4.5" stroke-linecap="round"/>
-        <path d="M62 30c-2-2-4-4-5-7" stroke="url(#ig)" stroke-width="4.5" stroke-linecap="round"/>
-        <line x1="14" y1="52" x2="11" y2="64" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <line x1="66" y1="52" x2="69" y2="64" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        ${_star(68,12,5)}${_star(8,64,4)}${_star(48,8,4.5)}</g></svg>`},
-      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <path d="M8 42q32-26 64 0" fill="url(#ig)"/>
-        <path d="M8 42q32-26 64 0" fill="url(#is)"/>
-        <path d="M8 42q32 16 64 0" fill="url(#ig)"/>
-        <path d="M8 42q32 8 64 0" fill="url(#ih)" opacity=".3"/>
-        <ellipse cx="40" cy="42" rx="11" ry="8" fill="url(#ig)" stroke="#8B6914" stroke-width="1.5"/>
-        <ellipse cx="40" cy="42" rx="11" ry="8" fill="url(#is)"/>
-        <circle cx="40" cy="42" r="5" fill="#FBE88A" opacity=".7"/>
-        <circle cx="41" cy="41" r="2" fill="#1a1508"/>
-        <circle cx="42" cy="40" r=".8" fill="#FFFDE8"/>
-        <path d="M16 28l-5-14" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M22 22l-3-14" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M30 18l-1-13" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M40 16l0-12" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M50 18l1-13" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M58 22l3-14" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M64 28l5-14" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M14 28q26-8 52 0" fill="none" stroke="url(#ig)" stroke-width="3" stroke-linecap="round"/>
-        ${_star(6,60,4.5)}${_star(74,60,4.5)}${_star(40,72,3.5)}</g></svg>`},
-      {id:"arzt",nm:"Arzt / Klinik",sub:"Derma · Laser · Behandlung",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <rect x="26" y="6" width="28" height="68" rx="6" fill="url(#ig)"/>
-        <rect x="26" y="6" width="28" height="68" rx="6" fill="url(#is)"/>
-        <rect x="6" y="26" width="68" height="28" rx="6" fill="url(#ig)"/>
-        <rect x="6" y="26" width="68" height="28" rx="6" fill="url(#is)"/>
-        <rect x="32" y="32" width="16" height="16" rx="3" fill="#FBE88A" opacity=".25"/>
-        <line x1="40" y1="28" x2="40" y2="52" stroke="#FBE88A" stroke-width="5" stroke-linecap="round"/>
-        <line x1="28" y1="40" x2="52" y2="40" stroke="#FBE88A" stroke-width="5" stroke-linecap="round"/>
-        ${_star(12,12,5.5)}${_star(68,12,5)}${_star(12,68,4.5)}${_star(68,68,4)}</g></svg>`},
-      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:`<svg viewBox="0 0 80 80" width="56" height="56">${_d}<g filter="url(#gl)">
-        <circle cx="40" cy="16" r="14" fill="url(#ig)"/>
-        <circle cx="40" cy="16" r="14" fill="url(#is)"/>
-        <circle cx="40" cy="16" r="7" fill="url(#ih)" opacity=".5"/>
-        <circle cx="40" cy="14" r="3.5" fill="#FBE88A" opacity=".8"/>
-        <rect x="37" y="30" width="6" height="12" rx="3" fill="url(#ig)"/>
-        <line x1="28" y1="36" x2="52" y2="36" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <rect x="14" y="46" width="52" height="16" rx="5" fill="url(#ig)"/>
-        <rect x="14" y="46" width="52" height="16" rx="5" fill="url(#is)"/>
-        <line x1="22" y1="50" x2="58" y2="50" stroke="#8B6914" stroke-width="1.2" opacity=".4"/>
-        <line x1="22" y1="54" x2="58" y2="54" stroke="#8B6914" stroke-width="1.2" opacity=".4"/>
-        <line x1="22" y1="58" x2="58" y2="58" stroke="#8B6914" stroke-width="1.2" opacity=".4"/>
-        <line x1="18" y1="62" x2="14" y2="72" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        <line x1="62" y1="62" x2="66" y2="72" stroke="url(#ig)" stroke-width="3.5" stroke-linecap="round"/>
-        ${_star(12,10,5)}${_star(68,8,4.5)}${_star(10,68,4)}</g></svg>`}
+const cats=[
+      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart",ic:provIcon("barber")},
+      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling",ic:provIcon("friseur")},
+      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser",ic:provIcon("kosmetik")},
+      {id:"aesthetik",nm:"Ästhetik",sub:"Botox · Filler · Anti-Aging",ic:provIcon("aesthetik")},
+      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre",ic:provIcon("nail")},
+      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone",ic:provIcon("massage")},
+      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting",ic:provIcon("lash")},
+      {id:"arzt",nm:"Arzt / Klinik",sub:"Derma · Laser · Behandlung",ic:provIcon("arzt")},
+      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:provIcon("opraum")}
     ];
     body=`
     <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Was ist dein Handwerk?</p>
