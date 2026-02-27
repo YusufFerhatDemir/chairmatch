@@ -1016,7 +1016,8 @@ let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:n
   unlockRequests:JSON.parse(localStorage.getItem("cm_unlock")||"[]"),
   provServices:JSON.parse(localStorage.getItem("cm_prov_svcs")||"null"),
   provPrices:JSON.parse(localStorage.getItem("cm_prov_prices")||"{}"),
-  b2bRentals:JSON.parse(localStorage.getItem("cm_b2b")||"null")
+  b2bRentals:JSON.parse(localStorage.getItem("cm_b2b")||"null"),
+  pricelistPhoto:localStorage.getItem("cm_pricelist")||null
 };
 if(localStorage.getItem("cm_theme")==="light"){state.theme="light";document.body.classList.add("light");}
 if(localStorage.getItem("cm_lang"))state.lang=localStorage.getItem("cm_lang");
@@ -1282,10 +1283,13 @@ function renderFilterSheet(){
 
 // ─── DETAIL (with gallery tab) ───
 function renderDetail(){
-  const p=state.detail;const dt=state.detailTab;
+  const p=state.detail;const dt=state.detailTab;const isB2B=state.role==="B2B";
   const specs=SPECS.filter(s=>p.sps.includes(s.id));
-  const tabs=["info","services","team","bewertungen","galerie"].map(tb=>{
-    const label=tb==="bewertungen"?t("reviews"):tb==="galerie"?t("gallery"):t(tb);
+  const baseTabs=["info","services","team","bewertungen","galerie"];
+  if(isB2B&&p.rental&&p.rental.length>0&&!baseTabs.includes("vermietung"))baseTabs.splice(1,0,"vermietung");
+  const tabs=baseTabs.map(tb=>{
+    const labels={info:t("info"),services:t("services"),team:t("team"),bewertungen:t("reviews"),galerie:t("gallery"),vermietung:"Vermietung"};
+    const label=labels[tb]||tb;
     return`<button onclick="setDetailTab('${tb}')" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;flex-shrink:0;background:${dt===tb?"var(--gold)":"var(--c3)"};color:${dt===tb?"#080706":"var(--stone)"};border:1px solid ${dt===tb?"var(--gold)":"var(--border)"}">${label}</button>`;}).join("");
   let content="";
   if(dt==="info") content=`<p style="font-size:14px;color:var(--stone);line-height:1.7;margin-bottom:14px">${p.tl}</p>
@@ -1299,13 +1303,16 @@ function renderDetail(){
       ${(()=>{const h=getHrs(p.id);const days=["Mo","Di","Mi","Do","Fr","Sa","So"];const today=["So","Mo","Di","Mi","Do","Fr","Sa"][new Date().getDay()];return days.map(d=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:${d===today?800:400};color:${d===today?"var(--gold2)":"var(--stone)"}">${d}</span><span style="font-weight:${d===today?700:400};color:${h[d]==="Geschlossen"?"#C04040":d===today?"var(--gold2)":"var(--cream)"}">${h[d]}</span></div>`).join("");})()}
     </div>
     ${p.rental&&p.rental.length>0?`<div class="card" style="padding:14px;margin-bottom:16px;border:1.5px solid rgba(200,168,75,.2)">
-      <p class="lgold" style="margin-bottom:10px">💺 Vermietung</p>
-      ${p.rental.map(r=>{const ico=r.type==="stuhl"?"💺":r.type==="liege"?"🛏":r.type==="opraum"?"🏥":"🚪";const nm=r.type==="stuhl"?"Stuhl":r.type==="liege"?"Liege":r.type==="opraum"?"OP-Raum":"Raum/Kabine";return`
+      <p class="lgold" style="margin-bottom:10px">${rentalIcon("stuhl")} Vermietung${isB2B?" — Jetzt mieten":""}</p>
+      ${p.rental.map(r=>{const nm=r.type==="stuhl"?"Barber-Stuhl":r.type==="liege"?"Liege":r.type==="opraum"?"OP-Raum":"Kosmetik-Kabine";return`
         <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">${ico}</span><span style="font-size:13px;font-weight:600">${nm}</span></div>
-          <span style="font-size:15px;font-weight:800;color:var(--gold2)">${r.pr} €/Tag</span>
+          <div style="display:flex;align-items:center;gap:8px">${rentalIcon(r.type)}<span style="font-size:13px;font-weight:600">${nm}</span></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:15px;font-weight:800;color:var(--gold2)">${r.pr} €/Tag</span>
+            ${isB2B?`<button onclick="setDetailTab('vermietung')" style="padding:5px 10px;border-radius:8px;background:var(--gold);border:none;color:#080706;font-size:11px;font-weight:700;cursor:pointer">Details</button>`:""}
+          </div>
         </div>`;}).join("")}
-      <p style="font-size:11px;color:#6ABF80;margin-top:8px;font-weight:600">✓ Direkt buchen — Sofort bestätigt</p>
+      <p style="font-size:11px;color:#6ABF80;margin-top:8px;font-weight:600">✓ Direkt anfragen — Schnelle Bestätigung</p>
     </div>`:""}
     <div class="card" style="padding:14px"><p class="lgold" style="margin-bottom:10px">${t("whyUs")}</p>
       ${[[t("noComm"),t("vs")],[t("direct"),t("noDetour")],[t("verified"),t("checked")]].map(([k,v])=>`
@@ -1360,10 +1367,58 @@ function renderDetail(){
         </div>
       </div>
     </div>`).join("")}</div>`:`<div style="text-align:center;padding:40px"><p style="font-size:40px;margin-bottom:10px">📸</p><p style="color:var(--stone)">Noch keine Galeriebilder</p></div>`;
+  // B2B VERMIETUNG TAB
+  if(dt==="vermietung"&&p.rental&&p.rental.length>0){
+    const hrs=getHrs(p.id);const openSt=isOpenNow(p.id);
+    const days=["Mo","Di","Mi","Do","Fr","Sa","So"];
+    content=`
+    <div class="card" style="padding:16px;margin-bottom:12px;border:1.5px solid rgba(200,168,75,.2);background:linear-gradient(135deg,rgba(200,168,75,.04),transparent)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--gold),#D4AE54);display:flex;align-items:center;justify-content:center">${rentalIcon("stuhl")}</div>
+        <div style="flex:1">
+          <p style="font-size:16px;font-weight:800">${p.nm}</p>
+          <p style="font-size:12px;color:var(--stone)">${p.st} · ${p.city}</p>
+        </div>
+        <span class="badge ${openSt==="open"?"bgr":"bgd"}" style="font-size:10px">${openSt==="open"?"Geöffnet":openSt==="info"?"Auf Anfrage":"Geschlossen"}</span>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:6px">${days.map(d=>`<span style="flex:1;text-align:center;font-size:10px;padding:4px 0;border-radius:6px;background:${hrs[d]==="Geschlossen"?"rgba(192,64,64,.1)":"rgba(74,138,90,.08)"};color:${hrs[d]==="Geschlossen"?"#C04040":"#6ABF80"};font-weight:600">${d}</span>`).join("")}</div>
+      <p style="font-size:10px;color:var(--stone);text-align:center">${days.map(d=>hrs[d]==="Geschlossen"?"—":hrs[d]).filter(h=>h!=="—")[0]||""}</p>
+    </div>
+    <p class="lgold" style="margin-bottom:10px">Verfügbare Mietobjekte</p>
+    ${p.rental.map(r=>{
+      const nm=r.type==="stuhl"?"Barber-Stuhl":r.type==="liege"?"Kosmetik-Liege":r.type==="opraum"?"OP-Raum":"Kosmetik-Kabine";
+      const desc=r.type==="stuhl"?"Vollausgestatteter Arbeitsplatz mit Stuhl, Spiegel & Werkzeug":r.type==="liege"?"Professionelle Behandlungsliege mit Beleuchtung":r.type==="opraum"?"Steriler Raum mit OP-Tisch, Beleuchtung & Monitore":"Geschlossener Behandlungsraum mit Waschbecken";
+      const b2bItem=(state.b2bRentals||[]).find(b=>b.type===r.type);
+      const photo=b2bItem?b2bItem.photo:null;
+      const size=b2bItem?b2bItem.size:"";
+      return`
+    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden;border:1.5px solid rgba(200,168,75,.15)">
+      ${photo?`<img src="${photo}" style="width:100%;height:140px;object-fit:cover"/>`:`
+      <div style="height:100px;background:linear-gradient(135deg,var(--c2),var(--c3));display:flex;align-items:center;justify-content:center;gap:10px">
+        <div style="transform:scale(1.8)">${rentalIcon(r.type)}</div>
+        <p style="font-size:14px;color:var(--stone)">Foto folgt</p>
+      </div>`}
+      <div style="padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:8px">${rentalIcon(r.type)}<p style="font-size:15px;font-weight:800">${nm}</p></div>
+          <p style="font-size:18px;font-weight:800;color:var(--gold2)">${r.pr} €<span style="font-size:11px;font-weight:400;color:var(--stone)">/Tag</span></p>
+        </div>
+        <p style="font-size:12px;color:var(--stone);line-height:1.5;margin-bottom:8px">${desc}</p>
+        ${size?`<p style="font-size:11px;color:var(--stone2);margin-bottom:8px">📐 Größe: ${size}</p>`:""}
+        <div style="display:flex;gap:8px">
+          <a href="https://wa.me/?text=${encodeURIComponent("Hallo, ich möchte den "+nm+" bei "+p.nm+" mieten. Preis: "+r.pr+"€/Tag. Via ChairMatch")}" target="_blank" style="flex:1;padding:11px;background:#25D366;color:#fff;border-radius:10px;font-size:12px;font-weight:700;text-align:center;text-decoration:none">💬 Anfragen</a>
+          <button onclick="openBooking('${p.id}')" style="flex:1;padding:11px;border-radius:10px;background:var(--gold);border:none;color:#080706;font-size:12px;font-weight:700;cursor:pointer">Jetzt mieten</button>
+        </div>
+      </div>
+    </div>`;}).join("")}
+    <div style="padding:12px 14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.1)">
+      <p style="font-size:11px;color:var(--stone);line-height:1.5">💡 Alle Preise pro Tag. Kontaktiere den Anbieter per WhatsApp für Wochen-/Monatspreise oder um den Raum vorher zu besichtigen.</p>
+    </div>`;
+  }
   return`<div class="sticky">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:12px">
       <button onclick="goBack()" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;min-width:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
-      <button class="bgold" style="width:auto;padding:10px 20px;font-size:var(--font-md);flex-shrink:0" onclick="openBooking('${p.id}')">${t("buchen")}</button>
+      <button class="bgold" style="width:auto;padding:10px 20px;font-size:var(--font-md);flex-shrink:0" onclick="${isB2B?"setDetailTab('vermietung')":"openBooking('"+p.id+"')"}">${isB2B?"Mieten":t("buchen")}</button>
     </div>
     <p style="font-size:var(--font-lg);font-weight:800;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nm}</p>
     <p style="font-size:var(--font-sm);color:var(--stone);margin-bottom:10px">${p.st} · ${p.city}</p>
@@ -1478,7 +1533,7 @@ function renderProviderSection(){
           <p style="font-size:11px;color:var(--stone)">${activeCount} von ${catalog.length} aktiv · So sehen Kunden dein Angebot</p></div>
         <button onclick="state.adminTab='services';goSub('admin')" style="padding:6px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--gold);color:var(--gold2);font-size:11px;font-weight:700;cursor:pointer">Bearbeiten</button>
       </div>
-      ${state.provServices.length===0?`<p style="font-size:12px;color:var(--stone2);padding:14px 0;text-align:center">Noch keine Services aktiviert. Tippe "Bearbeiten" um deine Dienste freizuschalten.</p>`:""}
+      ${state.provServices&&state.provServices.length===0?`<p style="font-size:12px;color:var(--stone2);padding:14px 0;text-align:center">Noch keine Services aktiviert. Tippe "Bearbeiten" um deine Dienste freizuschalten.</p>`:!state.provServices?`<p style="font-size:12px;color:var(--stone2);padding:14px 0;text-align:center">Tippe "Bearbeiten" um deine Services-Karte einzurichten.</p>`:""}
       ${catalog.filter(sv=>state.provServices.includes(sv.nm)).slice(0,4).map(sv=>`
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
         <div><p style="font-size:13px;font-weight:700">${sv.nm}</p><p style="font-size:11px;color:var(--stone)">${sv.dur} min</p></div>
@@ -1534,10 +1589,17 @@ function renderB2BSection(){
               <img src="${item.photo}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"/>
               <button onclick="removeB2BPhoto('${at.type}')" style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid var(--border);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
             </div>`:`
-            <div onclick="document.getElementById('b2bPhoto_${at.type}').click()" style="border:2px dashed var(--c5);border-radius:12px;padding:20px;text-align:center;cursor:pointer">
-              <p style="font-size:11px;color:var(--stone)">📸 Tippe zum Hochladen</p>
-              <p style="font-size:10px;color:var(--stone2)">So sehen Mieter deinen ${at.nm}</p>
+            <div style="display:flex;gap:8px">
+              <div onclick="document.getElementById('b2bCam_${at.type}').click()" style="flex:1;border:2px dashed var(--c5);border-radius:12px;padding:16px;text-align:center;cursor:pointer">
+                <p style="font-size:18px;margin-bottom:4px">📸</p>
+                <p style="font-size:11px;color:var(--gold);font-weight:700">Foto aufnehmen</p>
+              </div>
+              <div onclick="document.getElementById('b2bPhoto_${at.type}').click()" style="flex:1;border:2px dashed var(--c5);border-radius:12px;padding:16px;text-align:center;cursor:pointer">
+                <p style="font-size:18px;margin-bottom:4px">🖼</p>
+                <p style="font-size:11px;color:var(--stone);font-weight:700">Aus Galerie</p>
+              </div>
             </div>`}
+            <input type="file" id="b2bCam_${at.type}" accept="image/*" capture="environment" style="display:none" onchange="handleB2BPhoto('${at.type}',event)"/>
             <input type="file" id="b2bPhoto_${at.type}" accept="image/*" style="display:none" onchange="handleB2BPhoto('${at.type}',event)"/>
           </div>
           <div style="padding:10px 12px;background:rgba(74,138,90,.06);border-radius:10px;border:1px solid rgba(74,138,90,.12)">
@@ -1572,6 +1634,17 @@ function handleB2BPhoto(type,e){
 function removeB2BPhoto(type){
   const item=state.b2bRentals.find(r=>r.type===type);
   if(item){item.photo=null;localStorage.setItem("cm_b2b",JSON.stringify(state.b2bRentals));render();}
+}
+function handlePricelistPhoto(e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>5*1024*1024){showToast("Max 5 MB!");return;}
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    state.pricelistPhoto=ev.target.result;
+    localStorage.setItem("cm_pricelist",state.pricelistPhoto);
+    showToast("Preisliste hochgeladen! Wird ausgewertet...");
+    render();
+  };reader.readAsDataURL(file);
 }
 // ─── ACCOUNT (with loyalty card, theme, lang, dbSeat) ───
 function renderAccount(){
@@ -2342,7 +2415,24 @@ function renderAdmin(){
         </div>`:`<span style="font-size:12px;color:var(--stone2)">Aus</span>`}
       </div>
     </div>`;}).join("")}
-    <div style="margin-top:14px;padding:14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.1)">
+    <div style="margin-top:14px;padding:14px;background:linear-gradient(135deg,rgba(200,168,75,.06),transparent);border-radius:14px;border:1.5px solid rgba(200,168,75,.2)">
+      <p style="font-size:13px;color:var(--gold2);font-weight:700;margin-bottom:8px">📸 Preisliste abfotografieren</p>
+      <p style="font-size:11px;color:var(--stone);line-height:1.5;margin-bottom:10px">Fotografiere deine bestehende Preisliste — wir übernehmen die Services automatisch. Oder füge oben manuell hinzu.</p>
+      <div style="display:flex;gap:8px">
+        <button onclick="document.getElementById('pricelistCam').click()" style="flex:1;padding:12px;border-radius:10px;background:var(--gold);border:none;color:#080706;font-size:12px;font-weight:700;cursor:pointer">📸 Foto aufnehmen</button>
+        <button onclick="document.getElementById('pricelistFile').click()" style="flex:1;padding:12px;border-radius:10px;background:var(--c3);border:1px solid var(--border);color:var(--stone);font-size:12px;font-weight:700;cursor:pointer">🖼 Aus Galerie</button>
+      </div>
+      <input type="file" id="pricelistCam" accept="image/*" capture="environment" style="display:none" onchange="handlePricelistPhoto(event)"/>
+      <input type="file" id="pricelistFile" accept="image/*" style="display:none" onchange="handlePricelistPhoto(event)"/>
+      ${state.pricelistPhoto?`<div style="margin-top:10px;position:relative">
+        <img src="${state.pricelistPhoto}" style="width:100%;border-radius:10px;border:1px solid var(--border)"/>
+        <div style="margin-top:8px;padding:10px 12px;background:rgba(74,138,90,.06);border-radius:8px;border:1px solid rgba(74,138,90,.12)">
+          <p style="font-size:11px;color:#6ABF80;font-weight:700">✓ Preisliste hochgeladen</p>
+          <p style="font-size:10px;color:var(--stone);margin-top:2px">Wird ausgewertet — Services werden automatisch übernommen.</p>
+        </div>
+      </div>`:""}
+    </div>
+    <div style="margin-top:10px;padding:14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.1)">
       <p style="font-size:12px;color:var(--gold2);font-weight:700;margin-bottom:4px">💡 So funktioniert's</p>
       <p style="font-size:11px;color:var(--stone);line-height:1.5">Aktiviere deine Dienste → Kunden sehen sie in deinem Profil als Servicekarte. Du kannst die Preise jederzeit individuell anpassen.</p>
     </div>`;
@@ -2503,19 +2593,19 @@ function renderRegister(){
     <button class="bgold" onclick="goSub(null)">Zurück zur App</button></div>`;
   let body="";
   if(s===1)body=`<div style="display:flex;flex-direction:column;gap:12px">
-    ${[["Vorname","vn","text","Max"],["Nachname","nn","text","Mustermann"],["E-Mail","em","email","max@mail.de"],["Telefon","tel","tel","+49 170 ..."]].map(([l,k,tp,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" type="${tp}" value="${f[k]}" oninput="updateReg('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}</div>`;
+    ${[["Vorname","vn","text","Max"],["Nachname","nn","text","Mustermann"],["E-Mail","em","email","max@mail.de"],["Telefon","tel","tel","+49 170 ..."]].map(([l,k,tp,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" type="${tp}" value="${f[k]}" oninput="updateRegText('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}</div>`;
   if(s===2){
     const isBarbFris=f.kat==="Barbershop"||f.kat==="Friseur";
     const needGewerbe=!(f.freelancer&&isBarbFris);
     body=`<div style="display:flex;flex-direction:column;gap:12px">
-    ${[["Geschäftsname","geschaeft","Mein Studio"],["Straße + Nr.","st","Münchener Str. 17"],["PLZ","plz","60329"],["Stadt","city","Frankfurt"]].map(([l,k,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" value="${f[k]}" oninput="updateReg('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}
+    ${[["Geschäftsname","geschaeft","Mein Studio"],["Straße + Nr.","st","Münchener Str. 17"],["PLZ","plz","60329"],["Stadt","city","Frankfurt"]].map(([l,k,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" value="${f[k]}" oninput="updateRegText('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}
     <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:8px">Kategorie</label>
     <div style="display:flex;gap:7px;flex-wrap:wrap">${CATS.map(c=>`<button onclick="updateReg('kat','${c.lbl}')" style="padding:9px 13px;border-radius:10px;font-size:12px;font-weight:700;background:${f.kat===c.lbl?"var(--gold)":"var(--c3)"};color:${f.kat===c.lbl?"#080706":"var(--stone)"};border:1px solid ${f.kat===c.lbl?"var(--gold)":"var(--border)"}">${c.lbl}</button>`).join("")}</div></div>
     <div onclick="updateReg('freelancer',${!f.freelancer})" style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:${f.freelancer?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f.freelancer?"var(--gold)":"var(--border)"};cursor:pointer">
       <div class="check ${f.freelancer?"on":""}">${f.freelancer?"✓":""}</div>
       <div><p style="font-size:13px;font-weight:700">Ich bin Freiberufler / Mieter</p><p style="font-size:11px;color:var(--stone)">Ich möchte einen Stuhl/Raum anmieten (nicht vermieten)</p></div>
     </div>
-    <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">IBAN</label><input class="inp" value="${f.iban}" oninput="updateReg('iban',this.value)" placeholder="DE89 3704 ..."/></div>
+    <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">IBAN</label><input class="inp" value="${f.iban}" oninput="updateRegText('iban',this.value)" placeholder="DE89 3704 ..."/></div>
     ${needGewerbe?`<div onclick="updateReg('gb',${!f.gb})" style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--c2);border-radius:12px;border:1px solid ${f.gb?"var(--gold)":"var(--border)"};cursor:pointer">
       <div class="check ${f.gb?"on":""}">${f.gb?"✓":""}</div>
       <div><p style="font-size:13px;font-weight:700">Gewerbeschein vorhanden</p><p style="font-size:11px;color:var(--stone)">Hochladen nach Registrierung</p></div>
@@ -2545,7 +2635,7 @@ function renderRegister(){
       <div style="flex:1"><p style="font-size:13px;font-weight:700">${opt.nm} ✦</p><p style="font-size:11px;color:var(--stone)">${opt.desc}</p></div>
       <div class="check ${f[opt.k]?"on":""}">${f[opt.k]?"✓":""}</div>
     </div>
-    ${f[opt.k]?`<div style="margin-left:46px"><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Preis/Tag (€)</label><input class="inp" type="number" value="${f[opt.k+"_pr"]||""}" oninput="updateReg('${opt.k}_pr',this.value)" placeholder="${opt.ph}"/></div>`:""}`;
+    ${f[opt.k]?`<div style="margin-left:46px"><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Preis/Tag (€)</label><input class="inp" type="number" value="${f[opt.k+"_pr"]||""}" oninput="updateRegText('${opt.k}_pr',this.value)" placeholder="${opt.ph}"/></div>`:""}`;
       return`
     <div style="display:flex;gap:10px;align-items:center;padding:13px 15px;background:var(--c2);border-radius:12px;border:1.5px dashed var(--c5);opacity:.7">
       <div style="width:36px;display:flex;align-items:center;justify-content:center;opacity:.4">${opt.svg}</div>
@@ -2735,7 +2825,8 @@ function confirmBooking(){
   state.bookings.unshift(booking);localStorage.setItem("cm_bookings",JSON.stringify(state.bookings));
   state.bookDone=true;showToast(t("confirm")+" 🎉");render();
 }
-function updateReg(k,v){state.regData[k]=v==="true"?true:v==="false"?false:v;render();}
+function updateReg(k,v){state.regData[k]=v==="true"?true:v==="false"?false:v;if(typeof v==="boolean")render();}
+function updateRegText(k,v){state.regData[k]=v;}
 function setRegStep(s){state.regStep=s;render();}
 function submitReg(){state.regDone=true;showToast("Registrierung eingereicht!");render();}
 function toggleService(nm){
