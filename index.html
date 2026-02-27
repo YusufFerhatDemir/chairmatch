@@ -77,6 +77,7 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 .fu{animation:fu .4s ease both}
 .d1{animation-delay:.07s}.d2{animation-delay:.14s}.d3{animation-delay:.22s}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes starGlow{0%,100%{text-shadow:0 0 4px rgba(245,208,96,.3)}50%{text-shadow:0 0 12px rgba(245,208,96,.8),0 0 24px rgba(245,208,96,.4)}}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 .toast{position:fixed;top:calc(20px + var(--sai-top));left:50%;transform:translateX(-50%);background:var(--gold);color:#080706;padding:12px 24px;border-radius:12px;font-size:13px;font-weight:700;z-index:999;animation:toastIn .3s ease,toastOut .3s ease 2s forwards;pointer-events:none;max-width:calc(100vw - 40px);text-align:center}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
@@ -466,6 +467,55 @@ function catSVG(type){
 
   return "";}
 
+// ─── MINI RENTAL ICONS (26px, gold, premium quality) ───
+function rentalIcon(type){
+  const w=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">`;
+  const g="#C8A84B";const g2="#E8D06A";const g3="#FFF0C0";
+  if(type==="stuhl") return `${w}
+    <rect x="10" y="4" width="12" height="24" rx="6" fill="none" stroke="${g}" stroke-width="1.5"/>
+    <ellipse cx="16" cy="4" rx="6.5" ry="3" fill="${g}" opacity=".6"/>
+    <ellipse cx="16" cy="3.5" rx="3.5" ry="1.5" fill="${g3}" opacity=".25"/>
+    <rect x="8" y="27" width="16" height="3" rx="1.5" fill="${g}" opacity=".5"/>
+    <line x1="10" y1="8" x2="22" y2="14" stroke="${g}" stroke-width="1.5" opacity=".2"/>
+    <line x1="10" y1="14" x2="22" y2="20" stroke="${g}" stroke-width="1.5" opacity=".2"/>
+    <line x1="10" y1="20" x2="22" y2="26" stroke="${g}" stroke-width="1.5" opacity=".2"/>
+  </svg>`;
+  if(type==="liege") return `${w}
+    <rect x="2" y="14" width="24" height="10" rx="3" fill="none" stroke="${g}" stroke-width="1.5"/>
+    <path d="M4 14 L2 6 Q2 3 5 3 L16 3 Q19 3 18 6 L16 14" fill="none" stroke="${g}" stroke-width="1.2" opacity=".7"/>
+    <ellipse cx="14" cy="9" rx="8" ry="3" fill="none" stroke="${g}" stroke-width=".8" opacity=".4"/>
+    <rect x="5" y="24" width="2" height="5" rx=".8" fill="${g}" opacity=".5"/>
+    <rect x="21" y="24" width="2" height="5" rx=".8" fill="${g}" opacity=".5"/>
+    <circle cx="27" cy="10" r="4" fill="none" stroke="${g}" stroke-width="1.2" opacity=".6"/>
+    <circle cx="27" cy="10" r="1.5" fill="${g3}" opacity=".3"/>
+  </svg>`;
+  if(type==="raum") return `${w}
+    <rect x="5" y="3" width="18" height="26" rx="2" fill="none" stroke="${g}" stroke-width="1.5"/>
+    <rect x="8" y="6" width="12" height="9" rx="1" fill="none" stroke="${g}" stroke-width=".8" opacity=".3"/>
+    <rect x="8" y="18" width="12" height="9" rx="1" fill="none" stroke="${g}" stroke-width=".8" opacity=".3"/>
+    <circle cx="20" cy="16" r="1.8" fill="${g}" opacity=".6"/>
+    <circle cx="28" cy="12" r="3" fill="none" stroke="${g}" stroke-width="1.2" opacity=".6"/>
+    <line x1="28" y1="15" x2="28" y2="22" stroke="${g}" stroke-width="1.2" opacity=".5"/>
+    <line x1="28" y1="19" x2="30" y2="19" stroke="${g}" stroke-width="1" opacity=".4"/>
+  </svg>`;
+  if(type==="opraum") return `${w}
+    <rect x="3" y="14" width="22" height="8" rx="2" fill="none" stroke="${g}" stroke-width="1.5"/>
+    <line x1="10" y1="15" x2="10" y2="21" stroke="${g}" stroke-width=".6" opacity=".3"/>
+    <line x1="17" y1="15" x2="17" y2="21" stroke="${g}" stroke-width=".6" opacity=".3"/>
+    <rect x="11" y="22" width="6" height="3" rx=".8" fill="${g}" opacity=".4"/>
+    <rect x="13" y="25" width="2" height="4" rx=".5" fill="${g}" opacity=".5"/>
+    <rect x="9" y="29" width="10" height="2" rx="1" fill="${g}" opacity=".4"/>
+    <line x1="14" y1="2" x2="14" y2="8" stroke="${g}" stroke-width="1.2" opacity=".5"/>
+    <ellipse cx="14" cy="10" rx="6" ry="3" fill="none" stroke="${g}" stroke-width="1.2" opacity=".7"/>
+    <circle cx="12" cy="10" r=".8" fill="${g3}" opacity=".4"/>
+    <circle cx="14" cy="10" r=".8" fill="${g3}" opacity=".4"/>
+    <circle cx="16" cy="10" r=".8" fill="${g3}" opacity=".4"/>
+    <rect x="25" y="5" width="4" height="1.5" rx=".5" fill="${g}" opacity=".6"/>
+    <rect x="26.2" y="3.5" width="1.5" height="4" rx=".5" fill="${g}" opacity=".6"/>
+  </svg>`;
+  return "";
+}
+
 // ─── PREMIUM CLASSIC BARBER CHAIR ───
 function dbSeat(){
   return `<svg width="140" height="155" viewBox="0 0 280 310" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -852,9 +902,9 @@ function dbKosmetik(){
 
 // ═══════════════ i18n ═══════════════
 const LANG={
-  de:{welcome:"Willkommen bei ChairMatch",subtitle:"Dein Beauty-Partner in ganz Deutschland",chair:"Stuhl · Liege · Kabine",chairSub:"Stühle, Liegen & Räume vermieten — Jetzt entdecken",book:"Sofort buchen",bookSub:"Termin in 30 Sekunden · Sofortige Bestätigung",iAm:"Ich bin...",customer:"Kunde — ich suche Termine",provider:"Anbieter — ich biete Services",b2b:"B2B — Stuhl / Kabine mieten",next:"Weiter →",go:"Los geht's",morning:"Guten Morgen",afternoon:"Guten Tag",evening:"Guten Abend",nationwide:"Deutschlandweit buchen",search:"Stadt, Name, Service...",categories:"Kategorien",all:"Alle",topSpecs:"Top Spezialisten",availToday:"Heute verfügbar",allProviders:"Alle Anbieter",found:"gefunden",from:"ab",available:"verfügbar",soldOut:"Ausgebucht",offers:"Angebote",discount:"Rabatt",bookNow:"Jetzt buchen",refer:"Freunde werben",referSub:"Du & dein Freund erhalten je 5 €",shareLink:"Link teilen",perRef:"pro Empfehlung",back:"← Zurück",buchen:"Buchen",info:"Info",services:"Services",team:"Team",reviews:"Bewertungen",gallery:"Galerie",whyUs:"Warum ChairMatch?",noComm:"Faire Konditionen",vs:"Beste Preise garantiert",direct:"Direktbuchung",noDetour:"Kein Umweg",verified:"Verifiziert",checked:"Gewerbeschein geprüft",service:"Service",day:"Tag",time:"Uhrzeit",specialist:"Spezialist",contact:"Kontakt",name:"Name",email:"E-Mail",step:"Schritt",confirm:"Bestätigt!",total:"Gesamt",noFee:"Sofortige Bestätigung · Kostenlose Stornierung 24h",done:"Fertig",shareWA:"Per WhatsApp teilen",favs:"Favoriten",noFavs:"Noch keine Favoriten",noFavsSub:"Tippe ♡ um Salons zu speichern",account:"Konto",bookings:"Buchungen",legal:"Rechtliches",privacy:"Datenschutzerklärung (DSGVO)",imprint:"Impressum",register:"Als Anbieter registrieren",loyalty:"Treuekarte",stampsOf:"Stempel",freeService:"Gratis-Service!",loyaltySub:"Sammle Stempel bei jeder Buchung",lang:"Sprache",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Benachrichtigungen",filter:"Filter",priceRange:"Preis",minRating:"Min. Bewertung",city:"Stadt",allCities:"Alle Städte",onlyAvail:"Nur verfügbar",onlyDiscount:"Nur Rabatt",apply:"Anwenden",reset:"Zurücksetzen",map:"Karte",list:"Liste",promoTitle:"Spare bis zu 15%",promoSub:"auf erste Buchung",promoCode:"Code: CHAIR2026",noResults:"Keine Ergebnisse",tryOther:"Versuche andere Filter",confirmed:"Bestätigt",pending:"Ausstehend",cancelled:"Storniert",chairRent:"Stuhl vermieten",premChair:"Premium Stuhl & Kabinen",zeroComm:"Deutschlandweit verfügbar",becomeProvider:"→ Anbieter werden",refBalance:"Referral Guthaben",recommend:"Empfehlen",special:"SONDERANGEBOT",before:"Vorher",after:"Nachher",phone:"Telefon",linkCopied:"Link kopiert!",writeReview:"Bewertung schreiben",reviewPlaceholder:"Wie war dein Erlebnis?",submitReview:"Absenden",reviewSubmitted:"Bewertung abgeschickt!",promoApply:"Anwenden",promoInvalid:"Ungültiger Code",promoApplied:"Code angewendet!",enterPromo:"Promo-Code eingeben",redeemNow:"Jetzt einlösen",redeemed:"Eingelöst!",loyaltyRedeemMsg:"Gratis-Service eingelöst!",cancelBooking:"Stornieren",cancelConfirm:"Termin wirklich stornieren?",bookingCancelled:"Termin storniert",noBookings:"Keine Buchungen",noBookingsSub:"Buche deinen ersten Termin",specialRequests:"Besondere Wünsche",notesPlaceholder:"z.B. Allergien, Wünsche...",noNotifications:"Keine Benachrichtigungen",noNotificationsSub:"Du bist auf dem neuesten Stand!",nlTitle:"Exklusive Angebote erhalten",nlSub:"Melde dich für unseren Newsletter an und erhalte sofort 10% Rabatt!",nlPlaceholder:"Deine E-Mail-Adresse",nlButton:"Anmelden & 10% sichern",nlSuccess:"Willkommen! Dein 10%-Code: WELCOME10",nlAlready:"Du bist bereits angemeldet!",refTitle:"Freunde einladen, Geld verdienen",refSteps:"So geht's:",refStep1:"Teile deinen Link mit Freunden",refStep2:"Dein Freund bucht seinen ersten Termin",refStep3:"Ihr beide erhaltet 5 € Guthaben",refCode:"Dein Empfehlungscode",refCopied:"Code kopiert!",refInvited:"Eingeladene Freunde",refEarned:"Verdient",premBadge:"PREMIUM",premFeatured:"Empfohlen",adminPanel:"Admin-Panel",adminDash:"Dashboard",adminLogo:"Logo & Branding",adminServices:"Services verwalten",adminStats:"Statistiken",adminSettings:"Einstellungen",todayBookings:"Termine heute",totalRevenue:"Umsatz (Monat)",avgRating:"Ø Bewertung",totalReviews:"Bewertungen",uploadLogo:"Logo hochladen",logoDesc:"Lade dein Geschäftslogo hoch (JPG, PNG)",generateIcons:"AI-Icons generieren",iconDesc:"Wir erstellen 3 professionelle Varianten aus deinem Logo",iconStyle1:"Geometric",iconStyle2:"Minimal",iconStyle3:"Luxury",selectIcon:"Dieses Icon verwenden",selectedIcon:"Aktives Icon",removeLogo:"Logo entfernen",generating:"Generiere Varianten...",adminNoShop:"Noch kein Geschäft registriert",adminRegFirst:"Registriere dich zuerst als Anbieter",saPanel:"Super Admin",saProviders:"Anbieter",saFeatures:"Features",saAnalytics:"Analyse",saTogglePrem:"Premium aktivieren/deaktivieren",saTier:"Tier ändern",saBoost:"Boost anpassen",saActive:"Aktiv",saInactive:"Inaktiv",saIconFeature:"AI-Icon Feature",saTotalProviders:"Anbieter gesamt",saPremiumCount:"Premium Anbieter",saGoldCount:"Gold Anbieter",saFreeCount:"Free Anbieter",pricingTitle:"Abonnement-Pakete",pricingFree:"Starter",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/Monat",pricingFreeSub:"Kostenlos starten",pricingPremSub:"Mehr Sichtbarkeit",pricingGoldSub:"Maximale Reichweite",pricingCurrent:"Aktuelles Paket",pricingUpgrade:"Upgrade",pricingFeatures:"Inklusive"},
-  en:{welcome:"Welcome to ChairMatch",subtitle:"Your Beauty Partner across Germany",chair:"Chair · Bed · Room",chairSub:"Rent chairs, beds & rooms — Discover now",book:"Book instantly",bookSub:"Appointment in 30 seconds · Instant confirmation",iAm:"I am...",customer:"Customer — looking for appointments",provider:"Provider — offering services",b2b:"B2B — rent a chair / cabin",next:"Next →",go:"Let's go!",morning:"Good Morning",afternoon:"Good Afternoon",evening:"Good Evening",nationwide:"Book nationwide",search:"City, name, service...",categories:"Categories",all:"All",topSpecs:"Top Specialists",availToday:"Available today",allProviders:"All Providers",found:"found",from:"from",available:"available",soldOut:"Sold out",offers:"Offers",discount:"Discount",bookNow:"Book now",refer:"Refer Friends",referSub:"You & your friend each get €5",shareLink:"Share link",perRef:"per referral",back:"← Back",buchen:"Book",info:"Info",services:"Services",team:"Team",reviews:"Reviews",gallery:"Gallery",whyUs:"Why ChairMatch?",noComm:"Fair conditions",vs:"Best prices guaranteed",direct:"Direct booking",noDetour:"No detour",verified:"Verified",checked:"Business license checked",service:"Service",day:"Day",time:"Time",specialist:"Specialist",contact:"Contact",name:"Name",email:"Email",step:"Step",confirm:"Confirmed!",total:"Total",noFee:"Instant confirmation · Free cancellation 24h",done:"Done",shareWA:"Share via WhatsApp",favs:"Favorites",noFavs:"No favorites yet",noFavsSub:"Tap ♡ to save salons",account:"Account",bookings:"Bookings",legal:"Legal",privacy:"Privacy Policy (GDPR)",imprint:"Imprint",register:"Register as provider",loyalty:"Loyalty Card",stampsOf:"stamps",freeService:"Free service!",loyaltySub:"Collect stamps with every booking",lang:"Language",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Notifications",filter:"Filter",priceRange:"Price",minRating:"Min. Rating",city:"City",allCities:"All cities",onlyAvail:"Available only",onlyDiscount:"Discount only",apply:"Apply",reset:"Reset",map:"Map",list:"List",promoTitle:"Save up to 15%",promoSub:"on first booking",promoCode:"Code: CHAIR2026",noResults:"No results",tryOther:"Try different filters",confirmed:"Confirmed",pending:"Pending",cancelled:"Cancelled",chairRent:"Rent a chair",premChair:"Premium Chairs & Cabins",zeroComm:"Available nationwide",becomeProvider:"→ Become a provider",refBalance:"Referral Balance",recommend:"Recommend",special:"SPECIAL OFFER",before:"Before",after:"After",phone:"Phone",linkCopied:"Link copied!",writeReview:"Write a review",reviewPlaceholder:"How was your experience?",submitReview:"Submit",reviewSubmitted:"Review submitted!",promoApply:"Apply",promoInvalid:"Invalid code",promoApplied:"Code applied!",enterPromo:"Enter promo code",redeemNow:"Redeem now",redeemed:"Redeemed!",loyaltyRedeemMsg:"Free service redeemed!",cancelBooking:"Cancel",cancelConfirm:"Really cancel appointment?",bookingCancelled:"Booking cancelled",noBookings:"No bookings",noBookingsSub:"Book your first appointment",specialRequests:"Special requests",notesPlaceholder:"e.g. allergies, preferences...",noNotifications:"No notifications",noNotificationsSub:"You're all caught up!",nlTitle:"Get exclusive offers",nlSub:"Sign up for our newsletter and get 10% off instantly!",nlPlaceholder:"Your email address",nlButton:"Sign up & get 10% off",nlSuccess:"Welcome! Your 10% code: WELCOME10",nlAlready:"You're already subscribed!",refTitle:"Invite friends, earn money",refSteps:"How it works:",refStep1:"Share your link with friends",refStep2:"Your friend books their first appointment",refStep3:"You both receive €5 credit",refCode:"Your referral code",refCopied:"Code copied!",refInvited:"Friends invited",refEarned:"Earned",premBadge:"PREMIUM",premFeatured:"Featured",adminPanel:"Admin Panel",adminDash:"Dashboard",adminLogo:"Logo & Branding",adminServices:"Manage Services",adminStats:"Statistics",adminSettings:"Settings",todayBookings:"Bookings today",totalRevenue:"Revenue (month)",avgRating:"Avg. Rating",totalReviews:"Reviews",uploadLogo:"Upload Logo",logoDesc:"Upload your business logo (JPG, PNG)",generateIcons:"Generate AI Icons",iconDesc:"We create 3 professional variants from your logo",iconStyle1:"Geometric",iconStyle2:"Minimal",iconStyle3:"Luxury",selectIcon:"Use this icon",selectedIcon:"Active icon",removeLogo:"Remove logo",generating:"Generating variants...",adminNoShop:"No business registered yet",adminRegFirst:"Register as a provider first",saPanel:"Super Admin",saProviders:"Providers",saFeatures:"Features",saAnalytics:"Analytics",saTogglePrem:"Activate/deactivate premium",saTier:"Change tier",saBoost:"Adjust boost",saActive:"Active",saInactive:"Inactive",saIconFeature:"AI Icon Feature",saTotalProviders:"Total providers",saPremiumCount:"Premium providers",saGoldCount:"Gold providers",saFreeCount:"Free providers",pricingTitle:"Subscription Plans",pricingFree:"Starter",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/month",pricingFreeSub:"Start for free",pricingPremSub:"More visibility",pricingGoldSub:"Maximum reach",pricingCurrent:"Current plan",pricingUpgrade:"Upgrade",pricingFeatures:"Included"},
-  tr:{welcome:"ChairMatch'e Hoş Geldiniz",subtitle:"Almanya genelinde güzellik ortağınız",chair:"Koltuk · Şezlong · Oda",chairSub:"Koltuk, şezlong & oda kiralama — Keşfet",book:"Hemen randevu al",bookSub:"30 saniyede randevu · Anında onay",iAm:"Ben...",customer:"Müşteri — randevu arıyorum",provider:"Hizmet veren — hizmet sunuyorum",b2b:"B2B — koltuk / kabin kiralama",next:"İleri →",go:"Başlayalım!",morning:"Günaydın",afternoon:"İyi Günler",evening:"İyi Akşamlar",nationwide:"Almanya genelinde rezervasyon",search:"Şehir, isim, hizmet...",categories:"Kategoriler",all:"Tümü",topSpecs:"En İyi Uzmanlar",availToday:"Bugün müsait",allProviders:"Tüm Sağlayıcılar",found:"bulundu",from:"dan",available:"müsait",soldOut:"Dolu",offers:"Teklifler",discount:"İndirim",bookNow:"Şimdi rezerve et",refer:"Arkadaşını Davet Et",referSub:"Sen ve arkadaşın 5€ kazanır",shareLink:"Link paylaş",perRef:"davet başına",back:"← Geri",buchen:"Rezerve Et",info:"Bilgi",services:"Hizmetler",team:"Ekip",reviews:"Değerlendirmeler",gallery:"Galeri",whyUs:"Neden ChairMatch?",noComm:"Uygun koşullar",vs:"En iyi fiyat garantisi",direct:"Direkt rezervasyon",noDetour:"Aracısız",verified:"Doğrulanmış",checked:"İşletme belgesi kontrol edildi",service:"Hizmet",day:"Gün",time:"Saat",specialist:"Uzman",contact:"İletişim",name:"İsim",email:"E-Posta",step:"Adım",confirm:"Onaylandı!",total:"Toplam",noFee:"Anında onay · 24 saat ücretsiz iptal",done:"Tamam",shareWA:"WhatsApp ile paylaş",favs:"Favoriler",noFavs:"Henüz favori yok",noFavsSub:"Salonları kaydetmek için ♡ tıklayın",account:"Hesap",bookings:"Rezervasyonlar",legal:"Yasal",privacy:"Gizlilik Politikası (KVKK)",imprint:"Künye",register:"Sağlayıcı olarak kayıt ol",loyalty:"Sadakat Kartı",stampsOf:"damga",freeService:"Ücretsiz hizmet!",loyaltySub:"Her rezervasyonda damga toplayın",lang:"Dil",theme:"Tasarım",darkMode:"Koyu Mod",lightMode:"Açık Mod",notifications:"Bildirimler",filter:"Filtre",priceRange:"Fiyat",minRating:"Min. Puan",city:"Şehir",allCities:"Tüm şehirler",onlyAvail:"Sadece müsait",onlyDiscount:"Sadece indirimli",apply:"Uygula",reset:"Sıfırla",map:"Harita",list:"Liste",promoTitle:"%15'e kadar tasarruf",promoSub:"ilk rezervasyonda",promoCode:"Kod: CHAIR2026",noResults:"Sonuç yok",tryOther:"Farklı filtre deneyin",confirmed:"Onaylandı",pending:"Beklemede",cancelled:"İptal",chairRent:"Koltuk kirala",premChair:"Premium Koltuk & Kabinler",zeroComm:"Almanya genelinde mevcut",becomeProvider:"→ Sağlayıcı ol",refBalance:"Referans Bakiyesi",recommend:"Tavsiye Et",special:"ÖZEL TEKLİF",before:"Önce",after:"Sonra",phone:"Telefon",linkCopied:"Link kopyalandı!",writeReview:"Değerlendirme yaz",reviewPlaceholder:"Deneyimin nasıldı?",submitReview:"Gönder",reviewSubmitted:"Değerlendirme gönderildi!",promoApply:"Uygula",promoInvalid:"Geçersiz kod",promoApplied:"Kod uygulandı!",enterPromo:"Promo kodu girin",redeemNow:"Şimdi kullan",redeemed:"Kullanıldı!",loyaltyRedeemMsg:"Ücretsiz hizmet kullanıldı!",cancelBooking:"İptal et",cancelConfirm:"Randevuyu iptal etmek istiyor musunuz?",bookingCancelled:"Randevu iptal edildi",noBookings:"Rezervasyon yok",noBookingsSub:"İlk randevunuzu alın",specialRequests:"Özel istekler",notesPlaceholder:"ör. alerji, tercihler...",noNotifications:"Bildirim yok",noNotificationsSub:"Her şey güncel!",nlTitle:"Özel tekliflerden haberdar ol",nlSub:"Bültenimize kaydol, anında %10 indirim kazan!",nlPlaceholder:"E-posta adresiniz",nlButton:"Kaydol & %10 kazan",nlSuccess:"Hoş geldin! %10 kodun: WELCOME10",nlAlready:"Zaten kayıtlısınız!",refTitle:"Arkadaşlarını davet et, para kazan",refSteps:"Nasıl çalışır:",refStep1:"Linkini arkadaşlarınla paylaş",refStep2:"Arkadaşın ilk randevusunu alsın",refStep3:"İkiniz de 5€ bakiye kazanın",refCode:"Davet kodun",refCopied:"Kod kopyalandı!",refInvited:"Davet edilen arkadaşlar",refEarned:"Kazanılan",premBadge:"PREMİUM",premFeatured:"Öne Çıkan",adminPanel:"Yönetim Paneli",adminDash:"Gösterge Paneli",adminLogo:"Logo & Marka",adminServices:"Hizmet Yönetimi",adminStats:"İstatistikler",adminSettings:"Ayarlar",todayBookings:"Bugünkü randevular",totalRevenue:"Gelir (aylık)",avgRating:"Ort. Puan",totalReviews:"Değerlendirmeler",uploadLogo:"Logo yükle",logoDesc:"İşletme logonuzu yükleyin (JPG, PNG)",generateIcons:"AI İkon üret",iconDesc:"Logonuzdan 3 profesyonel varyant oluşturuyoruz",iconStyle1:"Geometrik",iconStyle2:"Minimal",iconStyle3:"Lüks",selectIcon:"Bu ikonu kullan",selectedIcon:"Aktif ikon",removeLogo:"Logoyu kaldır",generating:"Varyantlar oluşturuluyor...",adminNoShop:"Henüz kayıtlı işletme yok",adminRegFirst:"Önce hizmet veren olarak kayıt olun",saPanel:"Süper Admin",saProviders:"Sağlayıcılar",saFeatures:"Özellikler",saAnalytics:"Analiz",saTogglePrem:"Premium aktif/deaktif",saTier:"Tier değiştir",saBoost:"Boost ayarla",saActive:"Aktif",saInactive:"Pasif",saIconFeature:"AI İkon Özelliği",saTotalProviders:"Toplam sağlayıcı",saPremiumCount:"Premium sağlayıcı",saGoldCount:"Gold sağlayıcı",saFreeCount:"Ücretsiz sağlayıcı",pricingTitle:"Abonelik Paketleri",pricingFree:"Başlangıç",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/ay",pricingFreeSub:"Ücretsiz başla",pricingPremSub:"Daha fazla görünürlük",pricingGoldSub:"Maksimum erişim",pricingCurrent:"Mevcut paket",pricingUpgrade:"Yükselt",pricingFeatures:"Dahil"}
+  de:{welcome:"Willkommen bei ChairMatch",subtitle:"Dein Beauty-Partner in ganz Deutschland",chair:"Stuhl · Liege · Kabine",chairSub:"Stühle, Liegen & Räume vermieten — Jetzt entdecken",book:"Sofort buchen",bookSub:"Termin in 30 Sekunden · Sofortige Bestätigung",iAm:"Ich bin...",customer:"Kunde — ich suche Termine",provider:"Anbieter — ich biete Services",b2b:"B2B — Stuhl / Kabine mieten",next:"Weiter →",go:"Los geht's",morning:"Guten Morgen",afternoon:"Guten Tag",evening:"Guten Abend",nationwide:"Deutschlandweit buchen",search:"Stadt, Name, Service...",categories:"Kategorien",all:"Alle",topSpecs:"Top Spezialisten",availToday:"Heute verfügbar",allProviders:"Alle Anbieter",found:"gefunden",from:"ab",available:"verfügbar",soldOut:"Ausgebucht",offers:"Angebote",discount:"Rabatt",bookNow:"Jetzt buchen",refer:"Freunde werben",referSub:"Du & dein Freund erhalten je 5 €",shareLink:"Link teilen",perRef:"pro Empfehlung",back:"Zurück",buchen:"Buchen",info:"Info",services:"Services",team:"Team",reviews:"Bewertungen",gallery:"Galerie",whyUs:"Warum ChairMatch?",noComm:"Faire Konditionen",vs:"Beste Preise garantiert",direct:"Direktbuchung",noDetour:"Kein Umweg",verified:"Verifiziert",checked:"Gewerbeschein geprüft",service:"Service",day:"Tag",time:"Uhrzeit",specialist:"Spezialist",contact:"Kontakt",name:"Name",email:"E-Mail",step:"Schritt",confirm:"Bestätigt!",total:"Gesamt",noFee:"Sofortige Bestätigung · Kostenlose Stornierung 24h",done:"Fertig",shareWA:"Per WhatsApp teilen",favs:"Favoriten",noFavs:"Noch keine Favoriten",noFavsSub:"Tippe ♡ um Salons zu speichern",account:"Konto",bookings:"Buchungen",legal:"Rechtliches",privacy:"Datenschutzerklärung (DSGVO)",imprint:"Impressum",register:"Als Anbieter registrieren",loyalty:"Treuekarte",stampsOf:"Stempel",freeService:"Gratis-Service!",loyaltySub:"Sammle Stempel bei jeder Buchung",lang:"Sprache",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Benachrichtigungen",filter:"Filter",priceRange:"Preis",minRating:"Min. Bewertung",city:"Stadt",allCities:"Alle Städte",onlyAvail:"Nur verfügbar",onlyDiscount:"Nur Rabatt",apply:"Anwenden",reset:"Zurücksetzen",map:"Karte",list:"Liste",promoTitle:"Spare bis zu 15%",promoSub:"auf erste Buchung",promoCode:"Code: CHAIR2026",noResults:"Keine Ergebnisse",tryOther:"Versuche andere Filter",confirmed:"Bestätigt",pending:"Ausstehend",cancelled:"Storniert",chairRent:"Stuhl vermieten",premChair:"Barber-Stühle · Kosmetik-Kabinen · OP-Räume",zeroComm:"Deutschlandweit verfügbar",becomeProvider:"→ Anbieter werden",refBalance:"Referral Guthaben",recommend:"Empfehlen",special:"SONDERANGEBOT",before:"Vorher",after:"Nachher",phone:"Telefon",linkCopied:"Link kopiert!",writeReview:"Bewertung schreiben",reviewPlaceholder:"Wie war dein Erlebnis?",submitReview:"Absenden",reviewSubmitted:"Bewertung abgeschickt!",promoApply:"Anwenden",promoInvalid:"Ungültiger Code",promoApplied:"Code angewendet!",enterPromo:"Promo-Code eingeben",redeemNow:"Jetzt einlösen",redeemed:"Eingelöst!",loyaltyRedeemMsg:"Gratis-Service eingelöst!",cancelBooking:"Stornieren",cancelConfirm:"Termin wirklich stornieren?",bookingCancelled:"Termin storniert",noBookings:"Keine Buchungen",noBookingsSub:"Buche deinen ersten Termin",specialRequests:"Besondere Wünsche",notesPlaceholder:"z.B. Allergien, Wünsche...",noNotifications:"Keine Benachrichtigungen",noNotificationsSub:"Du bist auf dem neuesten Stand!",nlTitle:"Exklusive Angebote erhalten",nlSub:"Melde dich für unseren Newsletter an und erhalte sofort 10% Rabatt!",nlPlaceholder:"Deine E-Mail-Adresse",nlButton:"Anmelden & 10% sichern",nlSuccess:"Willkommen! Dein 10%-Code: WELCOME10",nlAlready:"Du bist bereits angemeldet!",refTitle:"Freunde einladen, Geld verdienen",refSteps:"So geht's:",refStep1:"Teile deinen Link mit Freunden",refStep2:"Dein Freund bucht seinen ersten Termin",refStep3:"Ihr beide erhaltet 5 € Guthaben",refCode:"Dein Empfehlungscode",refCopied:"Code kopiert!",refInvited:"Eingeladene Freunde",refEarned:"Verdient",premBadge:"PREMIUM",premFeatured:"Empfohlen",adminPanel:"Admin-Panel",adminDash:"Dashboard",adminLogo:"Logo & Branding",adminServices:"Services verwalten",adminStats:"Statistiken",adminSettings:"Einstellungen",todayBookings:"Termine heute",totalRevenue:"Umsatz (Monat)",avgRating:"Ø Bewertung",totalReviews:"Bewertungen",uploadLogo:"Logo hochladen",logoDesc:"Lade dein Geschäftslogo hoch (JPG, PNG)",generateIcons:"AI-Icons generieren",iconDesc:"Wir erstellen 3 professionelle Varianten aus deinem Logo",iconStyle1:"Geometric",iconStyle2:"Minimal",iconStyle3:"Luxury",selectIcon:"Dieses Icon verwenden",selectedIcon:"Aktives Icon",removeLogo:"Logo entfernen",generating:"Generiere Varianten...",adminNoShop:"Noch kein Geschäft registriert",adminRegFirst:"Registriere dich zuerst als Anbieter",saPanel:"Super Admin",saProviders:"Anbieter",saFeatures:"Features",saAnalytics:"Analyse",saTogglePrem:"Premium aktivieren/deaktivieren",saTier:"Tier ändern",saBoost:"Boost anpassen",saActive:"Aktiv",saInactive:"Inaktiv",saIconFeature:"AI-Icon Feature",saTotalProviders:"Anbieter gesamt",saPremiumCount:"Premium Anbieter",saGoldCount:"Gold Anbieter",saFreeCount:"Free Anbieter",pricingTitle:"Abonnement-Pakete",pricingFree:"Starter",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/Monat",pricingFreeSub:"Kostenlos starten",pricingPremSub:"Mehr Sichtbarkeit",pricingGoldSub:"Maximale Reichweite",pricingCurrent:"Aktuelles Paket",pricingUpgrade:"Upgrade",pricingFeatures:"Inklusive"},
+  en:{welcome:"Welcome to ChairMatch",subtitle:"Your Beauty Partner across Germany",chair:"Chair · Bed · Room",chairSub:"Rent chairs, beds & rooms — Discover now",book:"Book instantly",bookSub:"Appointment in 30 seconds · Instant confirmation",iAm:"I am...",customer:"Customer — looking for appointments",provider:"Provider — offering services",b2b:"B2B — rent a chair / cabin",next:"Next →",go:"Let's go!",morning:"Good Morning",afternoon:"Good Afternoon",evening:"Good Evening",nationwide:"Book nationwide",search:"City, name, service...",categories:"Categories",all:"All",topSpecs:"Top Specialists",availToday:"Available today",allProviders:"All Providers",found:"found",from:"from",available:"available",soldOut:"Sold out",offers:"Offers",discount:"Discount",bookNow:"Book now",refer:"Refer Friends",referSub:"You & your friend each get €5",shareLink:"Share link",perRef:"per referral",back:"Back",buchen:"Book",info:"Info",services:"Services",team:"Team",reviews:"Reviews",gallery:"Gallery",whyUs:"Why ChairMatch?",noComm:"Fair conditions",vs:"Best prices guaranteed",direct:"Direct booking",noDetour:"No detour",verified:"Verified",checked:"Business license checked",service:"Service",day:"Day",time:"Time",specialist:"Specialist",contact:"Contact",name:"Name",email:"Email",step:"Step",confirm:"Confirmed!",total:"Total",noFee:"Instant confirmation · Free cancellation 24h",done:"Done",shareWA:"Share via WhatsApp",favs:"Favorites",noFavs:"No favorites yet",noFavsSub:"Tap ♡ to save salons",account:"Account",bookings:"Bookings",legal:"Legal",privacy:"Privacy Policy (GDPR)",imprint:"Imprint",register:"Register as provider",loyalty:"Loyalty Card",stampsOf:"stamps",freeService:"Free service!",loyaltySub:"Collect stamps with every booking",lang:"Language",theme:"Design",darkMode:"Dark Mode",lightMode:"Light Mode",notifications:"Notifications",filter:"Filter",priceRange:"Price",minRating:"Min. Rating",city:"City",allCities:"All cities",onlyAvail:"Available only",onlyDiscount:"Discount only",apply:"Apply",reset:"Reset",map:"Map",list:"List",promoTitle:"Save up to 15%",promoSub:"on first booking",promoCode:"Code: CHAIR2026",noResults:"No results",tryOther:"Try different filters",confirmed:"Confirmed",pending:"Pending",cancelled:"Cancelled",chairRent:"Rent a chair",premChair:"Barber Chairs · Beauty Cabins · OR Rooms",zeroComm:"Available nationwide",becomeProvider:"→ Become a provider",refBalance:"Referral Balance",recommend:"Recommend",special:"SPECIAL OFFER",before:"Before",after:"After",phone:"Phone",linkCopied:"Link copied!",writeReview:"Write a review",reviewPlaceholder:"How was your experience?",submitReview:"Submit",reviewSubmitted:"Review submitted!",promoApply:"Apply",promoInvalid:"Invalid code",promoApplied:"Code applied!",enterPromo:"Enter promo code",redeemNow:"Redeem now",redeemed:"Redeemed!",loyaltyRedeemMsg:"Free service redeemed!",cancelBooking:"Cancel",cancelConfirm:"Really cancel appointment?",bookingCancelled:"Booking cancelled",noBookings:"No bookings",noBookingsSub:"Book your first appointment",specialRequests:"Special requests",notesPlaceholder:"e.g. allergies, preferences...",noNotifications:"No notifications",noNotificationsSub:"You're all caught up!",nlTitle:"Get exclusive offers",nlSub:"Sign up for our newsletter and get 10% off instantly!",nlPlaceholder:"Your email address",nlButton:"Sign up & get 10% off",nlSuccess:"Welcome! Your 10% code: WELCOME10",nlAlready:"You're already subscribed!",refTitle:"Invite friends, earn money",refSteps:"How it works:",refStep1:"Share your link with friends",refStep2:"Your friend books their first appointment",refStep3:"You both receive €5 credit",refCode:"Your referral code",refCopied:"Code copied!",refInvited:"Friends invited",refEarned:"Earned",premBadge:"PREMIUM",premFeatured:"Featured",adminPanel:"Admin Panel",adminDash:"Dashboard",adminLogo:"Logo & Branding",adminServices:"Manage Services",adminStats:"Statistics",adminSettings:"Settings",todayBookings:"Bookings today",totalRevenue:"Revenue (month)",avgRating:"Avg. Rating",totalReviews:"Reviews",uploadLogo:"Upload Logo",logoDesc:"Upload your business logo (JPG, PNG)",generateIcons:"Generate AI Icons",iconDesc:"We create 3 professional variants from your logo",iconStyle1:"Geometric",iconStyle2:"Minimal",iconStyle3:"Luxury",selectIcon:"Use this icon",selectedIcon:"Active icon",removeLogo:"Remove logo",generating:"Generating variants...",adminNoShop:"No business registered yet",adminRegFirst:"Register as a provider first",saPanel:"Super Admin",saProviders:"Providers",saFeatures:"Features",saAnalytics:"Analytics",saTogglePrem:"Activate/deactivate premium",saTier:"Change tier",saBoost:"Adjust boost",saActive:"Active",saInactive:"Inactive",saIconFeature:"AI Icon Feature",saTotalProviders:"Total providers",saPremiumCount:"Premium providers",saGoldCount:"Gold providers",saFreeCount:"Free providers",pricingTitle:"Subscription Plans",pricingFree:"Starter",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/month",pricingFreeSub:"Start for free",pricingPremSub:"More visibility",pricingGoldSub:"Maximum reach",pricingCurrent:"Current plan",pricingUpgrade:"Upgrade",pricingFeatures:"Included"},
+  tr:{welcome:"ChairMatch'e Hoş Geldiniz",subtitle:"Almanya genelinde güzellik ortağınız",chair:"Koltuk · Şezlong · Oda",chairSub:"Koltuk, şezlong & oda kiralama — Keşfet",book:"Hemen randevu al",bookSub:"30 saniyede randevu · Anında onay",iAm:"Ben...",customer:"Müşteri — randevu arıyorum",provider:"Hizmet veren — hizmet sunuyorum",b2b:"B2B — koltuk / kabin kiralama",next:"İleri →",go:"Başlayalım!",morning:"Günaydın",afternoon:"İyi Günler",evening:"İyi Akşamlar",nationwide:"Almanya genelinde rezervasyon",search:"Şehir, isim, hizmet...",categories:"Kategoriler",all:"Tümü",topSpecs:"En İyi Uzmanlar",availToday:"Bugün müsait",allProviders:"Tüm Sağlayıcılar",found:"bulundu",from:"dan",available:"müsait",soldOut:"Dolu",offers:"Teklifler",discount:"İndirim",bookNow:"Şimdi rezerve et",refer:"Arkadaşını Davet Et",referSub:"Sen ve arkadaşın 5€ kazanır",shareLink:"Link paylaş",perRef:"davet başına",back:"Geri",buchen:"Rezerve Et",info:"Bilgi",services:"Hizmetler",team:"Ekip",reviews:"Değerlendirmeler",gallery:"Galeri",whyUs:"Neden ChairMatch?",noComm:"Uygun koşullar",vs:"En iyi fiyat garantisi",direct:"Direkt rezervasyon",noDetour:"Aracısız",verified:"Doğrulanmış",checked:"İşletme belgesi kontrol edildi",service:"Hizmet",day:"Gün",time:"Saat",specialist:"Uzman",contact:"İletişim",name:"İsim",email:"E-Posta",step:"Adım",confirm:"Onaylandı!",total:"Toplam",noFee:"Anında onay · 24 saat ücretsiz iptal",done:"Tamam",shareWA:"WhatsApp ile paylaş",favs:"Favoriler",noFavs:"Henüz favori yok",noFavsSub:"Salonları kaydetmek için ♡ tıklayın",account:"Hesap",bookings:"Rezervasyonlar",legal:"Yasal",privacy:"Gizlilik Politikası (KVKK)",imprint:"Künye",register:"Sağlayıcı olarak kayıt ol",loyalty:"Sadakat Kartı",stampsOf:"damga",freeService:"Ücretsiz hizmet!",loyaltySub:"Her rezervasyonda damga toplayın",lang:"Dil",theme:"Tasarım",darkMode:"Koyu Mod",lightMode:"Açık Mod",notifications:"Bildirimler",filter:"Filtre",priceRange:"Fiyat",minRating:"Min. Puan",city:"Şehir",allCities:"Tüm şehirler",onlyAvail:"Sadece müsait",onlyDiscount:"Sadece indirimli",apply:"Uygula",reset:"Sıfırla",map:"Harita",list:"Liste",promoTitle:"%15'e kadar tasarruf",promoSub:"ilk rezervasyonda",promoCode:"Kod: CHAIR2026",noResults:"Sonuç yok",tryOther:"Farklı filtre deneyin",confirmed:"Onaylandı",pending:"Beklemede",cancelled:"İptal",chairRent:"Koltuk kirala",premChair:"Berber Koltu\u011fu · Kozmetik Kabin · Ameliyathane",zeroComm:"Almanya genelinde mevcut",becomeProvider:"→ Sağlayıcı ol",refBalance:"Referans Bakiyesi",recommend:"Tavsiye Et",special:"ÖZEL TEKLİF",before:"Önce",after:"Sonra",phone:"Telefon",linkCopied:"Link kopyalandı!",writeReview:"Değerlendirme yaz",reviewPlaceholder:"Deneyimin nasıldı?",submitReview:"Gönder",reviewSubmitted:"Değerlendirme gönderildi!",promoApply:"Uygula",promoInvalid:"Geçersiz kod",promoApplied:"Kod uygulandı!",enterPromo:"Promo kodu girin",redeemNow:"Şimdi kullan",redeemed:"Kullanıldı!",loyaltyRedeemMsg:"Ücretsiz hizmet kullanıldı!",cancelBooking:"İptal et",cancelConfirm:"Randevuyu iptal etmek istiyor musunuz?",bookingCancelled:"Randevu iptal edildi",noBookings:"Rezervasyon yok",noBookingsSub:"İlk randevunuzu alın",specialRequests:"Özel istekler",notesPlaceholder:"ör. alerji, tercihler...",noNotifications:"Bildirim yok",noNotificationsSub:"Her şey güncel!",nlTitle:"Özel tekliflerden haberdar ol",nlSub:"Bültenimize kaydol, anında %10 indirim kazan!",nlPlaceholder:"E-posta adresiniz",nlButton:"Kaydol & %10 kazan",nlSuccess:"Hoş geldin! %10 kodun: WELCOME10",nlAlready:"Zaten kayıtlısınız!",refTitle:"Arkadaşlarını davet et, para kazan",refSteps:"Nasıl çalışır:",refStep1:"Linkini arkadaşlarınla paylaş",refStep2:"Arkadaşın ilk randevusunu alsın",refStep3:"İkiniz de 5€ bakiye kazanın",refCode:"Davet kodun",refCopied:"Kod kopyalandı!",refInvited:"Davet edilen arkadaşlar",refEarned:"Kazanılan",premBadge:"PREMİUM",premFeatured:"Öne Çıkan",adminPanel:"Yönetim Paneli",adminDash:"Gösterge Paneli",adminLogo:"Logo & Marka",adminServices:"Hizmet Yönetimi",adminStats:"İstatistikler",adminSettings:"Ayarlar",todayBookings:"Bugünkü randevular",totalRevenue:"Gelir (aylık)",avgRating:"Ort. Puan",totalReviews:"Değerlendirmeler",uploadLogo:"Logo yükle",logoDesc:"İşletme logonuzu yükleyin (JPG, PNG)",generateIcons:"AI İkon üret",iconDesc:"Logonuzdan 3 profesyonel varyant oluşturuyoruz",iconStyle1:"Geometrik",iconStyle2:"Minimal",iconStyle3:"Lüks",selectIcon:"Bu ikonu kullan",selectedIcon:"Aktif ikon",removeLogo:"Logoyu kaldır",generating:"Varyantlar oluşturuluyor...",adminNoShop:"Henüz kayıtlı işletme yok",adminRegFirst:"Önce hizmet veren olarak kayıt olun",saPanel:"Süper Admin",saProviders:"Sağlayıcılar",saFeatures:"Özellikler",saAnalytics:"Analiz",saTogglePrem:"Premium aktif/deaktif",saTier:"Tier değiştir",saBoost:"Boost ayarla",saActive:"Aktif",saInactive:"Pasif",saIconFeature:"AI İkon Özelliği",saTotalProviders:"Toplam sağlayıcı",saPremiumCount:"Premium sağlayıcı",saGoldCount:"Gold sağlayıcı",saFreeCount:"Ücretsiz sağlayıcı",pricingTitle:"Abonelik Paketleri",pricingFree:"Başlangıç",pricingPrem:"Premium",pricingGold:"Gold",pricingMonth:"/ay",pricingFreeSub:"Ücretsiz başla",pricingPremSub:"Daha fazla görünürlük",pricingGoldSub:"Maksimum erişim",pricingCurrent:"Mevcut paket",pricingUpgrade:"Yükselt",pricingFeatures:"Dahil"}
 };
 function t(key){return LANG[state.lang]?.[key]||LANG.de[key]||key;}
 
@@ -906,6 +956,21 @@ const PROVS=[
   {id:"p16",cat:"opraum",nm:"SterileSpace München",st:"Prinzregentenstr. 22",city:"München",rt:4.9,rc:67,tl:"Premium OP-Räume & Behandlungszimmer",tags:["OP-Raum","Steril","Ambulante Chirurgie","Haartransplantation","Implantate","Operationssaal"],disc:10,bc:"#40A890",prom:true,ver:true,live:true,frei:1,tier:"premium",boost:65,logo:null,sps:["s3"],rental:[{type:"opraum",pr:400},{type:"raum",pr:120}],svs:[{id:"sv43",nm:"OP-Raum Premium (Ganztag)",dur:480,pr:400},{id:"sv44",nm:"Behandlungsraum Steril",dur:240,pr:180}],revs:[{u:"Dr. Berger",s:5,t:"Top Ausstattung, alles steril.",d:"18.02.2026"}],gal:[]}
 ];
 const CITIES=[...new Set(PROVS.map(p=>p.city))].sort();
+// Opening hours per provider
+const defaultHrs={Mo:"09:00–19:00",Di:"09:00–19:00",Mi:"09:00–19:00",Do:"09:00–19:00",Fr:"09:00–19:00",Sa:"10:00–16:00",So:"Geschlossen"};
+const HOURS={
+  p1:{Mo:"09:00–20:00",Di:"09:00–20:00",Mi:"09:00–20:00",Do:"09:00–20:00",Fr:"09:00–20:00",Sa:"09:00–17:00",So:"Geschlossen"},
+  p2:{Mo:"Geschlossen",Di:"10:00–18:00",Mi:"10:00–18:00",Do:"10:00–20:00",Fr:"10:00–18:00",Sa:"10:00–16:00",So:"Geschlossen"},
+  p3:{Mo:"08:00–18:00",Di:"08:00–18:00",Mi:"08:00–18:00",Do:"08:00–18:00",Fr:"08:00–16:00",Sa:"Nach Vereinbarung",So:"Geschlossen"},
+  p5:{Mo:"Geschlossen",Di:"09:00–19:00",Mi:"09:00–19:00",Do:"09:00–21:00",Fr:"09:00–19:00",Sa:"09:00–17:00",So:"Geschlossen"},
+  p7:{Mo:"10:00–20:00",Di:"10:00–20:00",Mi:"10:00–20:00",Do:"10:00–20:00",Fr:"10:00–21:00",Sa:"10:00–18:00",So:"12:00–17:00"},
+  p8:{Mo:"Geschlossen",Di:"09:00–18:00",Mi:"09:00–18:00",Do:"09:00–18:00",Fr:"09:00–18:00",Sa:"09:00–14:00",So:"Geschlossen"},
+  p10:{Mo:"10:00–20:00",Di:"10:00–20:00",Mi:"10:00–20:00",Do:"10:00–20:00",Fr:"10:00–20:00",Sa:"10:00–18:00",So:"11:00–17:00"},
+  p15:{Mo:"07:00–19:00",Di:"07:00–19:00",Mi:"07:00–19:00",Do:"07:00–19:00",Fr:"07:00–17:00",Sa:"Nach Vereinbarung",So:"Geschlossen"},
+  p16:{Mo:"08:00–18:00",Di:"08:00–18:00",Mi:"08:00–18:00",Do:"08:00–18:00",Fr:"08:00–16:00",Sa:"Nach Vereinbarung",So:"Geschlossen"}
+};
+function getHrs(pid){return HOURS[pid]||defaultHrs;}
+function isOpenNow(pid){const h=getHrs(pid);const d=new Date();const days=["So","Mo","Di","Mi","Do","Fr","Sa"];const today=days[d.getDay()];const t=h[today];if(!t||t==="Geschlossen"||t==="Nach Vereinbarung")return t==="Nach Vereinbarung"?"info":"closed";const[open,close]=t.split("–");const now=d.getHours()*60+d.getMinutes();const[oh,om]=open.split(":").map(Number);const[ch,cm]=close.split(":").map(Number);return now>=oh*60+om&&now<ch*60+cm?"open":"closed";}
 const PROMO_CODES={"CHAIR2026":{discount:15,type:"percent"},"WELCOME10":{discount:10,type:"percent"},"BEAUTY5":{discount:5,type:"fixed"}};
 const NOTIFS=[
   {id:"n1",title:"Termin morgen!",body:"Skin Fade bei BlackLabel · Mi 10:00",time:"vor 2 Std.",read:false,icon:"📅"},
@@ -1042,9 +1107,12 @@ function renderHome(){
         </div>
         ${p.rental&&p.rental.length>0?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">${p.rental.map(r=>`<span style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.15);color:var(--gold2);font-weight:600">${r.type==="stuhl"?"💺":r.type==="liege"?"🛏":r.type==="opraum"?"🏥":"🚪"} ${r.pr}€/Tag</span>`).join("")}</div>`:""}
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="display:flex;gap:4px;align-items:center">
-            <div style="width:7px;height:7px;border-radius:50%;background:${p.live?"#4A8A5A":"#C04040"}"></div>
-            <span style="font-size:11px;color:${p.live?"#6ABF80":"var(--stone)"}">${p.live?p.frei+" "+t("available"):t("soldOut")}</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="display:flex;gap:4px;align-items:center">
+              <div style="width:7px;height:7px;border-radius:50%;background:${p.live?"#4A8A5A":"#C04040"}"></div>
+              <span style="font-size:11px;color:${p.live?"#6ABF80":"var(--stone)"}">${p.live?p.frei+" "+t("available"):t("soldOut")}</span>
+            </div>
+            <span style="font-size:10px;color:${isOpenNow(p.id)==="open"?"#6ABF80":isOpenNow(p.id)==="info"?"var(--gold)":"var(--stone)"};font-weight:600">${isOpenNow(p.id)==="open"?"● Offen":isOpenNow(p.id)==="info"?"Auf Anfrage":"Geschlossen"}</span>
           </div>
           <span style="font-size:var(--font-md);font-weight:800;color:var(--gold2)">${t("from")} ${p.svs[0].pr} €</span>
         </div>
@@ -1208,6 +1276,10 @@ function renderDetail(){
     <div style="display:flex;gap:8px;margin-bottom:16px">
       <a href="https://wa.me/?text=${encodeURIComponent(p.nm+' - '+p.st+', '+p.city)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:#25D366;color:#fff;border-radius:12px;font-size:13px;font-weight:700;text-decoration:none">💬 WhatsApp</a>
       <button onclick="toggleFav('${p.id}')" style="flex:1;padding:12px;background:var(--c2);border-radius:12px;border:1px solid var(--border);font-size:13px;font-weight:700">${state.favorites.includes(p.id)?"♥ Favorit":"♡ "+t("favs")}</button>
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:16px">
+      <p class="lgold" style="margin-bottom:10px">🕐 Öffnungszeiten</p>
+      ${(()=>{const h=getHrs(p.id);const days=["Mo","Di","Mi","Do","Fr","Sa","So"];const today=["So","Mo","Di","Mi","Do","Fr","Sa"][new Date().getDay()];return days.map(d=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:${d===today?800:400};color:${d===today?"var(--gold2)":"var(--stone)"}">${d}</span><span style="font-weight:${d===today?700:400};color:${h[d]==="Geschlossen"?"#C04040":d===today?"var(--gold2)":"var(--cream)"}">${h[d]}</span></div>`).join("");})()}
     </div>
     ${p.rental&&p.rental.length>0?`<div class="card" style="padding:14px;margin-bottom:16px;border:1.5px solid rgba(200,168,75,.2)">
       <p class="lgold" style="margin-bottom:10px">💺 Vermietung</p>
@@ -1393,7 +1465,7 @@ function renderAccount(){
     <div class="card" style="padding:16px;margin-bottom:14px;background:linear-gradient(135deg,#1A1608,#100E04);border:1px solid rgba(200,168,75,.2)">
       <p class="lgold" style="margin-bottom:10px">🏆 ${t("loyalty")}</p>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        ${stampArr.map((filled,i)=>`<div style="width:30px;height:30px;border-radius:50%;background:${filled?"linear-gradient(135deg,#D4AE54,#C8A84B)":"var(--c4)"};border:2px solid ${filled?"var(--gold2)":"var(--c5)"};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:${filled?"#080706":"var(--stone2)"};${filled?"box-shadow:0 0 8px rgba(200,168,75,.4)":""}"><span style="${filled?"text-shadow:0 1px 2px rgba(0,0,0,.3)":""}">${filled?"★":i+1}</span></div>`).join("")}
+        ${stampArr.map((filled,i)=>`<div style="width:30px;height:30px;border-radius:50%;background:${filled?"linear-gradient(135deg,#D4AE54,#C8A84B)":"var(--c4)"};border:2px solid ${filled?"var(--gold2)":"var(--c5)"};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:${filled?"#080706":"var(--stone2)"};${filled?"box-shadow:0 0 10px rgba(200,168,75,.5);animation:starGlow 2s ease-in-out infinite;animation-delay:"+(i*0.15)+"s":""}"><span style="${filled?"text-shadow:0 1px 2px rgba(0,0,0,.3)":""}">${filled?"★":i+1}</span></div>`).join("")}
       </div>
       <div class="pbar" style="margin-bottom:6px"><div class="pfill" style="width:${state.stamps/10*100}%"></div></div>
       <p style="font-size:12px;color:var(--stone)">${state.stamps}/10 ${t("stampsOf")} ${state.stamps>=10?"— "+t("freeService"):""}</p>
@@ -1426,8 +1498,8 @@ function renderAccount(){
           <div style="transform:scale(.7);transform-origin:bottom center">${dbSeat()}</div>
         </div>
         <div style="flex:1;padding:16px 14px">
-          <p class="lgold" style="margin-bottom:6px">💺 ${t("chairRent").toUpperCase()}</p>
-          <p class="cinzel" style="font-size:15px;font-weight:700;margin-bottom:6px;color:var(--gold2);line-height:1.3">${t("premChair")}</p>
+          <p class="lgold" style="margin-bottom:6px">VERMIETEN & VERDIENEN</p>
+          <p class="cinzel" style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--gold2);line-height:1.3">${t("premChair")}</p>
           <p style="font-size:11px;color:var(--stone);margin-bottom:12px;line-height:1.6">${t("zeroComm")}</p>
           <span class="badge bgd" style="font-size:10px">${t("becomeProvider")}</span>
         </div>
@@ -1473,6 +1545,21 @@ function renderAccount(){
           <button onclick="setLang('${code}')" style="flex:1;padding:10px;border-radius:10px;font-size:11px;font-weight:700;background:${state.lang===code?"var(--gold)":"var(--c2)"};color:${state.lang===code?"#080706":"var(--stone)"};border:1px solid ${state.lang===code?"var(--gold)":"var(--border)"}">${label}</button>`).join("")}
       </div>
     </div>
+    <!-- FEATURES -->
+    <div style="margin-top:4px;padding-top:14px;border-top:1px solid var(--border)">
+      <p class="lsm" style="margin-bottom:10px">Features</p>
+      ${[
+        {icon:rentalIcon("stuhl"),nm:"Chat & Nachrichten",desc:"Direkt mit Anbietern chatten",pg:"chat"},
+        {icon:'<svg width="26" height="26" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="14" r="10" fill="none" stroke="#C8A84B" stroke-width="1.5"/><circle cx="16" cy="14" r="3" fill="#C8A84B" opacity=".5"/><path d="M16 24L20 30H12Z" fill="#C8A84B" opacity=".6"/></svg>',nm:"Karte & Navigation",desc:"Anbieter in deiner Nähe finden",pg:"map"},
+        {icon:'<svg width="26" height="26" viewBox="0 0 32 32" fill="none"><rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="#C8A84B" stroke-width="1.5"/><line x1="4" y1="12" x2="28" y2="12" stroke="#C8A84B" stroke-width="1"/><line x1="12" y1="4" x2="12" y2="12" stroke="#C8A84B" stroke-width="1"/><line x1="20" y1="4" x2="20" y2="12" stroke="#C8A84B" stroke-width="1"/><circle cx="10" cy="18" r="1.5" fill="#C8A84B" opacity=".5"/><circle cx="16" cy="18" r="1.5" fill="#C8A84B"/><circle cx="22" cy="18" r="1.5" fill="#C8A84B" opacity=".5"/><circle cx="10" cy="24" r="1.5" fill="#C8A84B" opacity=".3"/><circle cx="16" cy="24" r="1.5" fill="#C8A84B" opacity=".5"/></svg>',nm:"Kalender",desc:"Termine synchronisieren",pg:"calendar"},
+        {icon:'<svg width="26" height="26" viewBox="0 0 32 32" fill="none"><rect x="6" y="2" width="20" height="28" rx="3" fill="none" stroke="#C8A84B" stroke-width="1.5"/><line x1="10" y1="10" x2="22" y2="10" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="10" y1="14" x2="22" y2="14" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="10" y1="18" x2="18" y2="18" stroke="#C8A84B" stroke-width="1" opacity=".4"/><path d="M18 22L21 25L27 18" fill="none" stroke="#C8A84B" stroke-width="2" stroke-linecap="round"/></svg>',nm:"Dokumente & Verifizierung",desc:"Gewerbeschein & Zertifikate",pg:"documents"}
+      ].map(f=>`
+        <div onclick="goSub('${f.pg}')" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer">
+          <div style="width:40px;height:40px;border-radius:12px;background:var(--c2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center">${f.icon}</div>
+          <div style="flex:1"><p style="font-size:13px;font-weight:700">${f.nm}</p><p style="font-size:11px;color:var(--stone)">${f.desc}</p></div>
+          <span style="color:var(--gold);font-size:14px">›</span>
+        </div>`).join("")}
+    </div>
     <!-- LEGAL -->
     ${r!=="CUSTOMER"?`<!-- PRICING -->
     <div class="card" onclick="goSub('pricing')" style="padding:14px;margin-bottom:14px;cursor:pointer;background:linear-gradient(135deg,#1A1608,#0E0C04);border:1px solid rgba(200,168,75,.2)">
@@ -1509,6 +1596,10 @@ function renderSubPage(){
   if(state.subPage==="superadmin")return renderSuperAdmin();
   if(state.subPage==="pricing")return renderPricing();
   if(state.subPage==="social")return renderSocial();
+  if(state.subPage==="chat")return renderChat();
+  if(state.subPage==="map")return renderMap();
+  if(state.subPage==="calendar")return renderCalendar();
+  if(state.subPage==="documents")return renderDocuments();
   return"";}
 
 function renderNotifications(){
@@ -1769,6 +1860,176 @@ function shareSocial(platform){
   else{navigator.clipboard?.writeText(url).then(()=>showToast(t("linkCopied")));}
 }
 
+// ─── CHAT / NACHRICHTEN ───
+function renderChat(){
+  if(!state.chatMessages)state.chatMessages=[
+    {id:"c1",from:"BlackLabel Barbershop",msg:"Hallo! Dein Termin ist bestätigt für Mi 10:00 Uhr.",time:"10:32",mine:false},
+    {id:"c2",from:"Du",msg:"Danke! Kann ich 10 Minuten später kommen?",time:"10:35",mine:true},
+    {id:"c3",from:"BlackLabel Barbershop",msg:"Kein Problem, wir tragen 10:10 ein. Bis dann!",time:"10:36",mine:false}
+  ];
+  if(!state.chatContacts)state.chatContacts=[
+    {id:"ch1",nm:"BlackLabel Barbershop",last:"Kein Problem, wir tragen 10:10 ein.",time:"10:36",unread:1,cat:"barber"},
+    {id:"ch2",nm:"Glow Studio",last:"Dein Peeling-Termin wurde bestätigt.",time:"Gestern",unread:0,cat:"kosmetik"},
+    {id:"ch3",nm:"MedCenter OP-Räume",last:"Willkommen! Wie können wir helfen?",time:"Mo",unread:0,cat:"opraum"}
+  ];
+  const activeChat=state.activeChat||null;
+  if(activeChat){
+    const contact=state.chatContacts.find(c=>c.id===activeChat);
+    return`<div class="sticky">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="state.activeChat=null;render()" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
+        <div style="flex:1"><p style="font-size:14px;font-weight:700">${contact?.nm||""}</p></div>
+      </div>
+    </div>
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:10px;min-height:50vh">
+      ${state.chatMessages.map(m=>`
+        <div style="display:flex;${m.mine?"justify-content:flex-end":"justify-content:flex-start"}">
+          <div style="max-width:80%;padding:10px 14px;border-radius:${m.mine?"16px 4px 16px 16px":"4px 16px 16px 16px"};background:${m.mine?"var(--gold)":"var(--c3)"};color:${m.mine?"#080706":"var(--cream)"}">
+            <p style="font-size:13px;line-height:1.5">${m.msg}</p>
+            <p style="font-size:10px;opacity:.6;margin-top:4px;text-align:right">${m.time}</p>
+          </div>
+        </div>`).join("")}
+    </div>
+    <div style="padding:8px var(--pad) 20px;display:flex;gap:8px;position:sticky;bottom:0;background:var(--c1);border-top:1px solid var(--border)">
+      <input id="chatInput" class="inp" style="flex:1;padding:10px 14px" placeholder="Nachricht schreiben..." onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="bgold" style="width:auto;padding:10px 16px;font-size:14px" onclick="sendChat()">→</button>
+    </div>`;}
+  return`<div class="sticky">
+    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
+    <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Chat & Nachrichten</h1>
+  </div>
+  <div style="padding:16px var(--pad)">
+    ${state.chatContacts.map(c=>`
+    <div onclick="state.activeChat='${c.id}';render()" class="card" style="padding:14px;margin-bottom:8px;cursor:pointer">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--c3);display:flex;align-items:center;justify-content:center">${catSVG(c.cat)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+            <p style="font-size:13px;font-weight:700">${c.nm}</p>
+            <span style="font-size:10px;color:var(--stone)">${c.time}</span>
+          </div>
+          <p style="font-size:12px;color:var(--stone);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.last}</p>
+        </div>
+        ${c.unread>0?`<div style="width:20px;height:20px;border-radius:50%;background:var(--gold);color:#080706;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${c.unread}</div>`:""}
+      </div>
+    </div>`).join("")}
+  </div>`;}
+function sendChat(){
+  const inp=document.getElementById("chatInput");if(!inp||!inp.value.trim())return;
+  if(!state.chatMessages)state.chatMessages=[];
+  state.chatMessages.push({id:"c"+Date.now(),from:"Du",msg:inp.value.trim(),time:new Date().getHours()+":"+String(new Date().getMinutes()).padStart(2,"0"),mine:true});
+  inp.value="";render();
+  setTimeout(()=>{state.chatMessages.push({id:"c"+Date.now(),from:"Anbieter",msg:"Danke für deine Nachricht! Wir melden uns in Kürze.",time:new Date().getHours()+":"+String(new Date().getMinutes()).padStart(2,"0"),mine:false});render();},1500);
+}
+
+// ─── MAP / KARTE ───
+function renderMap(){
+  const list=getFiltered();
+  return`<div class="sticky">
+    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
+    <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Karte & Navigation</h1>
+  </div>
+  <div style="padding:16px var(--pad)">
+    <div style="width:100%;height:240px;border-radius:16px;background:linear-gradient(135deg,#1A2030,#0A1020);border:1.5px solid var(--border);position:relative;overflow:hidden;margin-bottom:16px">
+      <div style="position:absolute;inset:0;opacity:.15;background:repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(200,168,75,.3) 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,rgba(200,168,75,.3) 20px)"></div>
+      ${list.slice(0,6).map((p,i)=>{const x=15+Math.floor(i%3)*30+Math.random()*10;const y=15+Math.floor(i/3)*35+Math.random()*10;return`
+      <div onclick="openDetail('${p.id}')" style="position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-100%);cursor:pointer;text-align:center">
+        <div style="width:32px;height:32px;border-radius:50%;background:${p.tier==="gold"?"var(--gold)":p.tier==="premium"?"#9A70C8":"var(--c4)"};border:2px solid ${p.tier==="gold"?"var(--gold2)":"var(--border)"};display:flex;align-items:center;justify-content:center;font-size:12px;margin:0 auto 2px;box-shadow:0 2px 8px rgba(0,0,0,.4)">${catSVG(p.cat)?`<div style="transform:scale(.5)">${catSVG(p.cat)}</div>`:"●"}</div>
+        <span style="font-size:8px;font-weight:700;color:var(--cream);text-shadow:0 1px 3px rgba(0,0,0,.8);white-space:nowrap">${p.nm.split(" ")[0]}</span>
+      </div>`;}).join("")}
+    </div>
+    <p class="lsm" style="margin-bottom:10px">In deiner Nähe (${list.length})</p>
+    ${list.slice(0,5).map(p=>`
+    <div onclick="openDetail('${p.id}')" class="card" style="padding:12px 14px;margin-bottom:8px;cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--c3);display:flex;align-items:center;justify-content:center">${catSVG(p.cat)}</div>
+          <div style="min-width:0"><p style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nm}</p><p style="font-size:11px;color:var(--stone)">${p.st} · ${p.city}</p></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <p style="font-size:12px;font-weight:800;color:var(--gold2)">ab ${p.svs[0].pr} €</p>
+          <span style="font-size:10px;color:${isOpenNow(p.id)==="open"?"#6ABF80":"var(--stone)"}">${isOpenNow(p.id)==="open"?"● Offen":"Geschlossen"}</span>
+        </div>
+      </div>
+    </div>`).join("")}
+  </div>`;}
+
+// ─── KALENDER ───
+function renderCalendar(){
+  const today=new Date();const month=today.toLocaleString("de-DE",{month:"long",year:"numeric"});
+  const firstDay=new Date(today.getFullYear(),today.getMonth(),1).getDay();
+  const daysInMonth=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+  const bookedDays=[today.getDate(),today.getDate()+2,today.getDate()+5].filter(d=>d<=daysInMonth);
+  const offset=firstDay===0?6:firstDay-1;
+  let cells="";for(let i=0;i<offset;i++)cells+=`<div></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const isToday=d===today.getDate();const isBooked=bookedDays.includes(d);
+    cells+=`<div style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:13px;font-weight:${isToday||isBooked?700:400};background:${isToday?"var(--gold)":isBooked?"rgba(200,168,75,.12)":"transparent"};color:${isToday?"#080706":isBooked?"var(--gold2)":"var(--cream)"};border:1px solid ${isBooked&&!isToday?"rgba(200,168,75,.25)":"transparent"};cursor:pointer">${d}${isBooked&&!isToday?`<div style="width:4px;height:4px;border-radius:50%;background:var(--gold);margin-top:2px"></div>`:""}</div>`;}
+  const bkgs=state.bookings.length>0?state.bookings:[{id:"demo1",nm:"Ahmed K.",sv:"Skin Fade",t:"Mi 26.02 · 10:00",st:"confirmed",pr:48,provNm:"BlackLabel Barbershop"},{id:"demo2",nm:"Sofia M.",sv:"Deep Cleanse",t:"Fr 28.02 · 14:00",st:"pending",pr:85,provNm:"Glow Studio"}];
+  return`<div class="sticky">
+    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
+    <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Kalender</h1>
+  </div>
+  <div style="padding:16px var(--pad)">
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <p class="cinzel" style="font-size:16px;font-weight:600;text-align:center;margin-bottom:14px;color:var(--gold2)">${month}</p>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;margin-bottom:6px">
+        ${["Mo","Di","Mi","Do","Fr","Sa","So"].map(d=>`<div style="font-size:10px;font-weight:700;color:var(--stone);padding:4px 0">${d}</div>`).join("")}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${cells}</div>
+    </div>
+    <p class="lsm" style="margin-bottom:10px">Anstehende Termine</p>
+    ${bkgs.map(b=>`
+    <div class="card" style="padding:14px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div><p style="font-size:13px;font-weight:700">${b.provNm||b.nm}</p><p style="font-size:12px;color:var(--stone)">${b.sv} · ${b.t}</p></div>
+        <span class="badge ${b.st==="confirmed"?"bgr":b.st==="pending"?"bgd":"brd"}" style="font-size:10px">${b.st==="confirmed"?t("confirmed"):b.st==="pending"?t("pending"):t("cancelled")}</span>
+      </div>
+    </div>`).join("")}
+  </div>`;}
+
+// ─── DOKUMENTE & VERIFIZIERUNG ───
+function renderDocuments(){
+  if(!state.documents)state.documents=[
+    {id:"d1",nm:"Gewerbeschein",st:"verified",date:"15.01.2026"},
+    {id:"d2",nm:"Hygiene-Zertifikat",st:"pending",date:"20.02.2026"}
+  ];
+  const docTypes=[
+    {nm:"Gewerbeschein",desc:"Pflichtdokument für alle Anbieter",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="1" width="18" height="22" rx="2" fill="none" stroke="#C8A84B" stroke-width="1.5"/><line x1="7" y1="7" x2="17" y2="7" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="7" y1="11" x2="17" y2="11" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="7" y1="15" x2="13" y2="15" stroke="#C8A84B" stroke-width="1" opacity=".4"/><circle cx="17" cy="18" r="3" fill="#4A8A5A" opacity=".8"/><path d="M15.5 18L16.5 19L18.5 17" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg>'},
+    {nm:"Hygiene-Zertifikat",desc:"Für Kosmetik, Massage, Medical",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16.5 21 12 22C7.5 21 4 17 4 12V6L12 2Z" fill="none" stroke="#C8A84B" stroke-width="1.5"/><path d="M9 12L11 14L15 10" fill="none" stroke="#C8A84B" stroke-width="1.5" stroke-linecap="round"/></svg>'},
+    {nm:"Berufshaftpflicht",desc:"Empfohlen für alle Dienstleister",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="none" stroke="#C8A84B" stroke-width="1.5"/><path d="M12 7V13L16 15" fill="none" stroke="#C8A84B" stroke-width="1.5" stroke-linecap="round"/></svg>'},
+    {nm:"OP-Zulassung",desc:"Pflicht für sterile Räume & Chirurgie",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="#C8A84B" stroke-width="1.5"/><rect x="9" y="6" width="6" height="12" rx="1" fill="#C8A84B" opacity=".5"/><rect x="6" y="9" width="12" height="6" rx="1" fill="#C8A84B" opacity=".5"/></svg>'}
+  ];
+  return`<div class="sticky">
+    <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
+    <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Dokumente & Verifizierung</h1>
+  </div>
+  <div style="padding:16px var(--pad)">
+    <p class="lsm" style="margin-bottom:10px">Meine Dokumente</p>
+    ${state.documents.map(d=>`
+    <div class="card" style="padding:14px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><p style="font-size:13px;font-weight:700">${d.nm}</p><p style="font-size:11px;color:var(--stone)">Hochgeladen: ${d.date}</p></div>
+        <span class="badge ${d.st==="verified"?"bgr":"bgd"}" style="font-size:10px">${d.st==="verified"?"✓ Verifiziert":"⏳ In Prüfung"}</span>
+      </div>
+    </div>`).join("")}
+    <p class="lsm" style="margin:20px 0 10px">Dokument hochladen</p>
+    ${docTypes.map(dt=>`
+    <div class="card" style="padding:14px;margin-bottom:8px;cursor:pointer" onclick="uploadDocument('${dt.nm}')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:var(--c2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center">${dt.icon}</div>
+        <div style="flex:1"><p style="font-size:13px;font-weight:700">${dt.nm}</p><p style="font-size:11px;color:var(--stone)">${dt.desc}</p></div>
+        <span style="font-size:12px;color:var(--gold)">+ Upload</span>
+      </div>
+    </div>`).join("")}
+  </div>`;}
+function uploadDocument(name){
+  if(!state.documents)state.documents=[];
+  const today=new Date();const d=String(today.getDate()).padStart(2,"0")+"."+String(today.getMonth()+1).padStart(2,"0")+"."+today.getFullYear();
+  state.documents.push({id:"d"+Date.now(),nm:name,st:"pending",date:d});
+  showToast(name+" hochgeladen — wird geprüft");render();
+}
+
 // ─── ADMIN PANEL (Provider Dashboard + Logo + AI Icons) ───
 function renderAdmin(){
   const tb=state.adminTab;
@@ -1810,7 +2071,7 @@ function renderAdmin(){
     </div>`;
   }
   if(tb==="preise"){
-    const rentalTypes={stuhl:{icon:"💺",nm:"Stuhl",desc:"Barber-/Friseur-Stuhl"},liege:{icon:"🛏",nm:"Liege",desc:"Massage-/Kosmetik-Liege"},raum:{icon:"🚪",nm:"Raum/Kabine",desc:"Behandlungsraum / Kabine"},opraum:{icon:"🏥",nm:"OP-Raum",desc:"Steriler Operationssaal"}};
+    const rentalTypes={stuhl:{svg:rentalIcon("stuhl"),nm:"Stuhl",desc:"Barber-/Friseur-Stuhl"},liege:{svg:rentalIcon("liege"),nm:"Liege",desc:"Massage-/Kosmetik-Liege"},raum:{svg:rentalIcon("raum"),nm:"Kabine",desc:"Kosmetik-Kabine / Behandlungsraum"},opraum:{svg:rentalIcon("opraum"),nm:"OP-Raum",desc:"Steriler Operationssaal"}};
     const rentals=p.rental||[];
     content=`
     <p class="lgold" style="margin-bottom:6px">💰 Vermietungspreise</p>
@@ -1821,7 +2082,7 @@ function renderAdmin(){
       const price=existing?existing.pr:"";
       return`<div class="card" style="padding:14px;margin-bottom:10px;border:1.5px solid ${active?"rgba(200,168,75,.25)":"var(--border)"}">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:${active?"10":"0"}px">
-          <div style="font-size:24px;width:40px;text-align:center">${rt.icon}</div>
+          <div style="width:40px;display:flex;align-items:center;justify-content:center">${rt.svg}</div>
           <div style="flex:1"><p style="font-size:14px;font-weight:700">${rt.nm}</p><p style="font-size:11px;color:var(--stone)">${rt.desc}</p></div>
           <div onclick="toggleRental('${key}')" style="width:44px;height:26px;border-radius:13px;background:${active?"var(--gold)":"var(--c4)"};cursor:pointer;position:relative;transition:background .2s">
             <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;${active?"right:3px":"left:3px"};transition:all .2s"></div>
@@ -2046,13 +2307,13 @@ function renderRegister(){
     <p class="lgold">💺 Was vermietest du?</p>
     <p style="font-size:13px;color:var(--stone);line-height:1.6">Wähle aus, was du an Freiberufler vermieten möchtest.</p>
     ${[
-      {k:"chair",icon:"💺",nm:"Stuhl vermieten",desc:"Barbershop / Friseur-Stuhl",ph:"45"},
-      {k:"liege",icon:"🛏",nm:"Liege vermieten",desc:"Massage-Liege / Kosmetik-Liege",ph:"40"},
-      {k:"kabine",icon:"🚪",nm:"Kabine / Raum vermieten",desc:"Behandlungsraum / Kabine für Freelancer",ph:"55"},
-      {k:"opraum",icon:"🏥",nm:"OP-Raum vermieten",desc:"Steriler Operationssaal für Chirurgen",ph:"400"}
+      {k:"chair",svg:rentalIcon("stuhl"),nm:"Stuhl vermieten",desc:"Barber-/Friseur-Stuhl",ph:"45"},
+      {k:"liege",svg:rentalIcon("liege"),nm:"Liege vermieten",desc:"Massage-/Kosmetik-Liege",ph:"40"},
+      {k:"kabine",svg:rentalIcon("raum"),nm:"Kosmetik-Kabine vermieten",desc:"Behandlungsraum / Kabine für Freelancer",ph:"55"},
+      {k:"opraum",svg:rentalIcon("opraum"),nm:"OP-Raum vermieten",desc:"Steriler Operationssaal für Chirurgen",ph:"400"}
     ].map(opt=>`
     <div onclick="updateReg('${opt.k}',${!f[opt.k]})" style="display:flex;gap:10px;align-items:center;padding:13px 15px;background:${f[opt.k]?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f[opt.k]?"var(--gold)":"var(--border)"};cursor:pointer">
-      <div style="font-size:22px;width:36px;text-align:center">${opt.icon}</div>
+      <div style="width:36px;display:flex;align-items:center;justify-content:center">${opt.svg}</div>
       <div style="flex:1"><p style="font-size:13px;font-weight:700">${opt.nm} ✦</p><p style="font-size:11px;color:var(--stone)">${opt.desc}</p></div>
       <div class="check ${f[opt.k]?"on":""}">${f[opt.k]?"✓":""}</div>
     </div>
