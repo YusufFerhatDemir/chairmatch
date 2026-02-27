@@ -958,7 +958,7 @@ const PROVS=[
 const CITIES=[...new Set(PROVS.map(p=>p.city))].sort();
 // Service catalog per category — providers can toggle these on/off
 const SVC_CATALOG={
-  barber:[{nm:"Herrenschnitt",dur:30,pr:28},{nm:"Skin Fade",dur:40,pr:35},{nm:"Beard Trim",dur:20,pr:15},{nm:"Bart Design",dur:30,pr:25},{nm:"Hot Towel Shave",dur:30,pr:28},{nm:"Full Service (Cut + Bart)",dur:60,pr:50},{nm:"Kinderschnitt",dur:20,pr:18},{nm:"Kopfmassage",dur:15,pr:12},{nm:"Augenbrauen",dur:10,pr:8},{nm:"Nasenhaare Waxing",dur:5,pr:5}],
+  barber:[{nm:"Herrenschnitt",dur:30,pr:28},{nm:"Trockenschnitt",dur:25,pr:22},{nm:"Skin Fade",dur:40,pr:35},{nm:"Beard Trim",dur:20,pr:15},{nm:"Bart Design",dur:30,pr:25},{nm:"Hot Towel Shave",dur:30,pr:28},{nm:"Full Service (Cut + Bart)",dur:60,pr:50},{nm:"Kinderschnitt",dur:20,pr:18},{nm:"Kopfmassage",dur:15,pr:12},{nm:"Augenbrauen",dur:10,pr:8},{nm:"Nasenhaare Waxing",dur:5,pr:5}],
   friseur:[{nm:"Damenschnitt",dur:45,pr:45},{nm:"Herrenschnitt",dur:30,pr:32},{nm:"Waschen & Föhnen",dur:30,pr:25},{nm:"Balayage / Highlights",dur:120,pr:120},{nm:"Komplett-Coloration",dur:90,pr:85},{nm:"Strähnchen",dur:90,pr:95},{nm:"Haarverlängerung",dur:180,pr:250},{nm:"Brautfrisur",dur:90,pr:120},{nm:"Kinderschnitt",dur:20,pr:18},{nm:"Kopfhaut-Treatment",dur:30,pr:35}],
   kosmetik:[{nm:"Klassisches Facial",dur:60,pr:75},{nm:"Anti-Aging Behandlung",dur:75,pr:120},{nm:"Chemical Peeling",dur:45,pr:65},{nm:"Microdermabrasion",dur:45,pr:80},{nm:"Hautreinigung",dur:60,pr:55},{nm:"Augenbrauen Waxing",dur:15,pr:12},{nm:"Wimpern Lifting",dur:60,pr:55},{nm:"Rückenbehandlung",dur:50,pr:70},{nm:"Fruchtsäurepeeling",dur:40,pr:60},{nm:"Ultraschall-Behandlung",dur:45,pr:85}],
   aesthetik:[{nm:"Botox",dur:30,pr:280},{nm:"Hyaluron Filler",dur:45,pr:380},{nm:"Lippen Unterspritzung",dur:30,pr:350},{nm:"Profhilo",dur:45,pr:420},{nm:"Mesotherapie",dur:45,pr:200},{nm:"PRP Behandlung",dur:60,pr:350},{nm:"Faltenunterspritzung",dur:30,pr:300},{nm:"Haartransplantation Beratung",dur:60,pr:0}],
@@ -984,6 +984,16 @@ const HOURS={
 };
 function getHrs(pid){return HOURS[pid]||defaultHrs;}
 function isOpenNow(pid){const h=getHrs(pid);const d=new Date();const days=["So","Mo","Di","Mi","Do","Fr","Sa"];const today=days[d.getDay()];const t=h[today];if(!t||t==="Geschlossen"||t==="Nach Vereinbarung")return t==="Nach Vereinbarung"?"info":"closed";const[open,close]=t.split("–");const now=d.getHours()*60+d.getMinutes();const[oh,om]=open.split(":").map(Number);const[ch,cm]=close.split(":").map(Number);return now>=oh*60+om&&now<ch*60+cm?"open":"closed";}
+// Build service list: for admin-managed provider (p1), use activated catalog services; else use hardcoded p.svs
+function getProviderServices(p){
+  const saved=JSON.parse(localStorage.getItem("cm_prov_svcs")||"null");
+  const prices=JSON.parse(localStorage.getItem("cm_prov_prices")||"{}");
+  if(p.id==="p1"&&saved&&saved.length>0){
+    const catalog=SVC_CATALOG[p.cat]||[];
+    return catalog.filter(sv=>saved.includes(sv.nm)).map((sv,i)=>({id:"csvc"+i,nm:sv.nm,dur:sv.dur,pr:prices[sv.nm]!=null?prices[sv.nm]:sv.pr}));
+  }
+  return p.svs;
+}
 const PROMO_CODES={"CHAIR2026":{discount:15,type:"percent"},"WELCOME10":{discount:10,type:"percent"},"BEAUTY5":{discount:5,type:"fixed"}};
 const NOTIFS=[
   {id:"n1",title:"Termin morgen!",body:"Skin Fade bei BlackLabel · Mi 10:00",time:"vor 2 Std.",read:false,icon:"📅"},
@@ -1132,7 +1142,7 @@ function renderHome(){
             </div>
             <span style="font-size:10px;color:${isOpenNow(p.id)==="open"?"#6ABF80":isOpenNow(p.id)==="info"?"var(--gold)":"var(--stone)"};font-weight:600">${isOpenNow(p.id)==="open"?"● Offen":isOpenNow(p.id)==="info"?"Auf Anfrage":"Geschlossen"}</span>
           </div>
-          <span style="font-size:var(--font-md);font-weight:800;color:var(--gold2)">${t("from")} ${p.svs[0].pr} €</span>
+          <span style="font-size:var(--font-md);font-weight:800;color:var(--gold2)">${t("from")} ${getProviderServices(p).length>0?Math.min(...getProviderServices(p).map(s=>s.pr)):p.svs[0].pr} €</span>
         </div>
       </div>
     </div>`).join("");
@@ -1302,6 +1312,17 @@ function renderDetail(){
       <p class="lgold" style="margin-bottom:10px">🕐 Öffnungszeiten</p>
       ${(()=>{const h=getHrs(p.id);const days=["Mo","Di","Mi","Do","Fr","Sa","So"];const today=["So","Mo","Di","Mi","Do","Fr","Sa"][new Date().getDay()];return days.map(d=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:${d===today?800:400};color:${d===today?"var(--gold2)":"var(--stone)"}">${d}</span><span style="font-weight:${d===today?700:400};color:${h[d]==="Geschlossen"?"#C04040":d===today?"var(--gold2)":"var(--cream)"}">${h[d]}</span></div>`).join("");})()}
     </div>
+    ${(()=>{const infoSvs=getProviderServices(p);return infoSvs.length>0?`<div class="card" style="padding:14px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <p class="lgold">💈 ${t("services")} (${infoSvs.length})</p>
+        <button onclick="setDetailTab('services')" style="font-size:11px;color:var(--gold);font-weight:700;background:none;border:none;cursor:pointer;font-family:inherit">Alle →</button>
+      </div>
+      ${infoSvs.slice(0,4).map(sv=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div><span style="font-size:13px;font-weight:700">${sv.nm}</span><span style="font-size:11px;color:var(--stone);margin-left:8px">${sv.dur} min</span></div>
+        <span style="font-size:14px;font-weight:800;color:var(--gold2)">${sv.pr} €</span>
+      </div>`).join("")}
+      ${infoSvs.length>4?`<p style="font-size:11px;color:var(--stone);margin-top:8px;text-align:center">+ ${infoSvs.length-4} weitere Services</p>`:""}
+    </div>`:""})()}
     ${p.rental&&p.rental.length>0?`<div class="card" style="padding:14px;margin-bottom:16px;border:1.5px solid rgba(200,168,75,.2)">
       <p class="lgold" style="margin-bottom:10px">${rentalIcon("stuhl")} Vermietung${isB2B?" — Jetzt mieten":""}</p>
       ${p.rental.map(r=>{const nm=r.type==="stuhl"?"Barber-Stuhl":r.type==="liege"?"Liege":r.type==="opraum"?"OP-Raum":"Kosmetik-Kabine";return`
@@ -1320,14 +1341,15 @@ function renderDetail(){
           <span style="font-weight:700;color:var(--gold2)">${k}</span><span style="color:var(--stone);font-size:12px">${v}</span>
         </div>`).join("")}
     </div>`;
-  if(dt==="services") content=`<div style="display:flex;flex-direction:column;gap:8px">
-    ${p.svs.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:var(--c2);border-radius:13px;border:1px solid var(--border)">
+  if(dt==="services"){const psvs=getProviderServices(p);content=`<div style="display:flex;flex-direction:column;gap:8px">
+    ${psvs.length===0?`<div style="text-align:center;padding:40px 0"><p style="font-size:36px;margin-bottom:10px">💈</p><p style="color:var(--stone)">Noch keine Services freigeschaltet</p></div>`:`
+    ${psvs.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:var(--c2);border-radius:13px;border:1px solid var(--border)">
       <div><p style="font-size:14px;font-weight:700">${s.nm}</p><p style="font-size:12px;color:var(--stone)">${s.dur} min</p></div>
       <div style="display:flex;gap:10px;align-items:center">
         <span style="font-size:15px;font-weight:800;color:var(--gold2)">${s.pr} €</span>
         <button class="bgold" style="width:auto;padding:8px 14px;font-size:12px" onclick="openBooking('${p.id}')">${t("buchen")}</button>
       </div>
-    </div>`).join("")}</div>`;
+    </div>`).join("")}`}</div>`;}
   if(dt==="team") content=`<div style="display:flex;gap:10px;flex-wrap:wrap">
     ${specs.map(s=>`<div style="flex:1 1 calc(50% - 5px);padding:14px;background:var(--c2);border-radius:16px;text-align:center;border:1px solid var(--border)">
       <div style="width:48px;height:48px;border-radius:50%;background:${s.col};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;margin:0 auto 8px">${s.ini}</div>
@@ -1534,11 +1556,11 @@ function renderProviderSection(){
         <button onclick="state.adminTab='services';goSub('admin')" style="padding:6px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--gold);color:var(--gold2);font-size:11px;font-weight:700;cursor:pointer">Bearbeiten</button>
       </div>
       ${state.provServices&&state.provServices.length===0?`<p style="font-size:12px;color:var(--stone2);padding:14px 0;text-align:center">Noch keine Services aktiviert. Tippe "Bearbeiten" um deine Dienste freizuschalten.</p>`:!state.provServices?`<p style="font-size:12px;color:var(--stone2);padding:14px 0;text-align:center">Tippe "Bearbeiten" um deine Services-Karte einzurichten.</p>`:""}
-      ${catalog.filter(sv=>state.provServices.includes(sv.nm)).slice(0,4).map(sv=>`
+      ${catalog.filter(sv=>state.provServices.includes(sv.nm)).slice(0,4).map(sv=>{const displayPr=state.provPrices&&state.provPrices[sv.nm]!=null?state.provPrices[sv.nm]:sv.pr;return`
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
         <div><p style="font-size:13px;font-weight:700">${sv.nm}</p><p style="font-size:11px;color:var(--stone)">${sv.dur} min</p></div>
-        <span style="font-size:14px;font-weight:800;color:var(--gold2)">${sv.pr} €</span>
-      </div>`).join("")}
+        <span style="font-size:14px;font-weight:800;color:var(--gold2)">${displayPr} €</span>
+      </div>`;}).join("")}
       ${activeCount>4?`<p style="font-size:11px;color:var(--stone);margin-top:8px;text-align:center">+ ${activeCount-4} weitere Services</p>`:""}
     </div>`;
 }
@@ -1725,7 +1747,7 @@ function renderAccount(){
         <p style="font-size:14px;font-weight:700">${b.provNm||b.nm}</p>
         <span style="font-size:12px;font-weight:700;color:${sc[b.st]||"var(--stone)"}">${stLabel[b.st]||b.st}</span>
       </div>
-      <p style="font-size:13px;color:var(--stone);margin-bottom:2px">${b.sv}</p>
+      <p style="font-size:13px;color:var(--stone);margin-bottom:2px">${b.sv}${b.dur?" · "+b.dur+" min":""}</p>
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:12px;color:var(--stone)">${b.t}</span>
         <div style="display:flex;gap:8px;align-items:center">
@@ -2184,7 +2206,7 @@ function renderCalendar(){
     ${bkgs.map(b=>`
     <div class="card" style="padding:14px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:start">
-        <div><p style="font-size:13px;font-weight:700">${b.provNm||b.nm}</p><p style="font-size:12px;color:var(--stone)">${b.sv} · ${b.t}</p></div>
+        <div><p style="font-size:13px;font-weight:700">${b.provNm||b.nm}</p><p style="font-size:12px;color:var(--stone)">${b.sv}${b.dur?" · "+b.dur+" min":""} · ${b.t}</p></div>
         <span class="badge ${b.st==="confirmed"?"bgr":b.st==="pending"?"bgd":"brd"}" style="font-size:10px">${b.st==="confirmed"?t("confirmed"):b.st==="pending"?t("pending"):t("cancelled")}</span>
       </div>
     </div>`).join("")}
@@ -2693,7 +2715,7 @@ function renderBooking(){
     return`<div style="padding:36px 22px;text-align:center">
     <div style="width:60px;height:60px;border-radius:50%;background:rgba(74,138,90,.15);border:1px solid rgba(74,138,90,.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px">✓</div>
     <h2 style="font-size:22px;margin-bottom:6px;font-family:'Cinzel',serif;color:var(--gold2)">${t("confirm")}</h2>
-    <p style="font-size:13px;color:var(--stone);margin-bottom:18px">${p.nm} · ${sv?.nm} · ${dl[day]?.day} ${dl[day]?.dt}.${dl[day]?.mo} · ${slot}</p>
+    <p style="font-size:13px;color:var(--stone);margin-bottom:18px">${p.nm} · ${sv?.nm} · ${sv?.dur||""} min · ${dl[day]?.day} ${dl[day]?.dt}.${dl[day]?.mo} · ${slot}</p>
     <div class="card" style="padding:14px;margin-bottom:16px;text-align:left">
       <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:15px">
         <span style="color:var(--gold2);font-weight:700">${t("total")}</span>
@@ -2705,10 +2727,10 @@ function renderBooking(){
     <button class="bgold" onclick="closeBooking()">${t("done")}</button>
   </div>`;}
   let body="";
-  if(s===1){body=`
+  if(s===1){const bookSvs=getProviderServices(p);body=`
     <p class="lsm" style="margin-bottom:10px">${t("service")}</p>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
-      ${p.svs.map(sv2=>`<div onclick="selectSv('${sv2.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:${state.bookSv?.id===sv2.id?"rgba(200,168,75,.08)":"var(--c2)"};border-radius:13px;border:1.5px solid ${state.bookSv?.id===sv2.id?"var(--gold)":"var(--border)"};cursor:pointer">
+      ${bookSvs.map(sv2=>`<div onclick="selectSv('${sv2.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:${state.bookSv?.id===sv2.id?"rgba(200,168,75,.08)":"var(--c2)"};border-radius:13px;border:1.5px solid ${state.bookSv?.id===sv2.id?"var(--gold)":"var(--border)"};cursor:pointer">
         <div><p style="font-size:14px;font-weight:700">${sv2.nm}</p><p style="font-size:12px;color:var(--stone)">${sv2.dur} min</p></div>
         <span style="font-size:15px;font-weight:800;color:var(--gold2)">${sv2.pr} €</span>
       </div>`).join("")}
@@ -2753,7 +2775,7 @@ function renderBooking(){
       <textarea class="inp" style="height:60px;resize:none" placeholder="${t("notesPlaceholder")}" oninput="updateBookContact('bookNotes',this.value)">${state.bookNotes}</textarea>
     </div>
     <div class="card" style="padding:13px;margin-bottom:14px">
-      ${[[sv?.nm,(state.promoValid?'<s style="color:var(--stone)">'+basePrice+'€</s> '+discPrice+'€':basePrice+"€")],[dl[day]?.day+" "+dl[day]?.dt+"."+dl[day]?.mo,slot]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:700">${v}</span></div>`).join("")}
+      ${[[sv?.nm+" ("+sv?.dur+" min)",(state.promoValid?'<s style="color:var(--stone)">'+basePrice+'€</s> '+discPrice+'€':basePrice+"€")],[dl[day]?.day+" "+dl[day]?.dt+"."+dl[day]?.mo,slot]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:700">${v}</span></div>`).join("")}
     </div>
     <div style="margin-bottom:14px">
       <p class="lsm" style="margin-bottom:6px">${t("enterPromo")}</p>
@@ -2809,7 +2831,7 @@ function setRole(r){state.role=r;render();}
 function goSub(p){if(p){pushNav("sub-"+p);}else{history.back();return;}state.subPage=p;document.getElementById("mainScreen").scrollTop=0;render();}
 function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;state.bookName="";state.bookEmail="";state.bookPhone="";state.bookNotes="";state.promoCode="";state.promoValid=null;state.promoDiscount=0;pushNav("booking");render();}
 function closeBooking(){state.bookingProv=null;state.bookDone=false;state.stamps=Math.min(10,state.stamps+1);state.loyaltyRedeemed=false;localStorage.setItem("cm_redeemed","false");saveStamps();history.back();}
-function selectSv(id){state.bookSv=state.bookingProv.svs.find(s=>s.id===id);render();}
+function selectSv(id){const allSvs=getProviderServices(state.bookingProv);state.bookSv=allSvs.find(s=>s.id===id);render();}
 function selectDay(i){state.bookDay=i;state.bookSlot=null;render();}
 function selectSlot(tm){state.bookSlot=tm;render();}
 function selectSp(id){state.bookSp=SPECS.find(s=>s.id===id);render();}
@@ -2821,7 +2843,7 @@ function confirmBooking(){
   const sv=state.bookSv;
   const basePrice=sv?.pr||0;
   const finalPrice=state.promoValid&&PROMO_CODES[state.promoCode]?(PROMO_CODES[state.promoCode].type==='percent'?Math.round(basePrice*(1-PROMO_CODES[state.promoCode].discount/100)):Math.max(0,basePrice-PROMO_CODES[state.promoCode].discount)):basePrice;
-  const booking={id:'b'+Date.now(),provId:p.id,provNm:p.nm,nm:state.bookSp?.nm||state.bookName,sv:sv?.nm,t:dateStr+" · "+state.bookSlot,st:"confirmed",pr:finalPrice,notes:state.bookNotes};
+  const booking={id:'b'+Date.now(),provId:p.id,provNm:p.nm,nm:state.bookSp?.nm||state.bookName,sv:sv?.nm,dur:sv?.dur||0,t:dateStr+" · "+state.bookSlot,st:"confirmed",pr:finalPrice,notes:state.bookNotes};
   state.bookings.unshift(booking);localStorage.setItem("cm_bookings",JSON.stringify(state.bookings));
   state.bookDone=true;showToast(t("confirm")+" 🎉");render();
 }
