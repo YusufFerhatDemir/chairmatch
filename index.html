@@ -999,7 +999,8 @@ let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:n
   adminIcons:JSON.parse(localStorage.getItem("cm_admin_icons")||"[]"),
   adminSelectedIcon:localStorage.getItem("cm_admin_selicon")||null,
   adminGenerated:false,
-  superAdmin:JSON.parse(localStorage.getItem("cm_superadmin")||"false"),saTab:"providers"
+  superAdmin:JSON.parse(localStorage.getItem("cm_superadmin")||"false"),saTab:"providers",
+  unlockRequests:JSON.parse(localStorage.getItem("cm_unlock")||"[]")
 };
 if(localStorage.getItem("cm_theme")==="light"){state.theme="light";document.body.classList.add("light");}
 if(localStorage.getItem("cm_lang"))state.lang=localStorage.getItem("cm_lang");
@@ -1990,22 +1991,26 @@ function renderCalendar(){
 
 // ─── DOKUMENTE & VERIFIZIERUNG ───
 function renderDocuments(){
+  // Determine provider category (demo: PROVS[0] = barber)
+  const provCat=PROVS[0].cat;
+  const isFreelancer=state.regData?.freelancer||false;
+  const reqDocs=getRequiredDocs(provCat,isFreelancer);
   if(!state.documents)state.documents=[
-    {id:"d1",nm:"Gewerbeschein",st:"verified",date:"15.01.2026"},
-    {id:"d2",nm:"Hygiene-Zertifikat",st:"pending",date:"20.02.2026"}
+    {id:"d1",nm:"Betriebshaftpflicht",st:"verified",date:"15.01.2026"}
   ];
-  const docTypes=[
-    {nm:"Gewerbeschein",desc:"Pflichtdokument für alle Anbieter",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="1" width="18" height="22" rx="2" fill="none" stroke="#C8A84B" stroke-width="1.5"/><line x1="7" y1="7" x2="17" y2="7" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="7" y1="11" x2="17" y2="11" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="7" y1="15" x2="13" y2="15" stroke="#C8A84B" stroke-width="1" opacity=".4"/><circle cx="17" cy="18" r="3" fill="#4A8A5A" opacity=".8"/><path d="M15.5 18L16.5 19L18.5 17" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg>'},
-    {nm:"Hygiene-Zertifikat",desc:"Für Kosmetik, Massage, Medical",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16.5 21 12 22C7.5 21 4 17 4 12V6L12 2Z" fill="none" stroke="#C8A84B" stroke-width="1.5"/><path d="M9 12L11 14L15 10" fill="none" stroke="#C8A84B" stroke-width="1.5" stroke-linecap="round"/></svg>'},
-    {nm:"Berufshaftpflicht",desc:"Empfohlen für alle Dienstleister",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="none" stroke="#C8A84B" stroke-width="1.5"/><path d="M12 7V13L16 15" fill="none" stroke="#C8A84B" stroke-width="1.5" stroke-linecap="round"/></svg>'},
-    {nm:"OP-Zulassung",desc:"Pflicht für sterile Räume & Chirurgie",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="#C8A84B" stroke-width="1.5"/><rect x="9" y="6" width="6" height="12" rx="1" fill="#C8A84B" opacity=".5"/><rect x="6" y="9" width="12" height="6" rx="1" fill="#C8A84B" opacity=".5"/></svg>'}
-  ];
+  // Category description for header
+  const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik-Studio",aesthetik:"Ästhetik-Klinik",nail:"Nail-Studio",massage:"Massage-Studio",lash:"Lash & Brow Studio",arzt:"Arzt/Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum Anbieter"};
   return`<div class="sticky">
     <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Dokumente & Verifizierung</h1>
   </div>
   <div style="padding:16px var(--pad)">
+    <div style="padding:12px 14px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.15);border-radius:12px;margin-bottom:16px">
+      <p style="font-size:12px;color:var(--gold2);font-weight:700">Dein Profil: ${catLabels[provCat]||"Anbieter"}</p>
+      <p style="font-size:11px;color:var(--stone);margin-top:3px;line-height:1.5">${reqDocs.length===0?"Keine Dokumente erforderlich. Wir sind eine Plattform — Nachweise liegen beim Mieter.":"Die folgenden Dokumente werden für dein Profil benötigt."}</p>
+    </div>
     <p class="lsm" style="margin-bottom:10px">Meine Dokumente</p>
+    ${state.documents.length===0?`<p style="font-size:12px;color:var(--stone);margin-bottom:14px">Noch keine Dokumente hochgeladen.</p>`:""}
     ${state.documents.map(d=>`
     <div class="card" style="padding:14px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -2013,15 +2018,19 @@ function renderDocuments(){
         <span class="badge ${d.st==="verified"?"bgr":"bgd"}" style="font-size:10px">${d.st==="verified"?"✓ Verifiziert":"⏳ In Prüfung"}</span>
       </div>
     </div>`).join("")}
-    <p class="lsm" style="margin:20px 0 10px">Dokument hochladen</p>
-    ${docTypes.map(dt=>`
+    ${reqDocs.length>0?`<p class="lsm" style="margin:20px 0 10px">Benötigte Dokumente</p>
+    ${reqDocs.filter(dt=>!state.documents.find(d=>d.nm===dt.nm)).map(dt=>`
     <div class="card" style="padding:14px;margin-bottom:8px;cursor:pointer" onclick="uploadDocument('${dt.nm}')">
       <div style="display:flex;align-items:center;gap:12px">
         <div style="width:40px;height:40px;border-radius:12px;background:var(--c2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center">${dt.icon}</div>
         <div style="flex:1"><p style="font-size:13px;font-weight:700">${dt.nm}</p><p style="font-size:11px;color:var(--stone)">${dt.desc}</p></div>
         <span style="font-size:12px;color:var(--gold)">+ Upload</span>
       </div>
-    </div>`).join("")}
+    </div>`).join("")}`:`
+    <div style="padding:16px;background:rgba(74,138,90,.06);border-radius:12px;border:1px solid rgba(74,138,90,.15);margin-top:14px">
+      <p style="font-size:12px;color:#6ABF80;font-weight:700;margin-bottom:4px">✓ Keine weiteren Dokumente nötig</p>
+      <p style="font-size:11px;color:var(--stone);line-height:1.5">Als Mieter/Freelancer brauchst du keine Nachweise hochzuladen. ChairMatch ist eine Vermittlungsplattform.</p>
+    </div>`}
   </div>`;}
 function uploadDocument(name){
   if(!state.documents)state.documents=[];
@@ -2072,18 +2081,31 @@ function renderAdmin(){
   }
   if(tb==="preise"){
     const rentalTypes={stuhl:{svg:rentalIcon("stuhl"),nm:"Stuhl",desc:"Barber-/Friseur-Stuhl"},liege:{svg:rentalIcon("liege"),nm:"Liege",desc:"Massage-/Kosmetik-Liege"},raum:{svg:rentalIcon("raum"),nm:"Kabine",desc:"Kosmetik-Kabine / Behandlungsraum"},opraum:{svg:rentalIcon("opraum"),nm:"OP-Raum",desc:"Steriler Operationssaal"}};
+    const allowed=getAllowedRentals(p.cat);
     const rentals=p.rental||[];
+    const stdPrices={stuhl:"35–55",liege:"30–50",raum:"50–80",opraum:"250–500"};
     content=`
-    <p class="lgold" style="margin-bottom:6px">💰 Vermietungspreise</p>
-    <p style="font-size:12px;color:var(--stone);margin-bottom:14px;line-height:1.5">Setze deine Tagespreise für die Vermietung an Freelancer.</p>
+    <p class="lgold" style="margin-bottom:6px">${rentalIcon("stuhl")} Vermietungspreise</p>
+    <p style="font-size:12px;color:var(--stone);margin-bottom:14px;line-height:1.5">Verwalte deine Tagespreise. Preisänderungen werden mit ChairMatch abgestimmt.</p>
     ${Object.entries(rentalTypes).map(([key,rt])=>{
       const existing=rentals.find(r=>r.type===key);
       const active=existing?true:false;
       const price=existing?existing.pr:"";
+      const isAllowed=allowed.includes(key)||active;
+      const reqSent=(state.unlockRequests||[]).includes(key);
+      if(!isAllowed)return`<div class="card" style="padding:14px;margin-bottom:10px;border:1.5px dashed var(--c5);opacity:.65">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;display:flex;align-items:center;justify-content:center;opacity:.4">${rt.svg}</div>
+          <div style="flex:1"><p style="font-size:14px;font-weight:700;color:var(--stone)">${rt.nm}</p><p style="font-size:11px;color:var(--stone2)">${rt.desc}</p>
+            <p style="font-size:10px;color:var(--gold);margin-top:4px">🔒 Nicht verfügbar für deine Kategorie</p></div>
+          ${reqSent?`<span style="font-size:10px;color:#6ABF80;font-weight:700;white-space:nowrap">✓ Angefragt</span>`:`<button onclick="requestUnlock('${key}')" style="padding:6px 10px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:10px;color:var(--gold);font-weight:700;white-space:nowrap;cursor:pointer">Anfragen</button>`}
+        </div>
+      </div>`;
       return`<div class="card" style="padding:14px;margin-bottom:10px;border:1.5px solid ${active?"rgba(200,168,75,.25)":"var(--border)"}">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:${active?"10":"0"}px">
           <div style="width:40px;display:flex;align-items:center;justify-content:center">${rt.svg}</div>
-          <div style="flex:1"><p style="font-size:14px;font-weight:700">${rt.nm}</p><p style="font-size:11px;color:var(--stone)">${rt.desc}</p></div>
+          <div style="flex:1"><p style="font-size:14px;font-weight:700">${rt.nm}</p><p style="font-size:11px;color:var(--stone)">${rt.desc}</p>
+            <p style="font-size:10px;color:var(--stone2);margin-top:2px">Standardpreis: ${stdPrices[key]} €/Tag</p></div>
           <div onclick="toggleRental('${key}')" style="width:44px;height:26px;border-radius:13px;background:${active?"var(--gold)":"var(--c4)"};cursor:pointer;position:relative;transition:background .2s">
             <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;${active?"right:3px":"left:3px"};transition:all .2s"></div>
           </div>
@@ -2096,9 +2118,14 @@ function renderAdmin(){
           </div>
         </div>`:""}
       </div>`;}).join("")}
-    <div style="margin-top:14px;padding:14px;background:rgba(74,138,90,.06);border-radius:12px;border:1px solid rgba(74,138,90,.15)">
+    <div style="margin-top:14px;padding:14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.12)">
+      <p style="font-size:12px;color:var(--gold2);font-weight:700;margin-bottom:6px">📩 Preise mit ChairMatch abstimmen</p>
+      <p style="font-size:11px;color:var(--stone);line-height:1.5;margin-bottom:10px">Sende uns eine Nachricht um deinen Standardpreis festzulegen. Wir prüfen dein Angebot und stimmen faire Konditionen mit dir ab.</p>
+      <button onclick="goSub('chat');showToast('Schreibe uns deine gewünschten Preise!')" style="padding:10px 16px;border-radius:10px;background:var(--c3);border:1px solid var(--gold);color:var(--gold2);font-size:12px;font-weight:700;cursor:pointer;width:100%">💬 Nachricht an ChairMatch senden</button>
+    </div>
+    <div style="margin-top:10px;padding:14px;background:rgba(74,138,90,.06);border-radius:12px;border:1px solid rgba(74,138,90,.15)">
       <p style="font-size:12px;color:#6ABF80;font-weight:700;margin-bottom:4px">✓ Faire Konditionen</p>
-      <p style="font-size:11px;color:var(--stone);line-height:1.5">Transparent und einfach. Keine versteckten Gebühren.</p>
+      <p style="font-size:11px;color:var(--stone);line-height:1.5">Du kannst nur das anbieten, was du auch wirklich hast. Für weitere Kategorien schicke uns Fotos zur Verifizierung.</p>
     </div>`;
   }
   if(tb==="logo"){
@@ -2272,6 +2299,8 @@ function selectAdminIcon(i){
 function toggleRental(type){
   const p=PROVS[0];
   if(!p.rental)p.rental=[];
+  const allowed=getAllowedRentals(p.cat);
+  if(!allowed.includes(type)){showToast("Verifizierung nötig — Nachricht senden");return;}
   const idx=p.rental.findIndex(r=>r.type===type);
   if(idx>-1){p.rental.splice(idx,1);showToast("Entfernt");}
   else{p.rental.push({type,pr:0});showToast("Hinzugefügt");}
@@ -2281,6 +2310,33 @@ function updateRentalPrice(type,val){
   const p=PROVS[0];if(!p.rental)p.rental=[];
   const r=p.rental.find(r=>r.type===type);
   if(r)r.pr=parseFloat(val)||0;
+}
+// Rental types allowed per business category (without extra verification)
+function getAllowedRentals(cat){
+  const map={barber:["stuhl"],friseur:["stuhl"],kosmetik:["raum","liege"],aesthetik:["raum"],nail:["stuhl"],massage:["liege","raum"],lash:["stuhl"],arzt:["raum","opraum"],raum:["raum"],opraum:["opraum"]};
+  return map[cat]||["stuhl"];
+}
+// Which documents are required per provider category
+function getRequiredDocs(cat,isFreelancer){
+  const docs=[];
+  // Gewerbeschein: everyone except freelance barbers/friseure
+  if(!(isFreelancer&&(cat==="barber"||cat==="friseur")))docs.push({nm:"Gewerbeschein",desc:"Pflichtdokument für Geschäftsinhaber",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="1" width="18" height="22" rx="2" fill="none" stroke="#C8A84B" stroke-width="1.5"/><line x1="7" y1="7" x2="17" y2="7" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="7" y1="11" x2="17" y2="11" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="7" y1="15" x2="13" y2="15" stroke="#C8A84B" stroke-width="1" opacity=".4"/><circle cx="17" cy="18" r="3" fill="#4A8A5A" opacity=".8"/><path d="M15.5 18L16.5 19L18.5 17" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg>'});
+  // Betriebshaftpflicht: everyone
+  docs.push({nm:"Betriebshaftpflicht",desc:"Pflichtversicherung für alle Dienstleister",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16.5 21 12 22C7.5 21 4 17 4 12V6L12 2Z" fill="none" stroke="#C8A84B" stroke-width="1.5"/><path d="M12 8V13" stroke="#C8A84B" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#C8A84B"/></svg>'});
+  // Kosmetik-Zertifikat: only for kosmetik, aesthetik, lash
+  if(["kosmetik","aesthetik","lash","nail"].includes(cat))docs.push({nm:"Kosmetik-Zertifikat",desc:"Nachweis für kosmetische Behandlungen",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16.5 21 12 22C7.5 21 4 17 4 12V6L12 2Z" fill="none" stroke="#C8A84B" stroke-width="1.5"/><path d="M9 12L11 14L15 10" fill="none" stroke="#C8A84B" stroke-width="1.5" stroke-linecap="round"/></svg>'});
+  // Hygiene-Zertifikat: kosmetik, massage, aesthetik, arzt
+  if(["kosmetik","massage","aesthetik","arzt"].includes(cat))docs.push({nm:"Hygiene-Zertifikat",desc:"Nachweis für hygienische Standards",icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="16" height="20" rx="2" fill="none" stroke="#C8A84B" stroke-width="1.5"/><path d="M12 7V11M10 9H14" stroke="#C8A84B" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="14" x2="16" y2="14" stroke="#C8A84B" stroke-width="1" opacity=".4"/><line x1="8" y1="17" x2="14" y2="17" stroke="#C8A84B" stroke-width="1" opacity=".4"/></svg>'});
+  // OP-Raum mieter: KEINE Dokumente nötig — wir sind Plattform
+  // Barber: nur Betriebshaftpflicht (kein Kosmetik/Hygiene-Zertifikat)
+  return docs;
+}
+function requestUnlock(type){
+  const names={stuhl:"Stuhl-Vermietung",liege:"Liegen-Vermietung",raum:"Kosmetik-Kabine",opraum:"OP-Raum"};
+  showToast("Anfrage für "+names[type]+" gesendet! Wir prüfen das.");
+  if(!state.unlockRequests)state.unlockRequests=[];
+  if(!state.unlockRequests.includes(type)){state.unlockRequests.push(type);localStorage.setItem("cm_unlock",JSON.stringify(state.unlockRequests));}
+  render();
 }
 
 function renderRegister(){
@@ -2294,35 +2350,67 @@ function renderRegister(){
   let body="";
   if(s===1)body=`<div style="display:flex;flex-direction:column;gap:12px">
     ${[["Vorname","vn","text","Max"],["Nachname","nn","text","Mustermann"],["E-Mail","em","email","max@mail.de"],["Telefon","tel","tel","+49 170 ..."]].map(([l,k,tp,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" type="${tp}" value="${f[k]}" oninput="updateReg('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}</div>`;
-  if(s===2)body=`<div style="display:flex;flex-direction:column;gap:12px">
+  if(s===2){
+    const isBarbFris=f.kat==="Barbershop"||f.kat==="Friseur";
+    const needGewerbe=!(f.freelancer&&isBarbFris);
+    body=`<div style="display:flex;flex-direction:column;gap:12px">
     ${[["Geschäftsname","geschaeft","Mein Studio"],["Straße + Nr.","st","Münchener Str. 17"],["PLZ","plz","60329"],["Stadt","city","Frankfurt"]].map(([l,k,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" value="${f[k]}" oninput="updateReg('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}
     <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:8px">Kategorie</label>
     <div style="display:flex;gap:7px;flex-wrap:wrap">${CATS.map(c=>`<button onclick="updateReg('kat','${c.lbl}')" style="padding:9px 13px;border-radius:10px;font-size:12px;font-weight:700;background:${f.kat===c.lbl?"var(--gold)":"var(--c3)"};color:${f.kat===c.lbl?"#080706":"var(--stone)"};border:1px solid ${f.kat===c.lbl?"var(--gold)":"var(--border)"}">${c.lbl}</button>`).join("")}</div></div>
+    <div onclick="updateReg('freelancer',${!f.freelancer})" style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:${f.freelancer?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f.freelancer?"var(--gold)":"var(--border)"};cursor:pointer">
+      <div class="check ${f.freelancer?"on":""}">${f.freelancer?"✓":""}</div>
+      <div><p style="font-size:13px;font-weight:700">Ich bin Freiberufler / Mieter</p><p style="font-size:11px;color:var(--stone)">Ich möchte einen Stuhl/Raum anmieten (nicht vermieten)</p></div>
+    </div>
     <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">IBAN</label><input class="inp" value="${f.iban}" oninput="updateReg('iban',this.value)" placeholder="DE89 3704 ..."/></div>
-    <div onclick="updateReg('gb',${!f.gb})" style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--c2);border-radius:12px;border:1px solid ${f.gb?"var(--gold)":"var(--border)"};cursor:pointer">
+    ${needGewerbe?`<div onclick="updateReg('gb',${!f.gb})" style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--c2);border-radius:12px;border:1px solid ${f.gb?"var(--gold)":"var(--border)"};cursor:pointer">
       <div class="check ${f.gb?"on":""}">${f.gb?"✓":""}</div>
       <div><p style="font-size:13px;font-weight:700">Gewerbeschein vorhanden</p><p style="font-size:11px;color:var(--stone)">Hochladen nach Registrierung</p></div>
-    </div></div>`;
-  if(s===3)body=`<div style="display:flex;flex-direction:column;gap:14px">
-    <p class="lgold">💺 Was vermietest du?</p>
-    <p style="font-size:13px;color:var(--stone);line-height:1.6">Wähle aus, was du an Freiberufler vermieten möchtest.</p>
-    ${[
-      {k:"chair",svg:rentalIcon("stuhl"),nm:"Stuhl vermieten",desc:"Barber-/Friseur-Stuhl",ph:"45"},
-      {k:"liege",svg:rentalIcon("liege"),nm:"Liege vermieten",desc:"Massage-/Kosmetik-Liege",ph:"40"},
-      {k:"kabine",svg:rentalIcon("raum"),nm:"Kosmetik-Kabine vermieten",desc:"Behandlungsraum / Kabine für Freelancer",ph:"55"},
-      {k:"opraum",svg:rentalIcon("opraum"),nm:"OP-Raum vermieten",desc:"Steriler Operationssaal für Chirurgen",ph:"400"}
-    ].map(opt=>`
+    </div>`:`<div style="padding:12px 14px;background:rgba(74,138,90,.06);border-radius:12px;border:1px solid rgba(74,138,90,.15)">
+      <p style="font-size:12px;color:#6ABF80;font-weight:700">✓ Kein Gewerbeschein nötig</p>
+      <p style="font-size:11px;color:var(--stone);margin-top:2px">Als freiberuflicher Barber/Friseur brauchst du keinen Gewerbeschein.</p>
+    </div>`}</div>`;}
+  if(s===3){
+    const catMap={Barbershop:"barber",Friseur:"friseur",Kosmetik:"kosmetik","Ästhetik":"aesthetik",Nails:"nail",Massage:"massage","Lash & Brows":"lash","Arzt/Klinik":"arzt","Raum/Kabine":"raum","OP-Raum":"opraum"};
+    const regCat=catMap[f.kat]||"barber";
+    const allowed=getAllowedRentals(regCat);
+    const allOpts=[
+      {k:"chair",type:"stuhl",svg:rentalIcon("stuhl"),nm:"Stuhl vermieten",desc:"Barber-/Friseur-Stuhl",ph:"45"},
+      {k:"liege",type:"liege",svg:rentalIcon("liege"),nm:"Liege vermieten",desc:"Massage-/Kosmetik-Liege",ph:"40"},
+      {k:"kabine",type:"raum",svg:rentalIcon("raum"),nm:"Kosmetik-Kabine vermieten",desc:"Behandlungsraum / Kabine",ph:"55"},
+      {k:"opraum",type:"opraum",svg:rentalIcon("opraum"),nm:"OP-Raum vermieten",desc:"Steriler Operationssaal",ph:"400"}
+    ];
+    body=`<div style="display:flex;flex-direction:column;gap:14px">
+    <p class="lgold">${rentalIcon("stuhl")} Was vermietest du?</p>
+    <p style="font-size:13px;color:var(--stone);line-height:1.6">Basierend auf deiner Kategorie <strong style="color:var(--gold2)">${f.kat||"—"}</strong> kannst du folgendes anbieten:</p>
+    ${allOpts.map(opt=>{
+      const unlocked=allowed.includes(opt.type);
+      const reqSent=(state.unlockRequests||[]).includes(opt.type);
+      if(unlocked)return`
     <div onclick="updateReg('${opt.k}',${!f[opt.k]})" style="display:flex;gap:10px;align-items:center;padding:13px 15px;background:${f[opt.k]?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f[opt.k]?"var(--gold)":"var(--border)"};cursor:pointer">
       <div style="width:36px;display:flex;align-items:center;justify-content:center">${opt.svg}</div>
       <div style="flex:1"><p style="font-size:13px;font-weight:700">${opt.nm} ✦</p><p style="font-size:11px;color:var(--stone)">${opt.desc}</p></div>
       <div class="check ${f[opt.k]?"on":""}">${f[opt.k]?"✓":""}</div>
     </div>
-    ${f[opt.k]?`<div style="margin-left:46px"><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Preis/Tag (€)</label><input class="inp" type="number" value="${f[opt.k+"_pr"]||""}" oninput="updateReg('${opt.k}_pr',this.value)" placeholder="${opt.ph}"/></div>`:""}`).join("")}
-  </div>`;
+    ${f[opt.k]?`<div style="margin-left:46px"><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">Preis/Tag (€)</label><input class="inp" type="number" value="${f[opt.k+"_pr"]||""}" oninput="updateReg('${opt.k}_pr',this.value)" placeholder="${opt.ph}"/></div>`:""}`;
+      return`
+    <div style="display:flex;gap:10px;align-items:center;padding:13px 15px;background:var(--c2);border-radius:12px;border:1.5px dashed var(--c5);opacity:.7">
+      <div style="width:36px;display:flex;align-items:center;justify-content:center;opacity:.4">${opt.svg}</div>
+      <div style="flex:1"><p style="font-size:13px;font-weight:700;color:var(--stone)">${opt.nm}</p><p style="font-size:11px;color:var(--stone2)">${opt.desc}</p>
+        <p style="font-size:10px;color:var(--gold);margin-top:4px">🔒 Verifizierung nötig — Fotos & Nachweis erforderlich</p></div>
+      ${reqSent?`<span style="font-size:10px;color:#6ABF80;font-weight:700;white-space:nowrap">✓ Angefragt</span>`:`<button onclick="event.stopPropagation();requestUnlock('${opt.type}')" style="padding:6px 10px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:10px;color:var(--gold);font-weight:700;white-space:nowrap;cursor:pointer">Anfragen</button>`}
+    </div>`;}).join("")}
+    <div style="padding:12px 14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.1);margin-top:4px">
+      <p style="font-size:11px;color:var(--stone);line-height:1.5">💡 Du kannst nur anbieten was du tatsächlich hast. Für weitere Kategorien sende uns Fotos deiner Räumlichkeiten — wir prüfen und schalten frei.</p>
+    </div>
+  </div>`;}
   if(s===4)body=`<div>
     <p class="lgold" style="margin-bottom:14px">✅ Zusammenfassung</p>
     <div class="card" style="padding:14px;margin-bottom:16px">
-      ${[["Name",f.vn+" "+f.nn],["E-Mail",f.em],["Geschäft",f.geschaeft],["Stadt",f.city],["Kategorie",f.kat],["💺 Stuhl",f.chair?(f.chair_pr||"—")+"€/Tag":"—"],["🛏 Liege",f.liege?(f.liege_pr||"—")+"€/Tag":"—"],["🚪 Kabine/Raum",f.kabine?(f.kabine_pr||"—")+"€/Tag":"—"],["🏥 OP-Raum",f.opraum?(f.opraum_pr||"—")+"€/Tag":"—"]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:600">${v||"—"}</span></div>`).join("")}
+      ${[["Name",f.vn+" "+f.nn],["E-Mail",f.em],["Geschäft",f.geschaeft],["Stadt",f.city],["Kategorie",f.kat],["Typ",f.freelancer?"Freiberufler / Mieter":"Vermieter / Inhaber"]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone)">${k}</span><span style="font-weight:600">${v||"—"}</span></div>`).join("")}
+      ${f.chair?`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone);display:flex;align-items:center;gap:6px">${rentalIcon("stuhl")} Stuhl</span><span style="font-weight:600">${f.chair_pr||"—"} €/Tag</span></div>`:""}
+      ${f.liege?`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone);display:flex;align-items:center;gap:6px">${rentalIcon("liege")} Liege</span><span style="font-weight:600">${f.liege_pr||"—"} €/Tag</span></div>`:""}
+      ${f.kabine?`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone);display:flex;align-items:center;gap:6px">${rentalIcon("raum")} Kabine</span><span style="font-weight:600">${f.kabine_pr||"—"} €/Tag</span></div>`:""}
+      ${f.opraum?`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--stone);display:flex;align-items:center;gap:6px">${rentalIcon("opraum")} OP-Raum</span><span style="font-weight:600">${f.opraum_pr||"—"} €/Tag</span></div>`:""}
     </div>
     <div onclick="updateReg('agb',${!f.agb})" style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center"><div class="check ${f.agb?"on":""}">${f.agb?"✓":""}</div><p style="font-size:13px;font-weight:600">AGB akzeptieren</p></div>
     <div onclick="updateReg('dsgvo',${!f.dsgvo})" style="display:flex;gap:10px;padding:12px 0;cursor:pointer;align-items:center"><div class="check ${f.dsgvo?"on":""}">${f.dsgvo?"✓":""}</div><p style="font-size:13px;font-weight:600">Datenschutzerklärung akzeptieren</p></div></div>`;
