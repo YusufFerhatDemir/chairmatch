@@ -1003,7 +1003,9 @@ function getProviderServices(p){
   const prices=JSON.parse(localStorage.getItem("cm_prov_prices")||"{}");
   if(p.id==="p1"&&saved&&saved.length>0){
     const catalog=SVC_CATALOG[p.cat]||[];
-    return catalog.filter(sv=>saved.includes(sv.nm)).map((sv,i)=>({id:"csvc"+i,nm:sv.nm,dur:sv.dur,pr:prices[sv.nm]!=null?prices[sv.nm]:sv.pr}));
+    const custom=JSON.parse(localStorage.getItem("cm_custom_svcs")||"[]");
+    const all=[...catalog,...custom];
+    return all.filter(sv=>saved.includes(sv.nm)).map((sv,i)=>({id:"csvc"+i,nm:sv.nm,dur:sv.dur,pr:prices[sv.nm]!=null?prices[sv.nm]:sv.pr}));
   }
   return p.svs;
 }
@@ -1017,7 +1019,7 @@ const NOTIFS=[
 
 // ═══════════════ STATE ═══════════════
 let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,
-  provSetup:0,provCat:localStorage.getItem("cm_prov_cat")||null,
+  provSetup:0,provCat:localStorage.getItem("cm_prov_cat")||null,customerSetup:false,setupProfile:JSON.parse(localStorage.getItem("cm_setup_profile")||"{}"),setupAgb:false,customServices:JSON.parse(localStorage.getItem("cm_custom_svcs")||"[]"),customEquip:JSON.parse(localStorage.getItem("cm_custom_equip")||"[]"),
   lang:"de",theme:"dark",favorites:JSON.parse(localStorage.getItem("cm_favs")||"[]"),stamps:parseInt(localStorage.getItem("cm_stamps")||"4"),
   searchQuery:"",searchOpen:false,showFilter:false,filterCity:"all",filterMinRating:0,filterMaxPrice:500,filterOnlyAvail:false,filterOnlyDisc:false,
   viewMode:"list",notifications:[...NOTIFS],
@@ -1090,6 +1092,8 @@ function render(){
 
 // ─── ONBOARDING ───
 function renderOnboarding(){
+  // ═══ CUSTOMER QUICK PROFILE ═══
+  if(state.customerSetup)return renderCustomerSetup();
   // ═══ PROVIDER QUICK-SETUP WIZARD ═══
   if(state.provSetup>0)return renderProvSetup();
 
@@ -1115,110 +1119,261 @@ function renderOnboarding(){
     </div>
   </div>`;}
 
-// ─── PROVIDER QUICK-SETUP WIZARD (3 steps) ───
+// ─── CUSTOMER QUICK PROFILE ───
+function renderCustomerSetup(){
+  if(!state.setupProfile)state.setupProfile=JSON.parse(localStorage.getItem("cm_setup_profile")||"{}");
+  const p=state.setupProfile;
+  return`<div style="padding:40px var(--pad) 40px;min-height:100vh;min-height:100dvh">
+    <button onclick="state.customerSetup=false;state.obStep=3;render()" style="color:var(--gold);font-size:var(--font-md);font-weight:700;background:none;border:none;cursor:pointer;font-family:inherit;min-height:44px;display:flex;align-items:center;gap:4px;margin-bottom:10px">← Zurück</button>
+    <div style="text-align:center;margin-bottom:18px">
+      ${logoHeader(false)}
+      <p class="cinzel" style="font-size:20px;font-weight:600;color:var(--gold2);margin-top:10px">Dein Profil</p>
+      <p style="font-size:13px;color:var(--stone);margin-top:4px">Damit wir dir passende Anbieter zeigen können.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:8px">
+        <div style="flex:1"><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Vorname *</label>
+          <input class="inp" value="${p.vn||""}" oninput="updateSetupProfile('vn',this.value)" placeholder="Max"/></div>
+        <div style="flex:1"><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Nachname *</label>
+          <input class="inp" value="${p.nn||""}" oninput="updateSetupProfile('nn',this.value)" placeholder="Mustermann"/></div>
+      </div>
+      <div><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">E-Mail *</label>
+        <input class="inp" type="email" value="${p.email||""}" oninput="updateSetupProfile('email',this.value)" placeholder="max@email.de"/></div>
+      <div><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Telefon</label>
+        <input class="inp" type="tel" value="${p.phone||""}" oninput="updateSetupProfile('phone',this.value)" placeholder="+49 170 ..."/></div>
+      <div><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Stadt</label>
+        <input class="inp" value="${p.city||""}" oninput="updateSetupProfile('city',this.value)" placeholder="z.B. Frankfurt"/></div>
+    </div>
+    <button class="bgold" style="margin-top:18px" ${p.vn&&p.nn&&p.email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)?"":"disabled"} onclick="finishCustomerSetup()">Los geht's!</button>
+    <button onclick="finishCustomerSetup()" style="display:block;margin:10px auto 0;background:none;border:none;color:var(--stone);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline">Später ausfüllen</button>
+  </div>`;
+}
+function finishCustomerSetup(){
+  state.customerSetup=false;state.onboarded=true;state.tab="home";
+  localStorage.setItem("cm_setup_profile",JSON.stringify(state.setupProfile||{}));
+  pushNav("home");document.getElementById("mainScreen").scrollTop=0;
+  const p=state.setupProfile||{};
+  if(p.email)showToast("Willkommen, "+p.vn+"! ✉️ Bestätigung an "+p.email);
+  else showToast("Willkommen bei ChairMatch!");
+  render();
+}
+
+// ─── PROVIDER QUICK-SETUP WIZARD (5 steps) ───
 function renderProvSetup(){
   const s=state.provSetup;
-  const catIcons={barber:catSVG("barber"),friseur:catSVG("friseur"),kosmetik:catSVG("kosmetik"),aesthetik:catSVG("aesthetik"),nail:catSVG("nail"),massage:catSVG("massage"),lash:catSVG("lash"),arzt:catSVG("arzt"),raum:catSVG("raum"),opraum:catSVG("opraum")};
-  const stepNames=["","Dein Handwerk","Deine Services","Deine Ausstattung"];
+  const totalSteps=5;
   let body="";
 
   // ═══ STEP 1: Choose your craft ═══
   if(s===1){
     const cats=[
-      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart"},
-      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling"},
-      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser"},
-      {id:"aesthetik",nm:"Ästhetik / Schönheit",sub:"Botox · Filler · Anti-Aging"},
-      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre"},
-      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone"},
-      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting · Lamination"},
-      {id:"arzt",nm:"Arzt / Klinik",sub:"Dermatologie · Laser · Behandlung"},
-      {id:"opraum",nm:"OP-Raum Anbieter",sub:"Sterile Räume · Chirurgie"}
+      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="8" r="4" fill="none" stroke="var(--gold)" stroke-width="1.5"/><path d="M8 28V20a8 8 0 0116 0v8" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="22" x2="20" y2="22" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/></svg>`},
+      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><path d="M10 6c0 4 6 10 6 14M22 6c0 4-6 10-6 14" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="5" r="3" fill="none" stroke="var(--gold)" stroke-width="1.5"/><circle cx="22" cy="5" r="3" fill="none" stroke="var(--gold)" stroke-width="1.5"/><line x1="16" y1="20" x2="16" y2="28" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/></svg>`},
+      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><ellipse cx="16" cy="14" rx="9" ry="10" fill="none" stroke="var(--gold)" stroke-width="1.5"/><path d="M12 12c0-1 1-2 2-2s2 1 2 1 0-2 2-2 2 1 2 2" fill="none" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/><path d="M11 18q5 4 10 0" fill="none" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/></svg>`},
+      {id:"aesthetik",nm:"Ästhetik",sub:"Botox · Filler · Anti-Aging",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><path d="M16 4v6M16 10l-2 14h4L16 10z" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 26h12" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="4" r="1.5" fill="var(--gold)"/></svg>`},
+      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><path d="M10 8h12v12a6 6 0 01-12 0V8z" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/><path d="M10 14h12" stroke="var(--gold)" stroke-width="1" stroke-dasharray="2 2"/></svg>`},
+      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><path d="M6 22c3-8 6-14 10-14s7 6 10 14" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="8" r="3" fill="none" stroke="var(--gold)" stroke-width="1.5"/></svg>`},
+      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><path d="M6 16q10-10 20 0" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/><path d="M10 16q6-5 12 0" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="16" r="2.5" fill="var(--gold)" opacity=".3" stroke="var(--gold)" stroke-width="1"/></svg>`},
+      {id:"arzt",nm:"Arzt / Klinik",sub:"Derma · Laser · Behandlung",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><rect x="12" y="4" width="8" height="24" rx="2" fill="none" stroke="var(--gold)" stroke-width="1.5"/><rect x="4" y="12" width="24" height="8" rx="2" fill="none" stroke="var(--gold)" stroke-width="1.5"/></svg>`},
+      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:`<svg viewBox="0 0 32 32" width="28" height="28"><rect x="6" y="10" width="20" height="16" rx="3" fill="none" stroke="var(--gold)" stroke-width="1.5"/><path d="M6 16h20M16 10v16" stroke="var(--gold)" stroke-width="1" opacity=".4"/><circle cx="16" cy="6" r="3" fill="none" stroke="var(--gold)" stroke-width="1.5"/></svg>`}
     ];
     body=`
-    <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Was ist dein Handwerk?</p>
-    <p style="font-size:var(--font-md);color:var(--stone);text-align:center;margin-bottom:20px">Wähle deine Branche — du kannst es später ändern.</p>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${cats.map(c=>`<div onclick="pickProvCat('${c.id}')" style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;border:1.5px solid ${state.provCat===c.id?"var(--gold)":"var(--border)"};background:${state.provCat===c.id?"rgba(200,168,75,.06)":"var(--c2)"};cursor:pointer">
-        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--c3),var(--c4));border:1px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">${catIcons[c.id]||""}</div>
-        <div style="flex:1"><p style="font-size:var(--font-md);font-weight:700">${c.nm}</p><p style="font-size:12px;color:var(--stone)">${c.sub}</p></div>
-        ${state.provCat===c.id?`<div style="width:24px;height:24px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#080706;flex-shrink:0">✓</div>`:""}
-      </div>`).join("")}
+    <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Was ist dein Handwerk?</p>
+    <p style="font-size:13px;color:var(--stone);text-align:center;margin-bottom:18px">Wähle deine Branche</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${cats.map(c=>{const sel=state.provCat===c.id;return`<div onclick="pickProvCat('${c.id}')" style="padding:14px 10px;border-radius:14px;border:1.5px solid ${sel?"var(--gold)":"var(--border)"};background:${sel?"rgba(200,168,75,.06)":"var(--c2)"};cursor:pointer;text-align:center;position:relative">
+        ${sel?`<div style="position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#080706">✓</div>`:""}
+        <div style="margin:0 auto 8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center">${c.ic}</div>
+        <p style="font-size:13px;font-weight:700">${c.nm}</p>
+        <p style="font-size:10px;color:var(--stone);margin-top:2px">${c.sub}</p>
+      </div>`;}).join("")}
     </div>
-    <button class="bgold" style="margin-top:20px" ${state.provCat?"":"disabled"} onclick="state.provSetup=2;initProvServices();render()">Weiter →</button>`;
+    <button class="bgold" style="margin-top:18px" ${state.provCat?"":"disabled"} onclick="state.provSetup=2;initProvServices();render()">Weiter →</button>`;
   }
 
-  // ═══ STEP 2: Toggle services ═══
+  // ═══ STEP 2: Services (catalog + custom add) ═══
   if(s===2){
     const cat=state.provCat||"barber";
     const catalog=SVC_CATALOG[cat]||[];
     if(!state.provServices)state.provServices=[];
+    if(!state.customServices)state.customServices=JSON.parse(localStorage.getItem("cm_custom_svcs")||"[]");
+    const allSvcs=[...catalog,...state.customServices];
     body=`
-    <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Deine Services</p>
-    <p style="font-size:var(--font-md);color:var(--stone);text-align:center;margin-bottom:16px">Was bietest du an? Tippe zum Ein-/Ausschalten.</p>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1);margin-bottom:14px">
-      <span style="font-size:12px;color:var(--stone)">${state.provServices.length}/${catalog.length} aktiv</span>
-      <button onclick="toggleAllServices();render()" style="padding:5px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:11px;color:var(--gold);font-weight:700;cursor:pointer">${state.provServices.length===catalog.length?"Alle aus":"Alle an"}</button>
+    <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Deine Services</p>
+    <p style="font-size:13px;color:var(--stone);text-align:center;margin-bottom:14px">Tippe zum Aktivieren. Eigene Services kannst du unten hinzufügen.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1);margin-bottom:12px">
+      <span style="font-size:12px;color:var(--stone)">${state.provServices.length} aktiv</span>
+      <button onclick="toggleAllServices()" style="padding:4px 10px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:11px;color:var(--gold);font-weight:700;cursor:pointer">${state.provServices.length===allSvcs.length?"Alle aus":"Alle an"}</button>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
-      ${catalog.map(sv=>{const on=state.provServices.includes(sv.nm);return`
-      <div onclick="toggleService('${sv.nm.replace(/'/g,"\\'")}')" style="padding:10px 14px;border-radius:12px;border:1.5px solid ${on?"var(--gold)":"var(--border)"};background:${on?"rgba(200,168,75,.08)":"var(--c2)"};cursor:pointer;display:flex;align-items:center;gap:8px">
-        <span style="font-size:13px;font-weight:${on?700:400};color:${on?"var(--cream)":"var(--stone)"}">${sv.nm}</span>
-        <span style="font-size:11px;color:var(--stone)">${sv.dur}min</span>
-        ${on?`<span style="font-size:12px;color:var(--gold2);font-weight:700">${sv.pr}€</span>`:""}
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+      ${allSvcs.map((sv,i)=>{const on=state.provServices.includes(sv.nm);const isCustom=i>=catalog.length;return`
+      <div onclick="toggleService('${sv.nm.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;border:1.5px solid ${on?"var(--gold)":"var(--border)"};background:${on?"rgba(200,168,75,.06)":"var(--c2)"};cursor:pointer">
+        <div style="width:20px;height:20px;border-radius:6px;border:1.5px solid ${on?"var(--gold)":"var(--c5)"};background:${on?"var(--gold)":"transparent"};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:#080706;font-weight:800">${on?"✓":""}</div>
+        <div style="flex:1"><span style="font-size:13px;font-weight:${on?700:400}">${sv.nm}</span>${isCustom?`<span style="font-size:9px;color:var(--gold);margin-left:6px">EIGENER</span>`:""}</div>
+        <span style="font-size:11px;color:var(--stone);white-space:nowrap">${sv.dur} min</span>
+        <span style="font-size:12px;font-weight:700;color:var(--gold2);min-width:35px;text-align:right">${sv.pr}€</span>
       </div>`;}).join("")}
     </div>
-    <button class="bgold" ${state.provServices.length===0?"disabled":""} onclick="state.provSetup=3;initProvEquip();render()">Weiter → Ausstattung</button>`;
+    <div class="card" style="padding:14px;margin-bottom:16px;border:1.5px dashed rgba(200,168,75,.3)">
+      <p style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px">+ Eigenen Service hinzufügen</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input id="csNm" class="inp" placeholder="Name (z.B. Trockenschnitt)" style="font-size:14px"/>
+        <div style="display:flex;gap:8px">
+          <input id="csDur" class="inp" type="number" placeholder="Dauer (min)" style="flex:1"/>
+          <input id="csPr" class="inp" type="number" placeholder="Preis (€)" style="flex:1"/>
+        </div>
+        <button onclick="addCustomService()" class="boutline" style="padding:10px;font-size:12px;font-weight:700">+ Hinzufügen</button>
+      </div>
+    </div>
+    <button class="bgold" ${state.provServices.length===0?"disabled":""} onclick="state.provSetup=3;initProvEquip();render()">Weiter →</button>`;
   }
 
-  // ═══ STEP 3: Toggle equipment ═══
+  // ═══ STEP 3: Equipment (catalog + custom add) ═══
   if(s===3){
     const cat=state.provCat||"barber";
     const equipCat=EQUIP_CATALOG[cat]||[];
     if(!state.provEquip)state.provEquip=[];
-    if(equipCat.length===0){
+    if(!state.customEquip)state.customEquip=JSON.parse(localStorage.getItem("cm_custom_equip")||"[]");
+    const allEquip=[...equipCat,...state.customEquip];
+    // SVG icons for equipment categories
+    const eqIcon=(nm)=>{
+      const icons={"Laser":`<svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 12h16M12 4l-4 8 4 8 4-8z" fill="none" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        "Steril":`<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="8" fill="none" stroke="var(--gold)" stroke-width="1.3"/><path d="M12 4v16M4 12h16" stroke="var(--gold)" stroke-width="1" opacity=".5"/></svg>`,
+        "default":`<svg viewBox="0 0 24 24" width="18" height="18"><rect x="4" y="8" width="16" height="12" rx="2" fill="none" stroke="var(--gold)" stroke-width="1.3"/><path d="M8 8V6a4 4 0 018 0v2" fill="none" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round"/></svg>`};
+      if(nm.includes("Laser")||nm.includes("LED")||nm.includes("Licht"))return icons["Laser"];
+      if(nm.includes("Steril")||nm.includes("UV"))return icons["Steril"];
+      return icons["default"];
+    };
+    if(allEquip.length===0){
       body=`
-      <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Fast fertig!</p>
-      <p style="font-size:var(--font-md);color:var(--stone);text-align:center;margin-bottom:30px">Für deine Kategorie gibt es keine Geräte-Optionen — du kannst direkt loslegen.</p>
-      <button class="bgold" onclick="finishProvSetup()">Fertig — Loslegen! 🚀</button>`;
+      <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Ausstattung</p>
+      <p style="font-size:13px;color:var(--stone);text-align:center;margin-bottom:20px">Für deine Kategorie gibt es noch keine Standard-Geräte. Du kannst eigene hinzufügen oder direkt weiter.</p>
+      <div class="card" style="padding:14px;margin-bottom:16px;border:1.5px dashed rgba(200,168,75,.3)">
+        <p style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px">+ Eigenes Gerät hinzufügen</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input id="ceNm" class="inp" placeholder="Name (z.B. Spezialgerät)" style="font-size:14px"/>
+          <input id="cePr" class="inp" type="number" placeholder="Aufpreis pro Tag (€, 0 = inklusive)" style="font-size:14px"/>
+          <button onclick="addCustomEquip()" class="boutline" style="padding:10px;font-size:12px;font-weight:700">+ Hinzufügen</button>
+        </div>
+      </div>
+      <button class="bgold" onclick="state.provSetup=4;render()">Weiter →</button>`;
     } else {
       body=`
-      <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">Deine Ausstattung</p>
-      <p style="font-size:var(--font-md);color:var(--stone);text-align:center;margin-bottom:6px">Geräte & Werkzeuge die Mieter nutzen können.</p>
-      <p style="font-size:12px;color:var(--stone2);text-align:center;margin-bottom:16px">0 € = inklusive · Aufpreis pro Tag</p>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1);margin-bottom:14px">
-        <span style="font-size:12px;color:var(--stone)">${state.provEquip.length}/${equipCat.length} aktiv</span>
-        <button onclick="toggleAllEquip();render()" style="padding:5px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:11px;color:var(--gold);font-weight:700;cursor:pointer">${state.provEquip.length===equipCat.length?"Alle aus":"Alle an"}</button>
+      <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Deine Ausstattung</p>
+      <p style="font-size:13px;color:var(--stone);text-align:center;margin-bottom:14px">Geräte die Mieter gegen Aufpreis nutzen können. 0 € = inklusive.</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1);margin-bottom:12px">
+        <span style="font-size:12px;color:var(--stone)">${state.provEquip.length} aktiv</span>
+        <button onclick="toggleAllEquip()" style="padding:4px 10px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:11px;color:var(--gold);font-weight:700;cursor:pointer">${state.provEquip.length===allEquip.length?"Alle aus":"Alle an"}</button>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
-        ${equipCat.map(eq=>{const on=state.provEquip.includes(eq.nm);return`
-        <div onclick="toggleEquip('${eq.nm.replace(/'/g,"\\'")}')" style="padding:10px 14px;border-radius:12px;border:1.5px solid ${on?"var(--gold)":"var(--border)"};background:${on?"rgba(200,168,75,.08)":"var(--c2)"};cursor:pointer;display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">${eq.icon}</span>
-          <span style="font-size:13px;font-weight:${on?700:400};color:${on?"var(--cream)":"var(--stone)"}">${eq.nm}</span>
-          ${on?`<span style="font-size:11px;color:${eq.pr===0?"#6ABF80":"var(--gold2)"};font-weight:700">${eq.pr===0?"Inkl.":eq.pr+"€"}</span>`:""}
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+        ${allEquip.map((eq,i)=>{const on=state.provEquip.includes(eq.nm);const isCustom=i>=equipCat.length;return`
+        <div onclick="toggleEquip('${eq.nm.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;border:1.5px solid ${on?"var(--gold)":"var(--border)"};background:${on?"rgba(200,168,75,.06)":"var(--c2)"};cursor:pointer">
+          <div style="width:20px;height:20px;border-radius:6px;border:1.5px solid ${on?"var(--gold)":"var(--c5)"};background:${on?"var(--gold)":"transparent"};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:#080706;font-weight:800">${on?"✓":""}</div>
+          <div style="width:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${eqIcon(eq.nm)}</div>
+          <div style="flex:1"><span style="font-size:13px;font-weight:${on?700:400}">${eq.nm}</span>${isCustom?`<span style="font-size:9px;color:var(--gold);margin-left:6px">EIGENER</span>`:""}</div>
+          <span style="font-size:12px;font-weight:700;color:${eq.pr===0?"#6ABF80":"var(--gold2)"};white-space:nowrap">${eq.pr===0?"Inkl.":"+"+eq.pr+"€"}</span>
         </div>`;}).join("")}
       </div>
-      <p style="font-size:11px;color:var(--stone);text-align:center;margin-bottom:16px">Preise kannst du jederzeit in den Einstellungen anpassen.</p>
-      <button class="bgold" onclick="finishProvSetup()">Fertig — Loslegen! 🚀</button>`;
+      <div class="card" style="padding:14px;margin-bottom:16px;border:1.5px dashed rgba(200,168,75,.3)">
+        <p style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px">+ Eigenes Gerät hinzufügen</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input id="ceNm" class="inp" placeholder="Name (z.B. Dampfgerät)" style="font-size:14px"/>
+          <input id="cePr" class="inp" type="number" placeholder="Aufpreis pro Tag (€)" style="font-size:14px"/>
+          <button onclick="addCustomEquip()" class="boutline" style="padding:10px;font-size:12px;font-weight:700">+ Hinzufügen</button>
+        </div>
+      </div>
+      <button class="bgold" onclick="state.provSetup=4;render()">Weiter →</button>`;
     }
   }
 
-  return`<div style="padding:40px var(--pad) 40px;min-height:100vh;min-height:100dvh">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <button onclick="provSetupBack()" style="color:var(--gold);font-size:var(--font-md);font-weight:700;background:none;border:none;cursor:pointer;font-family:inherit;min-height:44px;display:flex;align-items:center;gap:4px">← Zurück</button>
-      <span style="font-size:var(--font-sm);color:var(--stone)">Schritt ${s}/3</span>
+  // ═══ STEP 4: Profile data ═══
+  if(s===4){
+    if(!state.setupProfile)state.setupProfile=JSON.parse(localStorage.getItem("cm_setup_profile")||"{}");
+    const p=state.setupProfile;
+    const isB2B=state.role==="B2B";
+    body=`
+    <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Dein Profil</p>
+    <p style="font-size:13px;color:var(--stone);text-align:center;margin-bottom:18px">${isB2B?"Geschäftsdaten für B2B-Vermietung":"Damit Kunden dich finden & kontaktieren können"}</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:8px">
+        <div style="flex:1"><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Vorname *</label>
+          <input class="inp" value="${p.vn||""}" oninput="updateSetupProfile('vn',this.value)" placeholder="Max"/></div>
+        <div style="flex:1"><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Nachname *</label>
+          <input class="inp" value="${p.nn||""}" oninput="updateSetupProfile('nn',this.value)" placeholder="Mustermann"/></div>
+      </div>
+      <div><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">E-Mail *</label>
+        <input class="inp" type="email" value="${p.email||""}" oninput="updateSetupProfile('email',this.value)" placeholder="max@meinshop.de"/></div>
+      <div><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Telefon *</label>
+        <input class="inp" type="tel" value="${p.phone||""}" oninput="updateSetupProfile('phone',this.value)" placeholder="+49 170 1234567"/></div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Geschäftsname *</label>
+        <input class="inp" value="${p.biz||""}" oninput="updateSetupProfile('biz',this.value)" placeholder="Mein Studio"/></div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:2"><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Straße + Nr. *</label>
+          <input class="inp" value="${p.street||""}" oninput="updateSetupProfile('street',this.value)" placeholder="Münchener Str. 17"/></div>
+        <div style="flex:1"><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">PLZ *</label>
+          <input class="inp" value="${p.plz||""}" oninput="updateSetupProfile('plz',this.value)" placeholder="60329"/></div>
+      </div>
+      <div><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">Stadt *</label>
+        <input class="inp" value="${p.city||""}" oninput="updateSetupProfile('city',this.value)" placeholder="Frankfurt"/></div>
+      ${isB2B?`
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">IBAN (für Auszahlungen)</label>
+        <input class="inp" value="${p.iban||""}" oninput="updateSetupProfile('iban',this.value)" placeholder="DE89 3704 0044 0532 ..."/></div>
+      <div><label style="font-size:11px;color:var(--stone);display:block;margin-bottom:4px">USt-IdNr.</label>
+        <input class="inp" value="${p.ustid||""}" oninput="updateSetupProfile('ustid',this.value)" placeholder="DE123456789"/></div>`:""}
     </div>
-    <div class="pbar" style="margin-bottom:20px"><div class="pfill" style="width:${s/3*100}%"></div></div>
+    <button class="bgold" style="margin-top:18px" ${isSetupProfileValid()?"":"disabled"} onclick="state.provSetup=5;render()">Weiter →</button>`;
+  }
+
+  // ═══ STEP 5: Summary + Confirm ═══
+  if(s===5){
+    const p=state.setupProfile||{};
+    const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik",aesthetik:"Ästhetik",nail:"Nagelstudio",massage:"Massage",lash:"Lash & Brows",arzt:"Arzt / Klinik",opraum:"OP-Raum"};
+    const svcCount=state.provServices?state.provServices.length:0;
+    const eqCount=state.provEquip?state.provEquip.length:0;
+    body=`
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#D4AE54);display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M9 12l2 2 4-4" fill="none" stroke="#080706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <p class="cinzel" style="font-size:20px;font-weight:600;color:var(--gold2)">Alles bereit!</p>
+      <p style="font-size:13px;color:var(--stone);margin-top:4px">Prüfe deine Angaben und bestätige.</p>
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:12px">
+      ${[["Branche",catLabels[state.provCat]||state.provCat],["Name",p.vn+" "+p.nn],["Geschäft",p.biz],["Adresse",p.street+", "+p.plz+" "+p.city],["E-Mail",p.email],["Telefon",p.phone],["Services",svcCount+" aktiv"],["Ausstattung",eqCount+" Geräte"]].map(([k,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span style="color:var(--stone)">${k}</span>
+        <span style="font-weight:600;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v||"—"}</span>
+      </div>`).join("")}
+    </div>
+    <div style="margin-bottom:16px">
+      <div onclick="state.setupAgb=!state.setupAgb;render()" style="display:flex;gap:10px;padding:10px 0;cursor:pointer;align-items:center">
+        <div style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${state.setupAgb?"var(--gold)":"var(--c5)"};background:${state.setupAgb?"var(--gold)":"transparent"};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;color:#080706;font-weight:800">${state.setupAgb?"✓":""}</div>
+        <span style="font-size:12px">Ich akzeptiere die AGB & Datenschutzerklärung</span>
+      </div>
+    </div>
+    <button class="bgold" ${state.setupAgb?"":"disabled"} onclick="finishProvSetup()">Profil erstellen & Bestätigungsmail erhalten</button>
+    <p style="font-size:11px;color:var(--stone);text-align:center;margin-top:10px;line-height:1.5">Du erhältst eine Bestätigungs-E-Mail an <strong>${p.email||"..."}</strong>. Dein Profil wird nach Prüfung freigeschaltet.</p>`;
+  }
+
+  return`<div style="padding:40px var(--pad) 40px;min-height:100vh;min-height:100dvh">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <button onclick="provSetupBack()" style="color:var(--gold);font-size:var(--font-md);font-weight:700;background:none;border:none;cursor:pointer;font-family:inherit;min-height:44px;display:flex;align-items:center;gap:4px">← Zurück</button>
+      <span style="font-size:var(--font-sm);color:var(--stone)">Schritt ${s}/${totalSteps}</span>
+    </div>
+    <div class="pbar" style="margin-bottom:18px"><div class="pfill" style="width:${s/totalSteps*100}%"></div></div>
     ${body}
   </div>`;
 }
 function pickProvCat(cat){
   state.provCat=cat;
   localStorage.setItem("cm_prov_cat",cat);
-  // Reset services & equip for new category
-  state.provServices=[];state.provEquip=[];
+  state.provServices=[];state.provEquip=[];state.customServices=[];state.customEquip=[];
   localStorage.setItem("cm_prov_svcs",JSON.stringify([]));
   localStorage.setItem("cm_prov_equip",JSON.stringify([]));
+  localStorage.setItem("cm_custom_svcs",JSON.stringify([]));
+  localStorage.setItem("cm_custom_equip",JSON.stringify([]));
   render();
 }
 function initProvServices(){
@@ -1241,13 +1396,51 @@ function provSetupBack(){
   if(state.provSetup>1){state.provSetup--;render();}
   else{state.provSetup=0;state.obStep=3;render();}
 }
+function addCustomService(){
+  const nm=document.getElementById("csNm")?.value?.trim();
+  const dur=parseInt(document.getElementById("csDur")?.value)||30;
+  const pr=parseInt(document.getElementById("csPr")?.value)||0;
+  if(!nm){showToast("Bitte Name eingeben");return;}
+  if(!state.customServices)state.customServices=[];
+  if(state.customServices.some(s=>s.nm===nm)||state.provServices.includes(nm)){showToast("Existiert bereits");return;}
+  state.customServices.push({nm,dur,pr});
+  state.provServices.push(nm);
+  localStorage.setItem("cm_custom_svcs",JSON.stringify(state.customServices));
+  localStorage.setItem("cm_prov_svcs",JSON.stringify(state.provServices));
+  showToast(nm+" hinzugefügt");render();
+}
+function addCustomEquip(){
+  const nm=document.getElementById("ceNm")?.value?.trim();
+  const pr=parseInt(document.getElementById("cePr")?.value)||0;
+  if(!nm){showToast("Bitte Name eingeben");return;}
+  if(!state.customEquip)state.customEquip=[];
+  if(state.customEquip.some(e=>e.nm===nm)||state.provEquip.includes(nm)){showToast("Existiert bereits");return;}
+  state.customEquip.push({nm,pr,icon:"🔧"});
+  state.provEquip.push(nm);
+  localStorage.setItem("cm_custom_equip",JSON.stringify(state.customEquip));
+  localStorage.setItem("cm_prov_equip",JSON.stringify(state.provEquip));
+  showToast(nm+" hinzugefügt");render();
+}
+function updateSetupProfile(k,v){
+  if(!state.setupProfile)state.setupProfile={};
+  state.setupProfile[k]=v;
+  localStorage.setItem("cm_setup_profile",JSON.stringify(state.setupProfile));
+}
+function isSetupProfileValid(){
+  const p=state.setupProfile||{};
+  return p.vn&&p.nn&&p.email&&p.phone&&p.biz&&p.street&&p.plz&&p.city&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email);
+}
 function finishProvSetup(){
   state.provSetup=0;state.onboarded=true;state.tab="home";
   localStorage.setItem("cm_prov_cat",state.provCat);
-  // Update first provider to match chosen category
   PROVS[0].cat=state.provCat;
+  const p=state.setupProfile||{};
+  if(p.biz)PROVS[0].nm=p.biz;
+  if(p.city)PROVS[0].city=p.city;
+  if(p.street)PROVS[0].st=p.street;
+  localStorage.setItem("cm_setup_profile",JSON.stringify(p));
   pushNav("home");document.getElementById("mainScreen").scrollTop=0;
-  showToast("Willkommen! Dein Profil ist eingerichtet 🎉");
+  showToast("Bestätigungsmail gesendet an "+p.email+" ✉️");
   render();
 }
 
@@ -3044,6 +3237,8 @@ window.addEventListener("popstate",function(){
   if(state.detail){state.detail=null;state.tab="home";render();skipPush=false;return;}
   // On a non-home tab? Go home
   if(state.tab!=="home"){state.tab="home";render();skipPush=false;return;}
+  // Customer setup? Go back
+  if(state.customerSetup){state.customerSetup=false;state.obStep=3;render();skipPush=false;return;}
   // Provider setup? Go back one step
   if(state.provSetup>0){provSetupBack();skipPush=false;return;}
   // Onboarding step >0? Go back one step
@@ -3056,7 +3251,7 @@ window.addEventListener("popstate",function(){
 function nextOb(){state.obStep++;pushNav("ob"+state.obStep);render();}
 function finishOnboarding(r){
   if(r==="PROVIDER"||r==="B2B"){state.role=r;state.provSetup=1;pushNav("provsetup");render();return;}
-  state.role=r;state.onboarded=true;state.tab="home";pushNav("home");document.getElementById("mainScreen").scrollTop=0;render();
+  state.role=r;state.customerSetup=true;pushNav("customersetup");render();
 }
 function goTab(t){state.tab=t;state.detail=null;state.subPage=null;pushNav("tab-"+t);document.getElementById("mainScreen").scrollTop=0;render();}
 function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="info";pushNav("detail-"+id);document.getElementById("mainScreen").scrollTop=0;render();}
@@ -3096,8 +3291,10 @@ function toggleService(nm){
 }
 function toggleAllServices(){
   const cat=state.provCat||PROVS[0].cat;const catalog=SVC_CATALOG[cat]||[];
-  if(state.provServices&&state.provServices.length===catalog.length){state.provServices=[];showToast("Alle deaktiviert");}
-  else{state.provServices=catalog.map(s=>s.nm);showToast("Alle aktiviert");}
+  const custom=state.customServices||JSON.parse(localStorage.getItem("cm_custom_svcs")||"[]");
+  const all=[...catalog,...custom];
+  if(state.provServices&&state.provServices.length===all.length){state.provServices=[];showToast("Alle deaktiviert");}
+  else{state.provServices=all.map(s=>s.nm);showToast("Alle aktiviert");}
   localStorage.setItem("cm_prov_svcs",JSON.stringify(state.provServices));render();
 }
 function updateServicePrice(nm,val){
@@ -3114,8 +3311,10 @@ function toggleEquip(nm){
 }
 function toggleAllEquip(){
   const cat=state.provCat||PROVS[0].cat;const catalog=EQUIP_CATALOG[cat]||[];
-  if(state.provEquip&&state.provEquip.length===catalog.length){state.provEquip=[];showToast("Alle deaktiviert");}
-  else{state.provEquip=catalog.map(e=>e.nm);showToast("Alle aktiviert");}
+  const custom=state.customEquip||JSON.parse(localStorage.getItem("cm_custom_equip")||"[]");
+  const all=[...catalog,...custom];
+  if(state.provEquip&&state.provEquip.length===all.length){state.provEquip=[];showToast("Alle deaktiviert");}
+  else{state.provEquip=all.map(e=>e.nm);showToast("Alle aktiviert");}
   localStorage.setItem("cm_prov_equip",JSON.stringify(state.provEquip));render();
 }
 function updateEquipPrice(nm,val){
@@ -3128,7 +3327,9 @@ function getProviderEquip(p){
   const prices=JSON.parse(localStorage.getItem("cm_prov_equip_prices")||"{}");
   if(p.id==="p1"&&saved&&saved.length>0){
     const catalog=EQUIP_CATALOG[p.cat]||[];
-    return catalog.filter(eq=>saved.includes(eq.nm)).map(eq=>({nm:eq.nm,icon:eq.icon,pr:prices[eq.nm]!=null?prices[eq.nm]:eq.pr}));
+    const custom=JSON.parse(localStorage.getItem("cm_custom_equip")||"[]");
+    const all=[...catalog,...custom];
+    return all.filter(eq=>saved.includes(eq.nm)).map(eq=>({nm:eq.nm,icon:eq.icon||"🔧",pr:prices[eq.nm]!=null?prices[eq.nm]:eq.pr}));
   }
   return[];
 }
