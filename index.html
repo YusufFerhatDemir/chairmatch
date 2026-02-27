@@ -969,6 +969,19 @@ const SVC_CATALOG={
   raum:[],
   opraum:[{nm:"OP-Raum Tagesmiete",dur:480,pr:450},{nm:"OP-Raum Halbtag",dur:240,pr:280},{nm:"Sterilisation & Aufbereitung",dur:60,pr:80}]
 };
+// Equipment catalog — machines & tools providers can offer to renters (Aufpreis)
+const EQUIP_CATALOG={
+  barber:[{nm:"Profi-Trimmer Set",pr:5,icon:"✂️"},{nm:"Rasiermesser-Set",pr:3,icon:"🪒"},{nm:"Hot-Towel Dampfgerät",pr:8,icon:"♨️"},{nm:"Barber-Werkzeugkoffer",pr:10,icon:"🧰"},{nm:"Haarwaschbecken",pr:0,icon:"🚿"},{nm:"Sterilisator (UV)",pr:5,icon:"🔬"}],
+  friseur:[{nm:"Föhn & Rundbürsten-Set",pr:5,icon:"💨"},{nm:"Glätteisen / Lockenstab",pr:5,icon:"🔥"},{nm:"Färbe-Arbeitsplatz",pr:8,icon:"🎨"},{nm:"Haarwaschbecken",pr:0,icon:"🚿"},{nm:"Trockenhaube",pr:5,icon:"💇"},{nm:"Sterilisator (UV)",pr:3,icon:"🔬"}],
+  kosmetik:[{nm:"Laser-Haarentfernung",pr:25,icon:"⚡"},{nm:"Microneedling-Gerät",pr:15,icon:"💉"},{nm:"Microblading-Set",pr:12,icon:"✏️"},{nm:"Ultraschall-Gerät",pr:10,icon:"📡"},{nm:"Hochfrequenz-Gerät",pr:10,icon:"🔌"},{nm:"Dampfgerät (Vapozon)",pr:5,icon:"♨️"},{nm:"LED-Lichttherapie",pr:8,icon:"💡"},{nm:"Derma-Roller Set",pr:5,icon:"🔄"}],
+  aesthetik:[{nm:"Botox-Injektionsset",pr:0,icon:"💉"},{nm:"Filler-Kanülen Set",pr:0,icon:"💉"},{nm:"Laser-Gerät",pr:30,icon:"⚡"},{nm:"Kühlgerät (Kryolipolyse)",pr:20,icon:"❄️"},{nm:"Ultraschall (HIFU)",pr:25,icon:"📡"},{nm:"Mesotherapie-Gerät",pr:15,icon:"🔬"}],
+  nail:[{nm:"UV/LED Lampe",pr:3,icon:"💡"},{nm:"Fräser (E-Feile)",pr:5,icon:"🔧"},{nm:"Airbrush-Set",pr:8,icon:"🎨"},{nm:"Gel & Acryl Sortiment",pr:5,icon:"💅"},{nm:"Absaugung",pr:3,icon:"💨"}],
+  massage:[{nm:"Hot-Stone Set",pr:8,icon:"🪨"},{nm:"Schröpfgläser",pr:5,icon:"⭕"},{nm:"Massageöle Sortiment",pr:3,icon:"🧴"},{nm:"Infrarot-Lampe",pr:5,icon:"🔴"},{nm:"TENS-Gerät",pr:5,icon:"⚡"}],
+  lash:[{nm:"Wimpern-Extensions Set",pr:10,icon:"👁️"},{nm:"Lash-Lifting Kit",pr:8,icon:"✨"},{nm:"Brow-Lamination Kit",pr:8,icon:"✏️"},{nm:"Ringlampe",pr:3,icon:"💡"},{nm:"Lupe mit Licht",pr:3,icon:"🔍"}],
+  arzt:[{nm:"Dermatoskop",pr:10,icon:"🔬"},{nm:"Laser-Gerät (med.)",pr:40,icon:"⚡"},{nm:"EKG-Monitor",pr:15,icon:"💓"},{nm:"Ultraschall (Sono)",pr:20,icon:"📡"},{nm:"Kryotherapie-Gerät",pr:15,icon:"❄️"},{nm:"Blutdruckmessgerät",pr:0,icon:"🩺"}],
+  raum:[],
+  opraum:[{nm:"OP-Tisch (elektrisch)",pr:0,icon:"🛏️"},{nm:"OP-Leuchte",pr:0,icon:"💡"},{nm:"Anästhesie-Gerät",pr:30,icon:"😷"},{nm:"Monitor & Vitaldaten",pr:15,icon:"💓"},{nm:"Absaugung (chirurg.)",pr:10,icon:"🔧"},{nm:"Sterilisator (Autoklav)",pr:10,icon:"🔬"},{nm:"Instrumenten-Set",pr:20,icon:"🩺"}]
+};
 // Opening hours per provider
 const defaultHrs={Mo:"09:00–19:00",Di:"09:00–19:00",Mi:"09:00–19:00",Do:"09:00–19:00",Fr:"09:00–19:00",Sa:"10:00–16:00",So:"Geschlossen"};
 const HOURS={
@@ -1026,6 +1039,8 @@ let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:n
   unlockRequests:JSON.parse(localStorage.getItem("cm_unlock")||"[]"),
   provServices:JSON.parse(localStorage.getItem("cm_prov_svcs")||"null"),
   provPrices:JSON.parse(localStorage.getItem("cm_prov_prices")||"{}"),
+  provEquip:JSON.parse(localStorage.getItem("cm_prov_equip")||"null"),
+  provEquipPrices:JSON.parse(localStorage.getItem("cm_prov_equip_prices")||"{}"),
   b2bRentals:JSON.parse(localStorage.getItem("cm_b2b")||"null"),
   pricelistPhoto:localStorage.getItem("cm_pricelist")||null
 };
@@ -1334,6 +1349,11 @@ function renderDetail(){
           </div>
         </div>`;}).join("")}
       <p style="font-size:11px;color:#6ABF80;margin-top:8px;font-weight:600">✓ Direkt anfragen — Schnelle Bestätigung</p>
+      ${(()=>{const eqs=getProviderEquip(p);return eqs.length>0?`
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <p style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px">🔧 Ausstattung verfügbar</p>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">${eqs.slice(0,4).map(eq=>`<span style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.12);color:var(--stone)">${eq.icon} ${eq.nm.split(" ")[0]}${eq.pr>0?" +"+eq.pr+"€":""}</span>`).join("")}${eqs.length>4?`<span style="font-size:10px;padding:3px 7px;color:var(--stone)">+${eqs.length-4}</span>`:""}</div>
+      </div>`:""})()}
     </div>`:""}
     <div class="card" style="padding:14px"><p class="lgold" style="margin-bottom:10px">${t("whyUs")}</p>
       ${[[t("noComm"),t("vs")],[t("direct"),t("noDetour")],[t("verified"),t("checked")]].map(([k,v])=>`
@@ -1433,6 +1453,17 @@ function renderDetail(){
         </div>
       </div>
     </div>`;}).join("")}
+    ${(()=>{const eqs=getProviderEquip(p);return eqs.length>0?`
+    <p class="lgold" style="margin-bottom:10px;margin-top:16px">🔧 Verfügbare Ausstattung (Aufpreis)</p>
+    <div class="card" style="padding:14px;margin-bottom:12px">
+      ${eqs.map(eq=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">${eq.icon}</span>
+          <span style="font-size:13px;font-weight:700">${eq.nm}</span>
+        </div>
+        <span style="font-size:14px;font-weight:800;color:${eq.pr===0?"#6ABF80":"var(--gold2)"}">${eq.pr===0?"Inklusive":"+"+eq.pr+" €/Tag"}</span>
+      </div>`).join("")}
+    </div>`:""})()}
     <div style="padding:12px 14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.1)">
       <p style="font-size:11px;color:var(--stone);line-height:1.5">💡 Alle Preise pro Tag. Kontaktiere den Anbieter per WhatsApp für Wochen-/Monatspreise oder um den Raum vorher zu besichtigen.</p>
     </div>`;
@@ -1562,6 +1593,14 @@ function renderProviderSection(){
         <span style="font-size:14px;font-weight:800;color:var(--gold2)">${displayPr} €</span>
       </div>`;}).join("")}
       ${activeCount>4?`<p style="font-size:11px;color:var(--stone);margin-top:8px;text-align:center">+ ${activeCount-4} weitere Services</p>`:""}
+      ${(()=>{const eqs=getProviderEquip(p);return eqs.length>0?`
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <p style="font-size:11px;font-weight:700;color:var(--gold)">🔧 Ausstattung (${eqs.length})</p>
+          <button onclick="state.adminTab='equip';goSub('admin')" style="padding:4px 8px;border-radius:6px;background:var(--c3);border:1px solid var(--border);font-size:10px;color:var(--gold);font-weight:700;cursor:pointer">Bearbeiten</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${eqs.slice(0,5).map(eq=>`<span style="font-size:11px;padding:4px 8px;border-radius:8px;background:var(--c3);border:1px solid var(--border);color:var(--stone)">${eq.icon} ${eq.nm.split(" ")[0]}${eq.pr>0?" +"+eq.pr+"€":""}</span>`).join("")}${eqs.length>5?`<span style="font-size:11px;padding:4px 8px;color:var(--stone)">+${eqs.length-5}</span>`:""}</div>
+      </div>`:""})()}
     </div>`;
 }
 // ─── B2B RENTAL SECTION (visible in Account for role=B2B) ───
@@ -1630,6 +1669,19 @@ function renderB2BSection(){
           </div>
         </div>`:""}
       </div>`;}).join("")}
+      ${(()=>{const eqs=getProviderEquip(PROVS[0]);const eqCat=EQUIP_CATALOG[PROVS[0].cat]||[];return eqCat.length>0?`
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <p class="lgold">🔧 Ausstattung für Mieter</p>
+          <button onclick="state.adminTab='equip';goSub('admin')" style="padding:5px 10px;border-radius:8px;background:var(--c3);border:1px solid var(--gold);color:var(--gold2);font-size:10px;font-weight:700;cursor:pointer">Bearbeiten</button>
+        </div>
+        ${eqs.length===0?`<p style="font-size:11px;color:var(--stone2);text-align:center;padding:10px 0">Noch keine Geräte freigeschaltet. Tippe "Bearbeiten".</p>`:`
+        ${eqs.slice(0,3).map(eq=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px">${eq.icon} ${eq.nm}</span>
+          <span style="font-size:12px;font-weight:700;color:${eq.pr===0?"#6ABF80":"var(--gold2)"}">${eq.pr===0?"Inkl.":"+"+eq.pr+"€"}</span>
+        </div>`).join("")}
+        ${eqs.length>3?`<p style="font-size:10px;color:var(--stone);margin-top:6px;text-align:center">+ ${eqs.length-3} weitere</p>`:""}`}
+      </div>`:""})()}
     </div>`;
 }
 function toggleB2B(type){
@@ -2266,7 +2318,7 @@ function uploadDocument(name){
 function renderAdmin(){
   const tb=state.adminTab;
   const p=PROVS[0]; // demo: first provider as "my shop"
-  const tabs=[["dashboard",t("adminDash")],["preise","Preise"],["logo",t("adminLogo")],["services",t("adminServices")],["settings",t("adminSettings")]];
+  const tabs=[["dashboard",t("adminDash")],["preise","Preise"],["logo",t("adminLogo")],["services",t("adminServices")],["equip","Ausstattung"],["settings",t("adminSettings")]];
   const tabBar=tabs.map(([id,lbl])=>`<button onclick="state.adminTab='${id}';render()" style="flex:1;padding:10px 0;border-radius:10px;font-size:11px;font-weight:700;background:${tb===id?"var(--gold)":"var(--c2)"};color:${tb===id?"#080706":"var(--stone)"};border:1px solid ${tb===id?"var(--gold)":"var(--border)"}">${lbl}</button>`).join("");
   let content="";
   if(tb==="dashboard"){
@@ -2457,6 +2509,45 @@ function renderAdmin(){
     <div style="margin-top:10px;padding:14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.1)">
       <p style="font-size:12px;color:var(--gold2);font-weight:700;margin-bottom:4px">💡 So funktioniert's</p>
       <p style="font-size:11px;color:var(--stone);line-height:1.5">Aktiviere deine Dienste → Kunden sehen sie in deinem Profil als Servicekarte. Du kannst die Preise jederzeit individuell anpassen.</p>
+    </div>`;
+  }
+  if(tb==="equip"){
+    const cat=p.cat;
+    const equipCat=EQUIP_CATALOG[cat]||[];
+    if(!state.provEquip)state.provEquip=JSON.parse(localStorage.getItem("cm_prov_equip")||"null")||[];
+    if(!state.provEquipPrices)state.provEquipPrices=JSON.parse(localStorage.getItem("cm_prov_equip_prices")||"{}");
+    const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik",aesthetik:"Ästhetik",nail:"Nails",massage:"Massage",lash:"Lash & Brows",arzt:"Arzt/Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum"};
+    content=equipCat.length===0?`<div style="text-align:center;padding:40px"><p style="font-size:36px;margin-bottom:10px">🔧</p><p style="color:var(--stone)">Für diese Kategorie gibt es noch keine Geräte.</p></div>`:`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <p class="lgold">Meine Ausstattung</p>
+      <span style="font-size:11px;color:var(--stone);background:var(--c3);padding:4px 10px;border-radius:8px">${catLabels[cat]||cat}</span>
+    </div>
+    <p style="font-size:12px;color:var(--stone);margin-bottom:14px;line-height:1.5">Geräte & Werkzeuge, die Mieter gegen Aufpreis nutzen können. Freiberufler sehen diese Extras beim Buchen.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1);margin-bottom:14px">
+      <span style="font-size:12px;color:var(--stone)">${state.provEquip.length}/${equipCat.length} aktiv</span>
+      <button onclick="toggleAllEquip()" style="padding:5px 12px;border-radius:8px;background:var(--c3);border:1px solid var(--border);font-size:11px;color:var(--gold);font-weight:700;cursor:pointer">${state.provEquip.length===equipCat.length?"Alle deaktivieren":"Alle aktivieren"}</button>
+    </div>
+    ${equipCat.map(eq=>{
+      const active=state.provEquip.includes(eq.nm);
+      const customPr=state.provEquipPrices[eq.nm];
+      const displayPr=customPr!==undefined?customPr:eq.pr;
+      return`
+    <div style="margin-bottom:8px;border:1.5px solid ${active?"rgba(200,168,75,.2)":"var(--border)"};border-radius:12px;overflow:hidden;background:${active?"rgba(200,168,75,.03)":"var(--c2)"}">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px">
+        <div onclick="toggleEquip('${eq.nm.replace(/'/g,"\\'")}')" style="width:44px;height:26px;border-radius:13px;background:${active?"var(--gold)":"var(--c4)"};cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+          <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;${active?"right:3px":"left:3px"};transition:all .2s"></div>
+        </div>
+        <span style="font-size:18px;flex-shrink:0">${eq.icon}</span>
+        <div style="flex:1"><p style="font-size:13px;font-weight:700;color:${active?"var(--cream)":"var(--stone)"}">${eq.nm}</p><p style="font-size:11px;color:var(--stone2)">${eq.pr===0?"Inklusive":"Aufpreis: "+eq.pr+" €/Tag"}</p></div>
+        ${active?`<div style="display:flex;align-items:center;gap:4px">
+          <input class="inp" type="number" value="${displayPr}" oninput="updateEquipPrice('${eq.nm.replace(/'/g,"\\'")}',this.value)" style="width:60px;text-align:right;font-size:15px;font-weight:700;padding:6px 8px"/>
+          <span style="font-size:13px;font-weight:700;color:var(--gold2)">€</span>
+        </div>`:`<span style="font-size:12px;color:var(--stone2)">Aus</span>`}
+      </div>
+    </div>`;}).join("")}
+    <div style="margin-top:14px;padding:14px;background:rgba(200,168,75,.04);border-radius:12px;border:1px solid rgba(200,168,75,.1)">
+      <p style="font-size:12px;color:var(--gold2);font-weight:700;margin-bottom:4px">💡 So funktioniert's</p>
+      <p style="font-size:11px;color:var(--stone);line-height:1.5">Aktiviere Geräte, die Mieter gegen Aufpreis nutzen dürfen. 0 € = inklusive im Mietpreis. Freelancer sehen die Extras direkt beim Mietobjekt.</p>
     </div>`;
   }
   if(tb==="settings"){
@@ -2868,6 +2959,33 @@ function updateServicePrice(nm,val){
   if(!state.provPrices)state.provPrices={};
   state.provPrices[nm]=parseFloat(val)||0;
   localStorage.setItem("cm_prov_prices",JSON.stringify(state.provPrices));
+}
+function toggleEquip(nm){
+  if(!state.provEquip)state.provEquip=[];
+  const idx=state.provEquip.indexOf(nm);
+  if(idx>-1){state.provEquip.splice(idx,1);showToast("Deaktiviert");}
+  else{state.provEquip.push(nm);showToast("Freigeschaltet");}
+  localStorage.setItem("cm_prov_equip",JSON.stringify(state.provEquip));render();
+}
+function toggleAllEquip(){
+  const p=PROVS[0];const catalog=EQUIP_CATALOG[p.cat]||[];
+  if(state.provEquip&&state.provEquip.length===catalog.length){state.provEquip=[];showToast("Alle deaktiviert");}
+  else{state.provEquip=catalog.map(e=>e.nm);showToast("Alle aktiviert");}
+  localStorage.setItem("cm_prov_equip",JSON.stringify(state.provEquip));render();
+}
+function updateEquipPrice(nm,val){
+  if(!state.provEquipPrices)state.provEquipPrices={};
+  state.provEquipPrices[nm]=parseFloat(val)||0;
+  localStorage.setItem("cm_prov_equip_prices",JSON.stringify(state.provEquipPrices));
+}
+function getProviderEquip(p){
+  const saved=JSON.parse(localStorage.getItem("cm_prov_equip")||"null");
+  const prices=JSON.parse(localStorage.getItem("cm_prov_equip_prices")||"{}");
+  if(p.id==="p1"&&saved&&saved.length>0){
+    const catalog=EQUIP_CATALOG[p.cat]||[];
+    return catalog.filter(eq=>saved.includes(eq.nm)).map(eq=>({nm:eq.nm,icon:eq.icon,pr:prices[eq.nm]!=null?prices[eq.nm]:eq.pr}));
+  }
+  return[];
 }
 function onSearch(v){state.searchQuery=v;render();const el=document.getElementById("searchInp");if(el){el.focus();el.setSelectionRange(v.length,v.length);}}
 function focusSearch(){requestAnimationFrame(()=>{const el=document.getElementById("searchInp");if(el)el.focus();});}
