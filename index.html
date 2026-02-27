@@ -857,20 +857,20 @@ const SPECS=[
   {id:"s14",nm:"Dr. Schneider",role:"Dermatologe",rt:4.8,cat:"arzt",ini:"DS",col:"#1A2840"}
 ];
 const PROVS=[
-  {id:"p1",cat:"barber",nm:"BlackLabel Barbershop",st:"Münchener Str. 17",city:"Frankfurt",rt:4.9,rc:412,tl:"Premium Fades & Beard Design",tags:["Fade","Skin Fade","Bart"],disc:15,bc:"#C8A84B",prom:true,ver:true,live:true,frei:3,tier:"gold",boost:95,logo:null,sps:["s1","s5"],svs:[{id:"sv1",nm:"Signature Cut",dur:40,pr:42},{id:"sv2",nm:"Skin Fade",dur:45,pr:48},{id:"sv3",nm:"Beard Design",dur:30,pr:28}],revs:[{u:"Tobias K.",s:5,t:"Absolut top!",d:"12.02.2026"},{u:"Markus L.",s:5,t:"Super Atmosphäre.",d:"05.02.2026"}],gal:[{b:"#3A2818",a:"#5A4828",sv:"Skin Fade"},{b:"#2A1A10",a:"#4A3A20",sv:"Beard Design"}]},
-  {id:"p2",cat:"kosmetik",nm:"Glow Studio",st:"Maximilianstr. 18",city:"München",rt:4.8,rc:234,tl:"Organic Facials & Skin Care",tags:["Facial","Peeling"],disc:0,bc:"#D4829A",prom:false,ver:true,live:true,frei:2,tier:"free",boost:0,logo:null,sps:["s2","s10"],svs:[{id:"sv4",nm:"Deep Cleanse Facial",dur:60,pr:85},{id:"sv5",nm:"Chemical Peeling",dur:45,pr:65}],revs:[{u:"Anna S.",s:5,t:"Haut strahlt!",d:"08.02.2026"}],gal:[{b:"#3A2028",a:"#5A3848",sv:"Facial"}]},
-  {id:"p3",cat:"aesthetik",nm:"AesthetiQ Klinik",st:"Kurfürstendamm 55",city:"Berlin",rt:5.0,rc:188,tl:"Med. Ästhetik & Anti-Aging",tags:["Botox","Filler"],disc:10,bc:"#6AAED4",prom:true,ver:true,live:false,frei:0,tier:"premium",boost:70,logo:null,sps:["s3"],svs:[{id:"sv6",nm:"Botox",dur:30,pr:320},{id:"sv7",nm:"Hyaluron Filler",dur:45,pr:450}],revs:[{u:"Sandra M.",s:5,t:"Dr. Meyer ist der Beste.",d:"10.02.2026"}],gal:[]},
-  {id:"p4",cat:"nail",nm:"NailLab by Lena",st:"Jungfernstieg 7",city:"Hamburg",rt:4.9,rc:301,tl:"Gel Nails & Premium Nail Art",tags:["Gel","Nail Art"],disc:0,bc:"#C8A87A",prom:false,ver:true,live:true,frei:1,tier:"free",boost:0,logo:null,sps:["s4","s11"],svs:[{id:"sv8",nm:"Gel Manicure",dur:60,pr:55},{id:"sv9",nm:"Nail Art Design",dur:90,pr:75}],revs:[{u:"Julia R.",s:5,t:"Traumhafte Nägel!",d:"14.02.2026"}],gal:[{b:"#2A2818",a:"#4A4828",sv:"Gel"},{b:"#281828",a:"#483848",sv:"Nail Art"}]},
-  {id:"p5",cat:"friseur",nm:"Maison Haarwerk",st:"Königsallee 44",city:"Düsseldorf",rt:4.9,rc:318,tl:"Premium Haarschnitt & Colorationen",tags:["Damenschnitt","Herrenschnitt","Balayage"],disc:10,bc:"#9A70C8",prom:true,ver:true,live:true,frei:2,tier:"gold",boost:88,logo:null,sps:["s6"],svs:[{id:"sv10",nm:"Damenschnitt & Styling",dur:60,pr:65},{id:"sv11",nm:"Herrenschnitt",dur:35,pr:38},{id:"sv12",nm:"Balayage / Highlights",dur:120,pr:120}],revs:[{u:"Klara W.",s:5,t:"Traumhafte Farbe!",d:"15.02.2026"},{u:"Tom B.",s:5,t:"Bester Haarschnitt.",d:"09.02.2026"}],gal:[{b:"#2A1828",a:"#4A3048",sv:"Balayage"},{b:"#1A1828",a:"#3A3048",sv:"Damenschnitt"}]},
-  {id:"p6",cat:"massage",nm:"ZenFlow Massage",st:"Schildergasse 12",city:"Köln",rt:5.0,rc:276,tl:"Klassische & Tiefengewebsmassagen",tags:["Klassisch","Tiefengewebe","Hot Stone"],disc:0,bc:"#4AA890",prom:true,ver:true,live:true,frei:4,tier:"premium",boost:60,logo:null,sps:["s7"],svs:[{id:"sv13",nm:"Klassische Massage",dur:60,pr:75},{id:"sv14",nm:"Tiefengewebsmassage",dur:60,pr:90},{id:"sv15",nm:"Hot Stone Massage",dur:90,pr:110}],revs:[{u:"Peter N.",s:5,t:"Absolut entspannend!",d:"13.02.2026"},{u:"Sabine K.",s:5,t:"Kenan ist ein Profi.",d:"07.02.2026"}],gal:[]},
-  {id:"p7",cat:"barber",nm:"King's Cut Berlin",st:"Torstraße 89",city:"Berlin",rt:4.8,rc:189,tl:"Urban Barbershop Culture",tags:["Fade","Razor","Bart"],disc:20,bc:"#D4A840",prom:true,ver:true,live:true,frei:2,tier:"premium",boost:55,logo:null,sps:["s9"],svs:[{id:"sv16",nm:"Classic Cut",dur:35,pr:35},{id:"sv17",nm:"Hot Towel Shave",dur:30,pr:30},{id:"sv18",nm:"Full Service",dur:60,pr:58}],revs:[{u:"Leon M.",s:5,t:"Bester Barber in Berlin!",d:"18.02.2026"},{u:"Felix A.",s:4,t:"Super Ergebnis.",d:"11.02.2026"}],gal:[{b:"#2A2010",a:"#4A4020",sv:"Fade"}]},
-  {id:"p8",cat:"friseur",nm:"Haarmonie Stuttgart",st:"Calwer Str. 22",city:"Stuttgart",rt:4.7,rc:156,tl:"Nachhaltige Friseur-Kunst",tags:["Bio","Vegan","Balayage"],disc:0,bc:"#7AB870",prom:false,ver:true,live:true,frei:3,tier:"free",boost:0,logo:null,sps:["s8"],svs:[{id:"sv19",nm:"Bio Haarschnitt",dur:45,pr:52},{id:"sv20",nm:"Vegan Coloration",dur:90,pr:95}],revs:[{u:"Marie S.",s:5,t:"Endlich ein nachhaltiger Salon!",d:"20.02.2026"}],gal:[{b:"#182A18",a:"#284A28",sv:"Bio"}]},
-  {id:"p9",cat:"kosmetik",nm:"Skin Atelier",st:"Neuer Wall 15",city:"Hamburg",rt:4.9,rc:210,tl:"Luxus Hautpflege & Treatments",tags:["Microneedling","Facial","Anti-Aging"],disc:15,bc:"#C880A0",prom:true,ver:true,live:true,frei:1,tier:"gold",boost:82,logo:null,sps:["s10"],svs:[{id:"sv21",nm:"Luxus Facial",dur:75,pr:120},{id:"sv22",nm:"Microneedling",dur:60,pr:150}],revs:[{u:"Lisa W.",s:5,t:"Beste Behandlung ever!",d:"22.02.2026"}],gal:[{b:"#2A1828",a:"#4A3040",sv:"Facial"}]},
-  {id:"p10",cat:"massage",nm:"Lotus Wellness",st:"Hohenzollernring 33",city:"Köln",rt:4.8,rc:198,tl:"Asiatische Massage-Tradition",tags:["Thai","Shiatsu","Aromatherapie"],disc:0,bc:"#60A8A0",prom:false,ver:true,live:true,frei:5,tier:"free",boost:0,logo:null,sps:["s12"],svs:[{id:"sv23",nm:"Thai Massage",dur:60,pr:70},{id:"sv24",nm:"Shiatsu",dur:75,pr:85},{id:"sv25",nm:"Aromatherapie",dur:90,pr:100}],revs:[{u:"Hans B.",s:5,t:"Wie in Thailand!",d:"16.02.2026"}],gal:[]},
-  {id:"p11",cat:"nail",nm:"Glitter & Glow Nails",st:"Zeil 28",city:"Frankfurt",rt:4.7,rc:145,tl:"Trendy Nail Art Studio",tags:["Chrome","Airbrush","Extensions"],disc:10,bc:"#C0A0D0",prom:false,ver:true,live:true,frei:2,tier:"free",boost:0,logo:null,sps:["s11"],svs:[{id:"sv26",nm:"Chrome Nails",dur:75,pr:65},{id:"sv27",nm:"Airbrush Design",dur:90,pr:85}],revs:[{u:"Lara T.",s:4,t:"Coole Designs!",d:"19.02.2026"}],gal:[{b:"#281838",a:"#483058",sv:"Chrome"}]},
-  {id:"p12",cat:"aesthetik",nm:"Face Perfect München",st:"Leopoldstr. 31",city:"München",rt:4.9,rc:167,tl:"Lippenunterspritzung & Profhilo",tags:["Lippen","Profhilo","Mesotherapie"],disc:0,bc:"#80A8D8",prom:true,ver:true,live:true,frei:1,tier:"premium",boost:50,logo:null,sps:["s3"],svs:[{id:"sv28",nm:"Lippen Filler",dur:30,pr:380},{id:"sv29",nm:"Profhilo",dur:45,pr:420}],revs:[{u:"Nina G.",s:5,t:"Natürliches Ergebnis!",d:"21.02.2026"}],gal:[]},
-  {id:"p13",cat:"lash",nm:"LashPerfect Studio",st:"Sendlinger Str. 28",city:"München",rt:4.9,rc:178,tl:"Premium Wimpern & Brow Design",tags:["Lash Extensions","Lash Lifting","Brow Lamination"],disc:0,bc:"#B8A060",prom:false,ver:true,live:true,frei:3,tier:"free",boost:0,logo:null,sps:["s13"],svs:[{id:"sv30",nm:"Classic Lash Extensions",dur:90,pr:89},{id:"sv31",nm:"Lash Lifting & Tinting",dur:60,pr:55},{id:"sv32",nm:"Brow Lamination",dur:45,pr:45}],revs:[{u:"Jenny K.",s:5,t:"Perfekte Wimpern!",d:"23.02.2026"}],gal:[{b:"#2A2418",a:"#4A4028",sv:"Lash Extensions"}]},
-  {id:"p14",cat:"arzt",nm:"Derma Zentrum Berlin",st:"Friedrichstr. 112",city:"Berlin",rt:4.9,rc:203,tl:"Dermatologie & Laserbehandlung",tags:["Laser","Hautcheck","Akne"],disc:5,bc:"#6090C8",prom:true,ver:true,live:true,frei:2,tier:"gold",boost:78,logo:null,sps:["s14"],svs:[{id:"sv33",nm:"Hautkrebs-Screening",dur:30,pr:95},{id:"sv34",nm:"Laser Haarentfernung",dur:45,pr:150},{id:"sv35",nm:"Akne Behandlung",dur:40,pr:120}],revs:[{u:"Max B.",s:5,t:"Sehr professionell!",d:"24.02.2026"}],gal:[]}
+  {id:"p1",cat:"barber",nm:"BlackLabel Barbershop",st:"Münchener Str. 17",city:"Frankfurt",rt:4.9,rc:412,tl:"Premium Fades & Beard Design",tags:["Fade","Skin Fade","Bart","Herrenschnitt","Rasur"],disc:15,bc:"#C8A84B",prom:true,ver:true,live:true,frei:3,tier:"gold",boost:95,logo:null,sps:["s1","s5"],rental:[{type:"stuhl",pr:45},{type:"raum",pr:60}],svs:[{id:"sv1",nm:"Signature Cut",dur:40,pr:42},{id:"sv2",nm:"Skin Fade",dur:45,pr:48},{id:"sv3",nm:"Beard Design",dur:30,pr:28}],revs:[{u:"Tobias K.",s:5,t:"Absolut top!",d:"12.02.2026"},{u:"Markus L.",s:5,t:"Super Atmosphäre.",d:"05.02.2026"}],gal:[{b:"#3A2818",a:"#5A4828",sv:"Skin Fade"},{b:"#2A1A10",a:"#4A3A20",sv:"Beard Design"}]},
+  {id:"p2",cat:"kosmetik",nm:"Glow Studio",st:"Maximilianstr. 18",city:"München",rt:4.8,rc:234,tl:"Organic Facials & Skin Care",tags:["Facial","Peeling","Hautreinigung","Gesichtspflege","Anti-Aging"],disc:0,bc:"#D4829A",prom:false,ver:true,live:true,frei:2,tier:"free",boost:0,logo:null,sps:["s2","s10"],rental:[{type:"liege",pr:38},{type:"raum",pr:50}],svs:[{id:"sv4",nm:"Deep Cleanse Facial",dur:60,pr:85},{id:"sv5",nm:"Chemical Peeling",dur:45,pr:65}],revs:[{u:"Anna S.",s:5,t:"Haut strahlt!",d:"08.02.2026"}],gal:[{b:"#3A2028",a:"#5A3848",sv:"Facial"}]},
+  {id:"p3",cat:"aesthetik",nm:"AesthetiQ Klinik",st:"Kurfürstendamm 55",city:"Berlin",rt:5.0,rc:188,tl:"Med. Ästhetik & Anti-Aging",tags:["Botox","Filler","Haartransplantation","Faltenbehandlung","Lippenunterspritzung","Schönheitsklinik"],disc:10,bc:"#6AAED4",prom:true,ver:true,live:false,frei:0,tier:"premium",boost:70,logo:null,sps:["s3"],rental:[{type:"raum",pr:120}],svs:[{id:"sv6",nm:"Botox",dur:30,pr:320},{id:"sv7",nm:"Hyaluron Filler",dur:45,pr:450},{id:"sv36",nm:"Haartransplantation Beratung",dur:60,pr:0}],revs:[{u:"Sandra M.",s:5,t:"Dr. Meyer ist der Beste.",d:"10.02.2026"}],gal:[]},
+  {id:"p4",cat:"nail",nm:"NailLab by Lena",st:"Jungfernstieg 7",city:"Hamburg",rt:4.9,rc:301,tl:"Gel Nails & Premium Nail Art",tags:["Gel","Nail Art","Maniküre","Pediküre","Shellac"],disc:0,bc:"#C8A87A",prom:false,ver:true,live:true,frei:1,tier:"free",boost:0,logo:null,sps:["s4","s11"],rental:[{type:"stuhl",pr:30}],svs:[{id:"sv8",nm:"Gel Manicure",dur:60,pr:55},{id:"sv9",nm:"Nail Art Design",dur:90,pr:75}],revs:[{u:"Julia R.",s:5,t:"Traumhafte Nägel!",d:"14.02.2026"}],gal:[{b:"#2A2818",a:"#4A4828",sv:"Gel"},{b:"#281828",a:"#483848",sv:"Nail Art"}]},
+  {id:"p5",cat:"friseur",nm:"Maison Haarwerk",st:"Königsallee 44",city:"Düsseldorf",rt:4.9,rc:318,tl:"Premium Haarschnitt & Colorationen",tags:["Damenschnitt","Herrenschnitt","Balayage","Strähnchen","Haarfarbe","Haarverlängerung"],disc:10,bc:"#9A70C8",prom:true,ver:true,live:true,frei:2,tier:"gold",boost:88,logo:null,sps:["s6"],rental:[{type:"stuhl",pr:50},{type:"raum",pr:65}],svs:[{id:"sv10",nm:"Damenschnitt & Styling",dur:60,pr:65},{id:"sv11",nm:"Herrenschnitt",dur:35,pr:38},{id:"sv12",nm:"Balayage / Highlights",dur:120,pr:120}],revs:[{u:"Klara W.",s:5,t:"Traumhafte Farbe!",d:"15.02.2026"},{u:"Tom B.",s:5,t:"Bester Haarschnitt.",d:"09.02.2026"}],gal:[{b:"#2A1828",a:"#4A3048",sv:"Balayage"},{b:"#1A1828",a:"#3A3048",sv:"Damenschnitt"}]},
+  {id:"p6",cat:"massage",nm:"ZenFlow Massage",st:"Schildergasse 12",city:"Köln",rt:5.0,rc:276,tl:"Klassische & Tiefengewebsmassagen",tags:["Klassisch","Tiefengewebe","Hot Stone","Sportmassage","Lymphdrainage"],disc:0,bc:"#4AA890",prom:true,ver:true,live:true,frei:4,tier:"premium",boost:60,logo:null,sps:["s7"],rental:[{type:"liege",pr:40},{type:"raum",pr:55}],svs:[{id:"sv13",nm:"Klassische Massage",dur:60,pr:75},{id:"sv14",nm:"Tiefengewebsmassage",dur:60,pr:90},{id:"sv15",nm:"Hot Stone Massage",dur:90,pr:110}],revs:[{u:"Peter N.",s:5,t:"Absolut entspannend!",d:"13.02.2026"},{u:"Sabine K.",s:5,t:"Kenan ist ein Profi.",d:"07.02.2026"}],gal:[]},
+  {id:"p7",cat:"barber",nm:"King's Cut Berlin",st:"Torstraße 89",city:"Berlin",rt:4.8,rc:189,tl:"Urban Barbershop Culture",tags:["Fade","Razor","Bart","Herrenschnitt","Konturenschnitt"],disc:20,bc:"#D4A840",prom:true,ver:true,live:true,frei:2,tier:"premium",boost:55,logo:null,sps:["s9"],rental:[{type:"stuhl",pr:42}],svs:[{id:"sv16",nm:"Classic Cut",dur:35,pr:35},{id:"sv17",nm:"Hot Towel Shave",dur:30,pr:30},{id:"sv18",nm:"Full Service",dur:60,pr:58}],revs:[{u:"Leon M.",s:5,t:"Bester Barber in Berlin!",d:"18.02.2026"},{u:"Felix A.",s:4,t:"Super Ergebnis.",d:"11.02.2026"}],gal:[{b:"#2A2010",a:"#4A4020",sv:"Fade"}]},
+  {id:"p8",cat:"friseur",nm:"Haarmonie Stuttgart",st:"Calwer Str. 22",city:"Stuttgart",rt:4.7,rc:156,tl:"Nachhaltige Friseur-Kunst",tags:["Bio","Vegan","Balayage","Naturfarbe","Haarschnitt"],disc:0,bc:"#7AB870",prom:false,ver:true,live:true,frei:3,tier:"free",boost:0,logo:null,sps:["s8"],rental:[{type:"stuhl",pr:35}],svs:[{id:"sv19",nm:"Bio Haarschnitt",dur:45,pr:52},{id:"sv20",nm:"Vegan Coloration",dur:90,pr:95}],revs:[{u:"Marie S.",s:5,t:"Endlich ein nachhaltiger Salon!",d:"20.02.2026"}],gal:[{b:"#182A18",a:"#284A28",sv:"Bio"}]},
+  {id:"p9",cat:"kosmetik",nm:"Skin Atelier",st:"Neuer Wall 15",city:"Hamburg",rt:4.9,rc:210,tl:"Luxus Hautpflege & Treatments",tags:["Microneedling","Facial","Anti-Aging","Haarentfernung","Hautstraffung","Fruchtsäurepeeling"],disc:15,bc:"#C880A0",prom:true,ver:true,live:true,frei:1,tier:"gold",boost:82,logo:null,sps:["s10"],rental:[{type:"liege",pr:45},{type:"raum",pr:70}],svs:[{id:"sv21",nm:"Luxus Facial",dur:75,pr:120},{id:"sv22",nm:"Microneedling",dur:60,pr:150},{id:"sv37",nm:"Laser Haarentfernung",dur:45,pr:130}],revs:[{u:"Lisa W.",s:5,t:"Beste Behandlung ever!",d:"22.02.2026"}],gal:[{b:"#2A1828",a:"#4A3040",sv:"Facial"}]},
+  {id:"p10",cat:"massage",nm:"Lotus Wellness",st:"Hohenzollernring 33",city:"Köln",rt:4.8,rc:198,tl:"Asiatische Massage-Tradition",tags:["Thai","Shiatsu","Aromatherapie","Fußreflexzonen","Rückenmassage"],disc:0,bc:"#60A8A0",prom:false,ver:true,live:true,frei:5,tier:"free",boost:0,logo:null,sps:["s12"],rental:[{type:"liege",pr:35},{type:"raum",pr:48}],svs:[{id:"sv23",nm:"Thai Massage",dur:60,pr:70},{id:"sv24",nm:"Shiatsu",dur:75,pr:85},{id:"sv25",nm:"Aromatherapie",dur:90,pr:100}],revs:[{u:"Hans B.",s:5,t:"Wie in Thailand!",d:"16.02.2026"}],gal:[]},
+  {id:"p11",cat:"nail",nm:"Glitter & Glow Nails",st:"Zeil 28",city:"Frankfurt",rt:4.7,rc:145,tl:"Trendy Nail Art Studio",tags:["Chrome","Airbrush","Extensions","Acryl","French Nails"],disc:10,bc:"#C0A0D0",prom:false,ver:true,live:true,frei:2,tier:"free",boost:0,logo:null,sps:["s11"],rental:[{type:"stuhl",pr:28}],svs:[{id:"sv26",nm:"Chrome Nails",dur:75,pr:65},{id:"sv27",nm:"Airbrush Design",dur:90,pr:85}],revs:[{u:"Lara T.",s:4,t:"Coole Designs!",d:"19.02.2026"}],gal:[{b:"#281838",a:"#483058",sv:"Chrome"}]},
+  {id:"p12",cat:"aesthetik",nm:"Face Perfect München",st:"Leopoldstr. 31",city:"München",rt:4.9,rc:167,tl:"Lippenunterspritzung & Profhilo",tags:["Lippen","Profhilo","Mesotherapie","Faltenunterspritzung","Schönheitsklinik","Haartransplantation"],disc:0,bc:"#80A8D8",prom:true,ver:true,live:true,frei:1,tier:"premium",boost:50,logo:null,sps:["s3"],rental:[{type:"raum",pr:100}],svs:[{id:"sv28",nm:"Lippen Filler",dur:30,pr:380},{id:"sv29",nm:"Profhilo",dur:45,pr:420},{id:"sv38",nm:"Haartransplantation FUE",dur:180,pr:2500}],revs:[{u:"Nina G.",s:5,t:"Natürliches Ergebnis!",d:"21.02.2026"}],gal:[]},
+  {id:"p13",cat:"lash",nm:"LashPerfect Studio",st:"Sendlinger Str. 28",city:"München",rt:4.9,rc:178,tl:"Premium Wimpern & Brow Design",tags:["Lash Extensions","Lash Lifting","Brow Lamination","Wimpernverlängerung","Augenbrauen"],disc:0,bc:"#B8A060",prom:false,ver:true,live:true,frei:3,tier:"free",boost:0,logo:null,sps:["s13"],rental:[{type:"stuhl",pr:32}],svs:[{id:"sv30",nm:"Classic Lash Extensions",dur:90,pr:89},{id:"sv31",nm:"Lash Lifting & Tinting",dur:60,pr:55},{id:"sv32",nm:"Brow Lamination",dur:45,pr:45}],revs:[{u:"Jenny K.",s:5,t:"Perfekte Wimpern!",d:"23.02.2026"}],gal:[{b:"#2A2418",a:"#4A4028",sv:"Lash Extensions"}]},
+  {id:"p14",cat:"arzt",nm:"Derma Zentrum Berlin",st:"Friedrichstr. 112",city:"Berlin",rt:4.9,rc:203,tl:"Dermatologie & Laserbehandlung",tags:["Laser","Hautcheck","Akne","Haarentfernung","Haartransplantation","Laserbehandlung","Pigmentflecken","Narbenbehandlung"],disc:5,bc:"#6090C8",prom:true,ver:true,live:true,frei:2,tier:"gold",boost:78,logo:null,sps:["s14"],rental:[{type:"raum",pr:90}],svs:[{id:"sv33",nm:"Hautkrebs-Screening",dur:30,pr:95},{id:"sv34",nm:"Laser Haarentfernung",dur:45,pr:150},{id:"sv35",nm:"Akne Behandlung",dur:40,pr:120},{id:"sv39",nm:"Haartransplantation Beratung",dur:45,pr:0}],revs:[{u:"Max B.",s:5,t:"Sehr professionell!",d:"24.02.2026"}],gal:[]}
 ];
 const CITIES=[...new Set(PROVS.map(p=>p.city))].sort();
 const PROMO_CODES={"CHAIR2026":{discount:15,type:"percent"},"WELCOME10":{discount:10,type:"percent"},"BEAUTY5":{discount:5,type:"fixed"}};
@@ -913,7 +913,7 @@ function badge(tx,c){return`<span class="badge ${c}">${tx}</span>`;}
 function showToast(msg){const d=document.createElement("div");d.className="toast";d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2500);}
 function toggleFav(id,e){if(e)e.stopPropagation();const i=state.favorites.indexOf(id);if(i>-1){state.favorites.splice(i,1);showToast("Favorit entfernt");}else{state.favorites.push(id);showToast("Zu Favoriten hinzugefügt ♡");}saveFavs();render();}
 function tierWeight(t){return t==="gold"?3:t==="premium"?2:1;}
-function getFiltered(){let list=[...PROVS];if(state.catFilter!=="all")list=list.filter(p=>p.cat===state.catFilter);if(state.searchQuery){const q=state.searchQuery.toLowerCase();list=list.filter(p=>p.nm.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||p.tags.some(tg=>tg.toLowerCase().includes(q))||p.cat.toLowerCase().includes(q));}
+function getFiltered(){let list=[...PROVS];if(state.catFilter!=="all")list=list.filter(p=>p.cat===state.catFilter);if(state.searchQuery){const q=state.searchQuery.toLowerCase();list=list.filter(p=>p.nm.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||p.tags.some(tg=>tg.toLowerCase().includes(q))||p.cat.toLowerCase().includes(q)||p.tl.toLowerCase().includes(q)||p.svs.some(sv=>sv.nm.toLowerCase().includes(q)));}
 if(state.filterCity!=="all")list=list.filter(p=>p.city===state.filterCity);if(state.filterMinRating>0)list=list.filter(p=>p.rt>=state.filterMinRating);if(state.filterMaxPrice<500)list=list.filter(p=>p.svs.some(sv=>sv.pr<=state.filterMaxPrice));if(state.filterOnlyAvail)list=list.filter(p=>p.live);if(state.filterOnlyDisc)list=list.filter(p=>p.disc>0);
 list.sort((a,b)=>{const tw=tierWeight(b.tier)-tierWeight(a.tier);if(tw!==0)return tw;const bw=(b.boost||0)-(a.boost||0);if(bw!==0)return bw;return b.rt-a.rt;});return list;}
 function activeFilterCount(){let c=0;if(state.filterCity!=="all")c++;if(state.filterMinRating>0)c++;if(state.filterMaxPrice<500)c++;if(state.filterOnlyAvail)c++;if(state.filterOnlyDisc)c++;return c;}
@@ -958,7 +958,7 @@ function renderOnboarding(){
   const sl=slides[state.obStep];
   const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
   return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;min-height:100dvh;justify-content:center;padding:20px var(--pad)">
-    ${state.obStep===0?`<div style="margin-bottom:8px">${logoHeader(false)}</div>`:sl.icon==="chair"?`<div style="margin-bottom:14px;display:flex;gap:4px;align-items:flex-end;justify-content:center;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))"><div style="opacity:.55;transform:scale(.6);transform-origin:bottom center">${dbKosmetik()}</div><div>${dbSeat()}</div><div style="opacity:.55;transform:scale(.6);transform-origin:bottom center">${dbMassage()}</div></div>`:sl.icon==="booking"?`<div style="margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbBooking()}</div>`:`<div style="font-size:60px;margin-bottom:14px">${sl.icon}</div>`}
+    ${state.obStep===0?`<div style="margin-bottom:8px">${logoHeader(false)}</div>`:sl.icon==="chair"?`<div style="margin-bottom:14px;display:flex;gap:4px;align-items:flex-end;justify-content:center;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))"><div>${dbSeat()}</div></div>`:sl.icon==="booking"?`<div style="margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbBooking()}</div>`:`<div style="font-size:60px;margin-bottom:14px">${sl.icon}</div>`}
     <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;margin-bottom:8px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
     <p style="font-size:var(--font-md);color:var(--stone);line-height:1.6;margin-bottom:28px;max-width:360px">${sl.s}</p>
     <div style="display:flex;gap:8px;margin-bottom:20px">${dots}</div>
@@ -1007,6 +1007,7 @@ function renderHome(){
             <span style="font-size:11px;color:var(--stone)">(${p.rc})</span>
           </div>
         </div>
+        ${p.rental&&p.rental.length>0?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">${p.rental.map(r=>`<span style="font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.15);color:var(--gold2);font-weight:600">${r.type==="stuhl"?"💺":""}${r.type==="liege"?"🛏":""}${r.type==="raum"?"🚪":""} ${r.pr}€/Tag</span>`).join("")}</div>`:""}
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;gap:4px;align-items:center">
             <div style="width:7px;height:7px;border-radius:50%;background:${p.live?"#4A8A5A":"#C04040"}"></div>
@@ -1050,6 +1051,7 @@ function renderHome(){
           ⚙${afc>0?`<span style="position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--gold);color:#080706;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center">${afc}</span>`:""}
         </button>
       </div>
+      ${!state.searchQuery?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${["Haartransplantation","Haarentfernung","Botox","Balayage","Massage","Skin Fade","Nail Art","Lash Extensions"].map(s=>`<button onclick="onSearch('${s}')" style="padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;background:var(--c3);color:var(--stone);border:1px solid var(--border);cursor:pointer;font-family:inherit">${s}</button>`).join("")}</div>`:""}
     </div>
 
     <!-- CATEGORIES 4x2 GRID -->
@@ -1174,6 +1176,15 @@ function renderDetail(){
       <a href="https://wa.me/?text=${encodeURIComponent(p.nm+' - '+p.st+', '+p.city)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:#25D366;color:#fff;border-radius:12px;font-size:13px;font-weight:700;text-decoration:none">💬 WhatsApp</a>
       <button onclick="toggleFav('${p.id}')" style="flex:1;padding:12px;background:var(--c2);border-radius:12px;border:1px solid var(--border);font-size:13px;font-weight:700">${state.favorites.includes(p.id)?"♥ Favorit":"♡ "+t("favs")}</button>
     </div>
+    ${p.rental&&p.rental.length>0?`<div class="card" style="padding:14px;margin-bottom:16px;border:1.5px solid rgba(200,168,75,.2)">
+      <p class="lgold" style="margin-bottom:10px">💺 Vermietung</p>
+      ${p.rental.map(r=>{const ico=r.type==="stuhl"?"💺":r.type==="liege"?"🛏":"🚪";const nm=r.type==="stuhl"?"Stuhl":r.type==="liege"?"Liege":"Raum/Kabine";return`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">${ico}</span><span style="font-size:13px;font-weight:600">${nm}</span></div>
+          <span style="font-size:15px;font-weight:800;color:var(--gold2)">${r.pr} €/Tag</span>
+        </div>`;}).join("")}
+      <p style="font-size:11px;color:#6ABF80;margin-top:8px;font-weight:600">✓ 0 % Provision — Direkt buchen</p>
+    </div>`:""}
     <div class="card" style="padding:14px"><p class="lgold" style="margin-bottom:10px">${t("whyUs")}</p>
       ${[[t("noComm"),t("vs")],[t("direct"),t("noDetour")],[t("verified"),t("checked")]].map(([k,v])=>`
         <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
@@ -1379,9 +1390,7 @@ function renderAccount(){
       <div style="display:flex;align-items:center;gap:0">
         <div style="flex-shrink:0;width:130px;height:130px;display:flex;align-items:flex-end;justify-content:center;gap:1px;background:linear-gradient(135deg,#0A0600,#180C04);border-right:1px solid rgba(200,168,75,.12);position:relative;overflow:hidden;padding-bottom:4px">
           <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(200,100,0,.08),transparent 70%)"></div>
-          <div style="opacity:.45;transform:scale(.42);transform-origin:bottom center">${dbKosmetik()}</div>
           <div style="transform:scale(.7);transform-origin:bottom center">${dbSeat()}</div>
-          <div style="opacity:.45;transform:scale(.42);transform-origin:bottom center">${dbMassage()}</div>
         </div>
         <div style="flex:1;padding:16px 14px">
           <p class="lgold" style="margin-bottom:6px">💺 ${t("chairRent").toUpperCase()}</p>
@@ -1731,7 +1740,7 @@ function shareSocial(platform){
 function renderAdmin(){
   const tb=state.adminTab;
   const p=PROVS[0]; // demo: first provider as "my shop"
-  const tabs=[["dashboard",t("adminDash")],["logo",t("adminLogo")],["services",t("adminServices")],["settings",t("adminSettings")]];
+  const tabs=[["dashboard",t("adminDash")],["preise","Preise"],["logo",t("adminLogo")],["services",t("adminServices")],["settings",t("adminSettings")]];
   const tabBar=tabs.map(([id,lbl])=>`<button onclick="state.adminTab='${id}';render()" style="flex:1;padding:10px 0;border-radius:10px;font-size:11px;font-weight:700;background:${tb===id?"var(--gold)":"var(--c2)"};color:${tb===id?"#080706":"var(--stone)"};border:1px solid ${tb===id?"var(--gold)":"var(--border)"}">${lbl}</button>`).join("");
   let content="";
   if(tb==="dashboard"){
@@ -1765,6 +1774,37 @@ function renderAdmin(){
         </div>
         <div class="pbar" style="margin-top:8px"><div class="pfill" style="width:${p.boost||0}%"></div></div>
       </div>
+    </div>`;
+  }
+  if(tb==="preise"){
+    const rentalTypes={stuhl:{icon:"💺",nm:"Stuhl",desc:"Barber-/Friseur-Stuhl"},liege:{icon:"🛏",nm:"Liege",desc:"Massage-/Kosmetik-Liege"},raum:{icon:"🚪",nm:"Raum/Kabine",desc:"Behandlungsraum / Kabine"}};
+    const rentals=p.rental||[];
+    content=`
+    <p class="lgold" style="margin-bottom:6px">💰 Vermietungspreise</p>
+    <p style="font-size:12px;color:var(--stone);margin-bottom:14px;line-height:1.5">Setze deine Tagespreise für die Vermietung an Freelancer. 0 % Provision.</p>
+    ${Object.entries(rentalTypes).map(([key,rt])=>{
+      const existing=rentals.find(r=>r.type===key);
+      const active=existing?true:false;
+      const price=existing?existing.pr:"";
+      return`<div class="card" style="padding:14px;margin-bottom:10px;border:1.5px solid ${active?"rgba(200,168,75,.25)":"var(--border)"}">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:${active?"10":"0"}px">
+          <div style="font-size:24px;width:40px;text-align:center">${rt.icon}</div>
+          <div style="flex:1"><p style="font-size:14px;font-weight:700">${rt.nm}</p><p style="font-size:11px;color:var(--stone)">${rt.desc}</p></div>
+          <div onclick="toggleRental('${key}')" style="width:44px;height:26px;border-radius:13px;background:${active?"var(--gold)":"var(--c4)"};cursor:pointer;position:relative;transition:background .2s">
+            <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;${active?"right:3px":"left:3px"};transition:all .2s"></div>
+          </div>
+        </div>
+        ${active?`<div style="display:flex;gap:10px;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
+          <label style="font-size:12px;color:var(--stone);white-space:nowrap">Preis/Tag</label>
+          <div style="flex:1;display:flex;align-items:center;gap:6px">
+            <input class="inp" type="number" value="${price}" oninput="updateRentalPrice('${key}',this.value)" style="flex:1;text-align:right;font-size:16px;font-weight:700" placeholder="0"/>
+            <span style="font-size:14px;font-weight:700;color:var(--gold2)">€</span>
+          </div>
+        </div>`:""}
+      </div>`;}).join("")}
+    <div style="margin-top:14px;padding:14px;background:rgba(74,138,90,.06);border-radius:12px;border:1px solid rgba(74,138,90,.15)">
+      <p style="font-size:12px;color:#6ABF80;font-weight:700;margin-bottom:4px">✓ 0 % Provision</p>
+      <p style="font-size:11px;color:var(--stone);line-height:1.5">Alle Einnahmen gehören dir. Keine versteckten Gebühren.</p>
     </div>`;
   }
   if(tb==="logo"){
@@ -1934,6 +1974,19 @@ function selectAdminIcon(i){
   // Apply to first provider as demo
   PROVS[0].logo=state.adminIcons[i];
   showToast(t("selectedIcon")+" ✓");render();
+}
+function toggleRental(type){
+  const p=PROVS[0];
+  if(!p.rental)p.rental=[];
+  const idx=p.rental.findIndex(r=>r.type===type);
+  if(idx>-1){p.rental.splice(idx,1);showToast("Entfernt");}
+  else{p.rental.push({type,pr:0});showToast("Hinzugefügt");}
+  render();
+}
+function updateRentalPrice(type,val){
+  const p=PROVS[0];if(!p.rental)p.rental=[];
+  const r=p.rental.find(r=>r.type===type);
+  if(r)r.pr=parseFloat(val)||0;
 }
 
 function renderRegister(){
