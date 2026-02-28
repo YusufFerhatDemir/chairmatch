@@ -117,6 +117,20 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 }
 /* ═══ Hover devices (desktop/mouse) ═══ */
 @media(hover:hover){.card:hover{transform:scale(1.01);border-color:var(--borderhi)}.bgold:hover:not(:disabled){box-shadow:0 6px 28px rgba(200,168,75,0.4)}.boutline:hover{background:rgba(200,168,75,.06)}}
+/* ═══ CATEGORY CARDS (premium golden design) ═══ */
+.catcard{width:100%;text-align:left;border-radius:16px;border:1px solid #2a2418;background:#0b0a08;padding:16px 10px 14px;cursor:pointer;transition:box-shadow .25s,transform .2s;box-shadow:0 0 0 1px rgba(255,215,128,0.06),0 20px 60px rgba(0,0,0,0.55);position:relative;display:flex;flex-direction:column;align-items:center}
+.catcard:active{transform:scale(.97)}
+.catcard.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,215,128,0.18),0 24px 80px rgba(0,0,0,0.70)}
+.catcard.on::after{content:'✓';position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--gold);font-size:8px;font-weight:900;color:#080706;display:flex;align-items:center;justify-content:center}
+.catcard .caticon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--c3),var(--c4));border:1px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:center}
+.catcard .caticon svg{width:38px;height:38px}
+.catcard .catlbl{font-size:13px;font-weight:700;color:#f2efe6;text-align:center;margin-top:10px;line-height:1.15}
+.catcard .catsub{font-size:10px;color:#9a917f;text-align:center;margin-top:3px;line-height:1.2}
+.light .catcard{background:#faf8f4;border-color:#e0d8c8}
+.light .catcard.on{border-color:var(--gold)}
+.light .catcard .catlbl{color:#1a1408}
+@media(hover:hover){.catcard:hover{box-shadow:0 0 0 1px rgba(255,215,128,0.12),0 24px 80px rgba(0,0,0,0.70);transform:scale(1.02)}}
+@media(max-width:374px){.catcard{padding:12px 6px 10px;border-radius:13px}.catcard .caticon{width:46px;height:46px;border-radius:11px}.catcard .caticon svg{width:32px;height:32px}.catcard .catlbl{font-size:11px;margin-top:7px}.catcard .catsub{font-size:8px}}
 </style>
 </head>
 <body>
@@ -1644,12 +1658,11 @@ function renderHome(){
   const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8",opraum:"#50B8A0",angebote:"#E8A040",termin:"#60A8D0"};
   const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
-    <div onclick="setCat('${c.id}')" style="width:calc(25% - 7px);display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 2px 10px;border-radius:14px;background:${f===c.id?"rgba(200,168,75,.07)":"var(--c2)"};border:1.5px solid ${f===c.id?"var(--gold)":"var(--border)"};cursor:pointer;position:relative;min-height:82px">
-      ${f===c.id?`<div style="position:absolute;top:4px;right:4px;width:12px;height:12px;border-radius:50%;background:var(--gold);font-size:6px;font-weight:900;color:#080706;display:flex;align-items:center;justify-content:center">✓</div>`:""}
-      <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--c3),var(--c4));border:1px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:center">${catIcons[c.id]}</div>
-      <span style="font-size:10px;font-weight:800;color:${f===c.id?"var(--gold2)":"var(--cream)"};text-align:center;letter-spacing:.02em;line-height:1.15">${c.lbl}</span>
-      <span style="font-size:8px;color:var(--stone);text-align:center;line-height:1.15">${c.sub}</span>
-    </div>`).join("");
+    <button class="catcard${f===c.id?' on':''}" onclick="setCat('${c.id}')">
+      <div class="caticon">${catIcons[c.id]}</div>
+      <div class="catlbl">${c.lbl}</div>
+      <div class="catsub">${c.sub}</div>
+    </button>`).join("");
   const provCards=list.map(p=>`
     <div class="card fu" onclick="openDetail('${p.id}')" style="cursor:pointer;${p.tier==="gold"?"border:1.5px solid rgba(200,168,75,.3);box-shadow:0 0 20px rgba(200,168,75,.08)":p.tier==="premium"?"border:1.5px solid rgba(200,168,75,.15)":""}">
       <div style="height:3px;background:${p.tier==="gold"?"linear-gradient(90deg,#C8A84B,#F5E080,#C8A84B)":p.tier==="premium"?"linear-gradient(90deg,#9A70C8,#C8A84B)":p.bc}"></div>
@@ -1727,7 +1740,7 @@ function renderHome(){
         <p class="lsm">${t("categories")}</p>
         <button onclick="setCat('all')" style="font-size:var(--font-sm);color:var(--gold);cursor:pointer;border:none;background:none;font-family:inherit;min-height:44px;display:flex;align-items:center">${t("all")}</button>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:9px">${catCards}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">${catCards}</div>
     </div>
 
     <!-- TOP SPECIALISTS -->
