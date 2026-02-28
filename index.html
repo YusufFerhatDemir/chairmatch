@@ -438,6 +438,32 @@ function catSVG(type){
     <rect x="50" y="6" width="2" height="6" rx=".8" fill="${g}" opacity=".5"/>
     </g></svg>`;
 
+  if(type==="angebote") return `${w}${hd}
+    <g filter="${fl}">
+    <rect x="10" y="10" width="36" height="44" rx="5" fill="${g}"/><rect x="10" y="10" width="36" height="44" rx="5" fill="${gs}"/>
+    <rect x="14" y="14" width="28" height="36" rx="3" fill="${gh}" opacity=".12"/>
+    <line x1="16" y1="22" x2="40" y2="22" stroke="#8B6914" stroke-width="1" opacity=".3"/>
+    <line x1="16" y1="30" x2="40" y2="30" stroke="#8B6914" stroke-width="1" opacity=".3"/>
+    <line x1="16" y1="38" x2="40" y2="38" stroke="#8B6914" stroke-width="1" opacity=".3"/>
+    <text x="22" y="52" fill="#FFF8E0" font-size="18" font-weight="bold" opacity=".7">%</text>
+    <circle cx="44" cy="12" r="10" fill="${g2}" opacity=".8"/><text x="39" y="17" fill="#1a1508" font-size="14" font-weight="bold">★</text>
+    </g></svg>`;
+
+  if(type==="termin") return `${w}${hd}
+    <g filter="${fl}">
+    <rect x="8" y="10" width="48" height="42" rx="6" fill="${g}"/><rect x="8" y="10" width="48" height="42" rx="6" fill="${gs}"/>
+    <rect x="8" y="10" width="48" height="14" rx="6" fill="${g2}"/>
+    <rect x="8" y="18" width="48" height="6" fill="${g2}"/>
+    <line x1="20" y1="6" x2="20" y2="16" stroke="${g}" stroke-width="3" stroke-linecap="round"/>
+    <line x1="44" y1="6" x2="44" y2="16" stroke="${g}" stroke-width="3" stroke-linecap="round"/>
+    <rect x="14" y="30" width="10" height="8" rx="2" fill="${gh}" opacity=".3"/>
+    <rect x="27" y="30" width="10" height="8" rx="2" fill="${gh}" opacity=".3"/>
+    <rect x="40" y="30" width="10" height="8" rx="2" fill="${gh}" opacity=".3"/>
+    <rect x="14" y="42" width="10" height="8" rx="2" fill="${gh}" opacity=".2"/>
+    <rect x="27" y="42" width="10" height="8" rx="2" fill="#FFF8E0" opacity=".25"/>
+    <rect x="40" y="42" width="10" height="8" rx="2" fill="${gh}" opacity=".2"/>
+    </g></svg>`;
+
   return "";}
 
 // ─── MINI RENTAL ICONS (26px, gold, premium quality) ───
@@ -885,14 +911,15 @@ function t(key){return LANG[state.lang]?.[key]||LANG.de[key]||key;}
 const CATS=[
   {id:"barber",lbl:"Barbershop",sub:"Fade · Cut · Bart"},
   {id:"friseur",lbl:"Friseur",sub:"Schnitt · Farbe · Styling"},
-  {id:"kosmetik",lbl:"Kosmetik",sub:"Facial · Peeling"},
-  {id:"aesthetik",lbl:"Ästhetik",sub:"Botox · Filler"},
-  {id:"nail",lbl:"Nails",sub:"Gel · Nail Art"},
-  {id:"massage",lbl:"Massage",sub:"Wellness · Therapie"},
+  {id:"kosmetik",lbl:"Kosmetik",sub:"Facial · Peeling · Laser"},
+  {id:"aesthetik",lbl:"Ästhetik",sub:"Botox · Filler · Anti-Aging"},
+  {id:"nail",lbl:"Nagelstudio",sub:"Gel · Nail Art · Maniküre"},
+  {id:"massage",lbl:"Massage",sub:"Klassisch · Thai · Hot Stone"},
   {id:"lash",lbl:"Lash & Brows",sub:"Extensions · Lifting"},
-  {id:"arzt",lbl:"Arzt/Klinik",sub:"Derma · Behandlung"},
-  {id:"raum",lbl:"Raum/Kabine",sub:"Freelancer · Miete"},
-  {id:"opraum",lbl:"OP-Raum",sub:"Steril · Chirurgie"}
+  {id:"arzt",lbl:"Arzt / Klinik",sub:"Derma · Laser · Behandlung"},
+  {id:"opraum",lbl:"OP-Raum",sub:"Sterile Räume · Chirurgie"},
+  {id:"angebote",lbl:"Angebote",sub:"Rabatte · Specials"},
+  {id:"termin",lbl:"Termin",sub:"Buchen · Umbuchen"}
 ];
 const SPECS=[
   {id:"s1",nm:"Ahmed K.",role:"Master Barber",rt:4.9,cat:"barber",ini:"AK",col:"#2A4A3A"},
@@ -1644,8 +1671,8 @@ function renderHome(){
   const list=getFiltered();
   const h2=new Date().getHours();
   const gr=h2<12?t("morning"):h2<17?t("afternoon"):t("evening");
-  const catIcons={barber:catSVG("barber"),friseur:catSVG("friseur"),kosmetik:catSVG("kosmetik"),aesthetik:catSVG("aesthetik"),nail:catSVG("nail"),massage:catSVG("massage"),lash:catSVG("lash"),arzt:catSVG("arzt"),raum:catSVG("raum"),opraum:catSVG("opraum")};
-  const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8",raum:"#D0A870",opraum:"#50B8A0"};
+  const catIcons={barber:catSVG("barber"),friseur:catSVG("friseur"),kosmetik:catSVG("kosmetik"),aesthetik:catSVG("aesthetik"),nail:catSVG("nail"),massage:catSVG("massage"),lash:catSVG("lash"),arzt:catSVG("arzt"),opraum:catSVG("opraum"),angebote:catSVG("angebote"),termin:catSVG("termin")};
+  const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8",opraum:"#50B8A0",angebote:"#E8A040",termin:"#60A8D0"};
   const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
     <div onclick="setCat('${c.id}')" style="width:calc(25% - 7px);display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 2px 10px;border-radius:14px;background:${f===c.id?"rgba(200,168,75,.07)":"var(--c2)"};border:1.5px solid ${f===c.id?"var(--gold)":"var(--border)"};cursor:pointer;position:relative;min-height:82px">
@@ -1725,7 +1752,7 @@ function renderHome(){
       ${!state.searchQuery?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${["Haartransplantation","Haarentfernung","OP-Raum","Botox","Balayage","Massage","Skin Fade","Lash Extensions"].map(s=>`<button onclick="onSearch('${s}')" style="padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;background:var(--c3);color:var(--stone);border:1px solid var(--border);cursor:pointer;font-family:inherit">${s}</button>`).join("")}</div>`:""}
     </div>
 
-    <!-- CATEGORIES 4x2 GRID -->
+    <!-- CATEGORIES 4x3 GRID -->
     <div style="padding:0 var(--pad) 18px" class="fu d2">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <p class="lsm">${t("categories")}</p>
@@ -2801,7 +2828,7 @@ function renderDocuments(){
     {id:"d1",nm:"Betriebshaftpflicht",st:"verified",date:"15.01.2026"}
   ];
   // Category description for header
-  const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik-Studio",aesthetik:"Ästhetik-Klinik",nail:"Nail-Studio",massage:"Massage-Studio",lash:"Lash & Brow Studio",arzt:"Arzt/Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum Anbieter"};
+  const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik-Studio",aesthetik:"Ästhetik-Klinik",nail:"Nagelstudio",massage:"Massage-Studio",lash:"Lash & Brow Studio",arzt:"Arzt / Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum Anbieter"};
   return`<div class="sticky">
     <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">Dokumente & Verifizierung</h1>
@@ -2988,7 +3015,7 @@ function renderAdmin(){
     const catalog=SVC_CATALOG[cat]||[];
     if(!state.provServices)state.provServices=JSON.parse(localStorage.getItem("cm_prov_svcs")||"null")||p.svs.map(s=>s.nm);
     if(!state.provPrices)state.provPrices=JSON.parse(localStorage.getItem("cm_prov_prices")||"{}");
-    const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik",aesthetik:"Ästhetik",nail:"Nails",massage:"Massage",lash:"Lash & Brows",arzt:"Arzt/Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum"};
+    const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik",aesthetik:"Ästhetik",nail:"Nagelstudio",massage:"Massage",lash:"Lash & Brows",arzt:"Arzt / Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum"};
     content=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <p class="lgold">Meine Dienste</p>
@@ -3043,7 +3070,7 @@ function renderAdmin(){
     const equipCat=EQUIP_CATALOG[cat]||[];
     if(!state.provEquip)state.provEquip=JSON.parse(localStorage.getItem("cm_prov_equip")||"null")||[];
     if(!state.provEquipPrices)state.provEquipPrices=JSON.parse(localStorage.getItem("cm_prov_equip_prices")||"{}");
-    const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik",aesthetik:"Ästhetik",nail:"Nails",massage:"Massage",lash:"Lash & Brows",arzt:"Arzt/Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum"};
+    const catLabels={barber:"Barbershop",friseur:"Friseur",kosmetik:"Kosmetik",aesthetik:"Ästhetik",nail:"Nagelstudio",massage:"Massage",lash:"Lash & Brows",arzt:"Arzt / Klinik",raum:"Raum-Anbieter",opraum:"OP-Raum"};
     content=equipCat.length===0?`<div style="text-align:center;padding:40px"><p style="font-size:36px;margin-bottom:10px">🔧</p><p style="color:var(--stone)">Für diese Kategorie gibt es noch keine Geräte.</p></div>`:`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <p class="lgold">Meine Ausstattung</p>
@@ -3240,7 +3267,7 @@ function renderRegister(){
     body=`<div style="display:flex;flex-direction:column;gap:12px">
     ${[["Geschäftsname","geschaeft","Mein Studio"],["Straße + Nr.","st","Münchener Str. 17"],["PLZ","plz","60329"],["Stadt","city","Frankfurt"]].map(([l,k,ph])=>`<div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:4px">${l}</label><input class="inp" value="${f[k]}" oninput="updateRegText('${k}',this.value)" placeholder="${ph}"/></div>`).join("")}
     <div><label style="font-size:12px;color:var(--stone);display:block;margin-bottom:8px">Kategorie</label>
-    <div style="display:flex;gap:7px;flex-wrap:wrap">${CATS.map(c=>`<button onclick="updateReg('kat','${c.lbl}')" style="padding:9px 13px;border-radius:10px;font-size:12px;font-weight:700;background:${f.kat===c.lbl?"var(--gold)":"var(--c3)"};color:${f.kat===c.lbl?"#080706":"var(--stone)"};border:1px solid ${f.kat===c.lbl?"var(--gold)":"var(--border)"}">${c.lbl}</button>`).join("")}</div></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">${CATS.filter(c=>c.id!=="angebote"&&c.id!=="termin").map(c=>`<button onclick="updateReg('kat','${c.lbl}')" style="padding:9px 13px;border-radius:10px;font-size:12px;font-weight:700;background:${f.kat===c.lbl?"var(--gold)":"var(--c3)"};color:${f.kat===c.lbl?"#080706":"var(--stone)"};border:1px solid ${f.kat===c.lbl?"var(--gold)":"var(--border)"}">${c.lbl}</button>`).join("")}</div></div>
     <div onclick="updateReg('freelancer',${!f.freelancer})" style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:${f.freelancer?"rgba(200,168,75,.06)":"var(--c2)"};border-radius:12px;border:1.5px solid ${f.freelancer?"var(--gold)":"var(--border)"};cursor:pointer">
       <div class="check ${f.freelancer?"on":""}">${f.freelancer?"✓":""}</div>
       <div><p style="font-size:13px;font-weight:700">Ich bin Freiberufler / Mieter</p><p style="font-size:11px;color:var(--stone)">Ich möchte einen Stuhl/Raum anmieten (nicht vermieten)</p></div>
@@ -3254,7 +3281,7 @@ function renderRegister(){
       <p style="font-size:11px;color:var(--stone);margin-top:2px">Als freiberuflicher Barber/Friseur brauchst du keinen Gewerbeschein.</p>
     </div>`}</div>`;}
   if(s===3){
-    const catMap={Barbershop:"barber",Friseur:"friseur",Kosmetik:"kosmetik","Ästhetik":"aesthetik",Nails:"nail",Massage:"massage","Lash & Brows":"lash","Arzt/Klinik":"arzt","Raum/Kabine":"raum","OP-Raum":"opraum"};
+    const catMap={Barbershop:"barber",Friseur:"friseur",Kosmetik:"kosmetik","Ästhetik":"aesthetik",Nagelstudio:"nail",Massage:"massage","Lash & Brows":"lash","Arzt / Klinik":"arzt","Raum/Kabine":"raum","OP-Raum":"opraum"};
     const regCat=catMap[f.kat]||"barber";
     const allowed=getAllowedRentals(regCat);
     const allOpts=[
@@ -3451,7 +3478,7 @@ function goTab(t){state.tab=t;state.detail=null;state.subPage=null;pushNav("tab-
 function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="info";pushNav("detail-"+id);document.getElementById("mainScreen").scrollTop=0;render();}
 function setDetailTab(t){state.detailTab=t;render();}
 function goBack(){state.detail=null;state.tab="home";history.back();}
-function setCat(c){state.catFilter=c;render();}
+function setCat(c){if(c==="angebote"){goTab("offers");return;}if(c==="termin"){goTab("explore");return;}state.catFilter=c;render();}
 function setRole(r){state.role=r;if(r==="CUSTOMER"){state.tab="home";state.detail=null;state.subPage=null;pushNav("home");document.getElementById("mainScreen").scrollTop=0;}render();}
 function goSub(p){if(p){pushNav("sub-"+p);}else{history.back();return;}state.subPage=p;document.getElementById("mainScreen").scrollTop=0;render();}
 function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;state.bookName="";state.bookEmail="";state.bookPhone="";state.bookNotes="";state.promoCode="";state.promoValid=null;state.promoDiscount=0;pushNav("booking");render();}
