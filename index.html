@@ -1176,6 +1176,95 @@ let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:n
 if(localStorage.getItem("cm_theme")==="light"){state.theme="light";document.body.classList.add("light");}
 if(localStorage.getItem("cm_lang"))state.lang=localStorage.getItem("cm_lang");
 
+// ═══════════════ VISITOR ANALYTICS & TRACKING ═══════════════
+let cmVisits=JSON.parse(localStorage.getItem("cm_visits")||"[]");
+let cmCurrentVisit=null;
+
+function initVisitorTracking(){
+  const visit={id:"v"+Date.now(),ts:new Date().toISOString(),pages:[],ua:navigator.userAgent,ref:document.referrer||"direct",ip:null,city:null,country:null,region:null,org:null,scr:window.innerWidth+"x"+window.innerHeight,dur:0};
+  cmCurrentVisit=visit;
+  cmVisits.push(visit);
+  saveVisits();
+  fetch("https://api.ipify.org?format=json").then(r=>r.json()).then(data=>{
+    visit.ip=data.ip;
+    return fetch("https://ipapi.co/"+data.ip+"/json/");
+  }).then(r=>r.json()).then(geo=>{
+    visit.city=geo.city||"-";visit.country=geo.country_name||"-";visit.region=geo.region||"";visit.org=geo.org||"";
+    saveVisits();
+  }).catch(()=>{visit.ip=visit.ip||"Bilinmiyor";visit.city="-";visit.country="-";saveVisits();});
+  setInterval(()=>{if(cmCurrentVisit){cmCurrentVisit.dur=Math.round((Date.now()-parseInt(cmCurrentVisit.id.slice(1)))/1000);saveVisits();}},30000);
+}
+function trackPage(page){
+  if(!cmCurrentVisit)return;
+  cmCurrentVisit.pages.push({p:page,t:new Date().toISOString()});
+  saveVisits();
+}
+function saveVisits(){
+  if(cmVisits.length>1000)cmVisits=cmVisits.slice(-1000);
+  localStorage.setItem("cm_visits",JSON.stringify(cmVisits));
+}
+function getVisitsToday(){
+  const today=new Date().toDateString();
+  return cmVisits.filter(v=>new Date(v.ts).toDateString()===today);
+}
+function getVisitsThisWeek(){
+  const now=new Date();const weekAgo=new Date(now.getTime()-7*24*60*60*1000);
+  return cmVisits.filter(v=>new Date(v.ts)>=weekAgo);
+}
+function getActiveVisitors(){
+  const now=Date.now();const thirtyMin=30*60*1000;
+  return cmVisits.filter(v=>(now-new Date(v.ts).getTime())<thirtyMin);
+}
+function getHourlyBreakdown(visits){
+  const hours=Array(24).fill(0);
+  visits.forEach(v=>{const h=new Date(v.ts).getHours();hours[h]++;});
+  return hours;
+}
+function getPageStats(visits){
+  const pages={};
+  visits.forEach(v=>v.pages.forEach(pg=>{pages[pg.p]=(pages[pg.p]||0)+1;}));
+  return Object.entries(pages).sort((a,b)=>b[1]-a[1]);
+}
+function getDailyBreakdown(){
+  const days={};
+  cmVisits.forEach(v=>{const d=new Date(v.ts).toLocaleDateString("de-DE");days[d]=(days[d]||0)+1;});
+  return Object.entries(days).sort((a,b)=>new Date(b[0].split('.').reverse().join('-'))-new Date(a[0].split('.').reverse().join('-'))).slice(0,30);
+}
+function getCityStats(visits){
+  const cities={};
+  visits.forEach(v=>{if(v.city&&v.city!=="-")cities[v.city]=(cities[v.city]||0)+1;});
+  return Object.entries(cities).sort((a,b)=>b[1]-a[1]);
+}
+function formatTime(iso){
+  const d=new Date(iso);
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function formatDate(iso){
+  const d=new Date(iso);
+  return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear();
+}
+function formatDuration(sec){
+  if(!sec||sec<1)return"< 1dk";
+  if(sec<60)return sec+"sn";
+  return Math.floor(sec/60)+"dk "+sec%60+"sn";
+}
+function clearVisitorData(){
+  if(!confirm("Tüm ziyaretçi verilerini silmek istediğinize emin misiniz?"))return;
+  cmVisits=[];cmCurrentVisit=null;localStorage.removeItem("cm_visits");
+  showToast("Ziyaretçi verileri silindi");render();
+}
+function exportVisitorCSV(){
+  let csv="Tarih;Saat;IP;Şehir;Ülke;Sayfa Sayısı;Süre;Cihaz;Referrer\n";
+  cmVisits.forEach(v=>{
+    csv+=formatDate(v.ts)+";"+formatTime(v.ts)+";"+( v.ip||"-")+";"+( v.city||"-")+";"+( v.country||"-")+";"+v.pages.length+";"+formatDuration(v.dur)+";"+(v.ua.includes("Mobile")?"Mobil":"Masaüstü")+";"+(v.ref||"direct")+"\n";
+  });
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="chairmatch_ziyaretci_rapor_"+formatDate(new Date().toISOString())+".csv";a.click();
+  showToast("CSV rapor indirildi!");
+}
+
+initVisitorTracking();
+
 function saveFavs(){localStorage.setItem("cm_favs",JSON.stringify(state.favorites));}
 function saveStamps(){localStorage.setItem("cm_stamps",state.stamps);}
 function stars(n){let s="";for(let i=1;i<=5;i++)s+=`<span style="opacity:${i<=Math.round(n)?1:.25};color:#F5D060;font-size:15px;text-shadow:${i<=Math.round(n)?"0 0 6px rgba(245,208,96,.5)":"none"}">★</span>`;return s;}
@@ -2605,8 +2694,8 @@ function renderImpressum(){
 // ─── SUPER ADMIN PANEL ───
 function renderSuperAdmin(){
   const tb=state.saTab;
-  const tabs=[["providers",t("saProviders")],["features",t("saFeatures")],["analytics",t("saAnalytics")]];
-  const tabBar=tabs.map(([id,lbl])=>`<button onclick="state.saTab='${id}';render()" style="flex:1;padding:10px 0;border-radius:10px;font-size:11px;font-weight:700;background:${tb===id?"var(--gold)":"var(--c2)"};color:${tb===id?"#080706":"var(--stone)"};border:1px solid ${tb===id?"var(--gold)":"var(--border)"}">${lbl}</button>`).join("");
+  const tabs=[["providers",t("saProviders")],["visitors","Ziyaretçiler"],["features",t("saFeatures")],["analytics",t("saAnalytics")]];
+  const tabBar=`<div style="display:flex;gap:4px;overflow-x:auto">${tabs.map(([id,lbl])=>`<button onclick="state.saTab='${id}';render()" style="flex:1;padding:10px 4px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;background:${tb===id?"var(--gold)":"var(--c2)"};color:${tb===id?"#080706":"var(--stone)"};border:1px solid ${tb===id?"var(--gold)":"var(--border)"}">${lbl}</button>`).join("")}</div>`;
   let content="";
   if(tb==="providers"){
     content=PROVS.map(p=>`
@@ -2649,6 +2738,147 @@ function renderSuperAdmin(){
       </div>
     </div>`).join("")}`;
   }
+  if(tb==="visitors"){
+    const todayV=getVisitsToday();
+    const weekV=getVisitsThisWeek();
+    const activeV=getActiveVisitors();
+    const hourly=getHourlyBreakdown(todayV);
+    const maxH=Math.max(...hourly,1);
+    const pageStats=getPageStats(weekV);
+    const cityStats=getCityStats(weekV);
+    const daily=getDailyBreakdown();
+    const avgDur=todayV.length>0?Math.round(todayV.reduce((s,v)=>s+(v.dur||0),0)/todayV.length):0;
+    const avgPages=todayV.length>0?Math.round(todayV.reduce((s,v)=>s+v.pages.length,0)/todayV.length*10)/10:0;
+    const mobileCount=todayV.filter(v=>v.ua&&v.ua.includes("Mobile")).length;
+    const desktopCount=todayV.length-mobileCount;
+    content=`
+    <!-- ÖZET KARTLARI -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div class="card" style="padding:14px;text-align:center;border:1px solid rgba(74,138,90,.2)">
+        <p style="font-size:10px;font-weight:700;color:#6ABF80;margin-bottom:4px">● AKTİF ŞU AN</p>
+        <p style="font-size:28px;font-weight:800;color:#6ABF80">${activeV.length}</p>
+        <p style="font-size:10px;color:var(--stone)">son 30 dk</p>
+      </div>
+      <div class="card" style="padding:14px;text-align:center">
+        <p style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:4px">BUGÜN</p>
+        <p style="font-size:28px;font-weight:800;color:var(--gold2)">${todayV.length}</p>
+        <p style="font-size:10px;color:var(--stone)">ziyaretçi</p>
+      </div>
+      <div class="card" style="padding:14px;text-align:center">
+        <p style="font-size:10px;font-weight:700;color:var(--stone);margin-bottom:4px">BU HAFTA</p>
+        <p style="font-size:28px;font-weight:800;color:var(--gold2)">${weekV.length}</p>
+        <p style="font-size:10px;color:var(--stone)">ziyaretçi</p>
+      </div>
+      <div class="card" style="padding:14px;text-align:center">
+        <p style="font-size:10px;font-weight:700;color:var(--stone);margin-bottom:4px">TOPLAM</p>
+        <p style="font-size:28px;font-weight:800;color:var(--gold2)">${cmVisits.length}</p>
+        <p style="font-size:10px;color:var(--stone)">tüm zamanlar</p>
+      </div>
+    </div>
+
+    <!-- ORTALAMALAR -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="card" style="padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:var(--gold2)">${formatDuration(avgDur)}</p><p style="font-size:9px;color:var(--stone)">Ort. Süre</p></div>
+      <div class="card" style="padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:var(--gold2)">${avgPages}</p><p style="font-size:9px;color:var(--stone)">Ort. Sayfa</p></div>
+      <div class="card" style="padding:10px;text-align:center"><p style="font-size:18px;font-weight:800;color:var(--gold2)">${mobileCount}/${desktopCount}</p><p style="font-size:9px;color:var(--stone)">Mobil/PC</p></div>
+    </div>
+
+    <!-- SAATLİK GRAFİK -->
+    <p class="lsm" style="margin-bottom:8px">Bugün — Saatlik Ziyaretçi</p>
+    <div class="card" style="padding:14px;margin-bottom:16px">
+      <div style="display:flex;align-items:flex-end;gap:2px;height:80px">
+        ${hourly.map((h,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+          <span style="font-size:8px;color:var(--gold2);font-weight:700">${h>0?h:""}</span>
+          <div style="width:100%;height:${Math.max(h/maxH*60,2)}px;background:${new Date().getHours()===i?"var(--gold)":"linear-gradient(180deg,var(--gold),rgba(200,168,75,.3))"};border-radius:3px 3px 0 0;transition:height .3s"></div>
+          <span style="font-size:7px;color:var(--stone2)">${i%3===0?String(i).padStart(2,"0"):""}</span>
+        </div>`).join("")}
+      </div>
+    </div>
+
+    <!-- ŞEHİR DAĞILIMI -->
+    ${cityStats.length>0?`
+    <p class="lsm" style="margin-bottom:8px">Şehir Dağılımı</p>
+    <div class="card" style="padding:14px;margin-bottom:16px">
+      ${cityStats.slice(0,8).map(([city,cnt])=>{const pct=Math.round(cnt/weekV.length*100);return`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--cream);font-weight:600;width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${city}</span>
+        <div style="flex:1;height:8px;background:var(--c3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold),var(--gold3));border-radius:4px"></div></div>
+        <span style="font-size:11px;font-weight:700;color:var(--gold2);width:36px;text-align:right">${cnt}</span>
+      </div>`;}).join("")}
+    </div>`:""}
+
+    <!-- POPÜLER SAYFALAR -->
+    ${pageStats.length>0?`
+    <p class="lsm" style="margin-bottom:8px">En Çok Bakılan Sayfalar</p>
+    <div class="card" style="padding:14px;margin-bottom:16px">
+      ${pageStats.slice(0,10).map(([page,cnt],i)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;${i<pageStats.length-1?"border-bottom:1px solid var(--border)":""}">
+        <span style="font-size:11px;font-weight:800;color:var(--gold);width:20px">#${i+1}</span>
+        <span style="font-size:12px;flex:1;color:var(--cream)">${page}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--gold2)">${cnt}×</span>
+      </div>`).join("")}
+    </div>`:""}
+
+    <!-- GÜNLÜK RAPOR -->
+    <p class="lsm" style="margin-bottom:8px">Günlük Rapor (Son 30 gün)</p>
+    <div class="card" style="padding:14px;margin-bottom:16px">
+      ${daily.length===0?`<p style="font-size:12px;color:var(--stone);text-align:center;padding:20px 0">Henüz veri yok</p>`:""}
+      ${daily.slice(0,14).map(([date,cnt])=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--cream)">${date}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:80px;height:6px;background:var(--c3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(cnt/Math.max(...daily.map(d=>d[1]),1)*100,100)}%;background:var(--gold);border-radius:3px"></div></div>
+          <span style="font-size:12px;font-weight:700;color:var(--gold2);width:30px;text-align:right">${cnt}</span>
+        </div>
+      </div>`).join("")}
+    </div>
+
+    <!-- BUGÜNKÜ ZİYARETÇİ LİSTESİ (IP + detay) -->
+    <p class="lsm" style="margin-bottom:8px">Bugünkü Ziyaretçiler — Detay</p>
+    ${todayV.length===0?`<div class="card" style="padding:30px;text-align:center"><p style="font-size:36px;margin-bottom:8px">👁</p><p style="font-size:13px;color:var(--stone)">Bugün henüz ziyaretçi yok</p></div>`:""}
+    ${todayV.slice().reverse().map((v,i)=>{
+      const isMobile=v.ua&&v.ua.includes("Mobile");
+      const browser=v.ua?(v.ua.includes("Chrome")?"Chrome":v.ua.includes("Firefox")?"Firefox":v.ua.includes("Safari")?"Safari":v.ua.includes("Edge")?"Edge":"Diğer"):"?";
+      const lastPage=v.pages.length>0?v.pages[v.pages.length-1].p:"(giriş)";
+      return`
+    <div class="card" style="padding:12px 14px;margin-bottom:8px;${i===0&&v.id===cmCurrentVisit?.id?"border:1.5px solid rgba(74,138,90,.3)":""}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">${isMobile?"📱":"💻"}</span>
+          <div>
+            <p style="font-size:13px;font-weight:700;font-family:monospace;color:var(--gold2)">${v.ip||"yükleniyor..."}</p>
+            <p style="font-size:11px;color:var(--stone)">${v.city||"-"}${v.region?", "+v.region:""} · ${v.country||"-"}</p>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <p style="font-size:12px;font-weight:700;color:var(--cream)">${formatTime(v.ts)}</p>
+          ${i===0&&v.id===cmCurrentVisit?.id?`<span style="font-size:9px;color:#6ABF80;font-weight:700">● AKTİF</span>`:`<span style="font-size:9px;color:var(--stone2)">${formatDuration(v.dur)}</span>`}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+        <span class="badge bgd" style="font-size:9px">${browser}</span>
+        <span class="badge bgd" style="font-size:9px">${v.scr||"-"}</span>
+        <span class="badge bgd" style="font-size:9px">${v.pages.length} sayfa</span>
+        ${v.org?`<span class="badge" style="font-size:9px;background:var(--c3);color:var(--stone);border:1px solid var(--border)">${v.org.substring(0,25)}</span>`:""}
+      </div>
+      ${v.pages.length>0?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">
+        <p style="font-size:10px;color:var(--stone2);margin-bottom:4px">Sayfa Geçmişi:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          ${v.pages.map(pg=>`<span style="font-size:9px;padding:2px 6px;background:var(--c3);border-radius:4px;color:var(--stone)">${formatTime(pg.t)} → ${pg.p}</span>`).join("")}
+        </div>
+      </div>`:""}
+      ${v.ref&&v.ref!=="direct"?`<p style="font-size:10px;color:var(--stone2);margin-top:4px">Referrer: ${v.ref}</p>`:""}
+    </div>`;}).join("")}
+
+    <!-- EYLEMLER -->
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="bgold" style="flex:1;font-size:12px" onclick="exportVisitorCSV()">📥 CSV İndir</button>
+      <button class="boutline" style="flex:1;font-size:12px" onclick="clearVisitorData()">🗑 Verileri Temizle</button>
+    </div>
+    <div style="margin-top:10px;padding:10px 14px;background:rgba(200,168,75,.04);border-radius:10px;border:1px solid rgba(200,168,75,.1)">
+      <p style="font-size:10px;color:var(--stone);line-height:1.5">💡 Veriler tarayıcı localStorage'da saklanır. Son 1000 ziyaret tutulur. CSV olarak dışa aktarabilirsiniz.</p>
+    </div>`;
+  }
   if(tb==="analytics"){
     const gold=PROVS.filter(p=>p.tier==="gold").length;
     const prem=PROVS.filter(p=>p.tier==="premium").length;
@@ -2690,7 +2920,7 @@ function renderSuperAdmin(){
   return`<div class="sticky">
     <button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-lg);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2);margin-top:4px">🛡 ${t("saPanel")}</h1>
-    <div style="display:flex;gap:5px;margin-top:10px">${tabBar}</div>
+    <div style="margin-top:10px">${tabBar}</div>
   </div>
   <div style="padding:16px var(--pad) 40px">${content}</div>`;
 }
@@ -3607,17 +3837,18 @@ window.addEventListener("popstate",function(){
 // ═══ ACTIONS ═══
 function nextOb(){state.obStep++;pushNav("ob"+state.obStep);render();}
 function finishOnboarding(r){
+  trackPage("onboarding:"+r);
   if(r==="PROVIDER"||r==="B2B"){state.role=r;state.provSetup=1;pushNav("provsetup");render();return;}
   state.role=r;state.customerSetup=true;pushNav("customersetup");render();
 }
-function goTab(t){state.tab=t;state.detail=null;state.subPage=null;pushNav("tab-"+t);document.getElementById("mainScreen").scrollTop=0;render();}
-function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="info";pushNav("detail-"+id);document.getElementById("mainScreen").scrollTop=0;render();}
-function setDetailTab(t){state.detailTab=t;render();}
+function goTab(t){state.tab=t;state.detail=null;state.subPage=null;pushNav("tab-"+t);trackPage("tab:"+t);document.getElementById("mainScreen").scrollTop=0;render();}
+function openDetail(id){state.detail=PROVS.find(p=>p.id===id);state.detailTab="info";pushNav("detail-"+id);trackPage("detail:"+( PROVS.find(p=>p.id===id)?.nm||id));document.getElementById("mainScreen").scrollTop=0;render();}
+function setDetailTab(t){state.detailTab=t;trackPage("detailTab:"+t);render();}
 function goBack(){state.detail=null;state.tab="home";history.back();}
 function setCat(c){if(c==="angebote"){goTab("offers");return;}if(c==="termin"){goTab("explore");return;}state.catFilter=c;render();}
 function setRole(r){state.role=r;if(r==="CUSTOMER"){state.tab="home";state.detail=null;state.subPage=null;pushNav("home");document.getElementById("mainScreen").scrollTop=0;}render();}
-function goSub(p){if(p){pushNav("sub-"+p);}else{history.back();return;}state.subPage=p;document.getElementById("mainScreen").scrollTop=0;render();}
-function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;state.bookName="";state.bookEmail="";state.bookPhone="";state.bookNotes="";state.promoCode="";state.promoValid=null;state.promoDiscount=0;pushNav("booking");render();}
+function goSub(p){if(p){pushNav("sub-"+p);trackPage("sub:"+p);}else{history.back();return;}state.subPage=p;document.getElementById("mainScreen").scrollTop=0;render();}
+function openBooking(id){state.bookingProv=PROVS.find(p=>p.id===id);trackPage("booking:"+(PROVS.find(p=>p.id===id)?.nm||id));state.bookStep=1;state.bookSv=null;state.bookSlot=null;state.bookSp=null;state.bookDone=false;state.bookName="";state.bookEmail="";state.bookPhone="";state.bookNotes="";state.promoCode="";state.promoValid=null;state.promoDiscount=0;pushNav("booking");render();}
 function closeBooking(){state.bookingProv=null;state.bookDone=false;state.stamps=Math.min(10,state.stamps+1);state.loyaltyRedeemed=false;localStorage.setItem("cm_redeemed","false");saveStamps();history.back();}
 function selectSv(id){const allSvs=getProviderServices(state.bookingProv);state.bookSv=allSvs.find(s=>s.id===id);render();}
 function selectDay(i){state.bookDay=i;state.bookSlot=null;render();}
@@ -3765,6 +3996,7 @@ function toggleSuperAdmin(){
   }
 }
 
+trackPage("ilk-giris");
 render();
 </script>
 </body>
