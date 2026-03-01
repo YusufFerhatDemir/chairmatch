@@ -69,7 +69,7 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 /* Logo Animations */
 @keyframes logoFloat{0%,100%{transform:translateY(0px)}50%{transform:translateY(-4px)}}
-@keyframes logoGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(200,168,75,0.4)) drop-shadow(0 0 20px rgba(200,168,75,0.2))}50%{filter:drop-shadow(0 0 16px rgba(232,208,106,0.7)) drop-shadow(0 0 40px rgba(200,168,75,0.4)) drop-shadow(0 0 80px rgba(200,168,75,0.15))}}
+@keyframes logoGlow{0%,100%{filter:drop-shadow(0 0 10px rgba(200,168,75,0.5)) drop-shadow(0 0 25px rgba(200,168,75,0.25)) drop-shadow(0 0 50px rgba(200,168,75,0.08))}50%{filter:drop-shadow(0 0 20px rgba(232,208,106,0.8)) drop-shadow(0 0 50px rgba(200,168,75,0.5)) drop-shadow(0 0 100px rgba(200,168,75,0.2))}}
 @keyframes rimRotate{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-600}}
 @keyframes sparkle{0%,100%{opacity:0;transform:scale(0)}40%,60%{opacity:1;transform:scale(1)}}
 @keyframes shimmer{0%{stop-color:#FFF8D0}25%{stop-color:#E8C860}50%{stop-color:#FFF0A0}75%{stop-color:#D4A840}100%{stop-color:#FFF8D0}}
@@ -118,12 +118,12 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 /* ═══ Hover devices (desktop/mouse) ═══ */
 @media(hover:hover){.card:hover{transform:scale(1.01);border-color:var(--borderhi)}.bgold:hover:not(:disabled){box-shadow:0 6px 28px rgba(200,168,75,0.4)}.boutline:hover{background:rgba(200,168,75,.06)}}
 /* ═══ CATEGORY CARDS (premium golden design) ═══ */
-.catcard{width:100%;text-align:left;border-radius:16px;border:1px solid #2a2418;background:#0b0a08;padding:16px 10px 14px;cursor:pointer;transition:box-shadow .25s,transform .2s;box-shadow:0 0 0 1px rgba(255,215,128,0.06),0 20px 60px rgba(0,0,0,0.55);position:relative;display:flex;flex-direction:column;align-items:center}
+.catcard{width:100%;text-align:left;border-radius:16px;border:1px solid #2a2418;background:linear-gradient(165deg,#0e0d0a,#0b0a08 40%,#080706);padding:16px 10px 14px;cursor:pointer;transition:box-shadow .25s,transform .2s,border-color .25s;box-shadow:0 0 0 1px rgba(255,215,128,0.06),0 20px 60px rgba(0,0,0,0.55),inset 0 1px 0 rgba(200,168,75,.04);position:relative;display:flex;flex-direction:column;align-items:center}
 .catcard:active{transform:scale(.97)}
-.catcard.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,215,128,0.18),0 24px 80px rgba(0,0,0,0.70)}
+.catcard.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,215,128,0.18),0 0 28px rgba(200,168,75,.1),0 24px 80px rgba(0,0,0,0.70)}
 .catcard.on::after{content:'✓';position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--gold);font-size:8px;font-weight:900;color:#080706;display:flex;align-items:center;justify-content:center}
-.catcard .caticon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--c3),var(--c4));border:1px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:center}
-.catcard .caticon svg{width:38px;height:38px}
+.catcard .caticon{width:64px;height:64px;border-radius:16px;background:radial-gradient(circle at 35% 30%,rgba(232,200,96,.15),rgba(200,168,75,.04),var(--c3));border:1px solid rgba(200,168,75,.25);display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(200,168,75,.06),inset 0 1px 0 rgba(255,240,180,.06)}
+.catcard .caticon svg{width:44px;height:44px}
 .catcard .catlbl{font-size:13px;font-weight:700;color:#f2efe6;text-align:center;margin-top:10px;line-height:1.15}
 .catcard .catsub{font-size:10px;color:#9a917f;text-align:center;margin-top:3px;line-height:1.2}
 .light .catcard{background:#faf8f4;border-color:#e0d8c8}
@@ -173,44 +173,44 @@ function LOGO(size){
   return `<svg width="${s}" height="${s}" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:block">
   <defs>
     <linearGradient id="lGoldA" x1="30" y1="20" x2="130" y2="160" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FFF8D0"/><stop offset="25%" stop-color="#E8C860"/>
-      <stop offset="55%" stop-color="#D4AE50"/><stop offset="80%" stop-color="#B89830"/>
-      <stop offset="100%" stop-color="#8B7020"/>
+      <stop offset="0%" stop-color="#FFFAE0"/><stop offset="15%" stop-color="#F5E890"/>
+      <stop offset="35%" stop-color="#E8C860"/><stop offset="55%" stop-color="#D4AE50"/>
+      <stop offset="75%" stop-color="#B89830"/><stop offset="100%" stop-color="#7A5818"/>
     </linearGradient>
     <linearGradient id="lGoldB" x1="70" y1="40" x2="170" y2="180" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#F5E8A0"/><stop offset="30%" stop-color="#D4B050"/>
-      <stop offset="60%" stop-color="#C8A040"/><stop offset="85%" stop-color="#A88828"/>
-      <stop offset="100%" stop-color="#7A6018"/>
+      <stop offset="0%" stop-color="#FFF5C0"/><stop offset="18%" stop-color="#EDDA70"/>
+      <stop offset="40%" stop-color="#D4B050"/><stop offset="60%" stop-color="#C8A040"/>
+      <stop offset="80%" stop-color="#A88828"/><stop offset="100%" stop-color="#6A5010"/>
     </linearGradient>
     <linearGradient id="lGoldHL" x1=".15" y1="0" x2=".85" y2="1" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="#FFFEF5" stop-opacity=".65"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#FFFEF8" stop-opacity=".75"/><stop offset="40%" stop-color="#FFF0C0" stop-opacity=".2"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="lStar" x1="80" y1="70" x2="120" y2="130" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#FFFEF5"/><stop offset="40%" stop-color="#F5E080"/>
       <stop offset="100%" stop-color="#D4AE50"/>
     </linearGradient>
     <radialGradient id="rGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#C8A84B" stop-opacity="0.2"/><stop offset="60%" stop-color="#C8A84B" stop-opacity="0.05"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#E8C860" stop-opacity="0.3"/><stop offset="30%" stop-color="#C8A84B" stop-opacity="0.12"/><stop offset="60%" stop-color="#C8A84B" stop-opacity="0.04"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/>
     </radialGradient>
-    <filter id="fGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.78 0 0 0 0 0.66 0 0 0 0 0.3 0 0 0 0.5 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="fGlow" x="-35%" y="-35%" width="170%" height="170%"><feGaussianBlur stdDeviation="5" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.9 0 0 0 0 0.75 0 0 0 0 0.35 0 0 0 0.65 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     <filter id="fSparkle"><feGaussianBlur stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
   <ellipse cx="100" cy="100" rx="88" ry="88" fill="url(#rGlow)"/>
   <g filter="url(#fGlow)">
     <!-- Left/back diamond -->
     <path d="M82 24 L140 82 L82 140 L24 82 Z" fill="url(#lGoldA)" stroke="#FFF0B0" stroke-width=".7" stroke-opacity=".35"/>
-    <path d="M82 24 L24 82 L82 140 Z" fill="url(#lGoldHL)" opacity=".3"/>
-    <path d="M82 36 L34 82 L82 128" fill="none" stroke="#FFF8D0" stroke-width=".8" opacity=".1"/>
+    <path d="M82 24 L24 82 L82 140 Z" fill="url(#lGoldHL)" opacity=".4"/>
+    <path d="M82 36 L34 82 L82 128" fill="none" stroke="#FFF8D0" stroke-width="1" opacity=".15"/>
     <!-- Right/front diamond -->
     <path d="M118 60 L176 118 L118 176 L60 118 Z" fill="url(#lGoldB)" stroke="#FFF0B0" stroke-width=".7" stroke-opacity=".3"/>
-    <path d="M118 60 L60 118 L118 176 Z" fill="url(#lGoldHL)" opacity=".25"/>
-    <path d="M118 72 L70 118 L118 164" fill="none" stroke="#FFF8D0" stroke-width=".8" opacity=".08"/>
+    <path d="M118 60 L60 118 L118 176 Z" fill="url(#lGoldHL)" opacity=".35"/>
+    <path d="M118 72 L70 118 L118 164" fill="none" stroke="#FFF8D0" stroke-width="1" opacity=".12"/>
     <!-- Overlap intersection highlight -->
     <path d="M82 82 L118 82 L118 118 L82 118 Z" fill="#C8A84B" opacity=".08"/>
     <!-- 4-pointed star at intersection center -->
     <path d="M100 74 L107 93 L126 100 L107 107 L100 126 L93 107 L74 100 L93 93 Z" fill="url(#lStar)" stroke="#FFF8D0" stroke-width="1" stroke-opacity=".5"/>
-    <path d="M100 80 L105 94 L120 100 L105 106 L100 120 L95 106 L80 100 L95 94 Z" fill="#F5E080" opacity=".3"/>
-    <path d="M100 86 L103 96 L114 100 L103 104 L100 114 L97 104 L86 100 L97 96 Z" fill="#FFFEF5" opacity=".2"/>
+    <path d="M100 80 L105 94 L120 100 L105 106 L100 120 L95 106 L80 100 L95 94 Z" fill="#F5E080" opacity=".4"/>
+    <path d="M100 86 L103 96 L114 100 L103 104 L100 114 L97 104 L86 100 L97 96 Z" fill="#FFFEF8" opacity=".3"/>
   </g>
   <!-- Floating particles -->
   <g filter="url(#fSparkle)" fill="#E8C860">
@@ -249,9 +249,9 @@ function logoHeader(small){
 function catSVG(type){
   const ids={barber:"gBa",friseur:"gFr",kosmetik:"gKo",aesthetik:"gAe",nail:"gNa",massage:"gMa",lash:"gLa",arzt:"gAr",raum:"gRa",opraum:"gOp",angebote:"gAn",termin:"gTe"};
   const id=ids[type]||"gX";
-  const hd=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFF0C0"/><stop offset="25%" stop-color="#E8C860"/><stop offset="55%" stop-color="#C8A030"/><stop offset="85%" stop-color="#A07818"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><linearGradient id="${id}h" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0%" stop-color="#FFFEF5" stop-opacity=".55"/><stop offset="100%" stop-color="#B89828" stop-opacity="0"/></linearGradient><linearGradient id="${id}d" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#6A5010" stop-opacity=".4"/><stop offset="100%" stop-color="#C8A030" stop-opacity="0"/></linearGradient></defs>`;
+  const hd=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFFAE0"/><stop offset="10%" stop-color="#F5E898"/><stop offset="28%" stop-color="#E8C860"/><stop offset="50%" stop-color="#D4B050"/><stop offset="70%" stop-color="#B89030"/><stop offset="88%" stop-color="#9A7818"/><stop offset="100%" stop-color="#7A5810"/></linearGradient><linearGradient id="${id}h" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0%" stop-color="#FFFEF8" stop-opacity=".7"/><stop offset="40%" stop-color="#FFF0C0" stop-opacity=".25"/><stop offset="100%" stop-color="#B89828" stop-opacity="0"/></linearGradient><linearGradient id="${id}d" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#6A5010" stop-opacity=".45"/><stop offset="100%" stop-color="#C8A030" stop-opacity="0"/></linearGradient><filter id="${id}g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.9 0 0 0 0 0.75 0 0 0 0 0.3 0 0 0 0.5 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
   const g=`url(#${id})`;const gh=`url(#${id}h)`;const gd=`url(#${id}d)`;
-  const w=`<svg width="34" height="34" viewBox="0 0 64 64" fill="none">`;
+  const w=`<svg width="38" height="38" viewBox="0 0 64 64" fill="none">`;
 
   // ── Barber: classic barber chair (solid 3D) ──
   if(type==="barber") return `${w}${hd}
@@ -1286,8 +1286,8 @@ function finishCustomerSetup(){
 
 // ─── PREMIUM 3D CATEGORY ICONS (provider setup) ───
 function provIcon(type){
-  const d=`<defs><linearGradient id="pig" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFF8E0"/><stop offset="18%" stop-color="#F0D878"/><stop offset="45%" stop-color="#D4B050"/><stop offset="72%" stop-color="#B89838"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><linearGradient id="pig2" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#FFF5D0"/><stop offset="50%" stop-color="#E0C050"/><stop offset="100%" stop-color="#A08030"/></linearGradient><linearGradient id="pih" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFEF5" stop-opacity=".9"/><stop offset="50%" stop-color="#FFF0C0" stop-opacity=".3"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></linearGradient><radialGradient id="pis" cx=".3" cy=".22" r=".65"><stop offset="0%" stop-color="#FFFEF5" stop-opacity=".8"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></radialGradient><linearGradient id="pcyl" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#9A7828"/><stop offset="20%" stop-color="#FFF8E0"/><stop offset="40%" stop-color="#F0D878"/><stop offset="65%" stop-color="#C8A84B"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><linearGradient id="prd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E84040"/><stop offset="100%" stop-color="#B02020"/></linearGradient><linearGradient id="pbl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4090D8"/><stop offset="100%" stop-color="#2060A0"/></linearGradient><filter id="pgl"><feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.85 0 0 0 0 0.72 0 0 0 0 0.3 0 0 0 0.5 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="pds"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0a0800" flood-opacity=".25"/></filter></defs>`;
-  const w=`<svg viewBox="0 0 80 80" width="56" height="56">${d}<g filter="url(#pgl)">`;
+  const d=`<defs><linearGradient id="pig" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFFAE0"/><stop offset="8%" stop-color="#F8ECA0"/><stop offset="22%" stop-color="#EDDA70"/><stop offset="38%" stop-color="#D4B050"/><stop offset="55%" stop-color="#C09838"/><stop offset="72%" stop-color="#A88020"/><stop offset="88%" stop-color="#8B6914"/><stop offset="100%" stop-color="#6A5010"/></linearGradient><linearGradient id="pig2" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0%" stop-color="#FFF5D0"/><stop offset="50%" stop-color="#E0C050"/><stop offset="100%" stop-color="#A08030"/></linearGradient><linearGradient id="pih" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFEF8" stop-opacity=".98"/><stop offset="20%" stop-color="#FFF0C0" stop-opacity=".55"/><stop offset="50%" stop-color="#E8C860" stop-opacity=".18"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></linearGradient><radialGradient id="pis" cx=".25" cy=".18" r=".7"><stop offset="0%" stop-color="#FFFEF8" stop-opacity=".95"/><stop offset="20%" stop-color="#FFF8D0" stop-opacity=".5"/><stop offset="50%" stop-color="#E8C860" stop-opacity=".15"/><stop offset="100%" stop-color="#C8A84B" stop-opacity="0"/></radialGradient><linearGradient id="pcyl" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#9A7828"/><stop offset="20%" stop-color="#FFF8E0"/><stop offset="40%" stop-color="#F0D878"/><stop offset="65%" stop-color="#C8A84B"/><stop offset="100%" stop-color="#8B6914"/></linearGradient><linearGradient id="prd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E84040"/><stop offset="100%" stop-color="#B02020"/></linearGradient><linearGradient id="pbl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4090D8"/><stop offset="100%" stop-color="#2060A0"/></linearGradient><radialGradient id="pag" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#E8C860" stop-opacity=".22"/><stop offset="35%" stop-color="#C8A84B" stop-opacity=".08"/><stop offset="100%" stop-color="#8B6914" stop-opacity="0"/></radialGradient><filter id="pgl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.92 0 0 0 0 0.78 0 0 0 0 0.35 0 0 0 0.75 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="pds"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0a0800" flood-opacity=".25"/></filter></defs>`;
+  const w=`<svg viewBox="0 0 80 80" width="64" height="64">${d}<ellipse cx="40" cy="40" rx="38" ry="38" fill="url(#pag)"/><g filter="url(#pgl)">`;
   const e=`</g></svg>`;
 
   if(type==="barber") return `${w}
@@ -1300,14 +1300,16 @@ function provIcon(type){
       <path d="M28 18l22 10M28 28l22 10M28 38l22 10M28 48l22 10M28 58l22 10" stroke="url(#prd)" stroke-width="6" opacity=".75"/>
       <path d="M28 23l22 10M28 33l22 10M28 43l22 10M28 53l22 10M28 63l22 10" stroke="url(#pbl)" stroke-width="4.5" opacity=".55"/>
     </g>
-    <rect x="33" y="14" width="5" height="54" rx="2.5" fill="url(#pih)" opacity=".35"/>
+    <rect x="33" y="14" width="5" height="54" rx="2.5" fill="url(#pih)" opacity=".5"/>
+    <rect x="34" y="18" width="2" height="46" rx="1" fill="#FFFEF8" opacity=".2"/>
     <ellipse cx="40" cy="68" rx="10" ry="3" fill="url(#pig)"/>
-    <ellipse cx="40" cy="67.5" rx="7" ry="1.5" fill="url(#pih)" opacity=".35"/>
+    <ellipse cx="40" cy="67.5" rx="7" ry="1.5" fill="url(#pih)" opacity=".45"/>
     <circle cx="40" cy="12" r="6.5" fill="url(#pig)"/>
     <circle cx="40" cy="12" r="6.5" fill="url(#pis)"/>
-    <circle cx="38" cy="10" r="2.8" fill="#FFFEF5" opacity=".5"/>
+    <circle cx="38" cy="10" r="2.8" fill="#FFFEF8" opacity=".65"/>
+    <circle cx="37" cy="9" r="1" fill="#FFFFFF" opacity=".5"/>
     <ellipse cx="40" cy="14" rx="10" ry="3.5" fill="url(#pig)"/>
-    <ellipse cx="40" cy="13.5" rx="7" ry="2" fill="url(#pih)" opacity=".3"/>
+    <ellipse cx="40" cy="13.5" rx="7" ry="2" fill="url(#pih)" opacity=".4"/>
   ${e}`;
 
   if(type==="friseur") return `${w}
@@ -1316,11 +1318,14 @@ function provIcon(type){
       <path d="M34 36L50 8" stroke="url(#pig)" stroke-width="5" stroke-linecap="round" fill="none"/>
       <circle cx="32" cy="36" r="5" fill="url(#pig)"/>
       <circle cx="32" cy="36" r="5" fill="url(#pis)"/>
-      <circle cx="31" cy="35" r="2" fill="#FFFEF5" opacity=".45"/>
+      <circle cx="31" cy="35" r="2.2" fill="#FFFEF8" opacity=".6"/>
+      <circle cx="30.5" cy="34" r=".8" fill="#FFFFFF" opacity=".5"/>
       <circle cx="10" cy="6" r="7.5" fill="none" stroke="url(#pig)" stroke-width="3.5"/>
-      <circle cx="10" cy="6" r="3" fill="url(#pig)" opacity=".2"/>
+      <circle cx="10" cy="6" r="3" fill="url(#pig)" opacity=".25"/>
+      <circle cx="9" cy="5" r="1.5" fill="#FFFEF8" opacity=".35"/>
       <circle cx="54" cy="6" r="7.5" fill="none" stroke="url(#pig)" stroke-width="3.5"/>
-      <circle cx="54" cy="6" r="3" fill="url(#pig)" opacity=".2"/>
+      <circle cx="54" cy="6" r="3" fill="url(#pig)" opacity=".25"/>
+      <circle cx="53" cy="5" r="1.5" fill="#FFFEF8" opacity=".3"/>
       <path d="M14 8C18 18 24 28 30 36" stroke="url(#pig)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
       <path d="M14 8C18 18 24 28 30 36" stroke="url(#pih)" stroke-width="2" stroke-linecap="round" fill="none" opacity=".3"/>
       <path d="M50 8C46 18 40 28 34 36" stroke="url(#pig)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
@@ -1345,13 +1350,15 @@ function provIcon(type){
   if(type==="kosmetik") return `${w}
     <rect x="24" y="32" width="24" height="30" rx="4" fill="url(#pig)"/>
     <rect x="24" y="32" width="24" height="30" rx="4" fill="url(#pis)"/>
-    <rect x="27" y="35" width="7" height="24" rx="2" fill="url(#pih)" opacity=".3"/>
+    <rect x="27" y="35" width="7" height="24" rx="2" fill="url(#pih)" opacity=".45"/>
+    <rect x="28" y="36" width="3" height="20" rx="1.5" fill="#FFFEF8" opacity=".15"/>
     <rect x="26" y="32" width="20" height="6" rx="2" fill="url(#pig2)"/>
-    <rect x="26" y="32" width="20" height="6" rx="2" fill="url(#pih)" opacity=".4"/>
+    <rect x="26" y="32" width="20" height="6" rx="2" fill="url(#pih)" opacity=".5"/>
     <rect x="30" y="24" width="12" height="10" rx="3" fill="url(#pig)"/>
     <rect x="30" y="24" width="12" height="10" rx="3" fill="url(#pis)"/>
     <ellipse cx="36" cy="24" rx="6" ry="2.5" fill="url(#pig2)"/>
-    <ellipse cx="35" cy="23.5" rx="3" ry="1.2" fill="#FFFEF5" opacity=".45"/>
+    <ellipse cx="35" cy="23.5" rx="3" ry="1.2" fill="#FFFEF8" opacity=".6"/>
+    <ellipse cx="34" cy="23" rx="1.5" ry=".7" fill="#FFFFFF" opacity=".35"/>
     <line x1="28" y1="44" x2="44" y2="44" stroke="#8B6914" stroke-width="1" opacity=".3"/>
     <line x1="28" y1="50" x2="44" y2="50" stroke="#8B6914" stroke-width="1" opacity=".3"/>
     <circle cx="36" cy="56" r="2.5" fill="#FFF8E0" opacity=".5"/>
@@ -1374,7 +1381,8 @@ function provIcon(type){
       <rect x="24" y="0" width="4" height="12" rx="2" fill="url(#pig)" opacity=".7"/>
       <rect x="14" y="8" width="24" height="38" rx="5" fill="url(#pig)"/>
       <rect x="14" y="8" width="24" height="38" rx="5" fill="url(#pis)"/>
-      <rect x="17" y="11" width="7" height="32" rx="2" fill="url(#pih)" opacity=".3"/>
+      <rect x="17" y="11" width="7" height="32" rx="2" fill="url(#pih)" opacity=".45"/>
+      <rect x="18" y="13" width="3" height="28" rx="1.5" fill="#FFFEF8" opacity=".12"/>
       <line x1="16" y1="16" x2="36" y2="16" stroke="#8B6914" stroke-width="1" opacity=".3"/>
       <line x1="16" y1="21" x2="36" y2="21" stroke="#8B6914" stroke-width=".8" opacity=".25"/>
       <line x1="16" y1="26" x2="36" y2="26" stroke="#8B6914" stroke-width=".8" opacity=".25"/>
@@ -1384,7 +1392,7 @@ function provIcon(type){
       <rect x="20" y="18" width="12" height="6" rx="1.5" fill="url(#pig2)" opacity=".15"/>
       <path d="M26 46l-4 20h8z" fill="url(#pig)"/>
       <path d="M26 46l-4 20h8z" fill="url(#pis)"/>
-      <path d="M26 66l-1 4h2z" fill="#FFF8E0" opacity=".7"/>
+      <path d="M26 66l-1 4h2z" fill="#FFFEF8" opacity=".85"/>
     </g>
   ${e}`;
 
@@ -1404,7 +1412,8 @@ function provIcon(type){
       <rect x="10" y="22" width="6" height="8" rx="2.5" fill="url(#pih)" opacity=".4"/>
       <rect x="11" y="14" width="4" height="10" rx="2" fill="url(#pig)"/>
       <circle cx="13" cy="14" r="2.5" fill="url(#pig2)"/>
-      <circle cx="12.5" cy="13.5" r="1.2" fill="#FFFEF5" opacity=".5"/>
+      <circle cx="12.5" cy="13.5" r="1.4" fill="#FFFEF8" opacity=".65"/>
+      <circle cx="12" cy="13" r=".5" fill="#FFFFFF" opacity=".45"/>
       <path d="M13 46l-2 14" stroke="url(#pig)" stroke-width="2.5" stroke-linecap="round" opacity=".6"/>
       <circle cx="11" cy="62" r="2" fill="url(#pig)" opacity=".5"/>
       <path d="M7 46l1 4" stroke="url(#pig)" stroke-width="2" stroke-linecap="round" opacity=".4"/>
@@ -1416,7 +1425,7 @@ function provIcon(type){
     <ellipse cx="40" cy="72" rx="28" ry="3" fill="#8B6914" opacity=".2"/>
     <rect x="8" y="44" width="64" height="12" rx="6" fill="url(#pig)"/>
     <rect x="8" y="44" width="64" height="12" rx="6" fill="url(#pis)"/>
-    <rect x="12" y="46" width="18" height="6" rx="3" fill="url(#pih)" opacity=".25"/>
+    <rect x="12" y="46" width="18" height="6" rx="3" fill="url(#pih)" opacity=".4"/>
     <ellipse cx="14" cy="42" rx="7" ry="4" fill="url(#pig2)" opacity=".5"/>
     <ellipse cx="14" cy="41" rx="4" ry="2" fill="url(#pih)" opacity=".3"/>
     <line x1="14" y1="56" x2="11" y2="66" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
@@ -1425,7 +1434,8 @@ function provIcon(type){
     <circle cx="69" cy="67" r="2" fill="url(#pig)" opacity=".6"/>
     <circle cx="38" cy="20" r="6" fill="url(#pig)"/>
     <circle cx="38" cy="20" r="6" fill="url(#pis)"/>
-    <circle cx="37" cy="19" r="2.5" fill="#FFFEF5" opacity=".4"/>
+    <circle cx="37" cy="19" r="2.5" fill="#FFFEF8" opacity=".55"/>
+    <circle cx="36.5" cy="18.5" r=".9" fill="#FFFFFF" opacity=".4"/>
     <path d="M44 20c3 1 5 3 6 6" stroke="url(#pig)" stroke-width="4" stroke-linecap="round" fill="none"/>
     <path d="M50 26c1 3 1 6 0 9" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
     <path d="M50 35c-1 3-3 5-5 7" stroke="url(#pig)" stroke-width="3" stroke-linecap="round" fill="none" opacity=".7"/>
@@ -1445,8 +1455,8 @@ function provIcon(type){
     <radialGradient id="piris" cx=".4" cy=".35" r=".5"><stop offset="0%" stop-color="#FFF8E0"/><stop offset="40%" stop-color="#E8C860"/><stop offset="100%" stop-color="#A08030"/></radialGradient>
     <circle cx="40" cy="44" r="5.5" fill="url(#piris)"/>
     <circle cx="40" cy="44" r="3" fill="#1a1508"/>
-    <circle cx="42" cy="42" r="1.3" fill="#FFFEF5" opacity=".9"/>
-    <circle cx="39" cy="45" r=".6" fill="#FFFEF5" opacity=".5"/>
+    <circle cx="42" cy="42" r="1.5" fill="#FFFEF8" opacity=".95"/>
+    <circle cx="39" cy="45" r=".7" fill="#FFFEF8" opacity=".55"/>
     <path d="M14 34l-4-16" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
     <path d="M20 28l-2-16" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
     <path d="M28 24l0-15" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
@@ -1470,10 +1480,10 @@ function provIcon(type){
     <rect x="12" y="30" width="56" height="20" rx="3" fill="url(#pih)" opacity=".15"/>
     <line x1="40" y1="18" x2="40" y2="62" stroke="#FFF8E0" stroke-width="8" stroke-linecap="round" opacity=".25"/>
     <line x1="18" y1="40" x2="62" y2="40" stroke="#FFF8E0" stroke-width="8" stroke-linecap="round" opacity=".25"/>
-    <line x1="40" y1="20" x2="40" y2="60" stroke="#FFFEF5" stroke-width="4" stroke-linecap="round" opacity=".35"/>
-    <line x1="20" y1="40" x2="60" y2="40" stroke="#FFFEF5" stroke-width="4" stroke-linecap="round" opacity=".35"/>
-    <rect x="29" y="11" width="8" height="14" rx="2" fill="url(#pih)" opacity=".2"/>
-    <rect x="11" y="29" width="14" height="8" rx="2" fill="url(#pih)" opacity=".2"/>
+    <line x1="40" y1="20" x2="40" y2="60" stroke="#FFFEF8" stroke-width="4" stroke-linecap="round" opacity=".45"/>
+    <line x1="20" y1="40" x2="60" y2="40" stroke="#FFFEF8" stroke-width="4" stroke-linecap="round" opacity=".45"/>
+    <rect x="29" y="11" width="8" height="14" rx="2" fill="url(#pih)" opacity=".3"/>
+    <rect x="11" y="29" width="14" height="8" rx="2" fill="url(#pih)" opacity=".3"/>
   ${e}`;
 
   if(type==="opraum") return `${w}
@@ -1481,17 +1491,18 @@ function provIcon(type){
     <line x1="30" y1="4" x2="50" y2="4" stroke="url(#pig)" stroke-width="2" opacity=".6"/>
     <ellipse cx="40" cy="20" rx="14" ry="6" fill="url(#pig)"/>
     <ellipse cx="40" cy="20" rx="14" ry="6" fill="url(#pis)"/>
-    <ellipse cx="40" cy="19" rx="8" ry="3" fill="url(#pih)" opacity=".4"/>
-    <circle cx="34" cy="19" r="2" fill="#FFF8E0" opacity=".5"/>
-    <circle cx="40" cy="19" r="2" fill="#FFF8E0" opacity=".5"/>
-    <circle cx="46" cy="19" r="2" fill="#FFF8E0" opacity=".5"/>
+    <ellipse cx="40" cy="19" rx="8" ry="3" fill="url(#pih)" opacity=".55"/>
+    <circle cx="34" cy="19" r="2.2" fill="#FFFEF8" opacity=".65"/>
+    <circle cx="40" cy="19" r="2.2" fill="#FFFEF8" opacity=".7"/>
+    <circle cx="46" cy="19" r="2.2" fill="#FFFEF8" opacity=".65"/>
+    <circle cx="40" cy="18" r=".8" fill="#FFFFFF" opacity=".5"/>
     <rect x="37" y="26" width="6" height="10" rx="3" fill="url(#pig)" opacity=".7"/>
     <line x1="30" y1="32" x2="50" y2="32" stroke="url(#pig)" stroke-width="3" stroke-linecap="round" opacity=".6"/>
     <rect x="14" y="42" width="52" height="14" rx="5" fill="url(#pig)"/>
     <rect x="14" y="42" width="52" height="14" rx="5" fill="url(#pis)"/>
-    <rect x="18" y="44" width="14" height="8" rx="3" fill="url(#pih)" opacity=".25"/>
-    <line x1="22" y1="46" x2="56" y2="46" stroke="#8B6914" stroke-width="1" opacity=".25"/>
-    <line x1="22" y1="50" x2="56" y2="50" stroke="#8B6914" stroke-width="1" opacity=".25"/>
+    <rect x="18" y="44" width="14" height="8" rx="3" fill="url(#pih)" opacity=".4"/>
+    <line x1="22" y1="46" x2="56" y2="46" stroke="#8B6914" stroke-width="1" opacity=".3"/>
+    <line x1="22" y1="50" x2="56" y2="50" stroke="#8B6914" stroke-width="1" opacity=".3"/>
     <rect x="24" y="56" width="8" height="4" rx="1" fill="url(#pig)" opacity=".6"/>
     <rect x="48" y="56" width="8" height="4" rx="1" fill="url(#pig)" opacity=".6"/>
     <line x1="22" y1="60" x2="18" y2="70" stroke="url(#pig)" stroke-width="3.5" stroke-linecap="round"/>
@@ -1528,9 +1539,9 @@ const cats=[
     <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Was ist dein Handwerk?</p>
     <p style="font-size:13px;color:var(--stone);text-align:center;margin-bottom:18px">Wähle deine Branche</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      ${cats.map(c=>{const sel=state.provCat===c.id;return`<div onclick="pickProvCat('${c.id}')" style="padding:16px 10px 14px;border-radius:16px;border:1.5px solid ${sel?"var(--gold)":"var(--border)"};background:${sel?"linear-gradient(135deg,rgba(200,168,75,.08),rgba(200,168,75,.02))":"var(--c2)"};cursor:pointer;text-align:center;position:relative;transition:all .2s;${sel?"box-shadow:0 0 20px rgba(200,168,75,.15)":""}">
+      ${cats.map(c=>{const sel=state.provCat===c.id;return`<div onclick="pickProvCat('${c.id}')" style="padding:18px 10px 14px;border-radius:18px;border:1.5px solid ${sel?"var(--gold)":"rgba(200,168,75,.1)"};background:${sel?"linear-gradient(165deg,rgba(200,168,75,.1),rgba(200,168,75,.03),rgba(200,168,75,.01))":"linear-gradient(165deg,#0e0d0a,#0b0a08 40%,#080706)"};cursor:pointer;text-align:center;position:relative;transition:all .25s;${sel?"box-shadow:0 0 32px rgba(200,168,75,.15),inset 0 1px 0 rgba(255,240,180,.06)":"box-shadow:inset 0 1px 0 rgba(200,168,75,.03)"}">
         ${sel?`<div style="position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#080706;box-shadow:0 0 8px rgba(200,168,75,.5)">✓</div>`:""}
-        <div style="margin:0 auto 8px;width:68px;height:68px;border-radius:18px;background:${sel?"radial-gradient(circle,rgba(232,200,96,.18),rgba(200,168,75,.03))":"radial-gradient(circle,rgba(232,200,96,.08),transparent)"};display:flex;align-items:center;justify-content:center">${c.ic}</div>
+        <div style="margin:0 auto 8px;width:82px;height:82px;border-radius:20px;background:${sel?"radial-gradient(circle,rgba(232,200,96,.22),rgba(200,168,75,.06),transparent)":"radial-gradient(circle,rgba(232,200,96,.1),rgba(200,168,75,.02),transparent)"};display:flex;align-items:center;justify-content:center;box-shadow:${sel?"0 0 30px rgba(200,168,75,.12)":"none"}">${c.ic}</div>
         <p style="font-size:13px;font-weight:700;color:${sel?"var(--gold2)":"var(--cream)"}">${c.nm}</p>
         <p style="font-size:10px;color:var(--stone);margin-top:2px">${c.sub}</p>
       </div>`;}).join("")}
