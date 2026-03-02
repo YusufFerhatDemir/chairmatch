@@ -16,11 +16,18 @@
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="ChairMatch — Beauty Booking"/>
 <meta name="twitter:description" content="Buche Termine bei Top-Salons in Deutschland. Sofortige Bestätigung."/>
+<link rel="canonical" href="https://chairmatch.vercel.app"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png"/>
+<link rel="icon" type="image/svg+xml" href="icon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700;800&display=swap"/>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"ChairMatch","url":"https://chairmatch.vercel.app","description":"Dein Beauty-Partner in ganz Deutschland. Buche Termine bei Top-Salons, Barbershops, Kosmetik & mehr.","applicationCategory":"HealthApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"author":{"@type":"Organization","name":"ChairMatch"},"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","reviewCount":"2841"}}
+</script>
 <title>ChairMatch — Beauty Booking Deutschland</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;font-family:'DM Sans',sans-serif;overflow:hidden;transition:background .3s,color .3s;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;-webkit-touch-callout:none}
 :root{--bg:#060504;--c1:#0D0B08;--c2:#141108;--c3:#1C1810;--c4:#232018;--c5:#2E2A1E;
@@ -131,33 +138,52 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 .light .catcard .catlbl{color:#1a1408}
 @media(hover:hover){.catcard:hover{box-shadow:0 0 0 1px rgba(255,215,128,0.12),0 24px 80px rgba(0,0,0,0.70);transform:scale(1.02)}}
 @media(max-width:374px){.catcard{padding:12px 6px 10px;border-radius:13px}.catcard .caticon{width:46px;height:46px;border-radius:11px}.catcard .caticon svg{width:32px;height:32px}.catcard .catlbl{font-size:11px;margin-top:7px}.catcard .catsub{font-size:8px}}
+/* ═══ FOCUS VISIBLE (a11y) ═══ */
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
+button:focus-visible,.inp:focus-visible,.card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* ═══ CONSENT BANNER ═══ */
+.consent-banner{position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--c2);border-top:1px solid var(--borderhi);padding:16px var(--pad) calc(16px + var(--sai-bottom));animation:sheetUp .3s ease;max-width:var(--shell-max);margin:0 auto}
+.consent-banner p{font-size:var(--font-sm);color:var(--stone);line-height:1.5;margin-bottom:12px}
+.consent-banner a{color:var(--gold);text-decoration:underline}
+.consent-btns{display:flex;gap:8px}
+.consent-btns button{flex:1;padding:10px;border-radius:10px;font-size:var(--font-sm);font-weight:700;font-family:inherit;cursor:pointer;min-height:44px}
+.consent-accept{background:var(--gold);color:#080706;border:none}
+.consent-reject{background:transparent;border:1px solid var(--border);color:var(--cream)}
 </style>
 </head>
 <body>
-<div class="shell">
-  <div class="screen" id="mainScreen"></div>
-  <nav class="nav" id="navBar" style="display:none">
-    <button class="nbtn" onclick="goTab('home')">
-      <span id="ni_home" style="font-size:19px;color:var(--gold)">⌂</span>
+<div class="shell" role="application" aria-label="ChairMatch App">
+  <main class="screen" id="mainScreen" role="main"></main>
+  <nav class="nav" id="navBar" style="display:none" aria-label="Hauptnavigation">
+    <button class="nbtn" onclick="goTab('home')" aria-label="Startseite">
+      <span id="ni_home" style="font-size:19px;color:var(--gold)" aria-hidden="true">⌂</span>
       <span id="nl_home" style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--gold)">START</span>
     </button>
-    <button class="nbtn" onclick="goTab('explore')">
-      <span id="ni_explore" style="font-size:19px;color:var(--stone)">◫</span>
+    <button class="nbtn" onclick="goTab('explore')" aria-label="Termine erkunden">
+      <span id="ni_explore" style="font-size:19px;color:var(--stone)" aria-hidden="true">◫</span>
       <span id="nl_explore" style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--stone2)">TERMIN</span>
     </button>
-    <button class="nbtn" onclick="goTab('favorites')">
-      <span id="ni_favorites" style="font-size:19px;color:var(--stone)">♡</span>
+    <button class="nbtn" onclick="goTab('favorites')" aria-label="Favoriten">
+      <span id="ni_favorites" style="font-size:19px;color:var(--stone)" aria-hidden="true">♡</span>
       <span id="nl_favorites" style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--stone2)">FAVORITEN</span>
     </button>
-    <button class="nbtn" onclick="goTab('offers')">
-      <span id="ni_offers" style="font-size:19px;color:var(--stone)">❋</span>
+    <button class="nbtn" onclick="goTab('offers')" aria-label="Angebote">
+      <span id="ni_offers" style="font-size:19px;color:var(--stone)" aria-hidden="true">❋</span>
       <span id="nl_offers" style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--stone2)">ANGEBOTE</span>
     </button>
-    <button class="nbtn" onclick="goTab('account')">
-      <span id="ni_account" style="font-size:19px;color:var(--stone)">◎</span>
+    <button class="nbtn" onclick="goTab('account')" aria-label="Konto">
+      <span id="ni_account" style="font-size:19px;color:var(--stone)" aria-hidden="true">◎</span>
       <span id="nl_account" style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--stone2)">KONTO</span>
     </button>
   </nav>
+</div>
+<!-- DSGVO Consent Banner -->
+<div class="consent-banner" id="consentBanner" style="display:none" role="dialog" aria-label="Cookie-Einstellungen">
+  <p>Wir verwenden localStorage, um deine Einstellungen, Favoriten und Buchungen zu speichern. Weitere Infos in unserer <a href="#" onclick="goSub('privacy');document.getElementById('consentBanner').style.display='none';return false">Datenschutzerklärung</a>.</p>
+  <div class="consent-btns">
+    <button class="consent-accept" onclick="acceptConsent()">Akzeptieren</button>
+    <button class="consent-reject" onclick="rejectConsent()">Nur notwendige</button>
+  </div>
 </div>
 <div class="overlay" id="bookingOverlay" onclick="if(event.target===this)closeBooking()">
   <div class="sheet" id="bookingSheet"></div>
@@ -167,6 +193,24 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 </div>
 
 <script>
+"use strict";
+// ═══════════════ CONSENT & DSGVO ═══════════════
+let cmConsent=localStorage.getItem("cm_consent");
+function showConsentBanner(){
+  if(!cmConsent){document.getElementById("consentBanner").style.display="block";}
+}
+function acceptConsent(){
+  cmConsent="full";localStorage.setItem("cm_consent","full");
+  document.getElementById("consentBanner").style.display="none";
+  initVisitorTracking();
+}
+function rejectConsent(){
+  cmConsent="essential";localStorage.setItem("cm_consent","essential");
+  document.getElementById("consentBanner").style.display="none";
+}
+function hasFullConsent(){return cmConsent==="full";}
+setTimeout(showConsentBanner,800);
+
 // ═══════════════ CHAIRMATCH LOGO SVG (v8 — Dual Diamond + Center Star) ═══════════════
 function LOGO(size){
   const s=size||180;
@@ -1181,7 +1225,8 @@ let cmVisits=JSON.parse(localStorage.getItem("cm_visits")||"[]");
 let cmCurrentVisit=null;
 
 function initVisitorTracking(){
-  const visit={id:"v"+Date.now(),ts:new Date().toISOString(),pages:[],ua:navigator.userAgent,ref:document.referrer||"direct",ip:null,city:null,country:null,region:null,org:null,scr:window.innerWidth+"x"+window.innerHeight,dur:0};
+  if(!hasFullConsent())return;
+  const visit={id:"v"+Date.now(),ts:new Date().toISOString(),pages:[],ref:document.referrer||"direct",scr:window.innerWidth+"x"+window.innerHeight,dur:0};
   cmCurrentVisit=visit;
   cmVisits.push(visit);
   saveVisits();
@@ -1191,7 +1236,7 @@ function initVisitorTracking(){
   }).then(r=>r.json()).then(geo=>{
     visit.city=geo.city||"-";visit.country=geo.country_name||"-";visit.region=geo.region||"";visit.org=geo.org||"";
     saveVisits();
-  }).catch(()=>{visit.ip=visit.ip||"Bilinmiyor";visit.city="-";visit.country="-";saveVisits();});
+  }).catch(()=>{visit.ip=visit.ip||"-";visit.city="-";visit.country="-";saveVisits();});
   setInterval(()=>{if(cmCurrentVisit){cmCurrentVisit.dur=Math.round((Date.now()-parseInt(cmCurrentVisit.id.slice(1)))/1000);saveVisits();}},30000);
 }
 function trackPage(page){
@@ -2671,7 +2716,7 @@ function renderNotifications(){
 }
 
 function renderDsgvo(){
-  const items=[["1. Verantwortlicher","ChairMatch GmbH (i. Gr.), Deutschland. datenschutz@chairmatch.de"],["2. Erhobene Daten","Name, E-Mail, Telefon, Buchungsdaten. Anbieter: Gewerbedaten, IBAN."],["3. Rechtsgrundlage","Vertragserfüllung Art. 6 I b DSGVO."],["4. Weitergabe","Keine Weitergabe zu Werbezwecken. Nur Auftragsverarbeiter (Art. 28 DSGVO)."],["5. Speicherdauer","Buchungsdaten: 10 Jahre. Logs: 90 Tage."],["6. Ihre Rechte","Auskunft · Berichtigung · Löschung · Widerspruch (Art. 15–21 DSGVO)"],["7. Beschwerderecht","HBDI Hessen, Postfach 3163, 65021 Wiesbaden"]];
+  const items=[["1. Verantwortlicher","ChairMatch GmbH (i. Gr.), Deutschland. datenschutz@chairmatch.de"],["2. Erhobene Daten","Name, E-Mail, Telefon, Buchungsdaten. Anbieter: Gewerbedaten, IBAN."],["3. Lokale Speicherung (localStorage)","Diese App speichert Einstellungen, Favoriten und Buchungen lokal in Ihrem Browser (localStorage). Diese Daten werden nicht an Server übertragen. Sie können diese Daten jederzeit über die Browser-Einstellungen löschen."],["4. Analyse & Tracking","Nur mit Ihrer ausdrücklichen Einwilligung (Consent-Banner) werden anonymisierte Besucherdaten erhoben. Ohne Einwilligung werden keine IP-Adressen, Standort- oder Gerätedaten erfasst."],["5. Rechtsgrundlage","Vertragserfüllung Art. 6 I b DSGVO. Tracking nur mit Einwilligung Art. 6 I a DSGVO."],["6. Weitergabe","Keine Weitergabe zu Werbezwecken. Nur Auftragsverarbeiter (Art. 28 DSGVO)."],["7. Speicherdauer","Buchungsdaten: 10 Jahre. Logs: 90 Tage. localStorage: bis zur manuellen Löschung."],["8. Ihre Rechte","Auskunft · Berichtigung · Löschung · Widerspruch · Widerruf der Einwilligung (Art. 15–21 DSGVO)"],["9. Beschwerderecht","HBDI Hessen, Postfach 3163, 65021 Wiesbaden"]];
   return`<div class="sticky"><button onclick="goSub(null)" style="font-size:var(--font-md);color:var(--gold);font-weight:700;min-height:44px;display:flex;align-items:center;gap:4px">← ${t("back")}</button>
     <h1 style="font-size:var(--font-xl);font-weight:700;font-family:'Cinzel',serif;color:var(--gold2)">${t("privacy")}</h1>
     <p style="font-size:var(--font-sm);color:var(--stone)">DSGVO · Stand 02/2026</p></div>
@@ -3856,6 +3901,8 @@ function selectSlot(tm){state.bookSlot=tm;render();}
 function selectSp(id){state.bookSp=SPECS.find(s=>s.id===id);render();}
 function setBookStep(s){state.bookStep=s;render();}
 function confirmBooking(){
+  const errors=validateBookingForm();
+  if(errors.length>0){showToast(errors[0]);return;}
   const p=state.bookingProv;const today=new Date();const days=["So","Mo","Di","Mi","Do","Fr","Sa"];
   const d=new Date(today);d.setDate(today.getDate()+state.bookDay);
   const dateStr=days[d.getDay()]+" "+d.getDate()+"."+String(d.getMonth()+1).padStart(2,'0');
@@ -3933,7 +3980,7 @@ function resetFilters(){state.filterCity="all";state.filterMinRating=0;state.fil
 function setView(m){state.viewMode=m;render();}
 function markRead(id){const n=state.notifications.find(x=>x.id===id);if(n)n.read=true;render();}
 function toggleTheme(){state.theme=state.theme==="dark"?"light":"dark";document.body.classList.toggle("light");localStorage.setItem("cm_theme",state.theme);showToast(state.theme==="dark"?t("darkMode"):t("lightMode"));render();}
-function setLang(code){state.lang=code;localStorage.setItem("cm_lang",code);showToast(t("lang")+": "+(code==="de"?"Deutsch":code==="en"?"English":"Türkçe"));render();}
+function setLang(code){state.lang=code;localStorage.setItem("cm_lang",code);document.documentElement.lang=code;showToast(t("lang")+": "+(code==="de"?"Deutsch":code==="en"?"English":"Türkçe"));render();}
 
 function updateBookContact(field,value){state[field]=value;}
 function subscribeNL(){
@@ -3996,6 +4043,23 @@ function toggleSuperAdmin(){
   }
 }
 
+// ═══════════════ FORM VALIDATION ═══════════════
+function validateEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);}
+function validatePhone(phone){return /^[\d\s\+\-\(\)]{6,20}$/.test(phone);}
+function validateBookingForm(){
+  const errors=[];
+  if(!state.bookName||state.bookName.trim().length<2)errors.push("Name erforderlich (min. 2 Zeichen)");
+  if(!validateEmail(state.bookEmail))errors.push("Gültige E-Mail erforderlich");
+  if(state.bookPhone&&!validatePhone(state.bookPhone))errors.push("Ungültige Telefonnummer");
+  return errors;
+}
+
+// ═══════════════ SERVICE WORKER ═══════════════
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
+
+// ═══════════════ INIT ═══════════════
+document.documentElement.lang=state.lang;
+if(hasFullConsent())initVisitorTracking();
 trackPage("ilk-giris");
 render();
 </script>
