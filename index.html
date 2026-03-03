@@ -129,15 +129,16 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 .catcard:active{transform:scale(.97)}
 .catcard.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,215,128,0.18),0 0 28px rgba(200,168,75,.1),0 24px 80px rgba(0,0,0,0.70)}
 .catcard.on::after{content:'✓';position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--gold);font-size:8px;font-weight:900;color:#080706;display:flex;align-items:center;justify-content:center}
-.catcard .caticon{width:64px;height:64px;border-radius:16px;background:radial-gradient(circle at 35% 30%,rgba(232,200,96,.15),rgba(200,168,75,.04),var(--c3));border:1px solid rgba(200,168,75,.25);display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(200,168,75,.06),inset 0 1px 0 rgba(255,240,180,.06)}
+.catcard .caticon{width:72px;height:72px;border-radius:16px;background:radial-gradient(circle at 35% 30%,rgba(232,200,96,.15),rgba(200,168,75,.04),var(--c3));border:1px solid rgba(200,168,75,.25);display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(200,168,75,.12),inset 0 1px 0 rgba(255,240,180,.06);overflow:hidden}
 .catcard .caticon svg{width:44px;height:44px}
+.catcard .caticon img{width:68px;height:68px;object-fit:cover;border-radius:12px;filter:drop-shadow(0 0 10px rgba(200,168,75,0.5)) drop-shadow(0 0 20px rgba(200,168,75,0.2))}
 .catcard .catlbl{font-size:13px;font-weight:700;color:#f2efe6;text-align:center;margin-top:10px;line-height:1.15}
 .catcard .catsub{font-size:10px;color:#9a917f;text-align:center;margin-top:3px;line-height:1.2}
 .light .catcard{background:#faf8f4;border-color:#e0d8c8}
 .light .catcard.on{border-color:var(--gold)}
 .light .catcard .catlbl{color:#1a1408}
 @media(hover:hover){.catcard:hover{box-shadow:0 0 0 1px rgba(255,215,128,0.12),0 24px 80px rgba(0,0,0,0.70);transform:scale(1.02)}}
-@media(max-width:374px){.catcard{padding:12px 6px 10px;border-radius:13px}.catcard .caticon{width:46px;height:46px;border-radius:11px}.catcard .caticon svg{width:32px;height:32px}.catcard .catlbl{font-size:11px;margin-top:7px}.catcard .catsub{font-size:8px}}
+@media(max-width:374px){.catcard{padding:12px 6px 10px;border-radius:13px}.catcard .caticon{width:54px;height:54px;border-radius:11px}.catcard .caticon svg{width:32px;height:32px}.catcard .caticon img{width:50px;height:50px}.catcard .catlbl{font-size:11px;margin-top:7px}.catcard .catsub{font-size:8px}}
 /* ═══ FOCUS VISIBLE (a11y) ═══ */
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
 button:focus-visible,.inp:focus-visible,.card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -274,13 +275,21 @@ function LOGO(size){
   </g>
 </svg>`;}
 
-// ─── LOGO HEADER (PNG logo lockup from ChatGPT assets) ───
+// ─── LOGO HEADER (PNG logo with glow + float animations) ───
 function logoHeader(small){
   if(small) return `<div style="display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1">
-    <img src="icons/12_logo_lockup.png" height="36" style="object-fit:contain;flex-shrink:0">
+    <div style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:inline-block;flex-shrink:0">
+      <img src="icons/11_appicon_symbol.png" height="36" style="object-fit:contain;border-radius:8px">
+    </div>
+    <div style="min-width:0">
+      <p class="cinzel" style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--gold2);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">CHAIR<span style="color:var(--gold3)">MATCH</span></p>
+      <p style="font-size:8px;letter-spacing:3px;color:var(--stone);margin-top:2px">DEUTSCHLAND</p>
+    </div>
   </div>`;
   return `<div style="display:flex;flex-direction:column;align-items:center;padding:16px 0 10px">
-    <img src="icons/12_logo_lockup.png" height="120" style="object-fit:contain">
+    <div style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:inline-block">
+      <img src="icons/12_logo_lockup.png" height="140" style="object-fit:contain;border-radius:12px">
+    </div>
   </div>`;}
 
 // ─── CATEGORY SVG ICONS (v8 — premium 3D gold, matching reference images) ───
@@ -1936,7 +1945,7 @@ function renderHome(){
   const list=getFiltered();
   const h2=new Date().getHours();
   const gr=h2<12?t("morning"):h2<17?t("afternoon"):t("evening");
-  const catIcons={barber:'<img src="icons/01_tile_Barbershop.png" width="38" height="38" style="object-fit:contain">',friseur:'<img src="icons/02_tile_Friseur.png" width="38" height="38" style="object-fit:contain">',kosmetik:'<img src="icons/03_tile_Kosmetik.png" width="38" height="38" style="object-fit:contain">',aesthetik:'<img src="icons/04_tile_Ästhetik.png" width="38" height="38" style="object-fit:contain">',nail:'<img src="icons/05_tile_Nails.png" width="38" height="38" style="object-fit:contain">',massage:'<img src="icons/06_tile_Massage.png" width="38" height="38" style="object-fit:contain">',lash:catSVG("lash"),arzt:catSVG("arzt"),opraum:'<img src="icons/10_tile_OP-Raum.png" width="38" height="38" style="object-fit:contain">',angebote:'<img src="icons/07_tile_Angebote.png" width="38" height="38" style="object-fit:contain">',termin:'<img src="icons/08_tile_Termin.png" width="38" height="38" style="object-fit:contain">'};
+  const catIcons={barber:'<img src="icons/01_tile_Barbershop.png" alt="Barbershop">',friseur:'<img src="icons/02_tile_Friseur.png" alt="Friseur">',kosmetik:'<img src="icons/03_tile_Kosmetik.png" alt="Kosmetik">',aesthetik:'<img src="icons/04_tile_Ästhetik.png" alt="Ästhetik">',nail:'<img src="icons/05_tile_Nails.png" alt="Nails">',massage:'<img src="icons/06_tile_Massage.png" alt="Massage">',lash:catSVG("lash"),arzt:catSVG("arzt"),opraum:'<img src="icons/10_tile_OP-Raum.png" alt="OP-Raum">',angebote:'<img src="icons/07_tile_Angebote.png" alt="Angebote">',termin:'<img src="icons/08_tile_Termin.png" alt="Termin">'};
   const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8",opraum:"#50B8A0",angebote:"#E8A040",termin:"#60A8D0"};
   const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
