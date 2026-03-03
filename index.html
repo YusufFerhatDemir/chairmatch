@@ -129,8 +129,8 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 .catcard:active{transform:scale(.97)}
 .catcard.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,215,128,0.18),0 0 28px rgba(200,168,75,.1),0 24px 80px rgba(0,0,0,0.70)}
 .catcard.on::after{content:'✓';position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--gold);font-size:8px;font-weight:900;color:#080706;display:flex;align-items:center;justify-content:center}
-.catcard .caticon{width:100%;height:140px;border-radius:16px;background:transparent;display:flex;align-items:center;justify-content:center}
-.catcard .caticon img{width:100%;height:100%;object-fit:contain;object-position:center;filter:drop-shadow(0 0 12px rgba(200,168,75,0.5)) drop-shadow(0 0 30px rgba(200,168,75,0.15));border-radius:12px}
+.catcard .caticon{width:100%;height:140px;border-radius:16px;background:transparent;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.catcard .caticon img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:drop-shadow(0 0 12px rgba(200,168,75,0.5)) drop-shadow(0 0 30px rgba(200,168,75,0.15));border-radius:12px}
 .catcard .catlbl{font-size:13px;font-weight:700;color:#f2efe6;text-align:center;margin-top:10px;line-height:1.15}
 .catcard .catsub{font-size:10px;color:#9a917f;text-align:center;margin-top:3px;line-height:1.2}
 .light .catcard{background:#faf8f4;border-color:#e0d8c8}
@@ -278,7 +278,7 @@ function LOGO(size){
 function logoHeader(small){
   if(small) return `<div style="display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1">
     <div style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:inline-block;flex-shrink:0">
-      <img src="icons/logo_symbol_512x512.png" width="36" height="36" style="object-fit:contain">
+      <img src="icons/logo_symbol_512x512.png" width="36" height="36" style="object-fit:contain;mix-blend-mode:lighten">
     </div>
     <div style="min-width:0">
       <p class="cinzel" style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--gold2);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">CHAIR<span style="color:var(--gold3)">MATCH</span></p>
@@ -287,8 +287,10 @@ function logoHeader(small){
   </div>`;
   return `<div style="display:flex;flex-direction:column;align-items:center;padding:16px 0 10px">
     <div style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:inline-block">
-      <img src="icons/logo_lockup_512x384.png" style="height:140px;object-fit:contain">
+      <img src="icons/logo_symbol_512x512.png" style="width:100px;height:100px;object-fit:contain;mix-blend-mode:lighten">
     </div>
+    <p class="cinzel" style="font-size:26px;font-weight:700;letter-spacing:4px;color:var(--gold2);margin-top:10px;line-height:1">CHAIR<span style="color:var(--gold3)">MATCH</span></p>
+    <p style="font-size:9px;letter-spacing:4px;color:var(--stone);margin-top:4px">DEUTSCHLAND</p>
   </div>`;}
 
 // ─── CATEGORY SVG ICONS (v8 — premium 3D gold, matching reference images) ───
@@ -640,9 +642,9 @@ function catSVG(type){
 
 // ─── MINI RENTAL ICONS (26px, PNG from V2 assets) ───
 function rentalIcon(type){
-  const iconMap={stuhl:"icons/12_stuhlvermietung_256x384.png",liege:"icons/06_massage_256x384.png",raum:"icons/03_kosmetik_256x384.png",opraum:"icons/09_op_raum_256x384.png"};
+  const iconMap={stuhl:"icons/12_stuhlvermietung_512x384.png",liege:"icons/06_massage_256x384.png",raum:"icons/03_kosmetik_256x384.png",opraum:"icons/09_op_raum_512x384.png"};
   const src=iconMap[type];
-  if(src) return `<img src="${src}" width="26" height="26" style="object-fit:contain;filter:drop-shadow(0 0 6px rgba(200,168,75,0.4));border-radius:4px" alt="${type}">`;
+  if(src) return `<img src="${src}" width="26" height="26" style="object-fit:cover;object-position:top center;filter:drop-shadow(0 0 6px rgba(200,168,75,0.4));border-radius:4px" alt="${type}">`;
   return "";
 }
 
@@ -1328,7 +1330,7 @@ function renderOnboarding(){
   const sl=slides[state.obStep];
   const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
   return`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;min-height:100dvh;justify-content:center;padding:20px var(--pad)">
-    ${state.obStep===0?`<div style="margin-bottom:8px">${logoHeader(false)}</div>`:sl.icon==="chair"?`<div style="margin-bottom:14px;display:flex;align-items:center;justify-content:center;animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite"><img src="icons/12_stuhlvermietung_256x384.png" style="height:140px;object-fit:contain" alt="Stuhlvermietung"></div>`:sl.icon==="booking"?`<div style="margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbBooking()}</div>`:`<div style="font-size:60px;margin-bottom:14px">${sl.icon}</div>`}
+    ${state.obStep===0?`<div style="margin-bottom:8px">${logoHeader(false)}</div>`:sl.icon==="chair"?`<div style="margin-bottom:14px;display:flex;align-items:center;justify-content:center;animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite"><img src="icons/12_stuhlvermietung_512x384.png" style="height:140px;object-fit:contain" alt="Stuhlvermietung"></div>`:sl.icon==="booking"?`<div style="margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(200,168,75,.4))">${dbBooking()}</div>`:`<div style="font-size:60px;margin-bottom:14px">${sl.icon}</div>`}
     <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;margin-bottom:8px;line-height:1.3;color:var(--gold2)">${sl.t}</p>
     <p style="font-size:var(--font-md);color:var(--stone);line-height:1.6;margin-bottom:28px;max-width:360px">${sl.s}</p>
     <div style="display:flex;gap:8px;margin-bottom:20px">${dots}</div>
@@ -1620,15 +1622,15 @@ function renderProvSetup(){
   // ═══ STEP 1: Choose your craft ═══
   if(s===1){
 const cats=[
-      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart",ic:provIcon("barber")},
-      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling",ic:provIcon("friseur")},
-      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser",ic:provIcon("kosmetik")},
-      {id:"aesthetik",nm:"Ästhetik",sub:"Botox · Filler · Anti-Aging",ic:provIcon("aesthetik")},
-      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre",ic:provIcon("nail")},
-      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone",ic:provIcon("massage")},
-      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting",ic:provIcon("lash")},
-      {id:"arzt",nm:"Arzt / Klinik",sub:"Derma · Laser · Behandlung",ic:provIcon("arzt")},
-      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:provIcon("opraum")}
+      {id:"barber",nm:"Barbershop",sub:"Herrenschnitt · Fade · Bart",ic:'<img src="icons/01_barbershop_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Barbershop">'},
+      {id:"friseur",nm:"Friseur",sub:"Schnitt · Farbe · Styling",ic:'<img src="icons/02_friseur_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Friseur">'},
+      {id:"kosmetik",nm:"Kosmetik",sub:"Facial · Peeling · Laser",ic:'<img src="icons/03_kosmetik_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Kosmetik">'},
+      {id:"aesthetik",nm:"Ästhetik",sub:"Botox · Filler · Anti-Aging",ic:'<img src="icons/04_aesthetik_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Ästhetik">'},
+      {id:"nail",nm:"Nagelstudio",sub:"Gel · Nail Art · Maniküre",ic:'<img src="icons/05_nagelstudio_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Nagelstudio">'},
+      {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone",ic:'<img src="icons/06_massage_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Massage">'},
+      {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting",ic:'<img src="icons/07_lash_brows_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Lash &amp; Brows">'},
+      {id:"arzt",nm:"Arzt / Klinik",sub:"Derma · Laser · Behandlung",ic:'<img src="icons/08_arzt_klinik_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Arzt / Klinik">'},
+      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:'<img src="icons/09_op_raum_512x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="OP-Raum">'}
     ];
     body=`
     <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Was ist dein Handwerk?</p>
@@ -1903,7 +1905,7 @@ function renderHome(){
   const list=getFiltered();
   const h2=new Date().getHours();
   const gr=h2<12?t("morning"):h2<17?t("afternoon"):t("evening");
-  const catIcons={barber:'<img src="icons/01_barbershop_256x384.png" alt="Barbershop">',friseur:'<img src="icons/02_friseur_256x384.png" alt="Friseur">',kosmetik:'<img src="icons/03_kosmetik_256x384.png" alt="Kosmetik">',aesthetik:'<img src="icons/04_aesthetik_256x384.png" alt="Ästhetik">',nail:'<img src="icons/05_nagelstudio_256x384.png" alt="Nagelstudio">',massage:'<img src="icons/06_massage_256x384.png" alt="Massage">',lash:'<img src="icons/07_lash_brows_256x384.png" alt="Lash &amp; Brows">',arzt:'<img src="icons/08_arzt_klinik_256x384.png" alt="Arzt / Klinik">',opraum:'<img src="icons/09_op_raum_256x384.png" alt="OP-Raum">',angebote:'<img src="icons/10_angebote_256x384.png" alt="Angebote">',termin:'<img src="icons/11_termin_256x384.png" alt="Termin">'};
+  const catIcons={barber:'<img src="icons/01_barbershop_256x384.png" alt="Barbershop">',friseur:'<img src="icons/02_friseur_256x384.png" alt="Friseur">',kosmetik:'<img src="icons/03_kosmetik_256x384.png" alt="Kosmetik">',aesthetik:'<img src="icons/04_aesthetik_256x384.png" alt="Ästhetik">',nail:'<img src="icons/05_nagelstudio_256x384.png" alt="Nagelstudio">',massage:'<img src="icons/06_massage_256x384.png" alt="Massage">',lash:'<img src="icons/07_lash_brows_256x384.png" alt="Lash &amp; Brows">',arzt:'<img src="icons/08_arzt_klinik_256x384.png" alt="Arzt / Klinik">',opraum:'<img src="icons/09_op_raum_512x384.png" alt="OP-Raum">',angebote:'<img src="icons/10_angebote_256x384.png" alt="Angebote">',termin:'<img src="icons/11_termin_256x384.png" alt="Termin">'};
   const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8",opraum:"#50B8A0",angebote:"#E8A040",termin:"#60A8D0"};
   const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
