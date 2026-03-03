@@ -274,19 +274,13 @@ function LOGO(size){
   </g>
 </svg>`;}
 
-// ─── LOGO HEADER (single diamond-star LOGO()) ───
+// ─── LOGO HEADER (PNG logo lockup from ChatGPT assets) ───
 function logoHeader(small){
   if(small) return `<div style="display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1">
-    <div style="animation:logoFloat 3s ease-in-out infinite,logoGlow 3s ease-in-out infinite;display:inline-block;flex-shrink:0">
-      ${LOGO(36)}
-    </div>
-    <div style="min-width:0">
-      <p class="cinzel" style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--gold2);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">CHAIR<span style="color:var(--gold3)">MATCH</span></p>
-      <p style="font-size:8px;letter-spacing:3px;color:var(--stone);margin-top:2px">DEUTSCHLAND</p>
-    </div>
+    <img src="icons/12_logo_lockup.png" height="36" style="object-fit:contain;flex-shrink:0">
   </div>`;
   return `<div style="display:flex;flex-direction:column;align-items:center;padding:16px 0 10px">
-    ${LOGO(120)}
+    <img src="icons/12_logo_lockup.png" height="120" style="object-fit:contain">
   </div>`;}
 
 // ─── CATEGORY SVG ICONS (v8 — premium 3D gold, matching reference images) ───
@@ -1942,7 +1936,7 @@ function renderHome(){
   const list=getFiltered();
   const h2=new Date().getHours();
   const gr=h2<12?t("morning"):h2<17?t("afternoon"):t("evening");
-  const catIcons={barber:catSVG("barber"),friseur:catSVG("friseur"),kosmetik:catSVG("kosmetik"),aesthetik:catSVG("aesthetik"),nail:catSVG("nail"),massage:catSVG("massage"),lash:catSVG("lash"),arzt:catSVG("arzt"),opraum:catSVG("opraum"),angebote:catSVG("angebote"),termin:catSVG("termin")};
+  const catIcons={barber:'<img src="icons/01_tile_Barbershop.png" width="38" height="38" style="object-fit:contain">',friseur:'<img src="icons/02_tile_Friseur.png" width="38" height="38" style="object-fit:contain">',kosmetik:'<img src="icons/03_tile_Kosmetik.png" width="38" height="38" style="object-fit:contain">',aesthetik:'<img src="icons/04_tile_Ästhetik.png" width="38" height="38" style="object-fit:contain">',nail:'<img src="icons/05_tile_Nails.png" width="38" height="38" style="object-fit:contain">',massage:'<img src="icons/06_tile_Massage.png" width="38" height="38" style="object-fit:contain">',lash:catSVG("lash"),arzt:catSVG("arzt"),opraum:'<img src="icons/10_tile_OP-Raum.png" width="38" height="38" style="object-fit:contain">',angebote:'<img src="icons/07_tile_Angebote.png" width="38" height="38" style="object-fit:contain">',termin:'<img src="icons/08_tile_Termin.png" width="38" height="38" style="object-fit:contain">'};
   const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8",opraum:"#50B8A0",angebote:"#E8A040",termin:"#60A8D0"};
   const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
