@@ -150,6 +150,7 @@ button:focus-visible,.inp:focus-visible,.card:focus-visible{outline:2px solid va
 .consent-accept{background:var(--gold);color:#080706;border:none}
 .consent-reject{background:transparent;border:1px solid var(--border);color:var(--cream)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div class="shell" role="application" aria-label="ChairMatch App">
@@ -194,6 +195,12 @@ button:focus-visible,.inp:focus-visible,.card:focus-visible{outline:2px solid va
 
 <script>
 "use strict";
+// ═══════════════ SUPABASE CLIENT ═══════════════
+const SUPABASE_URL="https://vlrviyrgggzhayepfmop.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZscnZpeXJnZ2d6aGF5ZXBmbW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODIyNzYsImV4cCI6MjA4ODE1ODI3Nn0.pvcZqzAm-ARWVsSv6hKUnTwZeggVJcwYN---4jUfyA0";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null;
+
 // ═══════════════ CONSENT & DSGVO ═══════════════
 let cmConsent=localStorage.getItem("cm_consent");
 function showConsentBanner(){
@@ -1054,7 +1061,7 @@ const CATS=[
   {id:"angebote",lbl:"Angebote",sub:"Rabatte · Specials"},
   {id:"termin",lbl:"Termin",sub:"Buchen · Umbuchen"}
 ];
-const SPECS=[
+let SPECS=[
   {id:"s1",nm:"Ahmed K.",role:"Master Barber",rt:4.9,cat:"barber",ini:"AK",col:"#2A4A3A"},
   {id:"s2",nm:"Sofia M.",role:"Kosmetikerin",rt:4.8,cat:"kosmetik",ini:"SM",col:"#4A2A3A"},
   {id:"s3",nm:"Dr. Meyer",role:"Ästhetik Arzt",rt:5.0,cat:"aesthetik",ini:"DM",col:"#1A3050"},
@@ -1070,7 +1077,7 @@ const SPECS=[
   {id:"s13",nm:"Nadine R.",role:"Lash Stylistin",rt:4.9,cat:"lash",ini:"NR",col:"#3A3020"},
   {id:"s14",nm:"Dr. Schneider",role:"Dermatologe",rt:4.8,cat:"arzt",ini:"DS",col:"#1A2840"}
 ];
-const PROVS=[
+let PROVS=[
   {id:"p1",cat:"barber",nm:"BlackLabel Barbershop",st:"Münchener Str. 17",city:"Frankfurt",rt:4.9,rc:412,tl:"Premium Fades & Beard Design",tags:["Fade","Skin Fade","Bart","Herrenschnitt","Rasur"],disc:15,bc:"#C8A84B",prom:true,ver:true,live:true,frei:3,tier:"gold",boost:95,logo:null,sps:["s1","s5"],rental:[{type:"stuhl",pr:45},{type:"raum",pr:60}],svs:[{id:"sv1",nm:"Signature Cut",dur:40,pr:42},{id:"sv2",nm:"Skin Fade",dur:45,pr:48},{id:"sv3",nm:"Beard Design",dur:30,pr:28}],revs:[{u:"Tobias K.",s:5,t:"Absolut top!",d:"12.02.2026"},{u:"Markus L.",s:5,t:"Super Atmosphäre.",d:"05.02.2026"}],gal:[{b:"#3A2818",a:"#5A4828",sv:"Skin Fade"},{b:"#2A1A10",a:"#4A3A20",sv:"Beard Design"}]},
   {id:"p2",cat:"kosmetik",nm:"Glow Studio",st:"Maximilianstr. 18",city:"München",rt:4.8,rc:234,tl:"Organic Facials & Skin Care",tags:["Facial","Peeling","Hautreinigung","Gesichtspflege","Anti-Aging"],disc:0,bc:"#D4829A",prom:false,ver:true,live:true,frei:2,tier:"free",boost:0,logo:null,sps:["s2","s10"],rental:[{type:"liege",pr:38},{type:"raum",pr:50}],svs:[{id:"sv4",nm:"Deep Cleanse Facial",dur:60,pr:85},{id:"sv5",nm:"Chemical Peeling",dur:45,pr:65}],revs:[{u:"Anna S.",s:5,t:"Haut strahlt!",d:"08.02.2026"}],gal:[{b:"#3A2028",a:"#5A3848",sv:"Facial"}]},
   {id:"p3",cat:"aesthetik",nm:"AesthetiQ Klinik",st:"Kurfürstendamm 55",city:"Berlin",rt:5.0,rc:188,tl:"Med. Ästhetik & Anti-Aging",tags:["Botox","Filler","Haartransplantation","Faltenbehandlung","Lippenunterspritzung","Schönheitsklinik"],disc:10,bc:"#6AAED4",prom:true,ver:true,live:false,frei:0,tier:"premium",boost:70,logo:null,sps:["s3"],rental:[{type:"raum",pr:120}],svs:[{id:"sv6",nm:"Botox",dur:30,pr:320},{id:"sv7",nm:"Hyaluron Filler",dur:45,pr:450},{id:"sv36",nm:"Haartransplantation Beratung",dur:60,pr:0}],revs:[{u:"Sandra M.",s:5,t:"Dr. Meyer ist der Beste.",d:"10.02.2026"}],gal:[]},
@@ -1088,7 +1095,7 @@ const PROVS=[
   {id:"p15",cat:"opraum",nm:"MedCenter OP-Räume",st:"Kaiserstr. 40",city:"Frankfurt",rt:5.0,rc:89,tl:"Sterile OP-Räume für Chirurgen & Ärzte",tags:["OP-Raum","Steril","Chirurgie","Haartransplantation","Schönheits-OP","Operationssaal","Ambulant"],disc:0,bc:"#50B8A0",prom:true,ver:true,live:true,frei:2,tier:"gold",boost:90,logo:null,sps:["s3","s14"],rental:[{type:"opraum",pr:450}],svs:[{id:"sv40",nm:"OP-Raum Tagesmiete",dur:480,pr:450},{id:"sv41",nm:"OP-Raum Halbtag",dur:240,pr:280},{id:"sv42",nm:"Sterilisation & Aufbereitung",dur:60,pr:80}],revs:[{u:"Dr. Yilmaz",s:5,t:"Perfekt ausgestattet, steril und modern.",d:"20.02.2026"},{u:"Dr. Fischer",s:5,t:"Beste OP-Räume in Frankfurt.",d:"15.02.2026"}],gal:[]},
   {id:"p16",cat:"opraum",nm:"SterileSpace München",st:"Prinzregentenstr. 22",city:"München",rt:4.9,rc:67,tl:"Premium OP-Räume & Behandlungszimmer",tags:["OP-Raum","Steril","Ambulante Chirurgie","Haartransplantation","Implantate","Operationssaal"],disc:10,bc:"#40A890",prom:true,ver:true,live:true,frei:1,tier:"premium",boost:65,logo:null,sps:["s3"],rental:[{type:"opraum",pr:400},{type:"raum",pr:120}],svs:[{id:"sv43",nm:"OP-Raum Premium (Ganztag)",dur:480,pr:400},{id:"sv44",nm:"Behandlungsraum Steril",dur:240,pr:180}],revs:[{u:"Dr. Berger",s:5,t:"Top Ausstattung, alles steril.",d:"18.02.2026"}],gal:[]}
 ];
-const CITIES=[...new Set(PROVS.map(p=>p.city))].sort();
+let CITIES=[...new Set(PROVS.map(p=>p.city))].sort();
 // Service catalog per category — providers can toggle these on/off
 const SVC_CATALOG={
   barber:[{nm:"Herrenschnitt",dur:30,pr:28},{nm:"Trockenschnitt",dur:25,pr:22},{nm:"Skin Fade",dur:40,pr:35},{nm:"Beard Trim",dur:20,pr:15},{nm:"Bart Design",dur:30,pr:25},{nm:"Hot Towel Shave",dur:30,pr:28},{nm:"Full Service (Cut + Bart)",dur:60,pr:50},{nm:"Kinderschnitt",dur:20,pr:18},{nm:"Kopfmassage",dur:15,pr:12},{nm:"Augenbrauen",dur:10,pr:8},{nm:"Nasenhaare Waxing",dur:5,pr:5}],
@@ -1151,7 +1158,7 @@ const NOTIFS=[
 ];
 
 // ═══════════════ STATE ═══════════════
-let state={tab:"home",catFilter:"all",detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,
+let state={tab:"home",catFilter:"all",authTab:"login",authLoading:false,detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,
   provSetup:0,provCat:localStorage.getItem("cm_prov_cat")||null,customerSetup:false,setupProfile:JSON.parse(localStorage.getItem("cm_setup_profile")||"{}"),setupAgb:false,customServices:JSON.parse(localStorage.getItem("cm_custom_svcs")||"[]"),customEquip:JSON.parse(localStorage.getItem("cm_custom_equip")||"[]"),
   lang:"de",theme:"dark",favorites:JSON.parse(localStorage.getItem("cm_favs")||"[]"),stamps:parseInt(localStorage.getItem("cm_stamps")||"4"),
   searchQuery:"",searchOpen:false,showFilter:false,filterCity:"all",filterMinRating:0,filterMaxPrice:500,filterOnlyAvail:false,filterOnlyDisc:false,
@@ -1278,12 +1285,127 @@ function saveStamps(){localStorage.setItem("cm_stamps",state.stamps);}
 function stars(n){let s="";for(let i=1;i<=5;i++)s+=`<span style="opacity:${i<=Math.round(n)?1:.25};color:#F5D060;font-size:15px;text-shadow:${i<=Math.round(n)?"0 0 6px rgba(245,208,96,.5)":"none"}">★</span>`;return s;}
 function badge(tx,c){return`<span class="badge ${c}">${tx}</span>`;}
 function showToast(msg){const d=document.createElement("div");d.className="toast";d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2500);}
-function toggleFav(id,e){if(e)e.stopPropagation();const i=state.favorites.indexOf(id);if(i>-1){state.favorites.splice(i,1);showToast("Favorit entfernt");}else{state.favorites.push(id);showToast("Zu Favoriten hinzugefügt ♡");}saveFavs();render();}
+function toggleFav(id,e){if(e)e.stopPropagation();const i=state.favorites.indexOf(id);if(i>-1){state.favorites.splice(i,1);showToast("Favorit entfernt");if(currentUser)sb.from("favorites").delete().eq("user_id",currentUser.id).eq("provider_id",id).then(()=>{});}else{state.favorites.push(id);showToast("Zu Favoriten hinzugefügt ♡");if(currentUser)sb.from("favorites").insert({user_id:currentUser.id,provider_id:id}).then(()=>{});}saveFavs();render();}
 function tierWeight(t){return t==="gold"?3:t==="premium"?2:1;}
 function getFiltered(){let list=[...PROVS];if(state.catFilter!=="all")list=list.filter(p=>p.cat===state.catFilter);if(state.searchQuery){const q=state.searchQuery.toLowerCase();list=list.filter(p=>p.nm.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||p.tags.some(tg=>tg.toLowerCase().includes(q))||p.cat.toLowerCase().includes(q)||p.tl.toLowerCase().includes(q)||p.svs.some(sv=>sv.nm.toLowerCase().includes(q))||getProviderServices(p).some(sv=>sv.nm.toLowerCase().includes(q)));}
 if(state.filterCity!=="all")list=list.filter(p=>p.city===state.filterCity);if(state.filterMinRating>0)list=list.filter(p=>p.rt>=state.filterMinRating);if(state.filterMaxPrice<500)list=list.filter(p=>p.svs.some(sv=>sv.pr<=state.filterMaxPrice));if(state.filterOnlyAvail)list=list.filter(p=>p.live);if(state.filterOnlyDisc)list=list.filter(p=>p.disc>0);
 list.sort((a,b)=>{const tw=tierWeight(b.tier)-tierWeight(a.tier);if(tw!==0)return tw;const bw=(b.boost||0)-(a.boost||0);if(bw!==0)return bw;return b.rt-a.rt;});return list;}
 function activeFilterCount(){let c=0;if(state.filterCity!=="all")c++;if(state.filterMinRating>0)c++;if(state.filterMaxPrice<500)c++;if(state.filterOnlyAvail)c++;if(state.filterOnlyDisc)c++;return c;}
+
+// ═══════════════ AUTH (Supabase) ═══════════════
+async function cmSignUp(email,pw,firstName){
+  state.authLoading=true;render();
+  const{data,error}=await sb.auth.signUp({email,password:pw,options:{data:{role:state.role.toLowerCase(),first_name:firstName||""}}});
+  state.authLoading=false;
+  if(error){showToast(error.message);render();return;}
+  showToast("Bestätigungs-E-Mail gesendet! 📧");render();
+}
+async function cmSignIn(email,pw){
+  state.authLoading=true;render();
+  const{data,error}=await sb.auth.signInWithPassword({email,password:pw});
+  state.authLoading=false;
+  if(error){showToast(error.message);render();return;}
+  showToast("Willkommen zurück! 👋");
+}
+async function cmSignOut(){
+  await sb.auth.signOut();currentUser=null;
+  state.favorites=[];state.bookings=[];
+  showToast("Abgemeldet");render();
+}
+async function handleAuth(){
+  const email=document.getElementById("authEmail")?.value;
+  const pw=document.getElementById("authPw")?.value;
+  if(!email||!pw){showToast("E-Mail und Passwort erforderlich");return;}
+  if(pw.length<6){showToast("Passwort min. 6 Zeichen");return;}
+  if(state.authTab==="register"){
+    const nm=document.getElementById("authName")?.value||"";
+    await cmSignUp(email,pw,nm);
+  }else{await cmSignIn(email,pw);}
+}
+async function loadUserProfile(){
+  if(!currentUser)return;
+  const{data}=await sb.from("profiles").select("*").eq("id",currentUser.id).single();
+  if(data){
+    if(data.role==="provider")state.role="PROVIDER";
+    else if(data.role==="b2b")state.role="B2B";
+    else state.role="CUSTOMER";
+    state.stamps=data.stamps||0;
+    state.refCode=data.referral_code||state.refCode;
+    state.refCount=data.referral_count||0;
+    state.refEarnings=data.referral_earnings||0;
+    if(data.lang){state.lang=data.lang;document.documentElement.lang=data.lang;}
+    if(data.theme){state.theme=data.theme;document.body.classList.toggle("light",data.theme==="light");}
+    state.nlSubscribed=data.newsletter||false;
+  }
+}
+async function loadUserFavorites(){
+  if(!currentUser)return;
+  const{data}=await sb.from("favorites").select("provider_id").eq("user_id",currentUser.id);
+  if(data)state.favorites=data.map(f=>f.provider_id);
+}
+async function loadUserBookings(){
+  if(!currentUser)return;
+  const{data}=await sb.from("bookings").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false});
+  if(data&&data.length>0){
+    state.bookings=data.map(b=>({id:b.id,provId:b.provider_id,provNm:b.customer_name||"",nm:b.specialist_name||b.customer_name||"",sv:b.service_name,dur:b.duration,t:b.date+" · "+b.time_slot,st:b.status,pr:Number(b.price),notes:b.notes||""}));
+  }
+}
+
+// ═══════════════ SUPABASE DATA LOADING ═══════════════
+async function loadProviders(){
+  try{
+    const{data:provRows,error}=await sb.from("providers").select("*").order("boost",{ascending:false});
+    if(error||!provRows||provRows.length===0){console.log("Using fallback hardcoded data");return;}
+    const[svcRes,specRes,psRes,revRes,rentRes,hrsRes]=await Promise.all([
+      sb.from("services").select("*").order("sort_order"),
+      sb.from("specialists").select("*"),
+      sb.from("provider_specialists").select("*"),
+      sb.from("reviews").select("*").order("created_at",{ascending:false}),
+      sb.from("rental_options").select("*"),
+      sb.from("opening_hours").select("*")
+    ]);
+    const svcMap={},revMap={},rentMap={},psMap={},hrsMap={},specById={};
+    (svcRes.data||[]).forEach(s=>{if(!svcMap[s.provider_id])svcMap[s.provider_id]=[];svcMap[s.provider_id].push(s);});
+    (specRes.data||[]).forEach(s=>{specById[s.id]=s;});
+    (psRes.data||[]).forEach(ps=>{if(!psMap[ps.provider_id])psMap[ps.provider_id]=[];psMap[ps.provider_id].push(ps.specialist_id);});
+    (revRes.data||[]).forEach(r=>{if(!revMap[r.provider_id])revMap[r.provider_id]=[];revMap[r.provider_id].push(r);});
+    (rentRes.data||[]).forEach(r=>{if(!rentMap[r.provider_id])rentMap[r.provider_id]=[];rentMap[r.provider_id].push(r);});
+    (hrsRes.data||[]).forEach(h=>{if(!hrsMap[h.provider_id])hrsMap[h.provider_id]={};hrsMap[h.provider_id][h.day_of_week]=h.hours;});
+    PROVS=provRows.map(p=>{
+      const pSvcs=(svcMap[p.id]||[]).map((s,i)=>({id:"sv"+i,nm:s.name,dur:s.duration,pr:Number(s.price)}));
+      const pSpIds=psMap[p.id]||[];
+      const pRevs=(revMap[p.id]||[]).map(r=>({u:r.username,s:r.stars,t:r.text||"",d:r.created_at?new Date(r.created_at).toLocaleDateString("de-DE"):""} ));
+      const pRent=(rentMap[p.id]||[]).map(r=>({type:r.type,pr:Number(r.price_per_day)}));
+      if(hrsMap[p.id])HOURS[p.id]=hrsMap[p.id];
+      return{id:p.id,cat:p.category,nm:p.name,st:p.street||"",city:p.city||"",rt:Number(p.rating),rc:p.review_count,tl:p.tagline||"",tags:p.tags||[],disc:p.discount||0,bc:p.brand_color||"#C8A84B",prom:p.is_promoted,ver:p.is_verified,live:p.is_live,frei:p.free_slots||0,tier:p.tier||"free",boost:p.boost||0,logo:p.logo_url,sps:pSpIds.map(sid=>sid.substring(0,8)),svs:pSvcs,revs:pRevs,rental:pRent,gal:[]};
+    });
+    SPECS=(specRes.data||[]).map(s=>({id:s.id.substring(0,8),nm:s.name,role:s.role||"",rt:Number(s.rating),cat:s.category||"",ini:s.initials||"",col:s.color||"#2A4A3A"}));
+    CITIES=[...new Set(PROVS.map(p=>p.city))].sort();
+    console.log("✅ Loaded "+PROVS.length+" providers from Supabase");
+  }catch(e){console.error("Supabase load error, using fallback:",e);}
+}
+function renderAuthPage(){
+  const isReg=state.authTab==="register";
+  return`<div style="padding:var(--pad)">
+    <div style="margin-bottom:18px">${logoHeader(true)}</div>
+    <div class="card" style="padding:20px;margin-bottom:16px">
+      <p class="cinzel" style="font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:14px;text-align:center">${isReg?"Konto erstellen":"Willkommen zurück"}</p>
+      <div style="display:flex;gap:0;margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid var(--border)">
+        <button onclick="state.authTab='login';render()" style="flex:1;padding:10px;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:${!isReg?"var(--gold)":"var(--c2)"};color:${!isReg?"#080706":"var(--stone)"}">Anmelden</button>
+        <button onclick="state.authTab='register';render()" style="flex:1;padding:10px;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:${isReg?"var(--gold)":"var(--c2)"};color:${isReg?"#080706":"var(--stone)"}">Registrieren</button>
+      </div>
+      ${isReg?`<input id="authName" type="text" placeholder="${t("name")}" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--cream);font-family:inherit;font-size:14px;box-sizing:border-box">`:""}
+      <input id="authEmail" type="email" placeholder="${t("email")}" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--cream);font-family:inherit;font-size:14px;box-sizing:border-box">
+      <input id="authPw" type="password" placeholder="Passwort (min. 6 Zeichen)" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--cream);font-family:inherit;font-size:14px;box-sizing:border-box"
+        onkeydown="if(event.key==='Enter')handleAuth()">
+      <button class="bgold" onclick="handleAuth()" style="font-size:15px;font-weight:800">${state.authLoading?"⏳ Bitte warten...":isReg?"Konto erstellen →":"Anmelden →"}</button>
+    </div>
+    <p style="font-size:12px;color:var(--stone);text-align:center;line-height:1.6">${isReg?"Mit der Registrierung akzeptierst du unsere AGB.":`Noch kein Konto? <a href="javascript:void(0)" onclick="state.authTab='register';render()" style="color:var(--gold)">Jetzt registrieren</a>`}</p>
+    <div style="margin-top:16px;text-align:center">
+      <button onclick="render()" style="background:none;border:none;color:var(--stone2);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline">Als Gast weiter stöbern</button>
+    </div>
+  </div>`;
+}
 
 // ═══════════════ RENDER ═══════════════
 function render(){
@@ -2509,8 +2631,9 @@ function handlePricelistPhoto(e){
 }
 // ─── ACCOUNT (with loyalty card, theme, lang, dbSeat) ───
 function renderAccount(){
+  if(!currentUser)return renderAuthPage();
   const r=state.role;
-  const bkgs=state.bookings.length>0?state.bookings:[{id:"demo1",nm:"Ahmed K.",sv:"Skin Fade",t:"Mi 26.02 · 10:00",st:"confirmed",pr:48,provNm:"BlackLabel Barbershop"},{id:"demo2",nm:"Sofia M.",sv:"Deep Cleanse",t:"Fr 28.02 · 14:00",st:"pending",pr:85,provNm:"Glow Studio"}];
+  const bkgs=state.bookings.length>0?state.bookings:[];
   const sc={confirmed:"#4A8A5A",pending:"var(--gold)",cancelled:"#C04040"};
   const stLabel={confirmed:t("confirmed"),pending:t("pending"),cancelled:t("cancelled")};
   const stampArr=Array.from({length:10},(_,i)=>i<state.stamps);
@@ -2638,9 +2761,11 @@ function renderAccount(){
         <div onclick="goSub('${pg}')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer">
           <span style="font-size:13px">${lv}</span><span style="color:var(--stone)">›</span>
         </div>`).join("")}
+      ${currentUser?`<button onclick="cmSignOut()" style="width:100%;margin-top:16px;padding:14px;border-radius:12px;border:1px solid #C04040;background:rgba(192,64,64,.1);color:#E06060;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Abmelden</button>
+      <p style="font-size:11px;color:var(--stone2);margin-top:8px;text-align:center">${currentUser.email}</p>`:""}
       <!-- SUPER ADMIN (hidden entry - triple tap version) -->
       <div onclick="toggleSuperAdmin()" style="cursor:pointer">
-        <p style="font-size:11px;color:var(--stone2);margin-top:14px;text-align:center;line-height:1.7">ChairMatch · Yusuf Ferhat Demir · Deutschland · v7.1 · © 2026</p>
+        <p style="font-size:11px;color:var(--stone2);margin-top:14px;text-align:center;line-height:1.7">ChairMatch · Yusuf Ferhat Demir · Deutschland · v7.2 · © 2026</p>
       </div>
       ${state.superAdmin?`<div onclick="goSub('superadmin')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--border);cursor:pointer;margin-top:8px">
         <span style="font-size:13px;color:var(--gold2)">🛡 ${t("saPanel")}</span><span style="color:var(--gold)">›</span>
@@ -3874,7 +3999,14 @@ function confirmBooking(){
   const finalPrice=state.promoValid&&PROMO_CODES[state.promoCode]?(PROMO_CODES[state.promoCode].type==='percent'?Math.round(basePrice*(1-PROMO_CODES[state.promoCode].discount/100)):Math.max(0,basePrice-PROMO_CODES[state.promoCode].discount)):basePrice;
   const booking={id:'b'+Date.now(),provId:p.id,provNm:p.nm,nm:state.bookSp?.nm||state.bookName,sv:sv?.nm,dur:sv?.dur||0,t:dateStr+" · "+state.bookSlot,st:"confirmed",pr:finalPrice,notes:state.bookNotes};
   state.bookings.unshift(booking);localStorage.setItem("cm_bookings",JSON.stringify(state.bookings));
-  state.bookDone=true;showToast(t("confirm")+" 🎉");render();
+  state.bookDone=true;state.stamps=Math.min(state.stamps+1,10);localStorage.setItem("cm_stamps",state.stamps);
+  showToast(t("confirm")+" 🎉");render();
+  // Supabase sync
+  if(currentUser){
+    const isoDate=d.toISOString().split("T")[0];
+    sb.from("bookings").insert({user_id:currentUser.id,provider_id:p.id,service_name:sv?.nm||"",duration:sv?.dur||0,price:finalPrice,date:isoDate,time_slot:state.bookSlot||"",specialist_name:state.bookSp?.nm||"",status:"confirmed",notes:state.bookNotes,promo_code:state.promoValid?state.promoCode:"",customer_name:state.bookName,customer_email:state.bookEmail,customer_phone:state.bookPhone}).then(()=>console.log("✅ Booking saved to Supabase")).catch(e=>console.error("Booking save error:",e));
+    sb.from("profiles").update({stamps:state.stamps}).eq("id",currentUser.id).then(()=>{});
+  }
 }
 function updateReg(k,v){state.regData[k]=v==="true"?true:v==="false"?false:v;if(typeof v==="boolean")render();}
 function updateRegText(k,v){state.regData[k]=v;}
@@ -3974,8 +4106,12 @@ function submitReview(provId){
   const prov=PROVS.find(p=>p.id===provId);if(!prov)return;
   const today=new Date();
   const dateStr=String(today.getDate()).padStart(2,'0')+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+today.getFullYear();
-  prov.revs.unshift({u:state.bookName||"Gast",s:state.reviewRating,t:state.reviewText,d:dateStr});
-  prov.rc++;showToast(t("reviewSubmitted"));state.reviewRating=0;state.reviewText="";render();
+  const uName=currentUser?.user_metadata?.first_name||state.bookName||"Gast";
+  prov.revs.unshift({u:uName,s:state.reviewRating,t:state.reviewText,d:dateStr});
+  prov.rc++;showToast(t("reviewSubmitted"));
+  // Supabase sync
+  if(currentUser){sb.from("reviews").insert({provider_id:provId,user_id:currentUser.id,username:uName,stars:state.reviewRating,text:state.reviewText}).then(()=>console.log("✅ Review saved")).catch(e=>console.error("Review error:",e));}
+  state.reviewRating=0;state.reviewText="";render();
 }
 function applyPromo(){
   const code=state.promoCode.trim().toUpperCase();
@@ -4021,10 +4157,31 @@ function validateBookingForm(){
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
 
 // ═══════════════ INIT ═══════════════
-document.documentElement.lang=state.lang;
-if(hasFullConsent())initVisitorTracking();
-trackPage("ilk-giris");
-render();
+async function initApp(){
+  document.documentElement.lang=state.lang;
+  // Check existing session
+  const{data:{session}}=await sb.auth.getSession();
+  currentUser=session?.user||null;
+  // Load data from Supabase
+  await loadProviders();
+  // Load user-specific data if logged in
+  if(currentUser){
+    await Promise.all([loadUserProfile(),loadUserFavorites(),loadUserBookings()]);
+  }
+  // Listen for auth changes
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    const wasLoggedIn=!!currentUser;
+    currentUser=session?.user||null;
+    if(currentUser&&!wasLoggedIn){
+      await Promise.all([loadUserProfile(),loadUserFavorites(),loadUserBookings()]);
+    }
+    render();
+  });
+  if(hasFullConsent())initVisitorTracking();
+  trackPage("ilk-giris");
+  render();
+}
+initApp();
 </script>
 </body>
 </html>
