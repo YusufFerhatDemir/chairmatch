@@ -125,19 +125,19 @@ button{border:none;background:none;cursor:pointer;font-family:inherit;color:inhe
 /* ═══ Hover devices (desktop/mouse) ═══ */
 @media(hover:hover){.card:hover{transform:scale(1.01);border-color:var(--borderhi)}.bgold:hover:not(:disabled){box-shadow:0 6px 28px rgba(200,168,75,0.4)}.boutline:hover{background:rgba(200,168,75,.06)}}
 /* ═══ CATEGORY CARDS (premium golden design) ═══ */
-.catcard{width:100%;text-align:left;border-radius:16px;border:1px solid #2a2418;background:linear-gradient(165deg,#0e0d0a,#0b0a08 40%,#080706);padding:16px 10px 14px;cursor:pointer;transition:box-shadow .25s,transform .2s,border-color .25s;box-shadow:0 0 0 1px rgba(255,215,128,0.06),0 20px 60px rgba(0,0,0,0.55),inset 0 1px 0 rgba(200,168,75,.04);position:relative;display:flex;flex-direction:column;align-items:center}
+.catcard{width:100%;text-align:left;border-radius:16px;border:1px solid #2a2418;background:linear-gradient(165deg,#0e0d0a,#0b0a08 40%,#080706);padding:14px 10px 14px;cursor:pointer;transition:box-shadow .25s,transform .2s,border-color .25s;box-shadow:0 0 0 1px rgba(255,215,128,0.06),0 20px 60px rgba(0,0,0,0.55),inset 0 1px 0 rgba(200,168,75,.04);position:relative;display:flex;flex-direction:column;align-items:center}
 .catcard:active{transform:scale(.97)}
 .catcard.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,215,128,0.18),0 0 28px rgba(200,168,75,.1),0 24px 80px rgba(0,0,0,0.70)}
 .catcard.on::after{content:'✓';position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--gold);font-size:8px;font-weight:900;color:#080706;display:flex;align-items:center;justify-content:center}
-.catcard .caticon{width:100%;height:140px;border-radius:16px;background:transparent;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.catcard .caticon img{width:100%;height:100%;object-fit:contain;object-position:center;filter:drop-shadow(0 0 12px rgba(200,168,75,0.5)) drop-shadow(0 0 30px rgba(200,168,75,0.15));border-radius:12px}
+.catcard .caticon{width:100%;height:140px;border-radius:16px;background:transparent;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px}
+.catcard .caticon img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;object-position:center;filter:drop-shadow(0 0 12px rgba(200,168,75,0.5)) drop-shadow(0 0 30px rgba(200,168,75,0.15));border-radius:10px;display:block}
 .catcard .catlbl{font-size:13px;font-weight:700;color:#f2efe6;text-align:center;margin-top:10px;line-height:1.15}
 .catcard .catsub{font-size:10px;color:#9a917f;text-align:center;margin-top:3px;line-height:1.2}
 .light .catcard{background:#faf8f4;border-color:#e0d8c8}
 .light .catcard.on{border-color:var(--gold)}
 .light .catcard .catlbl{color:#1a1408}
 @media(hover:hover){.catcard:hover{box-shadow:0 0 0 1px rgba(255,215,128,0.12),0 24px 80px rgba(0,0,0,0.70);transform:scale(1.02)}}
-@media(max-width:374px){.catcard{padding:10px 6px 10px;border-radius:13px}.catcard .caticon{height:100px}.catcard .catlbl{font-size:11px;margin-top:7px}.catcard .catsub{font-size:8px}}
+@media(max-width:374px){.catcard{padding:10px 6px 10px;border-radius:13px}.catcard .caticon{height:100px;padding:3px}.catcard .catlbl{font-size:11px;margin-top:7px}.catcard .catsub{font-size:8px}}
 /* ═══ FOCUS VISIBLE (a11y) ═══ */
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
 button:focus-visible,.inp:focus-visible,.card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -650,7 +650,7 @@ function catSVG(type){
 
 // ─── MINI RENTAL ICONS (26px, PNG from V2 assets) ───
 function rentalIcon(type){
-  const iconMap={stuhl:"icons/12_stuhlvermietung_512x384.png",liege:"icons/06_massage_256x384.png",raum:"icons/03_kosmetik_256x384.png",opraum:"icons/09_op_raum_512x384.png"};
+  const iconMap={stuhl:"icons/12_stuhlvermietung_512x384.png",liege:"icons/06_massage_256x384.png",raum:"icons/03_kosmetik_256x384.png",opraum:"icons/09_op_raum_256x384.png"};
   const src=iconMap[type];
   if(src) return `<img src="${src}" width="26" height="26" style="object-fit:cover;object-position:top center;filter:drop-shadow(0 0 6px rgba(200,168,75,0.4));border-radius:4px" alt="${type}">`;
   return "";
@@ -1754,7 +1754,7 @@ const cats=[
       {id:"massage",nm:"Massage",sub:"Klassisch · Thai · Hot Stone",ic:'<img src="icons/06_massage_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Massage">'},
       {id:"lash",nm:"Lash & Brows",sub:"Extensions · Lifting",ic:'<img src="icons/07_lash_brows_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Lash &amp; Brows">'},
       {id:"arzt",nm:"Arzt / Klinik",sub:"Derma · Laser · Behandlung",ic:'<img src="icons/08_arzt_klinik_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="Arzt / Klinik">'},
-      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:'<img src="icons/09_op_raum_512x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="OP-Raum">'}
+      {id:"opraum",nm:"OP-Raum",sub:"Sterile Räume · Chirurgie",ic:'<img src="icons/09_op_raum_256x384.png" style="width:64px;height:64px;object-fit:cover;object-position:top center;border-radius:14px;filter:drop-shadow(0 0 8px rgba(200,168,75,0.4))" alt="OP-Raum">'}
     ];
     body=`
     <p class="cinzel" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:4px;color:var(--gold2)">Was ist dein Handwerk?</p>
@@ -2029,7 +2029,7 @@ function renderHome(){
   const list=getFiltered();
   const h2=new Date().getHours();
   const gr=h2<12?t("morning"):h2<17?t("afternoon"):t("evening");
-  const catIcons={barber:'<img src="icons/01_barbershop_256x384.png" alt="Barbershop">',friseur:'<img src="icons/02_friseur_256x384.png" alt="Friseur">',kosmetik:'<img src="icons/03_kosmetik_256x384.png" alt="Kosmetik">',aesthetik:'<img src="icons/04_aesthetik_256x384.png" alt="Ästhetik">',nail:'<img src="icons/05_nagelstudio_256x384.png" alt="Nagelstudio">',massage:'<img src="icons/06_massage_256x384.png" alt="Massage">',lash:'<img src="icons/07_lash_brows_256x384.png" alt="Lash &amp; Brows">',arzt:'<img src="icons/08_arzt_klinik_256x384.png" alt="Arzt / Klinik">',opraum:'<img src="icons/09_op_raum_512x384.png" alt="OP-Raum">',angebote:'<img src="icons/10_angebote_256x384.png" alt="Angebote">',termin:'<img src="icons/11_termin_256x384.png" alt="Termin">'};
+  const catIcons={barber:'<img src="icons/01_barbershop_256x384.png" alt="Barbershop">',friseur:'<img src="icons/02_friseur_256x384.png" alt="Friseur">',kosmetik:'<img src="icons/03_kosmetik_256x384.png" alt="Kosmetik">',aesthetik:'<img src="icons/04_aesthetik_256x384.png" alt="Ästhetik">',nail:'<img src="icons/05_nagelstudio_256x384.png" alt="Nagelstudio">',massage:'<img src="icons/06_massage_256x384.png" alt="Massage">',lash:'<img src="icons/07_lash_brows_256x384.png" alt="Lash &amp; Brows">',arzt:'<img src="icons/08_arzt_klinik_256x384.png" alt="Arzt / Klinik">',opraum:'<img src="icons/09_op_raum_256x384.png" alt="OP-Raum">',angebote:'<img src="icons/10_angebote_256x384.png" alt="Angebote">',termin:'<img src="icons/11_termin_256x384.png" alt="Termin">'};
   const catColors={barber:"#C8A84B",friseur:"#9A70C8",kosmetik:"#C86090",aesthetik:"#4AA0D8",nail:"#C8987A",massage:"#4AA890",lash:"#B8A060",arzt:"#6090C8",opraum:"#50B8A0",angebote:"#E8A040",termin:"#60A8D0"};
   const afc=activeFilterCount();
   const catCards=CATS.map(c=>`
