@@ -150,7 +150,8 @@ button:focus-visible,.inp:focus-visible,.card:focus-visible{outline:2px solid va
 .consent-accept{background:var(--gold);color:#080706;border:none}
 .consent-reject{background:transparent;border:1px solid var(--border);color:var(--cream)}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>if(!window.supabase){document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/scr'+'ipt>')}</script>
 </head>
 <body>
 <div class="shell" role="application" aria-label="ChairMatch App">
@@ -198,7 +199,8 @@ button:focus-visible,.inp:focus-visible,.card:focus-visible{outline:2px solid va
 // ═══════════════ SUPABASE CLIENT ═══════════════
 const SUPABASE_URL="https://vlrviyrgggzhayepfmop.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZscnZpeXJnZ2d6aGF5ZXBmbW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODIyNzYsImV4cCI6MjA4ODE1ODI3Nn0.pvcZqzAm-ARWVsSv6hKUnTwZeggVJcwYN---4jUfyA0";
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let sb=null;
+try{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);}catch(e){console.warn("⚠️ Supabase CDN not loaded, running in offline mode");}
 let currentUser=null;
 
 // ═══════════════ CONSENT & DSGVO ═══════════════
@@ -1353,6 +1355,7 @@ async function loadUserBookings(){
 
 // ═══════════════ SUPABASE DATA LOADING ═══════════════
 async function loadProviders(){
+  if(!sb){console.log("Using fallback hardcoded data (offline mode)");return;}
   try{
     const{data:provRows,error}=await sb.from("providers").select("*").order("boost",{ascending:false});
     if(error||!provRows||provRows.length===0){console.log("Using fallback hardcoded data");return;}
@@ -4160,8 +4163,12 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catc
 async function initApp(){
   document.documentElement.lang=state.lang;
   // Check existing session
-  const{data:{session}}=await sb.auth.getSession();
-  currentUser=session?.user||null;
+  if(sb){
+    try{
+      const{data:{session}}=await sb.auth.getSession();
+      currentUser=session?.user||null;
+    }catch(e){console.warn("Auth session check failed",e);}
+  }
   // Load data from Supabase
   await loadProviders();
   // Load user-specific data if logged in
@@ -4169,14 +4176,16 @@ async function initApp(){
     await Promise.all([loadUserProfile(),loadUserFavorites(),loadUserBookings()]);
   }
   // Listen for auth changes
-  sb.auth.onAuthStateChange(async(event,session)=>{
-    const wasLoggedIn=!!currentUser;
-    currentUser=session?.user||null;
-    if(currentUser&&!wasLoggedIn){
-      await Promise.all([loadUserProfile(),loadUserFavorites(),loadUserBookings()]);
-    }
-    render();
-  });
+  if(sb){
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      const wasLoggedIn=!!currentUser;
+      currentUser=session?.user||null;
+      if(currentUser&&!wasLoggedIn){
+        await Promise.all([loadUserProfile(),loadUserFavorites(),loadUserBookings()]);
+      }
+      render();
+    });
+  }
   if(hasFullConsent())initVisitorTracking();
   trackPage("ilk-giris");
   render();
