@@ -1157,7 +1157,7 @@ const NOTIFS=[
 ];
 
 // ═══════════════ STATE ═══════════════
-let state={tab:"home",catFilter:"all",authTab:"login",authLoading:false,detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:false,obStep:0,
+let state={tab:"home",catFilter:"all",authTab:"login",authLoading:false,detail:null,detailTab:"info",bookingProv:null,bookStep:1,bookSv:null,bookDay:0,bookSlot:null,bookSp:null,subPage:null,role:"CUSTOMER",onboarded:localStorage.getItem("cm_onboarded")==="true",obStep:0,
   provSetup:0,provCat:localStorage.getItem("cm_prov_cat")||null,customerSetup:false,setupProfile:JSON.parse(localStorage.getItem("cm_setup_profile")||"{}"),setupAgb:false,customServices:JSON.parse(localStorage.getItem("cm_custom_svcs")||"[]"),customEquip:JSON.parse(localStorage.getItem("cm_custom_equip")||"[]"),
   lang:"de",theme:"dark",favorites:JSON.parse(localStorage.getItem("cm_favs")||"[]"),stamps:parseInt(localStorage.getItem("cm_stamps")||"4"),
   searchQuery:"",searchOpen:false,showFilter:false,filterCity:"all",filterMinRating:0,filterMaxPrice:500,filterOnlyAvail:false,filterOnlyDisc:false,
@@ -1495,6 +1495,7 @@ function renderCustomerSetup(){
 }
 function finishCustomerSetup(){
   state.customerSetup=false;state.onboarded=true;state.tab="home";
+  localStorage.setItem("cm_onboarded","true");
   localStorage.setItem("cm_setup_profile",JSON.stringify(state.setupProfile||{}));
   pushNav("home");document.getElementById("mainScreen").scrollTop=0;
   const p=state.setupProfile||{};
@@ -2009,6 +2010,7 @@ function isSetupProfileValid(){
 }
 function finishProvSetup(){
   state.provSetup=0;state.onboarded=true;state.tab="home";
+  localStorage.setItem("cm_onboarded","true");
   localStorage.setItem("cm_prov_cat",state.provCat);
   PROVS[0].cat=state.provCat;
   const p=state.setupProfile||{};
@@ -4170,6 +4172,8 @@ async function initApp(){
   await loadProviders();
   // Load user-specific data if logged in
   if(currentUser){
+    state.onboarded=true;
+    localStorage.setItem("cm_onboarded","true");
     await Promise.all([loadUserProfile(),loadUserFavorites(),loadUserBookings()]);
   }
   // Listen for auth changes
@@ -4178,6 +4182,8 @@ async function initApp(){
       const wasLoggedIn=!!currentUser;
       currentUser=session?.user||null;
       if(currentUser&&!wasLoggedIn){
+        state.onboarded=true;
+        localStorage.setItem("cm_onboarded","true");
         await Promise.all([loadUserProfile(),loadUserFavorites(),loadUserBookings()]);
       }
       render();
