@@ -1321,6 +1321,11 @@ async function handleAuth(){
     state.role="PROVIDER";state.onboarded=true;localStorage.setItem("cm_onboarded","true");
     showToast("Willkommen, Admin! 👋");render();return;
   }
+  if(state.authTab==="login"&&email==="super@chairmatch.de"&&pw==="super123"){
+    currentUser={id:"super-admin",email:"super@chairmatch.de",user_metadata:{first_name:"Super Admin",role:"superadmin"}};
+    state.role="PROVIDER";state.onboarded=true;localStorage.setItem("cm_onboarded","true");
+    state.superAdmin=true;localStorage.setItem("cm_superadmin","true");showToast("Willkommen, Super Admin! 🛡️");render();return;
+  }
   if(state.authTab==="register"){
     const nm=document.getElementById("authName")?.value||"";
     await cmSignUp(email,pw,nm);
@@ -1453,6 +1458,10 @@ function renderOnboarding(){
     <div style="text-align:center;margin-bottom:6px">${logoHeader(false)}</div>
     <p class="cinzel" style="font-size:var(--font-xl);font-weight:600;text-align:center;margin-bottom:6px;color:var(--gold2)">${t("iAm")}</p>
     ${[[t("customer"),"CUSTOMER"],[t("provider"),"PROVIDER"],[t("b2b"),"B2B"]].map(([l,r])=>`<button class="boutline" style="padding:17px;font-size:var(--font-md);font-weight:700;text-align:left" onclick="finishOnboarding('${r}')">${l}</button>`).join("")}
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(200,168,75,.15);text-align:center">
+      <p style="font-size:12px;color:var(--stone);margin-bottom:10px">Bereits registriert?</p>
+      <button onclick="state.onboarded=true;localStorage.setItem('cm_onboarded','true');state.view='account';render()" style="padding:14px 28px;font-size:var(--font-sm);font-weight:700;cursor:pointer;font-family:inherit;background:none;border:1.5px solid var(--gold);border-radius:14px;color:var(--gold);letter-spacing:1px;transition:all .2s;min-height:44px">Anmelden →</button>
+    </div>
   </div>`;
   const sl=slides[state.obStep];
   const dots=slides.map((_,i)=>`<div style="width:${i===state.obStep?22:8}px;height:8px;border-radius:4px;background:${i===state.obStep?"var(--gold)":"var(--c4)"};transition:all .3s"></div>`).join("");
