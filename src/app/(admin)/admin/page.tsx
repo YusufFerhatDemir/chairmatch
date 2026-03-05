@@ -5,7 +5,8 @@ import { requireRole } from '@/modules/auth/session'
 import Link from 'next/link'
 
 export default async function AdminPage() {
-  await requireRole(['admin', 'super_admin'])
+  const session = await requireRole(['admin', 'super_admin'])
+  const userRole = (session.user as { role?: string }).role
 
   const [salonCount, bookingCount, reviewCount, userCount] = await Promise.all([
     prisma.salon.count(),
@@ -66,6 +67,15 @@ export default async function AdminPage() {
           <Link href="/admin/statistik" className="card" style={{ textDecoration: 'none' }}>
             <span style={{ color: 'var(--cream)', fontWeight: 600 }}>Statistik</span>
           </Link>
+          {userRole === 'super_admin' && (
+            <Link href="/admin/super" className="card" style={{
+              textDecoration: 'none',
+              borderColor: 'rgba(200, 168, 75, 0.3)',
+              background: 'linear-gradient(135deg, rgba(200,168,75,0.08), rgba(200,168,75,0.02))',
+            }}>
+              <span style={{ color: 'var(--gold2)', fontWeight: 700 }}>Super Admin Panel</span>
+            </Link>
+          )}
         </div>
 
         {/* Recent bookings */}

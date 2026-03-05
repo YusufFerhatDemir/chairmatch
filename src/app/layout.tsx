@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Cinzel, Cormorant_Garamond } from 'next/font/google'
 import { Providers } from './providers'
+import DynamicTheme from '@/components/DynamicTheme'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -58,6 +59,7 @@ export default function RootLayout({
   return (
     <html lang="de" className={`${dmSans.variable} ${cinzel.variable} ${cormorant.variable}`}>
       <body className={dmSans.className}>
+        <DynamicTheme />
         <Providers>
           {children}
         </Providers>
