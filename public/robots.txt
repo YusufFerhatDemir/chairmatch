@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /provider
+Disallow: /auth
+Sitemap: https://chairmatch.de/sitemap.xml

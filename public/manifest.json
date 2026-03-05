@@ -1,0 +1,27 @@
+{
+  "name": "ChairMatch — Beauty Booking",
+  "short_name": "ChairMatch",
+  "description": "Buche Termine bei Top-Salons, Barbershops & Kosmetikstudios in Deutschland",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060504",
+  "theme_color": "#C8A84B",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "de",
+  "categories": ["beauty", "lifestyle", "health"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-180.png",
+      "type": "image/png",
+      "sizes": "180x180",
+      "purpose": "apple touch icon"
+    }
+  ]
+}

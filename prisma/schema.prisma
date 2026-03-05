@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ═══ MODELS matching actual Supabase DB ═══
+
+model User {
+  id                   String    @id @db.Uuid
+  email                String?
+  fullName             String?   @map("full_name")
+  phone                String?
+  avatarUrl            String?   @map("avatar_url")
+  role                 String    @default("kunde")
+  preferredLanguage    String?   @default("de") @map("preferred_language")
+  isActive             Boolean?  @default(true) @map("is_active")
+  referralCode         String?   @map("referral_code")
+  referralBalanceCents Int?      @default(0) @map("referral_balance_cents")
+  createdAt            DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime? @default(now()) @map("updated_at") @db.Timestamptz
+
+  salons           Salon[]
+  bookings         Booking[]       @relation("CustomerBookings")
+  reviews          Review[]        @relation("CustomerReviews")
+  favorites        Favorite[]
+  staffMemberships Staff[]
+  rentalBookings   RentalBooking[]
+  auditLogs        AuditLog[]
+
+  @@map("profiles")
+}
+
+model Category {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String   @unique
+  label       String
+  description String?
+  iconUrl     String?  @map("icon_url")
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("categories")
+}
+
+model Salon {
+  id               String                      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  ownerId          String                      @map("owner_id") @db.Uuid
+  name             String
+  slug             String?
+  category         String
+  description      String?
+  phone            String?
+  email            String?
+  website          String?
+  street           String?
+  houseNumber      String?                     @map("house_number")
+  postalCode       String?                     @map("postal_code")
+  city             String?
+  state            String?                     @default("Deutschland")
+  location         Unsupported("geography")?
+  openingHours     Json?                       @map("opening_hours") @db.JsonB
+  logoUrl          String?                     @map("logo_url")
+  coverUrl         String?                     @map("cover_url")
+  gallery          Json?                       @default("[]") @db.JsonB
+  avgRating        Decimal?                    @default(0) @map("avg_rating")
+  reviewCount      Int?                        @default(0) @map("review_count")
+  isVerified       Boolean?                    @default(false) @map("is_verified")
+  isActive         Boolean?                    @default(true) @map("is_active")
+  subscriptionTier String?                     @default("starter") @map("subscription_tier")
+  createdAt        DateTime?                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime?                   @default(now()) @map("updated_at") @db.Timestamptz
+
+  owner           User              @relation(fields: [ownerId], references: [id])
+  services        Service[]
+  staff           Staff[]
+  bookings        Booking[]
+  reviews         Review[]
+  favorites       Favorite[]
+  offers          Offer[]
+  rentalEquipment RentalEquipment[]
+  bookingPolicies BookingPolicy[]
+
+  @@index([category])
+  @@index([city])
+  @@map("salons")
+}
+
+model Service {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  salonId         String    @map("salon_id") @db.Uuid
+  name            String
+  description     String?
+  category        String?
+  durationMinutes Int       @default(30) @map("duration_minutes")
+  priceCents      Int       @map("price_cents")
+  currency        String?   @default("EUR")
+  isActive        Boolean?  @default(true) @map("is_active")
+  sortOrder       Int?      @default(0) @map("sort_order")
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamptz
+
+  salon    Salon     @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([salonId])
+  @@map("services")
+}
+
+model Staff {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  salonId     String    @map("salon_id") @db.Uuid
+  userId      String?   @map("user_id") @db.Uuid
+  name        String
+  title       String?
+  avatarUrl   String?   @map("avatar_url")
+  specialties Json?     @default("[]") @db.JsonB
+  isActive    Boolean?  @default(true) @map("is_active")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz
+
+  salon    Salon     @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  user     User?     @relation(fields: [userId], references: [id])
+  bookings Booking[]
+
+  @@index([salonId])
+  @@map("staff")
+}
+
+model Booking {
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customerId         String    @map("customer_id") @db.Uuid
+  salonId            String    @map("salon_id") @db.Uuid
+  serviceId          String    @map("service_id") @db.Uuid
+  staffId            String?   @map("staff_id") @db.Uuid
+  bookingDate        DateTime  @map("booking_date") @db.Date
+  startTime          DateTime  @map("start_time") @db.Time()
+  endTime            DateTime  @map("end_time") @db.Time()
+  status             String?   @default("pending")
+  priceCents         Int       @map("price_cents")
+  notes              String?
+  cancellationReason String?   @map("cancellation_reason")
+  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime? @default(now()) @map("updated_at") @db.Timestamptz
+
+  customer User     @relation("CustomerBookings", fields: [customerId], references: [id])
+  salon    Salon    @relation(fields: [salonId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+  staff    Staff?   @relation(fields: [staffId], references: [id])
+  reviews  Review[]
+
+  @@index([customerId])
+  @@index([salonId])
+  @@map("bookings")
+}
+
+model Review {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customerId String    @map("customer_id") @db.Uuid
+  salonId    String    @map("salon_id") @db.Uuid
+  bookingId  String?   @map("booking_id") @db.Uuid
+  rating     Int
+  comment    String?
+  reply      String?
+  repliedAt  DateTime? @map("replied_at") @db.Timestamptz
+  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz
+
+  customer User     @relation("CustomerReviews", fields: [customerId], references: [id])
+  salon    Salon    @relation(fields: [salonId], references: [id])
+  booking  Booking? @relation(fields: [bookingId], references: [id])
+
+  @@index([salonId])
+  @@map("reviews")
+}
+
+model Favorite {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customerId String    @map("customer_id") @db.Uuid
+  salonId    String    @map("salon_id") @db.Uuid
+  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz
+
+  customer User @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  salon    Salon @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, salonId])
+  @@index([customerId])
+  @@map("favorites")
+}
+
+model PromoCode {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String    @unique
+  discount  Decimal
+  type      String
+  maxUses   Int?      @map("max_uses")
+  usedCount Int?      @default(0) @map("used_count")
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz
+  isActive  Boolean?  @default(true) @map("is_active")
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("promo_codes")
+}
+
+model Offer {
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  salonId            String    @map("salon_id") @db.Uuid
+  title              String
+  description        String?
+  discountPercent    Int?      @map("discount_percent")
+  discountFixedCents Int?      @map("discount_fixed_cents")
+  validFrom          DateTime? @default(now()) @map("valid_from") @db.Timestamptz
+  validUntil         DateTime? @map("valid_until") @db.Timestamptz
+  isActive           Boolean?  @default(true) @map("is_active")
+  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamptz
+
+  salon Salon @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  @@index([salonId])
+  @@map("offers")
+}
+
+model RentalEquipment {
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  salonId            String    @map("salon_id") @db.Uuid
+  type               String
+  name               String
+  description        String?
+  pricePerDayCents   Int       @map("price_per_day_cents")
+  pricePerMonthCents Int?      @map("price_per_month_cents")
+  isAvailable        Boolean?  @default(true) @map("is_available")
+  images             Json?     @default("[]") @db.JsonB
+  createdAt          DateTime? @default(now()) @map("created_at") @db.Timestamptz
+
+  salon          Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  rentalBookings RentalBooking[]
+
+  @@index([salonId])
+  @@map("rental_equipment")
+}
+
+model RentalBooking {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  equipmentId String    @map("equipment_id") @db.Uuid
+  renterId    String    @map("renter_id") @db.Uuid
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime  @map("end_date") @db.Date
+  totalCents  Int       @map("total_cents")
+  status      String?   @default("pending")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz
+
+  equipment RentalEquipment @relation(fields: [equipmentId], references: [id])
+  renter    User            @relation(fields: [renterId], references: [id])
+
+  @@map("rental_bookings")
+}
+
+// ═══ NEW TABLES (created by prisma db push) ═══
+
+model BookingPolicy {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  salonId           String   @map("salon_id") @db.Uuid
+  depositPercent    Int      @default(0) @map("deposit_percent")
+  cancellationHours Int      @default(24) @map("cancellation_hours")
+  noShowFeeCents    Int      @default(0) @map("no_show_fee_cents")
+  autoConfirm       Boolean  @default(false) @map("auto_confirm")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  salon Salon @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  @@unique([salonId])
+  @@map("booking_policies")
+}
+
+model AuditLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}
