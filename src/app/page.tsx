@@ -3,19 +3,26 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 
 export default async function HomePage() {
-  const categories = await prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: 'asc' },
-  })
+  let categories: Awaited<ReturnType<typeof prisma.category.findMany>> = []
+  let salons: Awaited<ReturnType<typeof prisma.salon.findMany>> = []
 
-  const salons = await prisma.salon.findMany({
-    where: { isActive: true },
-    include: {
-      services: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, take: 3 },
-    },
-    orderBy: [{ avgRating: 'desc' }],
-    take: 20,
-  })
+  try {
+    categories = await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+    })
+
+    salons = await prisma.salon.findMany({
+      where: { isActive: true },
+      include: {
+        services: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, take: 3 },
+      },
+      orderBy: [{ avgRating: 'desc' }],
+      take: 20,
+    })
+  } catch {
+    // DB connection failed — render empty state
+  }
 
   return (
     <div className="shell">
