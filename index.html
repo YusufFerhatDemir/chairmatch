@@ -1453,6 +1453,16 @@ function renderOnboarding(){
   if(state.provSetup>0)return renderProvSetup();
 
   const slides=[{icon:"💈",t:t("welcome"),s:t("subtitle")},{icon:"chair",t:t("chair"),s:t("chairSub")},{icon:"booking",t:t("book"),s:t("bookSub")}];
+  if(state.obLogin)return`<div style="padding:40px var(--pad) 30px;display:flex;flex-direction:column;gap:12px">
+    <button onclick="state.obLogin=false;render()" style="align-self:flex-start;color:var(--gold);font-size:var(--font-md);font-weight:700;margin-bottom:4px;background:none;border:none;cursor:pointer;font-family:inherit;min-height:44px;display:flex;align-items:center">← ${t("back")}</button>
+    <div style="text-align:center;margin-bottom:6px">${logoHeader(false)}</div>
+    <div class="card" style="padding:20px">
+      <p class="cinzel" style="font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:14px;text-align:center">Willkommen zurück</p>
+      <input id="authEmail" type="email" placeholder="${t("email")}" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--cream);font-family:inherit;font-size:14px;box-sizing:border-box">
+      <input id="authPw" type="password" placeholder="Passwort (min. 6 Zeichen)" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid var(--border);background:var(--c2);color:var(--cream);font-family:inherit;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')handleAuth()">
+      <button class="bgold" onclick="state.authTab='login';handleAuth()" style="font-size:15px;font-weight:800">Anmelden →</button>
+    </div>
+  </div>`;
   if(state.obStep>=3)return`<div style="padding:40px var(--pad) 30px;display:flex;flex-direction:column;gap:12px">
     <button onclick="state.obStep=2;render()" style="align-self:flex-start;color:var(--gold);font-size:var(--font-md);font-weight:700;margin-bottom:4px;background:none;border:none;cursor:pointer;font-family:inherit;min-height:44px;display:flex;align-items:center">← ${t("back")}</button>
     <div style="text-align:center;margin-bottom:6px">${logoHeader(false)}</div>
@@ -1460,7 +1470,7 @@ function renderOnboarding(){
     ${[[t("customer"),"CUSTOMER"],[t("provider"),"PROVIDER"],[t("b2b"),"B2B"]].map(([l,r])=>`<button class="boutline" style="padding:17px;font-size:var(--font-md);font-weight:700;text-align:left" onclick="finishOnboarding('${r}')">${l}</button>`).join("")}
     <div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(200,168,75,.15);text-align:center">
       <p style="font-size:12px;color:var(--stone);margin-bottom:10px">Bereits registriert?</p>
-      <button onclick="state.onboarded=true;localStorage.setItem('cm_onboarded','true');state.view='account';render()" style="padding:14px 28px;font-size:var(--font-sm);font-weight:700;cursor:pointer;font-family:inherit;background:none;border:1.5px solid var(--gold);border-radius:14px;color:var(--gold);letter-spacing:1px;transition:all .2s;min-height:44px">Anmelden →</button>
+      <button onclick="state.obLogin=true;render()" style="padding:14px 28px;font-size:var(--font-sm);font-weight:700;cursor:pointer;font-family:inherit;background:none;border:1.5px solid var(--gold);border-radius:14px;color:var(--gold);letter-spacing:1px;transition:all .2s;min-height:44px">Anmelden →</button>
     </div>
   </div>`;
   const sl=slides[state.obStep];
