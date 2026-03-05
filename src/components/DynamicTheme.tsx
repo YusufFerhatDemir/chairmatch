@@ -1,11 +1,17 @@
 import { getCachedSettings } from '@/lib/settings'
 
 export default async function DynamicTheme() {
-  const [themeSettings, layoutSettings, animationSettings] = await Promise.all([
-    getCachedSettings('theme'),
-    getCachedSettings('layout'),
-    getCachedSettings('animation'),
-  ])
+  let themeSettings, layoutSettings, animationSettings
+  try {
+    ;[themeSettings, layoutSettings, animationSettings] = await Promise.all([
+      getCachedSettings('theme'),
+      getCachedSettings('layout'),
+      getCachedSettings('animation'),
+    ])
+  } catch {
+    // DB not available during build or error — fall back to CSS defaults
+    return null
+  }
 
   const vars: string[] = []
 
