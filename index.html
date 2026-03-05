@@ -1199,13 +1199,8 @@ function initVisitorTracking(){
   cmCurrentVisit=visit;
   cmVisits.push(visit);
   saveVisits();
-  fetch("https://api.ipify.org?format=json").then(r=>r.json()).then(data=>{
-    visit.ip=data.ip;
-    return fetch("https://ipapi.co/"+data.ip+"/json/");
-  }).then(r=>r.json()).then(geo=>{
-    visit.city=geo.city||"-";visit.country=geo.country_name||"-";visit.region=geo.region||"";visit.org=geo.org||"";
-    saveVisits();
-  }).catch(()=>{visit.ip=visit.ip||"-";visit.city="-";visit.country="-";saveVisits();});
+  // IP/Geo tracking removed for DSGVO compliance
+  visit.ip="-";visit.city="-";visit.country="-";visit.region="";visit.org="";saveVisits();
   setInterval(()=>{if(cmCurrentVisit){cmCurrentVisit.dur=Math.round((Date.now()-parseInt(cmCurrentVisit.id.slice(1)))/1000);saveVisits();}},30000);
 }
 function trackPage(page){
