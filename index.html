@@ -1311,16 +1311,22 @@ async function handleAuth(){
   const pw=document.getElementById("authPw")?.value;
   if(!email||!pw){showToast("E-Mail und Passwort erforderlich");return;}
   if(pw.length<6){showToast("Passwort min. 6 Zeichen");return;}
-  if(state.authTab==="login"&&email==="admin@chairmatch.de"&&pw==="admin123"){
-    currentUser={id:"demo-admin",email:"admin@chairmatch.de",user_metadata:{first_name:"Admin",role:"provider"}};
-    state.role="PROVIDER";state.onboarded=true;localStorage.setItem("cm_onboarded","true");
-    state.obLogin=false;state.tab="account";showToast("Willkommen, Admin! 👋");render();return;
-  }
-  if(state.authTab==="login"&&email==="super@chairmatch.de"&&pw==="super123"){
-    currentUser={id:"super-admin",email:"super@chairmatch.de",user_metadata:{first_name:"Super Admin",role:"superadmin"}};
-    state.role="PROVIDER";state.onboarded=true;localStorage.setItem("cm_onboarded","true");
-    state.obLogin=false;state.superAdmin=true;localStorage.setItem("cm_superadmin","true");
-    state.tab="account";state.subPage="superadmin";showToast("Willkommen, Super Admin! 🛡️");render();return;
+  // ── Demo Logins ──
+  const demoAccounts={
+    "kunde@chairmatch.de":  {pw:"kunde123", id:"demo-kunde",  name:"Kunde Demo",    role:"customer",   uiRole:"CUSTOMER", toast:"Willkommen, Kunde! 🛍️"},
+    "anbieter@chairmatch.de":{pw:"anbieter123",id:"demo-anbieter",name:"Anbieter Demo",role:"provider",  uiRole:"PROVIDER", toast:"Willkommen, Anbieter! 💇"},
+    "b2b@chairmatch.de":    {pw:"b2b123",   id:"demo-b2b",    name:"B2B Demo",      role:"b2b",        uiRole:"B2B",      toast:"Willkommen, B2B! 🏢"},
+    "admin@chairmatch.de":  {pw:"admin123",  id:"demo-admin",  name:"Admin",         role:"provider",   uiRole:"PROVIDER", toast:"Willkommen, Admin! 👋"},
+    "super@chairmatch.de":  {pw:"super123",  id:"super-admin", name:"Super Admin",   role:"superadmin", uiRole:"PROVIDER", toast:"Willkommen, Super Admin! 🛡️", superAdmin:true}
+  };
+  if(state.authTab==="login"&&demoAccounts[email]){
+    const d=demoAccounts[email];
+    if(pw!==d.pw){showToast("Falsches Passwort");return;}
+    currentUser={id:d.id,email:email,user_metadata:{first_name:d.name,role:d.role}};
+    state.role=d.uiRole;state.onboarded=true;localStorage.setItem("cm_onboarded","true");
+    state.obLogin=false;state.tab="account";
+    if(d.superAdmin){state.superAdmin=true;localStorage.setItem("cm_superadmin","true");state.subPage="superadmin";}
+    showToast(d.toast);render();return;
   }
   if(state.authTab==="register"){
     const nm=document.getElementById("authName")?.value||"";
