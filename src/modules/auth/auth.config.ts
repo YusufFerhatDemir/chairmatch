@@ -1,7 +1,6 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { createClient } from '@supabase/supabase-js'
-import { prisma } from '@/lib/prisma'
 import { loginSchema } from './auth.schemas'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -32,17 +31,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           if (error || !data.user) return null
 
-          // Load profile from Prisma
-          const profile = await prisma.user.findUnique({
-            where: { id: data.user.id },
-          })
+          // Load profile via Supabase REST API (works with IPv4, no direct DB needed)
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, role')
+            .eq('id', data.user.id)
+            .single()
 
           if (!profile) return null
 
           return {
             id: profile.id,
             email: profile.email || data.user.email,
-            name: profile.fullName || data.user.email,
+            name: profile.full_name || data.user.email,
             role: profile.role,
           }
         } catch {

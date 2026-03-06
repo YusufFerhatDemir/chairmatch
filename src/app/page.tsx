@@ -1,25 +1,52 @@
 export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
+
+interface Category {
+  id: string
+  slug: string
+  label: string
+  description: string | null
+  icon_url: string | null
+  sort_order: number
+  is_active: boolean
+}
+
+interface Salon {
+  id: string
+  name: string
+  slug: string | null
+  description: string | null
+  city: string | null
+  logo_url: string | null
+  avg_rating: number
+  is_verified: boolean
+  services: { id: string; name: string }[]
+}
 
 export default async function HomePage() {
-  let categories: Awaited<ReturnType<typeof prisma.category.findMany>> = []
-  let salons: Awaited<ReturnType<typeof prisma.salon.findMany>> = []
+  let categories: Category[] = []
+  let salons: Salon[] = []
 
   try {
-    categories = await prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: 'asc' },
-    })
+    const supabase = getSupabaseAdmin()
 
-    salons = await prisma.salon.findMany({
-      where: { isActive: true },
-      include: {
-        services: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, take: 3 },
-      },
-      orderBy: [{ avgRating: 'desc' }],
-      take: 20,
-    })
+    const { data: cats } = await supabase
+      .from('categories')
+      .select('id, slug, label, description, icon_url, sort_order, is_active')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
+    if (cats) categories = cats
+
+    const { data: salonData } = await supabase
+      .from('salons')
+      .select('id, name, slug, description, city, logo_url, avg_rating, is_verified, services(id, name)')
+      .eq('is_active', true)
+      .order('avg_rating', { ascending: false })
+      .limit(20)
+
+    if (salonData) salons = salonData as unknown as Salon[]
   } catch {
     // DB connection failed — render empty state
   }
@@ -44,7 +71,7 @@ export default async function HomePage() {
                   <div className="caticon">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={cat.iconUrl || `/icons/${getCategoryIcon(cat.slug)}`}
+                      src={cat.icon_url || `/icons/${getCategoryIcon(cat.slug)}`}
                       alt={cat.label}
                     />
                   </div>
@@ -72,18 +99,18 @@ export default async function HomePage() {
                     fontSize: 20, fontWeight: 700, color: 'var(--cream)',
                     flexShrink: 0,
                   }}>
-                    {s.logoUrl ? (
+                    {s.logo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={s.logoUrl} alt={s.name} style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover' }} />
+                      <img src={s.logo_url} alt={s.name} style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover' }} />
                     ) : s.name.charAt(0)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 'var(--font-md)', color: 'var(--cream)' }}>{s.name}</div>
                     <div style={{ fontSize: 'var(--font-sm)', color: 'var(--stone)', marginTop: 2 }}>{s.description}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                      <span style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)' }}>★ {Number(s.avgRating).toFixed(1)}</span>
+                      <span style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)' }}>★ {Number(s.avg_rating).toFixed(1)}</span>
                       <span style={{ fontSize: 'var(--font-xs)', color: 'var(--stone2)' }}>{s.city}</span>
-                      {s.isVerified && <span className="badge badge-gold" style={{ fontSize: 8 }}>✓ Verifiziert</span>}
+                      {s.is_verified && <span className="badge badge-gold" style={{ fontSize: 8 }}>✓ Verifiziert</span>}
                     </div>
                   </div>
                 </div>
