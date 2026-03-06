@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PROVS, SPECS, SEARCH_SUGGESTIONS, CITIES, getProviderSpecs, type DemoProvider } from '@/lib/demo-data'
-import { PROMO_CODES } from '@/lib/constants'
+import { PROMO_CODES, RENTAL_ICONS } from '@/lib/constants'
 
 interface Category {
   id: string
@@ -370,7 +370,7 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
               {p.rental.map((r, i) => (
                 <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(200,168,75,.08)', border: '1px solid rgba(200,168,75,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
-                  {r.type === 'stuhl' ? '💺' : r.type === 'liege' ? '🛏' : r.type === 'opraum' ? '🏥' : '🚪'} {r.pr}€/Tag
+                  {RENTAL_ICONS[r.type] ? <img src={RENTAL_ICONS[r.type]} width={16} height={16} alt={r.type} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(200,168,75,0.4))', borderRadius: 3, verticalAlign: 'middle', marginRight: 3 }} /> : null}{r.pr}€/Tag
                 </span>
               ))}
             </div>
