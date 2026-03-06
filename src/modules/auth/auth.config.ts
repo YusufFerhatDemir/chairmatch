@@ -8,6 +8,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       name: 'credentials',
@@ -16,32 +17,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        const parsed = loginSchema.safeParse(credentials)
-        if (!parsed.success) return null
+        try {
+          const parsed = loginSchema.safeParse(credentials)
+          if (!parsed.success) return null
 
-        const { email, password } = parsed.data
+          const { email, password } = parsed.data
 
-        // Authenticate via Supabase Auth
-        const supabase = createClient(supabaseUrl, supabaseAnonKey)
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
+          // Authenticate via Supabase Auth
+          const supabase = createClient(supabaseUrl, supabaseAnonKey)
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          })
 
-        if (error || !data.user) return null
+          if (error || !data.user) return null
 
-        // Load profile from Prisma
-        const profile = await prisma.user.findUnique({
-          where: { id: data.user.id },
-        })
+          // Load profile from Prisma
+          const profile = await prisma.user.findUnique({
+            where: { id: data.user.id },
+          })
 
-        if (!profile) return null
+          if (!profile) return null
 
-        return {
-          id: profile.id,
-          email: profile.email || data.user.email,
-          name: profile.fullName || data.user.email,
-          role: profile.role,
+          return {
+            id: profile.id,
+            email: profile.email || data.user.email,
+            name: profile.fullName || data.user.email,
+            role: profile.role,
+          }
+        } catch {
+          return null
         }
       },
     }),
