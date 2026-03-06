@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
+const AUTH_COOKIE_NAME = process.env.NODE_ENV === 'production'
+  ? '__Secure-authjs.session-token'
+  : 'authjs.session-token'
+
 const publicPaths = [
   '/',
   '/explore',
@@ -40,8 +44,12 @@ export async function middleware(request: NextRequest) {
   if (publicPaths.includes(pathname)) return NextResponse.next()
   if (publicPrefixes.some(p => pathname.startsWith(p))) return NextResponse.next()
 
-  // Get session token
-  const token = await getToken({ req: request })
+  // Get session token (NextAuth v5 uses 'authjs' prefix, not 'next-auth')
+  const token = await getToken({
+    req: request,
+    secret: process.env.AUTH_SECRET,
+    salt: AUTH_COOKIE_NAME,
+  })
 
   // Auth required paths
   if (!token) {
