@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Cinzel, Cormorant_Garamond } from 'next/font/google'
 import { Providers } from './providers'
 import DynamicTheme from '@/components/DynamicTheme'
+import BottomNav from '@/components/BottomNav'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -62,6 +63,7 @@ export default function RootLayout({
         <DynamicTheme />
         <Providers>
           {children}
+          <BottomNav />
         </Providers>
       </body>
     </html>
