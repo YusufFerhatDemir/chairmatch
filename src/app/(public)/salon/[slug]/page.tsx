@@ -14,13 +14,25 @@ export default async function SalonDetailPage({ params }: Props) {
   try {
     const supabase = getSupabaseAdmin()
 
-    // 1. Get salon by slug or id
-    const { data: salon } = await supabase
+    // 1. Get salon by slug first, fallback to id
+    let salon = null
+    const { data: bySlug } = await supabase
       .from('salons')
       .select('*')
-      .or(`slug.eq.${slug},id.eq.${slug}`)
+      .eq('slug', slug)
       .limit(1)
-      .single()
+      .maybeSingle()
+    if (bySlug) {
+      salon = bySlug
+    } else {
+      const { data: byId } = await supabase
+        .from('salons')
+        .select('*')
+        .eq('id', slug)
+        .limit(1)
+        .maybeSingle()
+      salon = byId
+    }
 
     if (!salon) notFound()
 

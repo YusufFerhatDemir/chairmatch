@@ -27,7 +27,7 @@ export default async function CategoryPage({ params }: Props) {
     const { data: cat } = await supabase
       .from('categories')
       .select('id, slug, label, description')
-      .or(`slug.eq.${categoryId},id.eq.${categoryId}`)
+      .eq('slug', categoryId)
       .limit(1)
       .single()
 

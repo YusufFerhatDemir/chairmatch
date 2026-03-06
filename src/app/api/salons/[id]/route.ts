@@ -9,13 +9,26 @@ export async function GET(
     const { id } = await params
     const supabase = getSupabaseAdmin()
 
-    // Find salon by id or slug
-    const { data: salon, error } = await supabase
+    // Find salon by slug first, fallback to id
+    let salon = null
+    const { data: bySlug } = await supabase
       .from('salons')
       .select('*')
-      .or(`id.eq.${id},slug.eq.${id}`)
+      .eq('slug', id)
       .limit(1)
-      .single()
+      .maybeSingle()
+    if (bySlug) {
+      salon = bySlug
+    } else {
+      const { data: byId } = await supabase
+        .from('salons')
+        .select('*')
+        .eq('id', id)
+        .limit(1)
+        .maybeSingle()
+      salon = byId
+    }
+    const error = !salon
 
     if (error || !salon) {
       return NextResponse.json({ error: 'Nicht gefunden' }, { status: 404 })
