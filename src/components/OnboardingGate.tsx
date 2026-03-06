@@ -70,6 +70,12 @@ export default function OnboardingGate({ slides, children }: Props) {
     setDone(v === '1')
   }, [session])
 
+  // Scroll to top on phase/step change (must be before early returns — Rules of Hooks)
+  useEffect(() => {
+    const el = document.getElementById('ob-scroll')
+    if (el) el.scrollTop = 0
+  }, [phase, provStep, step])
+
   if (done === null) return null
   if (done) return <>{children}</>
 
@@ -116,12 +122,6 @@ export default function OnboardingGate({ slides, children }: Props) {
   const provCategories = CATEGORIES.filter(c => !['angebote', 'termin'].includes(c.id))
 
   const isProfileValid = profile.vn && profile.nn && profile.email && isValidEmail(profile.email) && profile.phone && profile.biz && profile.street && profile.plz && profile.city
-
-  // Scroll to top on phase/step change
-  useEffect(() => {
-    const el = document.getElementById('ob-scroll')
-    if (el) el.scrollTop = 0
-  }, [phase, provStep, step])
 
   // ═══ RENDER ═══
 
