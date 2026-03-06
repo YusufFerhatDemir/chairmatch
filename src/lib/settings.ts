@@ -1,4 +1,4 @@
-import { prisma } from './prisma'
+import { getSupabaseAdmin } from './supabase-server'
 import { unstable_cache } from 'next/cache'
 
 export type AppSettingRow = {
@@ -11,12 +11,27 @@ export type AppSettingRow = {
   sortOrder: number
 }
 
+function mapSetting(s: Record<string, unknown>): AppSettingRow {
+  return {
+    id: s.id as string,
+    category: s.category as string,
+    key: s.key as string,
+    value: s.value as string,
+    valueType: (s.value_type as string) || 'string',
+    label: s.label as string | null,
+    sortOrder: (s.sort_order as number) || 0,
+  }
+}
+
 export const getCachedSettings = unstable_cache(
   async (category: string): Promise<AppSettingRow[]> => {
-    return prisma.appSetting.findMany({
-      where: { category },
-      orderBy: { sortOrder: 'asc' },
-    })
+    const supabase = getSupabaseAdmin()
+    const { data } = await supabase
+      .from('app_settings')
+      .select('*')
+      .eq('category', category)
+      .order('sort_order', { ascending: true })
+    return (data || []).map(mapSetting)
   },
   ['app-settings'],
   { tags: ['app-settings'], revalidate: 3600 }
@@ -24,9 +39,13 @@ export const getCachedSettings = unstable_cache(
 
 export const getCachedAllSettings = unstable_cache(
   async (): Promise<AppSettingRow[]> => {
-    return prisma.appSetting.findMany({
-      orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }],
-    })
+    const supabase = getSupabaseAdmin()
+    const { data } = await supabase
+      .from('app_settings')
+      .select('*')
+      .order('category', { ascending: true })
+      .order('sort_order', { ascending: true })
+    return (data || []).map(mapSetting)
   },
   ['app-settings-all'],
   { tags: ['app-settings'], revalidate: 3600 }
@@ -57,12 +76,27 @@ export type OnboardingSlideRow = {
   isActive: boolean
 }
 
+function mapSlide(s: Record<string, unknown>): OnboardingSlideRow {
+  return {
+    id: s.id as string,
+    title: s.title as string,
+    subtitle: s.subtitle as string,
+    imageUrl: s.image_url as string | null,
+    icon: s.icon as string | null,
+    sortOrder: (s.sort_order as number) || 0,
+    isActive: s.is_active as boolean,
+  }
+}
+
 export const getCachedOnboardingSlides = unstable_cache(
   async (): Promise<OnboardingSlideRow[]> => {
-    return prisma.onboardingSlide.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: 'asc' },
-    })
+    const supabase = getSupabaseAdmin()
+    const { data } = await supabase
+      .from('onboarding_slides')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+    return (data || []).map(mapSlide)
   },
   ['onboarding-slides'],
   { tags: ['onboarding-slides'], revalidate: 3600 }
@@ -70,9 +104,12 @@ export const getCachedOnboardingSlides = unstable_cache(
 
 export const getAllOnboardingSlides = unstable_cache(
   async (): Promise<OnboardingSlideRow[]> => {
-    return prisma.onboardingSlide.findMany({
-      orderBy: { sortOrder: 'asc' },
-    })
+    const supabase = getSupabaseAdmin()
+    const { data } = await supabase
+      .from('onboarding_slides')
+      .select('*')
+      .order('sort_order', { ascending: true })
+    return (data || []).map(mapSlide)
   },
   ['onboarding-slides-all'],
   { tags: ['onboarding-slides'], revalidate: 3600 }

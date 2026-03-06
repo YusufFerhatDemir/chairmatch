@@ -1,16 +1,24 @@
 export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { requireRole } from '@/modules/auth/session'
 import CategoryIconEditor from '@/components/super-admin/CategoryIconEditor'
 
 export default async function KategorienPage() {
   await requireRole(['super_admin'])
 
-  const categories = await prisma.category.findMany({
-    orderBy: { sortOrder: 'asc' },
-    select: { id: true, slug: true, label: true, iconUrl: true },
-  })
+  const supabase = getSupabaseAdmin()
+  const { data } = await supabase
+    .from('categories')
+    .select('id, slug, label, icon_url')
+    .order('sort_order', { ascending: true })
+
+  const categories = (data || []).map(c => ({
+    id: c.id,
+    slug: c.slug,
+    label: c.label,
+    iconUrl: c.icon_url,
+  }))
 
   return (
     <div>

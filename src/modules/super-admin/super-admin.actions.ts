@@ -1,10 +1,9 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/modules/auth/session'
 import { revalidateTag } from 'next/cache'
 import { saveSettingsSchema, slideSchema, reorderSlidesSchema } from './super-admin.schemas'
-import { uploadToStorage } from '@/lib/supabase-server'
+import { getSupabaseAdmin, uploadToStorage } from '@/lib/supabase-server'
 
 async function requireSuperAdmin() {
   return requireRole(['super_admin'])
@@ -18,21 +17,16 @@ export async function saveSettings(category: string, settings: { key: string; va
   const parsed = saveSettingsSchema.safeParse({ category, settings })
   if (!parsed.success) return { error: 'Ungültige Eingabe' }
 
-  for (const s of parsed.data.settings) {
-    await prisma.appSetting.upsert({
-      where: { category_key: { category: parsed.data.category, key: s.key } },
-      update: { value: s.value, updatedAt: new Date() },
-      create: { category: parsed.data.category, key: s.key, value: s.value },
-    })
-  }
+  const supabase = getSupabaseAdmin()
 
-  await prisma.auditLog.create({
-    data: {
-      action: 'settings.update',
-      entity: 'app_settings',
-      details: { category, keys: settings.map(s => s.key) },
-    },
-  })
+  for (const s of parsed.data.settings) {
+    await supabase
+      .from('app_settings')
+      .upsert(
+        { category: parsed.data.category, key: s.key, value: s.value, updated_at: new Date().toISOString() },
+        { onConflict: 'category,key' }
+      )
+  }
 
   revalidateTag('app-settings')
   return { success: true }
@@ -41,22 +35,51 @@ export async function saveSettings(category: string, settings: { key: string; va
 export async function getSettings(category?: string) {
   await requireSuperAdmin()
 
+  const supabase = getSupabaseAdmin()
+  let query = supabase.from('app_settings').select('*')
+
   if (category) {
-    return prisma.appSetting.findMany({
-      where: { category },
-      orderBy: { sortOrder: 'asc' },
-    })
+    query = query.eq('category', category).order('sort_order', { ascending: true })
+  } else {
+    query = query.order('category', { ascending: true }).order('sort_order', { ascending: true })
   }
-  return prisma.appSetting.findMany({
-    orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }],
-  })
+
+  const { data } = await query
+  return (data || []).map(s => ({
+    id: s.id,
+    category: s.category,
+    key: s.key,
+    value: s.value,
+    valueType: s.value_type,
+    label: s.label,
+    sortOrder: s.sort_order,
+    createdAt: s.created_at,
+    updatedAt: s.updated_at,
+  }))
 }
 
 // ─── Onboarding Slides ───
 
 export async function getSlides() {
   await requireSuperAdmin()
-  return prisma.onboardingSlide.findMany({ orderBy: { sortOrder: 'asc' } })
+
+  const supabase = getSupabaseAdmin()
+  const { data } = await supabase
+    .from('onboarding_slides')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  return (data || []).map(s => ({
+    id: s.id,
+    title: s.title,
+    subtitle: s.subtitle,
+    imageUrl: s.image_url,
+    icon: s.icon,
+    sortOrder: s.sort_order,
+    isActive: s.is_active,
+    createdAt: s.created_at,
+    updatedAt: s.updated_at,
+  }))
 }
 
 export async function createSlide(data: { title: string; subtitle: string; icon?: string | null; imageUrl?: string | null }) {
@@ -65,12 +88,30 @@ export async function createSlide(data: { title: string; subtitle: string; icon?
   const parsed = slideSchema.safeParse({ ...data, sortOrder: 0, isActive: true })
   if (!parsed.success) return { error: 'Ungültige Eingabe' }
 
-  const maxOrder = await prisma.onboardingSlide.aggregate({ _max: { sortOrder: true } })
-  const nextOrder = (maxOrder._max.sortOrder ?? -1) + 1
+  const supabase = getSupabaseAdmin()
 
-  const slide = await prisma.onboardingSlide.create({
-    data: { ...parsed.data, sortOrder: nextOrder },
-  })
+  const { data: maxData } = await supabase
+    .from('onboarding_slides')
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .single()
+  const nextOrder = (maxData?.sort_order ?? -1) + 1
+
+  const { data: slide, error } = await supabase
+    .from('onboarding_slides')
+    .insert({
+      title: parsed.data.title,
+      subtitle: parsed.data.subtitle,
+      icon: parsed.data.icon || null,
+      image_url: parsed.data.imageUrl || null,
+      sort_order: nextOrder,
+      is_active: true,
+    })
+    .select()
+    .single()
+
+  if (error) return { error: error.message }
 
   revalidateTag('onboarding-slides')
   return { success: true, slide }
@@ -79,10 +120,22 @@ export async function createSlide(data: { title: string; subtitle: string; icon?
 export async function updateSlide(id: string, data: Partial<{ title: string; subtitle: string; icon: string | null; imageUrl: string | null; isActive: boolean }>) {
   await requireSuperAdmin()
 
-  const slide = await prisma.onboardingSlide.update({
-    where: { id },
-    data: { ...data, updatedAt: new Date() },
-  })
+  const supabase = getSupabaseAdmin()
+  const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (data.title !== undefined) updateData.title = data.title
+  if (data.subtitle !== undefined) updateData.subtitle = data.subtitle
+  if (data.icon !== undefined) updateData.icon = data.icon
+  if (data.imageUrl !== undefined) updateData.image_url = data.imageUrl
+  if (data.isActive !== undefined) updateData.is_active = data.isActive
+
+  const { data: slide, error } = await supabase
+    .from('onboarding_slides')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) return { error: error.message }
 
   revalidateTag('onboarding-slides')
   return { success: true, slide }
@@ -91,7 +144,13 @@ export async function updateSlide(id: string, data: Partial<{ title: string; sub
 export async function deleteSlide(id: string) {
   await requireSuperAdmin()
 
-  await prisma.onboardingSlide.delete({ where: { id } })
+  const supabase = getSupabaseAdmin()
+  const { error } = await supabase
+    .from('onboarding_slides')
+    .delete()
+    .eq('id', id)
+
+  if (error) return { error: error.message }
 
   revalidateTag('onboarding-slides')
   return { success: true }
@@ -103,11 +162,12 @@ export async function reorderSlides(orderedIds: string[]) {
   const parsed = reorderSlidesSchema.safeParse({ orderedIds })
   if (!parsed.success) return { error: 'Ungültige Eingabe' }
 
+  const supabase = getSupabaseAdmin()
   for (let i = 0; i < parsed.data.orderedIds.length; i++) {
-    await prisma.onboardingSlide.update({
-      where: { id: parsed.data.orderedIds[i] },
-      data: { sortOrder: i },
-    })
+    await supabase
+      .from('onboarding_slides')
+      .update({ sort_order: i })
+      .eq('id', parsed.data.orderedIds[i])
   }
 
   revalidateTag('onboarding-slides')
@@ -140,10 +200,15 @@ export async function uploadImage(formData: FormData) {
 export async function updateCategoryIcon(categoryId: string, iconUrl: string) {
   await requireSuperAdmin()
 
-  const cat = await prisma.category.update({
-    where: { id: categoryId },
-    data: { iconUrl, updatedAt: new Date() },
-  })
+  const supabase = getSupabaseAdmin()
+  const { data: cat, error } = await supabase
+    .from('categories')
+    .update({ icon_url: iconUrl, updated_at: new Date().toISOString() })
+    .eq('id', categoryId)
+    .select()
+    .single()
+
+  if (error) return { error: error.message }
 
   revalidateTag('app-settings')
   return { success: true, category: cat }
