@@ -98,8 +98,8 @@ export const getCachedOnboardingSlides = unstable_cache(
       .order('sort_order', { ascending: true })
     return (data || []).map(mapSlide)
   },
-  ['onboarding-slides'],
-  { tags: ['onboarding-slides'], revalidate: 3600 }
+  ['onboarding-slides-v2'],
+  { tags: ['onboarding-slides'], revalidate: 300 }
 )
 
 export const getAllOnboardingSlides = unstable_cache(

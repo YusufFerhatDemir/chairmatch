@@ -49,7 +49,7 @@ export default function OnboardingGate({ slides, children }: Props) {
 
   if (isRoleSelect) {
     return (
-      <div className="shell" style={{ position: 'fixed', inset: 0, zIndex: 100 }}>
+      <div className="shell" style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)' }}>
         <div className="screen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '60px 26px 40px' }}>
           {/* Logo */}
           <div style={{ marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
@@ -87,7 +87,7 @@ export default function OnboardingGate({ slides, children }: Props) {
   const isLast = step === slides.length - 1
 
   return (
-    <div className="shell" style={{ position: 'fixed', inset: 0, zIndex: 100 }}>
+    <div className="shell" style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)' }}>
       <div className="screen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', minHeight: '100vh', padding: 30 }}>
         {isFirst ? (
           <div style={{ marginBottom: 10, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
