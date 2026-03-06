@@ -30,7 +30,14 @@ export default function AuthPage() {
     if (result?.error) {
       setError('E-Mail oder Passwort falsch.')
     } else {
-      router.push('/')
+      // Role-based redirect
+      const res = await fetch('/api/auth/session')
+      const session = await res.json()
+      const role = session?.user?.role
+      if (role === 'super_admin') router.push('/admin/super')
+      else if (role === 'admin') router.push('/admin')
+      else if (role === 'anbieter') router.push('/provider')
+      else router.push('/')
     }
   }
 

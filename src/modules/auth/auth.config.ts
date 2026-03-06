@@ -6,6 +6,15 @@ import { loginSchema } from './auth.schemas'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Demo accounts — matched against profiles table by email
+const DEMO_ACCOUNTS: Record<string, { password: string; id: string; name: string; role: string }> = {
+  'kunde@chairmatch.de':    { password: 'kunde123',    id: 'dddddddd-0001-4000-a000-000000000001', name: 'Demo Kunde',       role: 'kunde' },
+  'anbieter@chairmatch.de': { password: 'anbieter123', id: 'dddddddd-0002-4000-a000-000000000002', name: 'Demo Anbieter',    role: 'anbieter' },
+  'b2b@chairmatch.de':      { password: 'b2b123',      id: 'dddddddd-0005-4000-a000-000000000005', name: 'Demo B2B',          role: 'b2b' },
+  'admin@chairmatch.de':    { password: 'admin123',    id: 'dddddddd-0003-4000-a000-000000000003', name: 'Demo Admin',        role: 'admin' },
+  'super@chairmatch.de':    { password: 'super123',    id: 'dddddddd-0004-4000-a000-000000000004', name: 'Super Admin',       role: 'super_admin' },
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   providers: [
@@ -21,6 +30,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (!parsed.success) return null
 
           const { email, password } = parsed.data
+
+          // Check demo accounts first
+          const demo = DEMO_ACCOUNTS[email.toLowerCase()]
+          if (demo && demo.password === password) {
+            return { id: demo.id, email, name: demo.name, role: demo.role }
+          }
 
           // Authenticate via Supabase Auth
           const supabase = createClient(supabaseUrl, supabaseAnonKey)
