@@ -18,6 +18,7 @@ const publicPrefixes = [
   '/salon/',
   '/category/',
   '/api/auth/',
+  '/api/debug',
   '/_next/',
   '/icons/',
   '/favicon',
