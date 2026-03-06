@@ -32,7 +32,14 @@ export async function GET() {
     results.profileError = e instanceof Error ? e.message : String(e)
   }
 
-  results.dbUrl = process.env.DATABASE_URL?.replace(/:[^@]+@/, ':***@')
+  const dbUrl = process.env.DATABASE_URL || 'NOT SET'
+  results.dbUrl = dbUrl.replace(/:[^@]+@/, ':***@')
+  results.dbPort = dbUrl.match(/:(\d+)\//)?.[1] || 'unknown'
+  results.directUrl = (process.env.DIRECT_URL || 'NOT SET').replace(/:[^@]+@/, ':***@')
+  results.hasAuthSecret = !!process.env.AUTH_SECRET
+  results.hasNextAuthSecret = !!process.env.NEXTAUTH_SECRET
+  results.nodeEnv = process.env.NODE_ENV
+  results.vercelEnv = process.env.VERCEL_ENV
 
   return NextResponse.json(results)
 }
