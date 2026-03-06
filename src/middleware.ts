@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-
-const AUTH_COOKIE_NAME = process.env.NODE_ENV === 'production'
-  ? '__Secure-authjs.session-token'
-  : 'authjs.session-token'
+import { auth } from '@/modules/auth/auth.config'
 
 const publicPaths = [
   '/',
@@ -37,45 +32,40 @@ const publicPrefixes = [
 const providerPaths = ['/provider']
 const adminPaths = ['/admin']
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+export default auth((req) => {
+  const { pathname } = req.nextUrl
 
   // Allow public paths
   if (publicPaths.includes(pathname)) return NextResponse.next()
   if (publicPrefixes.some(p => pathname.startsWith(p))) return NextResponse.next()
 
-  // Get session token (NextAuth v5 uses 'authjs' prefix, not 'next-auth')
-  const token = await getToken({
-    req: request,
-    secret: process.env.AUTH_SECRET,
-    salt: AUTH_COOKIE_NAME,
-  })
+  const session = req.auth
 
   // Auth required paths
-  if (!token) {
-    const loginUrl = new URL('/auth', request.url)
+  if (!session) {
+    const loginUrl = new URL('/auth', req.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
+  const role = (session.user as { role?: string })?.role || ''
+
   // Provider routes
   if (providerPaths.some(p => pathname.startsWith(p))) {
-    const role = token.role as string
     if (!['anbieter', 'provider', 'admin', 'super_admin'].includes(role)) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/', req.url))
     }
   }
 
   // Admin routes
   if (adminPaths.some(p => pathname.startsWith(p))) {
-    const role = token.role as string
     if (!['admin', 'super_admin'].includes(role)) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/', req.url))
     }
   }
 
   return NextResponse.next()
-}
+})
 
 export const config = {
   matcher: [
