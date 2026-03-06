@@ -1,0 +1,398 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { PROVS, SPECS, SEARCH_SUGGESTIONS, CITIES, getProviderSpecs, type DemoProvider } from '@/lib/demo-data'
+import { PROMO_CODES } from '@/lib/constants'
+
+interface Category {
+  id: string
+  slug: string
+  label: string
+  description: string | null
+  icon_url: string | null
+  sort_order: number
+  is_active: boolean
+}
+
+interface DBSalon {
+  id: string
+  name: string
+  slug: string | null
+  description: string | null
+  city: string | null
+  logo_url: string | null
+  avg_rating: number
+  is_verified: boolean
+  review_count: number
+  category?: string
+  subscription_tier?: string
+  tagline?: string
+  tags?: string[]
+  discount?: number
+  brand_color?: string
+  is_promoted?: boolean
+  free_slots?: number
+  street?: string
+  services: { id: string; name: string }[]
+  rental_equipment?: { type: string; price_per_day_cents: number }[]
+}
+
+interface Props {
+  categories: Category[]
+  dbSalons: DBSalon[]
+  greeting: string
+  topOfferPercent: number | null
+}
+
+function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
+  return (
+    <span style={{ display: 'inline-flex', gap: 1 }}>
+      {[1, 2, 3, 4, 5].map(i => (
+        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: '#E8C86A', fontSize: size }}>★</span>
+      ))}
+    </span>
+  )
+}
+
+function getCategoryIcon(slug: string): string {
+  const map: Record<string, string> = {
+    barber: '01_barbershop_256x384.png', friseur: '02_friseur_256x384.png',
+    kosmetik: '03_kosmetik_256x384.png', aesthetik: '04_aesthetik_256x384.png',
+    nail: '05_nagelstudio_256x384.png', massage: '06_massage_256x384.png',
+    lash: '07_lash_brows_256x384.png', arzt: '08_arzt_klinik_256x384.png',
+    opraum: '09_op_raum_512x384.png', angebote: '10_angebote_256x384.png',
+    termin: '11_termin_256x384.png',
+  }
+  return map[slug] || '01_barbershop_256x384.png'
+}
+
+export default function HomeClient({ categories, dbSalons, greeting, topOfferPercent }: Props) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [favorites, setFavorites] = useState<string[]>([])
+  const [showFilter, setShowFilter] = useState(false)
+  const [filterCity, setFilterCity] = useState('all')
+  const [filterMinRating, setFilterMinRating] = useState(0)
+  const [filterMaxPrice, setFilterMaxPrice] = useState(500)
+  const [filterOnlyAvail, setFilterOnlyAvail] = useState(false)
+  const [filterOnlyDisc, setFilterOnlyDisc] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('cm_favorites')
+    if (saved) setFavorites(JSON.parse(saved))
+  }, [])
+
+  function toggleFav(id: string, e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setFavorites(prev => {
+      const next = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
+      localStorage.setItem('cm_favorites', JSON.stringify(next))
+      return next
+    })
+  }
+
+  // Use demo data (PROVS) as primary, DB salons as secondary
+  const providers = PROVS
+
+  function getFiltered(): DemoProvider[] {
+    let list = [...providers]
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      list = list.filter(p =>
+        p.nm.toLowerCase().includes(q) ||
+        p.city.toLowerCase().includes(q) ||
+        p.tags.some(tg => tg.toLowerCase().includes(q)) ||
+        p.cat.toLowerCase().includes(q) ||
+        p.tl.toLowerCase().includes(q) ||
+        p.svs.some(sv => sv.nm.toLowerCase().includes(q))
+      )
+    }
+    if (filterCity !== 'all') list = list.filter(p => p.city === filterCity)
+    if (filterMinRating > 0) list = list.filter(p => p.rt >= filterMinRating)
+    if (filterMaxPrice < 500) list = list.filter(p => p.svs.some(sv => sv.pr <= filterMaxPrice))
+    if (filterOnlyAvail) list = list.filter(p => p.live)
+    if (filterOnlyDisc) list = list.filter(p => p.disc > 0)
+    // Sort: boosted first, then by rating
+    list.sort((a, b) => b.boost - a.boost || b.rt - a.rt)
+    return list
+  }
+
+  function resetFilters() {
+    setFilterCity('all')
+    setFilterMinRating(0)
+    setFilterMaxPrice(500)
+    setFilterOnlyAvail(false)
+    setFilterOnlyDisc(false)
+  }
+
+  const filtered = getFiltered()
+
+  return (
+    <>
+      {/* Logo Header + Greeting */}
+      <div style={{ padding: '20px var(--pad) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexShrink: 1 }}>
+          <div style={{ animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', flexShrink: 0 }}>
+            <img src="/icons/logo_symbol_512x512.png" width={36} height={36} alt="ChairMatch" style={{ objectFit: 'contain' }} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <p className="cinzel" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, color: 'var(--gold2)', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              CHAIR<span style={{ color: 'var(--gold3)' }}>MATCH</span>
+            </p>
+            <p style={{ fontSize: 8, letterSpacing: 3, color: 'var(--stone)', marginTop: 2 }}>DEUTSCHLAND</p>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--cream)' }}>{greeting}</p>
+          <p style={{ fontSize: 11, color: 'var(--stone)' }}>Deutschlandweit buchen</p>
+        </div>
+      </div>
+
+      {/* Promo Banner */}
+      {topOfferPercent && (
+        <div style={{ margin: '14px var(--pad)' }}>
+          <div className="card" style={{ padding: 18, background: 'linear-gradient(135deg, #1E1A08, #141008)' }}>
+            <span className="badge badge-gold" style={{ marginBottom: 10, display: 'inline-flex' }}>SONDERANGEBOT</span>
+            <p className="cinzel" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3, marginBottom: 4, color: 'var(--gold2)' }}>
+              Spare bis zu {topOfferPercent}%<br />auf erste Buchung
+            </p>
+            <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 12 }}>Code: CHAIR2026</p>
+            <Link href="/offers" className="bgold" style={{ width: 'auto', padding: '11px 22px', fontSize: 13, display: 'inline-block', textDecoration: 'none' }}>
+              Jetzt buchen
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Inline Search */}
+      <div style={{ padding: '0 var(--pad) 10px', position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(200,168,75,0.1)' }}>
+          <span>🔍</span>
+          <input
+            type="text"
+            placeholder="Stadt, Name, Service..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--cream)', fontSize: 14 }}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: 'var(--stone)', fontSize: 16, cursor: 'pointer', padding: 0 }}>✕</button>
+          )}
+          <button onClick={() => setShowFilter(!showFilter)} style={{ background: 'none', border: 'none', color: showFilter ? 'var(--gold)' : 'var(--stone)', fontSize: 18, cursor: 'pointer', padding: 0 }}>
+            ☰
+          </button>
+        </div>
+        {/* Search Suggestions */}
+        {searchFocused && !searchQuery && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+            {SEARCH_SUGGESTIONS.map(s => (
+              <button key={s} onClick={() => setSearchQuery(s)} style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(200,168,75,.08)', border: '1px solid rgba(200,168,75,.15)', color: 'var(--gold2)', cursor: 'pointer' }}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Filter Sheet */}
+      {showFilter && (
+        <div style={{ margin: '0 var(--pad) 14px', padding: 16, background: 'var(--c2)', borderRadius: 16, border: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <p style={{ fontSize: 16, fontWeight: 800 }}>Filter</p>
+            <button onClick={resetFilters} style={{ fontSize: 13, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>Zurücksetzen</button>
+          </div>
+          {/* City */}
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Stadt</p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+            <button onClick={() => setFilterCity('all')} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: filterCity === 'all' ? 'var(--gold)' : 'var(--c3)', color: filterCity === 'all' ? '#080706' : 'var(--stone)', border: 'none' }}>Alle</button>
+            {CITIES.map(c => (
+              <button key={c} onClick={() => setFilterCity(c)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: filterCity === c ? 'var(--gold)' : 'var(--c3)', color: filterCity === c ? '#080706' : 'var(--stone)', border: 'none' }}>{c}</button>
+            ))}
+          </div>
+          {/* Rating */}
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Mindestbewertung</p>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+            {[0, 4, 4.5, 4.8, 5].map(r => (
+              <button key={r} onClick={() => setFilterMinRating(r)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: filterMinRating === r ? 'var(--gold)' : 'var(--c3)', color: filterMinRating === r ? '#080706' : 'var(--stone)', border: 'none' }}>
+                {r === 0 ? 'Alle' : `★ ${r}+`}
+              </button>
+            ))}
+          </div>
+          {/* Price */}
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Maximalpreis: {filterMaxPrice}€</p>
+          <input type="range" min={20} max={500} step={10} value={filterMaxPrice} onChange={e => setFilterMaxPrice(Number(e.target.value))} style={{ width: '100%', marginBottom: 14, accentColor: 'var(--gold)' }} />
+          {/* Toggles */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+            <button onClick={() => setFilterOnlyAvail(!filterOnlyAvail)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyAvail ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
+              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyAvail ? 'rgba(200,168,75,.15)' : 'transparent' }}>{filterOnlyAvail ? '✓' : ''}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Verfügbare</span>
+            </button>
+            <button onClick={() => setFilterOnlyDisc(!filterOnlyDisc)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyDisc ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
+              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyDisc ? 'rgba(200,168,75,.15)' : 'transparent' }}>{filterOnlyDisc ? '✓' : ''}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Rabatte</span>
+            </button>
+          </div>
+          <button onClick={() => setShowFilter(false)} className="bgold" style={{ width: '100%' }}>
+            Anwenden ({filtered.length})
+          </button>
+        </div>
+      )}
+
+      {/* Categories Grid */}
+      <section style={{ padding: '0 var(--pad)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase' }}>Kategorien</p>
+          <Link href="/explore" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>Alle</Link>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {categories.map((cat) => (
+            <a key={cat.id} href={`/category/${cat.slug}`} style={{ textDecoration: 'none' }}>
+              <div className="catcard">
+                <div className="caticon">
+                  <img src={cat.icon_url || `/icons/${getCategoryIcon(cat.slug)}`} alt={cat.label} />
+                </div>
+                <div className="catlbl">{cat.label}</div>
+                <div className="catsub">{cat.description || ''}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Top Specialists Scroll */}
+      <section style={{ marginTop: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 var(--pad) 12px' }}>
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase' }}>Top Spezialisten</p>
+          <span className="badge badge-green" style={{ fontSize: 9 }}>Heute verfügbar</span>
+        </div>
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 var(--pad) 4px', WebkitOverflowScrolling: 'touch' }}>
+          {SPECS.map(s => (
+            <div key={s.id} style={{ flexShrink: 0, textAlign: 'center', width: 68 }}>
+              <div style={{ width: 54, height: 54, borderRadius: '50%', background: s.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, border: '2px solid rgba(200,168,75,.2)', margin: '0 auto 5px', color: 'var(--cream)' }}>
+                {s.ini}
+              </div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--cream)' }}>{s.nm.split(' ')[0]}</p>
+              <p style={{ fontSize: 9, color: 'var(--stone)' }}>{s.role.split(' ')[0]}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Provider Cards */}
+      <section style={{ padding: '20px var(--pad) 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase' }}>Alle Anbieter</p>
+          <span style={{ fontSize: 12, color: 'var(--stone)' }}>{filtered.length} gefunden</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {filtered.map(p => (
+            <ProviderCard key={p.id} p={p} favorites={favorites} toggleFav={toggleFav} />
+          ))}
+        </div>
+      </section>
+
+      {/* Newsletter */}
+      <section style={{ padding: '24px var(--pad)' }}>
+        <div className="card" style={{ padding: 18, textAlign: 'center' }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--gold2)', marginBottom: 6 }}>Newsletter</p>
+          <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 12 }}>Exklusive Angebote & neue Salons direkt in dein Postfach</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input type="email" placeholder="E-Mail Adresse" className="inp" style={{ flex: 1 }} />
+            <button className="bgold" style={{ padding: '10px 16px', fontSize: 12, whiteSpace: 'nowrap' }}>Anmelden</button>
+          </div>
+        </div>
+      </section>
+
+      <div style={{ height: 80 }} />
+    </>
+  )
+}
+
+function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites: string[]; toggleFav: (id: string, e: React.MouseEvent) => void }) {
+  const minPrice = p.svs.length > 0 ? Math.min(...p.svs.map(s => s.pr)) : 0
+
+  return (
+    <a href={`/salon/${p.id}`} style={{ textDecoration: 'none' }}>
+      <div className="card" style={{
+        overflow: 'hidden',
+        border: p.tier === 'gold' ? '1.5px solid rgba(200,168,75,.3)' : p.tier === 'premium' ? '1.5px solid rgba(200,168,75,.15)' : undefined,
+        boxShadow: p.tier === 'gold' ? '0 0 20px rgba(200,168,75,.08)' : undefined,
+      }}>
+        {/* Tier stripe */}
+        <div style={{
+          height: 3,
+          background: p.tier === 'gold'
+            ? 'linear-gradient(90deg,#C8A84B,#F5E080,#C8A84B)'
+            : p.tier === 'premium'
+              ? 'linear-gradient(90deg,#9A70C8,#C8A84B)'
+              : p.bc,
+        }} />
+
+        <div style={{ padding: '13px 15px' }}>
+          {/* Badges & Info */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 7, gap: 10 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Tier badges */}
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 5 }}>
+                {p.tier === 'gold' && <span className="badge badge-gold" style={{ fontSize: 9, padding: '3px 8px' }}>👑 GOLD</span>}
+                {p.tier === 'premium' && <span className="badge badge-gold" style={{ fontSize: 9, padding: '3px 8px' }}>⚡ PREMIUM</span>}
+                {p.ver && <span className="badge badge-green" style={{ fontSize: 9, padding: '3px 8px' }}>✓ Verifiziert</span>}
+                {p.disc > 0 && <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 6, background: 'rgba(232,80,64,.12)', color: 'var(--red)', fontWeight: 700 }}>−{p.disc}%</span>}
+              </div>
+              {/* Name */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <p style={{ fontSize: 15, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--cream)' }}>{p.nm}</p>
+              </div>
+              {/* Address */}
+              <p style={{ fontSize: 12, color: 'var(--stone)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {p.st} · {p.city}
+              </p>
+            </div>
+            {/* Right: Fav + Rating */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+              <button onClick={(e) => toggleFav(p.id, e)} style={{ fontSize: 18, background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: favorites.includes(p.id) ? 'var(--red)' : 'var(--stone)' }}>
+                {favorites.includes(p.id) ? '♥' : '♡'}
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Stars rating={p.rt} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold2)' }}>{p.rt}</span>
+              </div>
+              <span style={{ fontSize: 11, color: 'var(--stone)' }}>({p.rc})</span>
+            </div>
+          </div>
+
+          {/* Rental badges */}
+          {p.rental.length > 0 && (
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
+              {p.rental.map((r, i) => (
+                <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(200,168,75,.08)', border: '1px solid rgba(200,168,75,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
+                  {r.type === 'stuhl' ? '💺' : r.type === 'liege' ? '🛏' : r.type === 'opraum' ? '🏥' : '🚪'} {r.pr}€/Tag
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Availability & Price */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: p.live ? '#4A8A5A' : '#C04040' }} />
+                <span style={{ fontSize: 11, color: p.live ? '#6ABF80' : 'var(--stone)' }}>
+                  {p.live ? `${p.frei} frei` : 'Ausgebucht'}
+                </span>
+              </div>
+              <span style={{ fontSize: 10, color: '#6ABF80', fontWeight: 600 }}>● Offen</span>
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--gold2)' }}>
+              ab {minPrice} €
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
+  )
+}
