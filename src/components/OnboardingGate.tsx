@@ -117,15 +117,32 @@ export default function OnboardingGate({ slides, children }: Props) {
 
   const isProfileValid = profile.vn && profile.nn && profile.email && isValidEmail(profile.email) && profile.phone && profile.biz && profile.street && profile.plz && profile.city
 
+  // Scroll to top on phase/step change
+  useEffect(() => {
+    const el = document.getElementById('ob-scroll')
+    if (el) el.scrollTop = 0
+  }, [phase, provStep, step])
+
   // ═══ RENDER ═══
 
   const shell = (content: React.ReactNode) => (
-    <div className="shell" style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)' }}>
-      <div className="screen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', padding: '30px 26px 40px', overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)', width: '100%', maxWidth: 'var(--shell-max)', margin: '0 auto' }}>
+      <div id="ob-scroll" style={{
+        height: '100%',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: 'max(env(safe-area-inset-top, 20px), 20px) 22px max(env(safe-area-inset-bottom, 40px), 40px)',
+      }}>
         {content}
+        {/* Bottom spacer for iOS safe area */}
+        <div style={{ flexShrink: 0, height: 30 }} />
       </div>
       {toast && (
-        <div className="toast-enter" style={{ position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', background: 'var(--c3)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 20px', fontSize: 13, color: 'var(--cream)', zIndex: 300, maxWidth: 360, textAlign: 'center' }}>
+        <div className="toast-enter" style={{ position: 'fixed', bottom: 'max(env(safe-area-inset-bottom, 20px), 20px)', left: '50%', transform: 'translateX(-50%)', background: 'var(--c3)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 20px', fontSize: 13, color: 'var(--cream)', zIndex: 300, maxWidth: 360, textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -550,8 +567,19 @@ export default function OnboardingGate({ slides, children }: Props) {
   const isLast = step === slides.length - 1
 
   return (
-    <div className="shell" style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)' }}>
-      <div className="screen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', minHeight: '100vh', padding: 30 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)', width: '100%', maxWidth: 'var(--shell-max)', margin: '0 auto' }}>
+      <div id="ob-scroll" style={{
+        height: '100%',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        padding: 'max(env(safe-area-inset-top, 30px), 30px) 30px max(env(safe-area-inset-bottom, 30px), 30px)',
+      }}>
         {isFirst ? (
           <div style={{ marginBottom: 10, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
             <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 140, objectFit: 'contain' }} />
@@ -596,6 +624,8 @@ export default function OnboardingGate({ slides, children }: Props) {
             {isLast ? "Los geht's" : 'Weiter →'}
           </button>
         </div>
+        {/* Bottom spacer for iOS safe area */}
+        <div style={{ flexShrink: 0, height: 30 }} />
       </div>
     </div>
   )
