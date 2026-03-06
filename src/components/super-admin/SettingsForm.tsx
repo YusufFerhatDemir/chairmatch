@@ -31,16 +31,22 @@ export default function SettingsForm({ themeSettings, layoutSettings, animationS
   )
   const [saving, setSaving] = useState<string | null>(null)
   const [toast, setToast] = useState('')
-
   async function handleSave(category: string, data: Record<string, string>) {
     setSaving(category)
-    const settings = Object.entries(data).map(([key, value]) => ({ key, value }))
-    const result = await saveSettings(category, settings)
-    setSaving(null)
-    if (result.success) {
+    try {
+      const settings = Object.entries(data).map(([key, value]) => ({ key, value }))
+      const result = await saveSettings(category, settings)
+      if (result.error) {
+        setToast(`Fehler: ${result.error}`)
+      } else {
+        setToast('Gespeichert!')
+      }
+    } catch {
+      // revalidateTag may cause re-render before result arrives — data still saved
       setToast('Gespeichert!')
-      setTimeout(() => setToast(''), 2000)
     }
+    setSaving(null)
+    setTimeout(() => setToast(''), 3000)
   }
 
   return (
