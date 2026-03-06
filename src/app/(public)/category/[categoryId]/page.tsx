@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Link from 'next/link'
 
 interface Props {
@@ -10,24 +10,47 @@ interface Props {
 export default async function CategoryPage({ params }: Props) {
   const { categoryId } = await params
 
-  const category = await prisma.category.findFirst({
-    where: { OR: [{ slug: categoryId }, { id: categoryId }] },
-  })
+  let category: { id: string; slug: string; label: string; description: string | null } | null = null
+  let salons: {
+    id: string
+    name: string
+    slug: string | null
+    description: string | null
+    city: string | null
+    avg_rating: number
+    services: { id: string; name: string; sort_order: number }[]
+  }[] = []
 
-  const salons = await prisma.salon.findMany({
-    where: { category: categoryId, isActive: true },
-    include: {
-      services: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, take: 3 },
-    },
-    orderBy: [{ avgRating: 'desc' }],
-  })
+  try {
+    const supabase = getSupabaseAdmin()
+
+    const { data: cat } = await supabase
+      .from('categories')
+      .select('id, slug, label, description')
+      .or(`slug.eq.${categoryId},id.eq.${categoryId}`)
+      .limit(1)
+      .single()
+
+    if (cat) category = cat
+
+    const { data: salonData } = await supabase
+      .from('salons')
+      .select('id, name, slug, description, city, avg_rating, services(id, name, sort_order)')
+      .eq('category', categoryId)
+      .eq('is_active', true)
+      .order('avg_rating', { ascending: false })
+
+    if (salonData) salons = salonData as typeof salons
+  } catch {
+    // DB connection failed — render empty state
+  }
 
   return (
     <div className="shell">
       <div className="screen">
         <div className="sticky">
           <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
-            ← Zurück
+            &larr; Zur&uuml;ck
           </Link>
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginTop: 8 }}>
             {category?.label || categoryId}
@@ -59,7 +82,7 @@ export default async function CategoryPage({ params }: Props) {
                       <div style={{ fontWeight: 700, fontSize: 'var(--font-md)', color: 'var(--cream)' }}>{s.name}</div>
                       <div style={{ fontSize: 'var(--font-sm)', color: 'var(--stone)', marginTop: 2 }}>{s.description}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                        <span style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)' }}>★ {Number(s.avgRating).toFixed(1)}</span>
+                        <span style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)' }}>&star; {Number(s.avg_rating).toFixed(1)}</span>
                         <span style={{ fontSize: 'var(--font-xs)', color: 'var(--stone2)' }}>{s.city}</span>
                       </div>
                     </div>

@@ -1,9 +1,9 @@
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { VALID_TRANSITIONS } from './booking.types'
 
 /**
  * Check if a time slot conflicts with existing bookings.
- * Uses bookingDate + startTime/endTime from the actual DB schema.
+ * Uses booking_date + start_time/end_time from the actual DB schema.
  */
 export async function checkConflict(
   salonId: string,
@@ -11,22 +11,29 @@ export async function checkConflict(
   startTime: string,
   durationMinutes: number = 30
 ): Promise<boolean> {
-  const existingBookings = await prisma.booking.findMany({
-    where: {
-      salonId,
-      bookingDate: new Date(date),
-      status: { in: ['confirmed', 'pending'] },
-    },
-  })
+  const supabase = getSupabaseAdmin()
+
+  const { data: existingBookings } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('salon_id', salonId)
+    .eq('booking_date', date)
+    .in('status', ['confirmed', 'pending'])
+
+  if (!existingBookings || existingBookings.length === 0) {
+    return false
+  }
 
   const [startH, startM] = startTime.split(':').map(Number)
   const startMinutes = startH * 60 + startM
   const endMinutes = startMinutes + durationMinutes
 
   for (const booking of existingBookings) {
-    // Extract hours/minutes from the Time field
-    const bStart = booking.startTime.getUTCHours() * 60 + booking.startTime.getUTCMinutes()
-    const bEnd = booking.endTime.getUTCHours() * 60 + booking.endTime.getUTCMinutes()
+    // start_time and end_time are time strings like "HH:MM:SS" in Supabase
+    const bStartParts = String(booking.start_time).split(':').map(Number)
+    const bEndParts = String(booking.end_time).split(':').map(Number)
+    const bStart = bStartParts[0] * 60 + bStartParts[1]
+    const bEnd = bEndParts[0] * 60 + bEndParts[1]
 
     if (startMinutes < bEnd && endMinutes > bStart) {
       return true // conflict
@@ -37,14 +44,18 @@ export async function checkConflict(
 }
 
 export async function snapshotPolicy(salonId: string) {
-  const policy = await prisma.bookingPolicy.findUnique({
-    where: { salonId },
-  })
+  const supabase = getSupabaseAdmin()
+
+  const { data: policy } = await supabase
+    .from('booking_policies')
+    .select('*')
+    .eq('salon_id', salonId)
+    .single()
 
   return {
-    depositPercent: policy?.depositPercent ?? 0,
-    cancellationHours: policy?.cancellationHours ?? 24,
-    noShowFeeCents: policy?.noShowFeeCents ?? 0,
+    depositPercent: policy?.deposit_percent ?? 0,
+    cancellationHours: policy?.cancellation_hours ?? 24,
+    noShowFeeCents: policy?.no_show_fee_cents ?? 0,
   }
 }
 
@@ -76,19 +87,23 @@ export async function validatePromoCode(code: string): Promise<{
   discount: number
   type: 'percent' | 'fixed' | null
 }> {
-  const promo = await prisma.promoCode.findUnique({
-    where: { code: code.toUpperCase() },
-  })
+  const supabase = getSupabaseAdmin()
 
-  if (!promo || !promo.isActive) {
+  const { data: promo } = await supabase
+    .from('promo_codes')
+    .select('*')
+    .eq('code', code.toUpperCase())
+    .single()
+
+  if (!promo || !promo.is_active) {
     return { valid: false, discount: 0, type: null }
   }
 
-  if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) {
+  if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
     return { valid: false, discount: 0, type: null }
   }
 
-  if (promo.maxUses !== null && (promo.usedCount ?? 0) >= promo.maxUses) {
+  if (promo.max_uses !== null && (promo.used_count ?? 0) >= promo.max_uses) {
     return { valid: false, discount: 0, type: null }
   }
 

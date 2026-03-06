@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { AggregateRatings } from './review.types'
 
 export async function checkEligibility(
@@ -6,10 +6,14 @@ export async function checkEligibility(
   salonId: string,
   bookingId?: string,
 ): Promise<{ eligible: boolean; reason?: string }> {
+  const supabase = getSupabaseAdmin()
+
   if (bookingId) {
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-    })
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('id', bookingId)
+      .single()
 
     if (!booking) {
       return { eligible: false, reason: 'Buchung nicht gefunden.' }
@@ -20,11 +24,13 @@ export async function checkEligibility(
     }
 
     // Check if review already exists for this booking
-    const existing = await prisma.review.findFirst({
-      where: { bookingId },
-    })
+    const { data: existing } = await supabase
+      .from('reviews')
+      .select('id')
+      .eq('booking_id', bookingId)
+      .limit(1)
 
-    if (existing) {
+    if (existing && existing.length > 0) {
       return { eligible: false, reason: 'Bereits bewertet.' }
     }
   }
@@ -33,30 +39,39 @@ export async function checkEligibility(
 }
 
 export async function updateSalonRating(salonId: string): Promise<void> {
-  const stats = await prisma.review.aggregate({
-    where: { salonId },
-    _avg: { rating: true },
-    _count: true,
-  })
+  const supabase = getSupabaseAdmin()
 
-  await prisma.salon.update({
-    where: { id: salonId },
-    data: {
-      avgRating: stats._avg.rating || 0,
-      reviewCount: stats._count,
-    },
-  })
+  // Fetch reviews and calculate aggregate in JS
+  const { data: reviews } = await supabase
+    .from('reviews')
+    .select('rating')
+    .eq('salon_id', salonId)
+
+  const count = reviews?.length || 0
+  const avg = count > 0 ? reviews!.reduce((s, r) => s + r.rating, 0) / count : 0
+
+  await supabase
+    .from('salons')
+    .update({
+      avg_rating: avg,
+      review_count: count,
+    })
+    .eq('id', salonId)
 }
 
 export async function getAggregateRatings(salonId: string): Promise<AggregateRatings> {
-  const stats = await prisma.review.aggregate({
-    where: { salonId },
-    _avg: { rating: true },
-    _count: true,
-  })
+  const supabase = getSupabaseAdmin()
+
+  const { data: reviews } = await supabase
+    .from('reviews')
+    .select('rating')
+    .eq('salon_id', salonId)
+
+  const count = reviews?.length || 0
+  const avg = count > 0 ? reviews!.reduce((s, r) => s + r.rating, 0) / count : 0
 
   return {
-    avgRating: stats._avg.rating || 0,
-    reviewCount: stats._count,
+    avgRating: avg,
+    reviewCount: count,
   }
 }

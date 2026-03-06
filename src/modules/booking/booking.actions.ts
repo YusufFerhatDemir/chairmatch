@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createBookingSchema, cancelBookingSchema } from './booking.schemas'
 import { checkConflict, snapshotPolicy, validateTransition, validatePromoCode, calculatePrice } from './booking.service'
 import { getServerSession } from '@/modules/auth/session'
@@ -18,10 +18,15 @@ export async function createBooking(input: unknown) {
     return { error: 'Nicht authentifiziert. Bitte melden Sie sich an.' }
   }
 
+  const supabase = getSupabaseAdmin()
+
   // Load service to get duration and price
-  const service = await prisma.service.findUnique({
-    where: { id: data.serviceId },
-  })
+  const { data: service } = await supabase
+    .from('services')
+    .select('*')
+    .eq('id', data.serviceId)
+    .single()
+
   if (!service) {
     return { error: 'Dienstleistung nicht gefunden.' }
   }
@@ -31,7 +36,7 @@ export async function createBooking(input: unknown) {
     data.salonId,
     data.date,
     data.startTime,
-    service.durationMinutes
+    service.duration_minutes
   )
   if (hasConflict) {
     return { error: 'Dieser Zeitslot ist bereits belegt.' }
@@ -41,68 +46,84 @@ export async function createBooking(input: unknown) {
   const policy = await snapshotPolicy(data.salonId)
 
   // Validate promo code
-  let finalPriceCents = service.priceCents
+  let finalPriceCents = service.price_cents
   if (data.promoCode) {
     const promo = await validatePromoCode(data.promoCode)
     if (promo.valid) {
-      finalPriceCents = calculatePrice(service.priceCents, promo.discount, promo.type)
+      finalPriceCents = calculatePrice(service.price_cents, promo.discount, promo.type)
     }
   }
 
   // Calculate end time from start time + duration
   const [startH, startM] = data.startTime.split(':').map(Number)
-  const endMinutes = startH * 60 + startM + service.durationMinutes
+  const endMinutes = startH * 60 + startM + service.duration_minutes
   const endH = Math.floor(endMinutes / 60)
   const endM = endMinutes % 60
   const endTimeStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`
 
-  // Transaction: create booking + update promo usage + audit log
-  const booking = await prisma.$transaction(async (tx) => {
-    const newBooking = await tx.booking.create({
-      data: {
-        customerId,
+  // Sequential calls (best effort, no real transaction in REST API)
+  // Step 1: Create booking
+  const { data: newBooking, error: bookingError } = await supabase
+    .from('bookings')
+    .insert({
+      customer_id: customerId,
+      salon_id: data.salonId,
+      service_id: data.serviceId,
+      staff_id: data.staffId || null,
+      booking_date: data.date,
+      start_time: `${data.startTime}:00`,
+      end_time: `${endTimeStr}:00`,
+      status: 'pending',
+      price_cents: finalPriceCents,
+      notes: data.notes || null,
+    })
+    .select()
+    .single()
+
+  if (bookingError || !newBooking) {
+    return { error: 'Buchung konnte nicht erstellt werden.' }
+  }
+
+  // Step 2: Increment promo usage (best effort)
+  if (data.promoCode && finalPriceCents < service.price_cents) {
+    try {
+      const { data: promo } = await supabase
+        .from('promo_codes')
+        .select('used_count')
+        .eq('code', data.promoCode.toUpperCase())
+        .single()
+
+      await supabase
+        .from('promo_codes')
+        .update({ used_count: (promo?.used_count || 0) + 1 })
+        .eq('code', data.promoCode.toUpperCase())
+    } catch {
+      // Best effort - log but continue
+      console.error('Failed to update promo code usage')
+    }
+  }
+
+  // Step 3: Audit log (best effort)
+  try {
+    await supabase.from('audit_logs').insert({
+      user_id: customerId,
+      action: 'BOOKING_CREATED',
+      entity: 'booking',
+      entity_id: newBooking.id,
+      details: {
         salonId: data.salonId,
         serviceId: data.serviceId,
-        staffId: data.staffId || null,
-        bookingDate: new Date(data.date),
-        startTime: new Date(`1970-01-01T${data.startTime}:00Z`),
-        endTime: new Date(`1970-01-01T${endTimeStr}:00Z`),
-        status: 'pending',
+        date: data.date,
+        startTime: data.startTime,
         priceCents: finalPriceCents,
-        notes: data.notes || null,
+        policySnapshot: policy,
       },
     })
+  } catch {
+    console.error('Failed to create audit log')
+  }
 
-    // Increment promo usage
-    if (data.promoCode && finalPriceCents < service.priceCents) {
-      await tx.promoCode.update({
-        where: { code: data.promoCode.toUpperCase() },
-        data: { usedCount: { increment: 1 } },
-      })
-    }
-
-    // Audit log
-    await tx.auditLog.create({
-      data: {
-        userId: customerId,
-        action: 'BOOKING_CREATED',
-        entity: 'booking',
-        entityId: newBooking.id,
-        details: {
-          salonId: data.salonId,
-          serviceId: data.serviceId,
-          date: data.date,
-          startTime: data.startTime,
-          priceCents: finalPriceCents,
-          policySnapshot: policy,
-        },
-      },
-    })
-
-    return newBooking
-  })
-
-  return { success: true, bookingId: booking.id }
+  return { success: true, bookingId: newBooking.id }
 }
 
 export async function cancelBooking(input: unknown) {
@@ -114,16 +135,20 @@ export async function cancelBooking(input: unknown) {
   const session = await getServerSession()
   const { bookingId, reason } = parsed.data
 
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-  })
+  const supabase = getSupabaseAdmin()
+
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', bookingId)
+    .single()
 
   if (!booking) {
     return { error: 'Buchung nicht gefunden.' }
   }
 
   // Determine actor
-  const isCustomer = session?.user?.id === booking.customerId
+  const isCustomer = session?.user?.id === booking.customer_id
   const actor: 'customer' | 'provider' = isCustomer ? 'customer' : 'provider'
 
   const currentStatus = booking.status?.toUpperCase() || 'PENDING'
@@ -131,25 +156,26 @@ export async function cancelBooking(input: unknown) {
     return { error: 'Stornierung nicht möglich.' }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: 'cancelled',
-        cancellationReason: reason || null,
-      },
+  // Sequential calls (best effort)
+  await supabase
+    .from('bookings')
+    .update({
+      status: 'cancelled',
+      cancellation_reason: reason || null,
     })
+    .eq('id', bookingId)
 
-    await tx.auditLog.create({
-      data: {
-        userId: session?.user?.id || null,
-        action: 'BOOKING_CANCELLED',
-        entity: 'booking',
-        entityId: bookingId,
-        details: { reason, actor },
-      },
+  try {
+    await supabase.from('audit_logs').insert({
+      user_id: session?.user?.id || null,
+      action: 'BOOKING_CANCELLED',
+      entity: 'booking',
+      entity_id: bookingId,
+      details: { reason, actor },
     })
-  })
+  } catch {
+    console.error('Failed to create audit log')
+  }
 
   return { success: true }
 }
@@ -158,7 +184,14 @@ export async function confirmBooking(bookingId: string) {
   const session = await getServerSession()
   if (!session?.user) return { error: 'Nicht authentifiziert.' }
 
-  const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
+  const supabase = getSupabaseAdmin()
+
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', bookingId)
+    .single()
+
   if (!booking) return { error: 'Buchung nicht gefunden.' }
 
   const currentStatus = booking.status?.toUpperCase() || 'PENDING'
@@ -166,20 +199,21 @@ export async function confirmBooking(bookingId: string) {
     return { error: 'Bestätigung nicht möglich.' }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.booking.update({
-      where: { id: bookingId },
-      data: { status: 'confirmed' },
+  await supabase
+    .from('bookings')
+    .update({ status: 'confirmed' })
+    .eq('id', bookingId)
+
+  try {
+    await supabase.from('audit_logs').insert({
+      user_id: session.user.id,
+      action: 'BOOKING_CONFIRMED',
+      entity: 'booking',
+      entity_id: bookingId,
     })
-    await tx.auditLog.create({
-      data: {
-        userId: session.user!.id,
-        action: 'BOOKING_CONFIRMED',
-        entity: 'booking',
-        entityId: bookingId,
-      },
-    })
-  })
+  } catch {
+    console.error('Failed to create audit log')
+  }
 
   return { success: true }
 }
@@ -188,7 +222,14 @@ export async function completeBooking(bookingId: string) {
   const session = await getServerSession()
   if (!session?.user) return { error: 'Nicht authentifiziert.' }
 
-  const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
+  const supabase = getSupabaseAdmin()
+
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', bookingId)
+    .single()
+
   if (!booking) return { error: 'Buchung nicht gefunden.' }
 
   const currentStatus = booking.status?.toUpperCase() || 'PENDING'
@@ -196,20 +237,21 @@ export async function completeBooking(bookingId: string) {
     return { error: 'Abschluss nicht möglich.' }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.booking.update({
-      where: { id: bookingId },
-      data: { status: 'completed' },
+  await supabase
+    .from('bookings')
+    .update({ status: 'completed' })
+    .eq('id', bookingId)
+
+  try {
+    await supabase.from('audit_logs').insert({
+      user_id: session.user.id,
+      action: 'BOOKING_COMPLETED',
+      entity: 'booking',
+      entity_id: bookingId,
     })
-    await tx.auditLog.create({
-      data: {
-        userId: session.user!.id,
-        action: 'BOOKING_COMPLETED',
-        entity: 'booking',
-        entityId: bookingId,
-      },
-    })
-  })
+  } catch {
+    console.error('Failed to create audit log')
+  }
 
   return { success: true }
 }
@@ -218,7 +260,14 @@ export async function markNoShow(bookingId: string) {
   const session = await getServerSession()
   if (!session?.user) return { error: 'Nicht authentifiziert.' }
 
-  const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
+  const supabase = getSupabaseAdmin()
+
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', bookingId)
+    .single()
+
   if (!booking) return { error: 'Buchung nicht gefunden.' }
 
   const currentStatus = booking.status?.toUpperCase() || 'PENDING'
@@ -226,34 +275,44 @@ export async function markNoShow(bookingId: string) {
     return { error: 'No-Show Markierung nicht möglich.' }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.booking.update({
-      where: { id: bookingId },
-      data: { status: 'no_show' },
+  await supabase
+    .from('bookings')
+    .update({ status: 'no_show' })
+    .eq('id', bookingId)
+
+  try {
+    await supabase.from('audit_logs').insert({
+      user_id: session.user.id,
+      action: 'BOOKING_NO_SHOW',
+      entity: 'booking',
+      entity_id: bookingId,
     })
-    await tx.auditLog.create({
-      data: {
-        userId: session.user!.id,
-        action: 'BOOKING_NO_SHOW',
-        entity: 'booking',
-        entityId: bookingId,
-      },
-    })
-  })
+  } catch {
+    console.error('Failed to create audit log')
+  }
 
   return { success: true }
 }
 
 export async function getBookings(filters?: { customerId?: string; salonId?: string }) {
-  return prisma.booking.findMany({
-    where: {
-      ...(filters?.customerId && { customerId: filters.customerId }),
-      ...(filters?.salonId && { salonId: filters.salonId }),
-    },
-    include: {
-      salon: { select: { name: true, category: true, city: true } },
-      service: { select: { name: true, durationMinutes: true, priceCents: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+  const supabase = getSupabaseAdmin()
+
+  let query = supabase
+    .from('bookings')
+    .select(`
+      *,
+      salon:salons(name, category, city),
+      service:services(name, duration_minutes, price_cents)
+    `)
+    .order('created_at', { ascending: false })
+
+  if (filters?.customerId) {
+    query = query.eq('customer_id', filters.customerId)
+  }
+  if (filters?.salonId) {
+    query = query.eq('salon_id', filters.salonId)
+  }
+
+  const { data } = await query
+  return data || []
 }

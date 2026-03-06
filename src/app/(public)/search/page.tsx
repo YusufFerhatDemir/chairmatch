@@ -1,36 +1,56 @@
 export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Link from 'next/link'
 
 interface Props {
   searchParams: Promise<{ q?: string; city?: string }>
 }
 
+interface Salon {
+  id: string
+  name: string
+  slug: string | null
+  city: string | null
+  avg_rating: number
+}
+
 export default async function SearchPage({ searchParams }: Props) {
   const { q, city } = await searchParams
 
-  const salons = await prisma.salon.findMany({
-    where: {
-      isActive: true,
-      ...(q && {
-        OR: [
-          { name: { contains: q, mode: 'insensitive' as const } },
-          { description: { contains: q, mode: 'insensitive' as const } },
-        ],
-      }),
-      ...(city && { city: { equals: city, mode: 'insensitive' as const } }),
-    },
-    orderBy: [{ avgRating: 'desc' }],
-    take: 50,
-  })
+  let salons: Salon[] = []
+
+  try {
+    const supabase = getSupabaseAdmin()
+
+    let query = supabase
+      .from('salons')
+      .select('id, name, slug, city, avg_rating')
+      .eq('is_active', true)
+      .order('avg_rating', { ascending: false })
+      .limit(50)
+
+    if (q) {
+      query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`)
+    }
+
+    if (city) {
+      query = query.ilike('city', city)
+    }
+
+    const { data } = await query
+
+    if (data) salons = data
+  } catch {
+    // DB connection failed — render empty state
+  }
 
   return (
     <div className="shell">
       <div className="screen">
         <div className="sticky">
           <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
-            ← Zurück
+            &larr; Zur&uuml;ck
           </Link>
           <h1 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginTop: 8 }}>
             {q ? `Suche: "${q}"` : city ? `Salons in ${city}` : 'Suche'}
@@ -56,7 +76,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, color: 'var(--cream)' }}>{s.name}</div>
                     <div style={{ fontSize: 'var(--font-sm)', color: 'var(--stone)' }}>
-                      ★ {Number(s.avgRating).toFixed(1)} · {s.city}
+                      &star; {Number(s.avg_rating).toFixed(1)} &middot; {s.city}
                     </div>
                   </div>
                 </div>

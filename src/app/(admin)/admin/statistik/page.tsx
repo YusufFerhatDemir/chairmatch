@@ -1,47 +1,51 @@
 export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { requireRole } from '@/modules/auth/session'
 import Link from 'next/link'
 
 export default async function StatistikPage() {
   await requireRole(['admin', 'super_admin'])
 
+  const supabase = getSupabaseAdmin()
+
   const [
-    totalSalons,
-    activeSalons,
-    totalBookings,
-    pendingBookings,
-    confirmedBookings,
-    completedBookings,
-    cancelledBookings,
-    totalReviews,
-    totalUsers,
+    { count: totalSalons },
+    { count: activeSalons },
+    { count: totalBookings },
+    { count: pendingBookings },
+    { count: confirmedBookings },
+    { count: completedBookings },
+    { count: cancelledBookings },
+    { count: totalReviews },
+    { count: totalUsers },
   ] = await Promise.all([
-    prisma.salon.count(),
-    prisma.salon.count({ where: { isActive: true } }),
-    prisma.booking.count(),
-    prisma.booking.count({ where: { status: 'pending' } }),
-    prisma.booking.count({ where: { status: 'confirmed' } }),
-    prisma.booking.count({ where: { status: 'completed' } }),
-    prisma.booking.count({ where: { status: 'cancelled' } }),
-    prisma.review.count(),
-    prisma.user.count(),
+    supabase.from('salons').select('*', { count: 'exact', head: true }),
+    supabase.from('salons').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    supabase.from('bookings').select('*', { count: 'exact', head: true }),
+    supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'confirmed'),
+    supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+    supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'cancelled'),
+    supabase.from('reviews').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
   ])
 
-  const avgRating = await prisma.review.aggregate({ _avg: { rating: true } })
+  // Calculate average rating in JS
+  const { data: ratings } = await supabase.from('reviews').select('rating')
+  const avgRat = ratings?.length ? ratings.reduce((a: number, b: any) => a + b.rating, 0) / ratings.length : 0
 
   const stats = [
-    { label: 'Salons gesamt', value: totalSalons },
-    { label: 'Salons aktiv', value: activeSalons },
-    { label: 'Buchungen gesamt', value: totalBookings },
-    { label: 'Pending', value: pendingBookings },
-    { label: 'Bestätigt', value: confirmedBookings },
-    { label: 'Abgeschlossen', value: completedBookings },
-    { label: 'Storniert', value: cancelledBookings },
-    { label: 'Bewertungen', value: totalReviews },
-    { label: 'Ø Bewertung', value: (avgRating._avg.rating || 0).toFixed(1) },
-    { label: 'Benutzer', value: totalUsers },
+    { label: 'Salons gesamt', value: totalSalons ?? 0 },
+    { label: 'Salons aktiv', value: activeSalons ?? 0 },
+    { label: 'Buchungen gesamt', value: totalBookings ?? 0 },
+    { label: 'Pending', value: pendingBookings ?? 0 },
+    { label: 'Bestätigt', value: confirmedBookings ?? 0 },
+    { label: 'Abgeschlossen', value: completedBookings ?? 0 },
+    { label: 'Storniert', value: cancelledBookings ?? 0 },
+    { label: 'Bewertungen', value: totalReviews ?? 0 },
+    { label: 'Ø Bewertung', value: avgRat.toFixed(1) },
+    { label: 'Benutzer', value: totalUsers ?? 0 },
   ]
 
   return (

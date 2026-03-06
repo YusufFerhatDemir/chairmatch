@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { registerSchema } from './auth.schemas'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -43,13 +43,11 @@ export async function signUpAction(formData: FormData) {
   // Profile is auto-created by Supabase trigger (handle_new_user)
   // But update the name in case trigger doesn't set it
   try {
-    await prisma.user.update({
-      where: { id: data.user.id },
-      data: {
-        fullName,
-        email,
-      },
-    })
+    const supabaseAdmin = getSupabaseAdmin()
+    await supabaseAdmin
+      .from('profiles')
+      .update({ full_name: fullName, email })
+      .eq('id', data.user.id)
   } catch {
     // Profile may not exist yet if trigger hasn't fired
   }

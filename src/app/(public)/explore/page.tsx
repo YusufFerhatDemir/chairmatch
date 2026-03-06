@@ -1,15 +1,33 @@
 export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
+
+interface Salon {
+  id: string
+  name: string
+  slug: string | null
+  description: string | null
+  city: string | null
+  avg_rating: number
+  services: { id: string; name: string }[]
+}
 
 export default async function ExplorePage() {
-  const salons = await prisma.salon.findMany({
-    where: { isActive: true },
-    include: {
-      services: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, take: 3 },
-    },
-    orderBy: [{ avgRating: 'desc' }],
-  })
+  let salons: Salon[] = []
+
+  try {
+    const supabase = getSupabaseAdmin()
+
+    const { data: salonData } = await supabase
+      .from('salons')
+      .select('id, name, slug, description, city, avg_rating, services(id, name)')
+      .eq('is_active', true)
+      .order('avg_rating', { ascending: false })
+
+    if (salonData) salons = salonData as unknown as Salon[]
+  } catch {
+    // DB connection failed — render empty state
+  }
 
   const cities = [...new Set(salons.map(s => s.city).filter(Boolean))]
 
@@ -50,7 +68,7 @@ export default async function ExplorePage() {
                     <div style={{ fontWeight: 700, fontSize: 'var(--font-md)', color: 'var(--cream)' }}>{s.name}</div>
                     <div style={{ fontSize: 'var(--font-sm)', color: 'var(--stone)', marginTop: 2 }}>{s.description}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                      <span style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)' }}>★ {Number(s.avgRating).toFixed(1)}</span>
+                      <span style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)' }}>&star; {Number(s.avg_rating).toFixed(1)}</span>
                       <span style={{ fontSize: 'var(--font-xs)', color: 'var(--stone2)' }}>{s.city}</span>
                     </div>
                   </div>

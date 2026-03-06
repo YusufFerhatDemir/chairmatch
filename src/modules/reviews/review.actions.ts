@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createReviewSchema, replySchema } from './review.schemas'
 import { checkEligibility, updateSalonRating } from './review.service'
 import { getServerSession } from '@/modules/auth/session'
@@ -30,38 +30,45 @@ export async function createReview(input: unknown) {
     }
   }
 
-  const review = await prisma.$transaction(async (tx) => {
-    const newReview = await tx.review.create({
-      data: {
-        customerId: customerId,
+  const supabase = getSupabaseAdmin()
+
+  // Step 1: Create review
+  const { data: newReview, error: reviewError } = await supabase
+    .from('reviews')
+    .insert({
+      customer_id: customerId,
+      salon_id: data.salonId,
+      booking_id: data.bookingId || null,
+      rating: data.rating,
+      comment: data.comment || null,
+    })
+    .select()
+    .single()
+
+  if (reviewError || !newReview) {
+    return { error: 'Bewertung konnte nicht erstellt werden.' }
+  }
+
+  // Step 2: Audit log (best effort)
+  try {
+    await supabase.from('audit_logs').insert({
+      user_id: customerId,
+      action: 'REVIEW_CREATED',
+      entity: 'review',
+      entity_id: newReview.id,
+      details: {
         salonId: data.salonId,
-        bookingId: data.bookingId || null,
         rating: data.rating,
-        comment: data.comment || null,
       },
     })
-
-    // Audit log
-    await tx.auditLog.create({
-      data: {
-        userId: customerId,
-        action: 'REVIEW_CREATED',
-        entity: 'review',
-        entityId: newReview.id,
-        details: {
-          salonId: data.salonId,
-          rating: data.rating,
-        },
-      },
-    })
-
-    return newReview
-  })
+  } catch {
+    console.error('Failed to create audit log')
+  }
 
   // Update salon aggregate (outside transaction for performance)
   await updateSalonRating(data.salonId)
 
-  return { success: true, reviewId: review.id }
+  return { success: true, reviewId: newReview.id }
 }
 
 export async function replyToReview(input: unknown) {
@@ -76,24 +83,30 @@ export async function replyToReview(input: unknown) {
     return { error: 'Nicht authentifiziert.' }
   }
 
-  const review = await prisma.review.findUnique({
-    where: { id: reviewId },
-    include: { salon: { select: { ownerId: true } } },
-  })
+  const supabase = getSupabaseAdmin()
+
+  const { data: review } = await supabase
+    .from('reviews')
+    .select(`
+      *,
+      salon:salons!inner(owner_id)
+    `)
+    .eq('id', reviewId)
+    .single()
 
   if (!review) {
     return { error: 'Bewertung nicht gefunden.' }
   }
 
   // Only salon owner can reply
-  if (review.salon.ownerId !== session.user.id) {
+  if (review.salon.owner_id !== session.user.id) {
     return { error: 'Keine Berechtigung.' }
   }
 
-  await prisma.review.update({
-    where: { id: reviewId },
-    data: { reply, repliedAt: new Date() },
-  })
+  await supabase
+    .from('reviews')
+    .update({ reply, replied_at: new Date().toISOString() })
+    .eq('id', reviewId)
 
   return { success: true }
 }
@@ -104,24 +117,29 @@ export async function flagReview(reviewId: string) {
     return { error: 'Nicht authentifiziert.' }
   }
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: 'REVIEW_FLAGGED',
-      entity: 'review',
-      entityId: reviewId,
-    },
+  const supabase = getSupabaseAdmin()
+
+  await supabase.from('audit_logs').insert({
+    user_id: session.user.id,
+    action: 'REVIEW_FLAGGED',
+    entity: 'review',
+    entity_id: reviewId,
   })
 
   return { success: true }
 }
 
 export async function getReviews(salonId: string) {
-  return prisma.review.findMany({
-    where: { salonId },
-    include: {
-      customer: { select: { fullName: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+  const supabase = getSupabaseAdmin()
+
+  const { data } = await supabase
+    .from('reviews')
+    .select(`
+      *,
+      customer:profiles!reviews_customer_id_fkey(full_name)
+    `)
+    .eq('salon_id', salonId)
+    .order('created_at', { ascending: false })
+
+  return data || []
 }

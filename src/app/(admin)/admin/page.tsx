@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { requireRole } from '@/modules/auth/session'
 import Link from 'next/link'
 
@@ -8,22 +8,27 @@ export default async function AdminPage() {
   const session = await requireRole(['admin', 'super_admin'])
   const userRole = (session.user as { role?: string }).role
 
-  const [salonCount, bookingCount, reviewCount, userCount] = await Promise.all([
-    prisma.salon.count(),
-    prisma.booking.count(),
-    prisma.review.count(),
-    prisma.user.count(),
+  const supabase = getSupabaseAdmin()
+
+  const [
+    { count: salonCount },
+    { count: bookingCount },
+    { count: reviewCount },
+    { count: userCount },
+  ] = await Promise.all([
+    supabase.from('salons').select('*', { count: 'exact', head: true }),
+    supabase.from('bookings').select('*', { count: 'exact', head: true }),
+    supabase.from('reviews').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
   ])
 
-  const recentBookings = await prisma.booking.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-    include: {
-      salon: { select: { name: true } },
-      service: { select: { name: true } },
-      customer: { select: { fullName: true } },
-    },
-  })
+  const { data: recentBookings } = await supabase
+    .from('bookings')
+    .select('*, salon:salons(name), service:services(name), customer:profiles(full_name)')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  const bookingsData = recentBookings ?? []
 
   return (
     <div className="shell">
@@ -36,19 +41,19 @@ export default async function AdminPage() {
         {/* KPIs */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
           <div className="card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--gold)' }}>{salonCount}</div>
+            <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--gold)' }}>{salonCount ?? 0}</div>
             <div style={{ fontSize: 'var(--font-xs)', color: 'var(--stone)' }}>Salons</div>
           </div>
           <div className="card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)' }}>{bookingCount}</div>
+            <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)' }}>{bookingCount ?? 0}</div>
             <div style={{ fontSize: 'var(--font-xs)', color: 'var(--stone)' }}>Buchungen</div>
           </div>
           <div className="card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)' }}>{reviewCount}</div>
+            <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)' }}>{reviewCount ?? 0}</div>
             <div style={{ fontSize: 'var(--font-xs)', color: 'var(--stone)' }}>Bewertungen</div>
           </div>
           <div className="card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)' }}>{userCount}</div>
+            <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)' }}>{userCount ?? 0}</div>
             <div style={{ fontSize: 'var(--font-xs)', color: 'var(--stone)' }}>Benutzer</div>
           </div>
         </div>
@@ -81,15 +86,15 @@ export default async function AdminPage() {
         {/* Recent bookings */}
         <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Letzte Buchungen</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {recentBookings.map(b => (
+          {bookingsData.map((b: any) => (
             <div key={b.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, color: 'var(--cream)', fontSize: 'var(--font-sm)' }}>{b.service?.name}</div>
                 <div style={{ fontSize: 'var(--font-xs)', color: 'var(--stone)' }}>
-                  {b.salon?.name} · {new Date(b.bookingDate).toLocaleDateString('de-DE')} {b.startTime.toISOString().slice(11, 16)}
+                  {b.salon?.name} · {new Date(b.booking_date).toLocaleDateString('de-DE')} {b.start_time?.slice(0, 5)}
                 </div>
                 <div style={{ fontSize: 'var(--font-xs)', color: 'var(--stone2)', marginTop: 2 }}>
-                  {b.customer?.fullName || 'Gast'}
+                  {b.customer?.full_name || 'Gast'}
                 </div>
               </div>
               <span className="badge badge-gold" style={{ fontSize: 9 }}>{b.status}</span>

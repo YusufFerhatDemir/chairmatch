@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { confirmBooking, completeBooking, markNoShow } from '@/modules/booking/booking.actions'
 
@@ -9,16 +9,20 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const booking = await prisma.booking.findUnique({
-      where: { id },
-      include: {
-        salon: { select: { name: true, category: true, city: true } },
-        service: { select: { name: true, durationMinutes: true, priceCents: true } },
-        customer: { select: { fullName: true, email: true } },
-      },
-    })
+    const supabase = getSupabaseAdmin()
 
-    if (!booking) {
+    const { data: booking, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        salon:salons!inner(name, category, city),
+        service:services!inner(name, duration_minutes, price_cents),
+        customer:profiles!bookings_customer_id_fkey(full_name, email)
+      `)
+      .eq('id', id)
+      .single()
+
+    if (error || !booking) {
       return NextResponse.json({ error: 'Nicht gefunden' }, { status: 404 })
     }
 
