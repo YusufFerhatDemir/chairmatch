@@ -674,9 +674,10 @@ button:focus-visible,
   .nbtn span:last-child { font-size: 8px !important; }
   .badge { padding: 3px 8px; font-size: 9px; }
   .bgold, .boutline { padding: 12px 16px; }
-  .catcard { border-radius: 13px; }
-  .catcard .catlbl { font-size: 10px; margin-top: 6px; }
-  .catcard .catsub { font-size: 7.5px; }
+  .catcard { padding: 10px 6px 10px; border-radius: 13px; }
+  .catcard .caticon { height: 100px; }
+  .catcard .catlbl { font-size: 11px; margin-top: 7px; }
+  .catcard .catsub { font-size: 8px; }
 }
 
 /* ═══ RESPONSIVE: Large phones ═══ */

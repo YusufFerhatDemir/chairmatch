@@ -588,6 +588,14 @@ export default function OnboardingGate({ slides, children }: Props) {
           <div style={{ marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
             <img src={slide.imageUrl} alt={slide.title} style={{ height: 140, objectFit: 'contain' }} />
           </div>
+        ) : slide.icon === 'chair' ? (
+          <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>
+            <img src="/icons/12_stuhlvermietung_512x384.png" style={{ height: 140, objectFit: 'contain' }} alt="Stuhlvermietung" />
+          </div>
+        ) : slide.icon === 'booking' ? (
+          <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>
+            <img src="/icons/11_termin_256x384.png" style={{ height: 150, objectFit: 'contain' }} alt="Termin" />
+          </div>
         ) : (
           <div style={{ fontSize: 60, marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>{slide.icon || '✨'}</div>
         )}

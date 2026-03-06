@@ -22,17 +22,17 @@ export function useOnboarding() {
 
 const slides = [
   {
-    icon: '💎',
+    icon: '/icons/logo_lockup_512x384.png',
     titleKey: 'ob_welcome' as const,
     subKey: 'ob_welcome_sub' as const,
   },
   {
-    icon: '📅',
+    icon: '/icons/11_termin_256x384.png',
     titleKey: 'ob_book' as const,
     subKey: 'ob_book_sub' as const,
   },
   {
-    icon: '✨',
+    icon: '/icons/12_stuhlvermietung_512x384.png',
     titleKey: 'ob_discover' as const,
     subKey: 'ob_discover_sub' as const,
   },

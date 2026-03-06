@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { t } from '@/i18n'
 import { Logo } from '@/components/ui/Logo'
+import { CATEGORY_ICONS } from '@/lib/constants'
 import { Stars } from '@/components/ui/Stars'
 import { Skeleton } from '@/components/ui/Skeleton'
 import type { AppLanguage } from '@/lib/types'
@@ -270,15 +271,7 @@ export function HomePage() {
                 aria-label={cat.label}
               >
                 <div className="caticon">
-                  {cat.icon_url ? (
-                    <img src={cat.icon_url} alt={cat.label} loading="lazy" />
-                  ) : (
-                    <div style={{
-                      width: '100%', height: '100%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'var(--c3)', fontSize: 32,
-                    }}>✂</div>
-                  )}
+                  <img src={cat.icon_url || CATEGORY_ICONS[cat.slug] || '/icons/01_barbershop_256x384.png'} alt={cat.label} loading="lazy" />
                 </div>
                 <div className="catlbl">{cat.label}</div>
                 <div className="catsub">{cat.description}</div>
