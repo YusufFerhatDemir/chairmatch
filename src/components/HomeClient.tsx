@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { PROVS, SPECS, SEARCH_SUGGESTIONS, CITIES, getProviderSpecs, type DemoProvider } from '@/lib/demo-data'
+import { PROVS, SPECS, SEARCH_SUGGESTIONS, CITIES, getProviderSpecs, type DemoProvider, type DemoRental } from '@/lib/demo-data'
 import { PROMO_CODES, RENTAL_ICONS } from '@/lib/constants'
 
 interface Category {
@@ -116,15 +116,18 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
   // Use DB salons if available, fallback to demo data
   const providers = dbSalons.length > 0 ? PROVS.concat(
     dbSalons.filter(s => !PROVS.some(p => p.id === s.id)).map(s => ({
-      id: s.id, nm: s.name, slug: s.slug || s.id,
+      id: s.id, nm: s.name, st: s.street || '',
       city: s.city || '', cat: s.category || 'friseur',
+      rt: s.avg_rating || 4.5, rc: s.review_count || 0,
       tl: s.tagline || s.description?.slice(0, 60) || '',
-      tags: s.tags || [], stars: s.avg_rating || 4.5, rev: s.review_count || 0,
-      live: true, veri: s.is_verified, tier: (s.subscription_tier || 'free') as DemoProvider['tier'],
-      img: s.logo_url || '', disc: s.discount || 0, bc: s.brand_color || '',
-      prom: s.is_promoted || false, free: s.free_slots || 0,
-      svs: s.services?.map(sv => ({ nm: sv.name, pr: 0, dur: 30 })) || [],
-      rental: s.rental_equipment?.map(r => ({ type: r.type, pr: r.price_per_day_cents / 100 })) || [],
+      tags: s.tags || [], disc: s.discount || 0, bc: s.brand_color || '',
+      prom: s.is_promoted || false, ver: s.is_verified,
+      live: true, frei: s.free_slots || 0, boost: 0,
+      tier: (s.subscription_tier || 'free') as DemoProvider['tier'],
+      logo: s.logo_url || null, sps: [],
+      svs: s.services?.map(sv => ({ id: sv.id, nm: sv.name, pr: 0, dur: 30 })) || [],
+      rental: s.rental_equipment?.map(r => ({ type: r.type as DemoRental['type'], pr: r.price_per_day_cents / 100 })) || [],
+      revs: [], gal: [],
     }))
   ) : PROVS
 

@@ -361,7 +361,7 @@ export default function SalonDetailClient({ salon, services, staff, reviews, ren
                     <a href={salon.phone ? `https://wa.me/${salon.phone.replace(/[^0-9]/g, '')}` : '#'} target="_blank" rel="noopener noreferrer" className="bgold" style={{ flex: 1, textAlign: 'center', textDecoration: 'none', padding: '10px', fontSize: 12 }}>
                       💬 WhatsApp
                     </a>
-                    <a href={`mailto:info@chairmatch.de?subject=Mietanfrage: ${salon.name} – ${r.label || r.type}&body=Hallo,%0A%0Aich interessiere mich für die Miete von: ${r.label || r.type} (${(r.price_per_day_cents / 100).toFixed(0)}€/Tag)%0A%0ASalon: ${salon.name}%0A%0AMit freundlichen Grüßen`} className="boutline" style={{ flex: 1, fontSize: 12, cursor: 'pointer', textAlign: 'center', textDecoration: 'none' }}>Jetzt mieten</a>
+                    <a href={`mailto:info@chairmatch.de?subject=Mietanfrage: ${salon.name} – ${r.name || r.type}&body=Hallo,%0A%0Aich interessiere mich für die Miete von: ${r.name || r.type} (${(r.price_per_day_cents / 100).toFixed(0)}€/Tag)%0A%0ASalon: ${salon.name}%0A%0AMit freundlichen Grüßen`} className="boutline" style={{ flex: 1, fontSize: 12, cursor: 'pointer', textAlign: 'center', textDecoration: 'none' }}>Jetzt mieten</a>
                   </div>
                 </div>
               ))}

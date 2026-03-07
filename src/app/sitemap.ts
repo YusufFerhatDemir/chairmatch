@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
-import { getSupabaseAdmin } from '@/lib/supabase-server'
+
+export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = 'https://chairmatch.de'
@@ -14,32 +15,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/impressum`, changeFrequency: 'monthly', priority: 0.3 },
   ]
 
-  // Dynamic: salons
-  const supabase = getSupabaseAdmin()
-  const { data: salons } = await supabase
-    .from('salons')
-    .select('slug, updated_at')
-    .eq('is_live', true)
-    .limit(500)
+  try {
+    const { getSupabaseAdmin } = await import('@/lib/supabase-server')
+    const supabase = getSupabaseAdmin()
 
-  const salonPages: MetadataRoute.Sitemap = (salons ?? []).map(s => ({
-    url: `${base}/salon/${s.slug}`,
-    lastModified: s.updated_at || undefined,
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }))
+    // Dynamic: salons
+    const { data: salons } = await supabase
+      .from('salons')
+      .select('slug, updated_at')
+      .eq('is_live', true)
+      .limit(500)
 
-  // Dynamic: categories
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('slug')
-    .eq('is_active', true)
+    const salonPages: MetadataRoute.Sitemap = (salons ?? []).map(s => ({
+      url: `${base}/salon/${s.slug}`,
+      lastModified: s.updated_at || undefined,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
 
-  const catPages: MetadataRoute.Sitemap = (categories ?? []).map(c => ({
-    url: `${base}/category/${c.slug}`,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }))
+    // Dynamic: categories
+    const { data: categories } = await supabase
+      .from('categories')
+      .select('slug')
+      .eq('is_active', true)
 
-  return [...staticPages, ...salonPages, ...catPages]
+    const catPages: MetadataRoute.Sitemap = (categories ?? []).map(c => ({
+      url: `${base}/category/${c.slug}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
+
+    return [...staticPages, ...salonPages, ...catPages]
+  } catch {
+    return staticPages
+  }
 }
