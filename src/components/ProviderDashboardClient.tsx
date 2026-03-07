@@ -1,0 +1,283 @@
+'use client'
+
+import { useState } from 'react'
+
+interface Salon {
+  id: string; name: string; description: string | null; city: string | null
+  address: string | null; phone: string | null; email: string | null
+  website: string | null; tagline: string | null; avg_rating: number
+  review_count: number; is_live: boolean; status: string
+  opening_hours: Record<string, string> | null
+}
+
+interface Service {
+  id: string; name: string; description: string | null
+  duration_min: number; price_cents: number; is_active: boolean; sort_order: number
+}
+
+interface Booking {
+  id: string; booking_date: string; start_time: string; status: string
+  service: { name: string } | null; customer: { full_name: string } | null
+}
+
+interface Review {
+  id: string; rating: number; comment: string | null
+  customer: { full_name: string } | null; created_at: string
+}
+
+interface Props {
+  salon: Salon
+  services: Service[]
+  bookings: Booking[]
+  reviews: Review[]
+}
+
+type Tab = 'overview' | 'edit' | 'services' | 'bookings'
+
+const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
+
+export default function ProviderDashboardClient({ salon, services: initServices, bookings, reviews }: Props) {
+  const [tab, setTab] = useState<Tab>('overview')
+  const [form, setForm] = useState({
+    name: salon.name, description: salon.description || '', city: salon.city || '',
+    address: salon.address || '', phone: salon.phone || '', email: salon.email || '',
+    website: salon.website || '', tagline: salon.tagline || '',
+  })
+  const [hours, setHours] = useState<Record<string, string>>(salon.opening_hours || {})
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState('')
+  const [services, setServices] = useState(initServices)
+  const [newSvc, setNewSvc] = useState({ name: '', price: '', duration: '30' })
+  const [editSvc, setEditSvc] = useState<string | null>(null)
+
+  async function saveSalon() {
+    setSaving(true); setSaveMsg('')
+    const res = await fetch('/api/provider/salon', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, opening_hours: hours }),
+    })
+    setSaving(false)
+    setSaveMsg(res.ok ? 'Gespeichert!' : 'Fehler beim Speichern')
+    setTimeout(() => setSaveMsg(''), 3000)
+  }
+
+  async function addService() {
+    if (!newSvc.name) return
+    const res = await fetch('/api/provider/services', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: newSvc.name,
+        price_cents: Math.round(parseFloat(newSvc.price || '0') * 100),
+        duration_min: parseInt(newSvc.duration) || 30,
+      }),
+    })
+    if (res.ok) {
+      const svc = await res.json()
+      setServices(prev => [...prev, svc])
+      setNewSvc({ name: '', price: '', duration: '30' })
+    }
+  }
+
+  async function deleteService(id: string) {
+    const res = await fetch('/api/provider/services', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    if (res.ok) setServices(prev => prev.filter(s => s.id !== id))
+  }
+
+  async function updateService(svc: Service) {
+    await fetch('/api/provider/services', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(svc),
+    })
+    setEditSvc(null)
+  }
+
+  async function updateBookingStatus(id: string, status: string) {
+    await fetch(`/api/bookings/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    window.location.reload()
+  }
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'overview', label: 'Übersicht' },
+    { key: 'edit', label: 'Salon' },
+    { key: 'services', label: 'Services' },
+    { key: 'bookings', label: 'Termine' },
+  ]
+
+  const inp = { className: 'inp', style: { width: '100%' } as const }
+  const lbl = { style: { fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 } as const }
+
+  return (
+    <div className="shell">
+      <div className="screen" style={{ padding: 'var(--pad)' }}>
+        <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginBottom: 4 }}>Dashboard</h1>
+        <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginBottom: 16 }}>
+          {salon.name} · {salon.is_live ? '🟢 Online' : '🔴 Offline'} · Status: {salon.status}
+        </p>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 20, overflowX: 'auto' }}>
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={tab === t.key ? 'bgold' : 'boutline'}
+              style={{ padding: '8px 14px', fontSize: 12, whiteSpace: 'nowrap' }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* OVERVIEW */}
+        {tab === 'overview' && (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
+              {[
+                { v: `★ ${Number(salon.avg_rating).toFixed(1)}`, l: 'Bewertung', c: 'var(--gold)' },
+                { v: salon.review_count, l: 'Bewertungen', c: 'var(--cream)' },
+                { v: bookings.length, l: 'Offene Termine', c: 'var(--cream)' },
+                { v: services.length, l: 'Services', c: 'var(--cream)' },
+              ].map((k, i) => (
+                <div key={i} className="card" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: k.c }}>{k.v}</div>
+                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--stone)' }}>{k.l}</div>
+                </div>
+              ))}
+            </div>
+
+            <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Neueste Bewertungen</h2>
+            {reviews.length === 0 ? <p style={{ color: 'var(--stone)', marginBottom: 24 }}>Keine Bewertungen.</p> : reviews.map(r => (
+              <div key={r.id} className="card" style={{ marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{r.customer?.full_name || 'Gast'}</span>
+                  <span style={{ color: 'var(--gold)' }}>{'★'.repeat(r.rating)}</span>
+                </div>
+                {r.comment && <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginTop: 4 }}>{r.comment}</p>}
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* EDIT SALON */}
+        {tab === 'edit' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {([
+              ['Salonname', 'name', 'text'], ['Tagline', 'tagline', 'text'],
+              ['Stadt', 'city', 'text'], ['Adresse', 'address', 'text'],
+              ['Telefon', 'phone', 'tel'], ['E-Mail', 'email', 'email'],
+              ['Website', 'website', 'url'],
+            ] as const).map(([label, key, type]) => (
+              <div key={key}>
+                <label {...lbl}>{label}</label>
+                <input {...inp} type={type} value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))} />
+              </div>
+            ))}
+            <div>
+              <label {...lbl}>Beschreibung</label>
+              <textarea className="inp" rows={4} style={{ width: '100%', resize: 'vertical' }}
+                value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
+            </div>
+
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--cream)', marginTop: 8 }}>Öffnungszeiten</h3>
+            {DAYS.map(day => (
+              <div key={day} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ width: 90, fontSize: 12, color: 'var(--stone)' }}>{day}</span>
+                <input {...inp} placeholder="09:00 - 18:00" value={hours[day] || ''}
+                  onChange={e => setHours(p => ({ ...p, [day]: e.target.value }))} style={{ flex: 1 }} />
+              </div>
+            ))}
+
+            <button className="bgold" onClick={saveSalon} disabled={saving} style={{ marginTop: 8 }}>
+              {saving ? 'Speichern...' : 'Änderungen speichern'}
+            </button>
+            {saveMsg && <p style={{ fontSize: 12, color: saveMsg === 'Gespeichert!' ? 'var(--gold2)' : 'var(--red)', marginTop: 4 }}>{saveMsg}</p>}
+          </div>
+        )}
+
+        {/* SERVICES */}
+        {tab === 'services' && (
+          <>
+            <div className="card" style={{ padding: 14, marginBottom: 16 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)', marginBottom: 10 }}>Neuen Service hinzufügen</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <input {...inp} placeholder="Name (z.B. Herrenschnitt)" value={newSvc.name} onChange={e => setNewSvc(p => ({ ...p, name: e.target.value }))} />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input {...inp} type="number" placeholder="Preis €" value={newSvc.price} onChange={e => setNewSvc(p => ({ ...p, price: e.target.value }))} style={{ flex: 1 }} />
+                  <input {...inp} type="number" placeholder="Min." value={newSvc.duration} onChange={e => setNewSvc(p => ({ ...p, duration: e.target.value }))} style={{ flex: 1 }} />
+                </div>
+                <button className="bgold" onClick={addService} style={{ fontSize: 13 }}>+ Hinzufügen</button>
+              </div>
+            </div>
+
+            {services.length === 0 ? <p style={{ color: 'var(--stone)' }}>Keine Services angelegt.</p> : services.map(svc => (
+              <div key={svc.id} className="card" style={{ marginBottom: 8, padding: 12 }}>
+                {editSvc === svc.id ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <input {...inp} value={svc.name} onChange={e => setServices(p => p.map(s => s.id === svc.id ? { ...s, name: e.target.value } : s))} />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input {...inp} type="number" value={(svc.price_cents / 100).toString()} style={{ flex: 1 }}
+                        onChange={e => setServices(p => p.map(s => s.id === svc.id ? { ...s, price_cents: Math.round(parseFloat(e.target.value) * 100) } : s))} />
+                      <input {...inp} type="number" value={svc.duration_min.toString()} style={{ flex: 1 }}
+                        onChange={e => setServices(p => p.map(s => s.id === svc.id ? { ...s, duration_min: parseInt(e.target.value) || 30 } : s))} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="bgold" onClick={() => updateService(svc)} style={{ flex: 1, fontSize: 12 }}>Speichern</button>
+                      <button className="boutline" onClick={() => setEditSvc(null)} style={{ flex: 1, fontSize: 12 }}>Abbrechen</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--cream)' }}>{svc.name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--stone)' }}>{(svc.price_cents / 100).toFixed(0)}€ · {svc.duration_min} Min.</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => setEditSvc(svc.id)} style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', fontSize: 13 }}>✎</button>
+                      <button onClick={() => deleteService(svc.id)} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 13 }}>✕</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* BOOKINGS */}
+        {tab === 'bookings' && (
+          <>
+            {bookings.length === 0 ? <p style={{ color: 'var(--stone)' }}>Keine offenen Termine.</p> : bookings.map(b => (
+              <div key={b.id} className="card" style={{ marginBottom: 8, padding: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--cream)' }}>{b.service?.name || 'Service'}</div>
+                    <div style={{ fontSize: 12, color: 'var(--stone)' }}>
+                      {new Date(b.booking_date).toLocaleDateString('de-DE')} · {b.start_time?.slice(0, 5)} · {b.customer?.full_name || 'Gast'}
+                    </div>
+                  </div>
+                  <span className="badge badge-gold" style={{ fontSize: 10 }}>{b.status}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  {b.status === 'pending' && (
+                    <button className="bgold" onClick={() => updateBookingStatus(b.id, 'confirmed')} style={{ flex: 1, fontSize: 12, padding: '8px 0' }}>
+                      Bestätigen
+                    </button>
+                  )}
+                  {['pending', 'confirmed'].includes(b.status) && (
+                    <button className="boutline" onClick={() => updateBookingStatus(b.id, 'cancelled')} style={{ flex: 1, fontSize: 12, padding: '8px 0' }}>
+                      Absagen
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        <div style={{ height: 80 }} />
+      </div>
+    </div>
+  )
+}
