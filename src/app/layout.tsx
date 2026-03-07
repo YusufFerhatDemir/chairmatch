@@ -35,6 +35,13 @@ export const metadata: Metadata = {
     siteName: 'ChairMatch',
     locale: 'de_DE',
     type: 'website',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Beauty Booking Deutschland' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ChairMatch — Beauty Booking Deutschland',
+    description: 'Buche Termine bei Top-Salons, Barbershops & Kosmetikstudios. 0% Provision.',
+    images: ['/og-image.png'],
   },
   manifest: '/manifest.json',
   icons: {
@@ -65,6 +72,7 @@ export default function RootLayout({
           {children}
           <BottomNav />
         </Providers>
+        <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}` }} />
       </body>
     </html>
   )

@@ -1,0 +1,106 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { z } from 'zod'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+const providerSchema = z.object({
+  vn: z.string().min(2),
+  nn: z.string().min(2),
+  em: z.string().email(),
+  tel: z.string().min(5),
+  geschaeft: z.string().min(2),
+  st: z.string().min(2),
+  plz: z.string().min(4),
+  city: z.string().min(2),
+  kat: z.string().min(1),
+  iban: z.string().optional(),
+  gb: z.boolean(),
+  chair: z.boolean(),
+  cpr: z.string().optional(),
+  agb: z.literal(true),
+  dsgvo: z.literal(true),
+})
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const parsed = providerSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
+    const d = parsed.data
+
+    // 1. Create Supabase Auth user
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const password = Math.random().toString(36).slice(-10) + 'A1!'
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: d.em,
+      password,
+      options: { data: { full_name: `${d.vn} ${d.nn}` } },
+    })
+
+    if (authError || !authData.user) {
+      return NextResponse.json(
+        { error: authError?.message || 'Registrierung fehlgeschlagen' },
+        { status: 400 }
+      )
+    }
+
+    const userId = authData.user.id
+    const admin = getSupabaseAdmin()
+
+    // 2. Update profile with provider role
+    await admin
+      .from('profiles')
+      .upsert({
+        id: userId,
+        email: d.em,
+        full_name: `${d.vn} ${d.nn}`,
+        role: 'anbieter',
+        phone: d.tel,
+      })
+
+    // 3. Create salon entry
+    const slug = d.geschaeft
+      .toLowerCase()
+      .replace(/[äÄ]/g, 'ae').replace(/[öÖ]/g, 'oe').replace(/[üÜ]/g, 'ue').replace(/ß/g, 'ss')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+
+    const { error: salonError } = await admin.from('salons').insert({
+      owner_id: userId,
+      name: d.geschaeft,
+      slug: `${slug}-${Date.now().toString(36)}`,
+      city: d.city,
+      address: `${d.st}, ${d.plz} ${d.city}`,
+      category: d.kat.toLowerCase(),
+      status: 'pending',
+      is_live: false,
+      chair_rental: d.chair,
+      chair_price_day: d.chair && d.cpr ? parseFloat(d.cpr) : null,
+      gewerbe_check: d.gb,
+    })
+
+    if (salonError) {
+      return NextResponse.json(
+        { error: 'Salon konnte nicht erstellt werden: ' + salonError.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true, tempPassword: password })
+  } catch {
+    return NextResponse.json(
+      { error: 'Interner Serverfehler' },
+      { status: 500 }
+    )
+  }
+}

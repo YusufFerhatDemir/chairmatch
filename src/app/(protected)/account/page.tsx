@@ -7,7 +7,8 @@ import Link from 'next/link'
 
 interface Booking {
   id: string
-  date: string
+  date?: string
+  booking_date?: string
   start_time: string
   status: string
   total_price_cents: number
@@ -135,7 +136,7 @@ export default function AccountPage() {
               <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 2 }}>{b.service?.name || 'Service'}</p>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 12, color: 'var(--stone)' }}>
-                  {b.date} · {b.start_time?.slice(0, 5)}
+                  {b.booking_date || b.date} · {b.start_time?.slice(0, 5)}
                 </span>
                 <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--gold2)' }}>
                   {b.total_price_cents ? (b.total_price_cents / 100).toFixed(0) + ' €' : ''}

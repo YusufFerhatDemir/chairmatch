@@ -16,6 +16,8 @@ interface RegData {
 export default function AnbieterRegisterPage() {
   const [step, setStep] = useState(1)
   const [done, setDone] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [f, setF] = useState<RegData>({
     vn: '', nn: '', em: '', tel: '',
     geschaeft: '', st: '', plz: '', city: '', kat: '', iban: '', gb: false,
@@ -216,14 +218,39 @@ export default function AnbieterRegisterPage() {
             <button
               className="bgold"
               style={{ flex: 1, padding: '14px 0', fontSize: 14, fontWeight: 800 }}
-              disabled={step === 4 && (!f.agb || !f.dsgvo)}
-              onClick={() => {
-                if (step === 4) setDone(true)
-                else setStep(step + 1)
+              disabled={(step === 4 && (!f.agb || !f.dsgvo)) || submitting}
+              onClick={async () => {
+                if (step === 4) {
+                  setSubmitting(true)
+                  setSubmitError(null)
+                  try {
+                    const res = await fetch('/api/register-provider', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(f),
+                    })
+                    const data = await res.json()
+                    if (!res.ok) {
+                      setSubmitError(data.error || 'Registrierung fehlgeschlagen')
+                    } else {
+                      setDone(true)
+                    }
+                  } catch {
+                    setSubmitError('Netzwerkfehler. Bitte erneut versuchen.')
+                  }
+                  setSubmitting(false)
+                } else {
+                  setStep(step + 1)
+                }
               }}
             >
-              {step === 4 ? 'Jetzt registrieren →' : 'Weiter →'}
+              {submitting ? 'Wird gesendet...' : step === 4 ? 'Jetzt registrieren →' : 'Weiter →'}
             </button>
+            {submitError && (
+              <div style={{ background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.3)', borderRadius: 10, padding: 10, marginTop: 10, color: 'var(--red)', fontSize: 12 }}>
+                {submitError}
+              </div>
+            )}
           </div>
         </div>
 
