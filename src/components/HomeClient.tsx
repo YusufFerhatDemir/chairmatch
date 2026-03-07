@@ -71,6 +71,8 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
   const [searchQuery, setSearchQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
   const [favorites, setFavorites] = useState<string[]>([])
+  const [nlEmail, setNlEmail] = useState('')
+  const [nlStatus, setNlStatus] = useState<'idle' | 'ok' | 'err'>('idle')
   const [showFilter, setShowFilter] = useState(false)
   const [filterCity, setFilterCity] = useState('all')
   const [filterMinRating, setFilterMinRating] = useState(0)
@@ -330,10 +332,21 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         <div className="card" style={{ padding: 18, textAlign: 'center' }}>
           <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--gold2)', marginBottom: 6 }}>Newsletter</p>
           <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 12 }}>Exklusive Angebote & neue Salons direkt in dein Postfach</p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input type="email" placeholder="E-Mail Adresse" className="inp" style={{ flex: 1 }} />
-            <button className="bgold" style={{ padding: '10px 16px', fontSize: 12, whiteSpace: 'nowrap' }}>Anmelden</button>
-          </div>
+          {nlStatus === 'ok' ? (
+            <p style={{ fontSize: 13, color: 'var(--gold2)', fontWeight: 700 }}>Erfolgreich angemeldet!</p>
+          ) : (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input type="email" placeholder="E-Mail Adresse" className="inp" style={{ flex: 1 }} value={nlEmail} onChange={e => setNlEmail(e.target.value)} />
+              <button className="bgold" style={{ padding: '10px 16px', fontSize: 12, whiteSpace: 'nowrap' }} onClick={async () => {
+                if (!nlEmail) return
+                try {
+                  const res = await fetch('/api/newsletter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: nlEmail }) })
+                  setNlStatus(res.ok ? 'ok' : 'err')
+                } catch { setNlStatus('err') }
+              }}>Anmelden</button>
+            </div>
+          )}
+          {nlStatus === 'err' && <p style={{ fontSize: 11, color: 'var(--red)', marginTop: 6 }}>Fehler — bitte erneut versuchen.</p>}
         </div>
       </section>
 
