@@ -3,6 +3,7 @@ import { DM_Sans, Cinzel, Cormorant_Garamond } from 'next/font/google'
 import { Providers } from './providers'
 import DynamicTheme from '@/components/DynamicTheme'
 import BottomNav from '@/components/BottomNav'
+import ConsentBanner from '@/components/ConsentBanner'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -71,6 +72,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <BottomNav />
+          <ConsentBanner />
         </Providers>
         <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}` }} />
       </body>
