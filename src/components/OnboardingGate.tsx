@@ -151,8 +151,14 @@ export default function OnboardingGate({ slides, children }: Props) {
   )
 
   const logo = () => (
-    <div style={{ marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
-      <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 140, objectFit: 'contain' }} />
+    <div style={{
+      marginBottom: 20,
+      padding: 20,
+      animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
+      display: 'inline-block',
+      boxSizing: 'border-box',
+    }}>
+      <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} />
     </div>
   )
 
@@ -587,20 +593,20 @@ export default function OnboardingGate({ slides, children }: Props) {
         padding: 'max(env(safe-area-inset-top, 30px), 30px) 30px max(env(safe-area-inset-bottom, 30px), 30px)',
       }}>
         {isFirst ? (
-          <div style={{ marginBottom: 10, padding: 16, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', boxSizing: 'border-box' }}>
-            <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 120, maxWidth: 280, objectFit: 'contain', display: 'block' }} />
+          <div style={{ marginBottom: 10, padding: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', boxSizing: 'border-box' }}>
+            <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} />
           </div>
         ) : slide.imageUrl ? (
-          <div style={{ marginBottom: 20, padding: 16, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', boxSizing: 'border-box' }}>
-            <img src={slide.imageUrl} alt={slide.title} style={{ height: 120, maxWidth: 280, objectFit: 'contain', display: 'block' }} />
+          <div style={{ marginBottom: 20, padding: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', boxSizing: 'border-box' }}>
+            <img src={slide.imageUrl} alt={slide.title} style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} />
           </div>
         ) : slide.icon === 'chair' ? (
-          <div style={{ marginBottom: 14, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', boxSizing: 'border-box' }}>
-            <img src="/icons/12_stuhlvermietung_512x384.png" style={{ height: 120, maxWidth: 280, objectFit: 'contain', display: 'block' }} alt="Stuhlvermietung" />
+          <div style={{ marginBottom: 14, padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', boxSizing: 'border-box' }}>
+            <img src="/icons/12_stuhlvermietung_512x384.png" style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} alt="Stuhlvermietung" />
           </div>
         ) : slide.icon === 'booking' ? (
-          <div style={{ marginBottom: 14, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', boxSizing: 'border-box' }}>
-            <img src="/icons/11_termin_256x384.png" style={{ height: 120, maxWidth: 280, objectFit: 'contain', display: 'block' }} alt="Termin" />
+          <div style={{ marginBottom: 14, padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', boxSizing: 'border-box' }}>
+            <img src="/icons/11_termin_256x384.png" style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} alt="Termin" />
           </div>
         ) : (
           <div style={{ fontSize: 60, marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>{slide.icon || '✨'}</div>

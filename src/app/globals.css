@@ -344,20 +344,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: 14px;
   box-sizing: border-box;
   overflow: visible;
 }
 
 .catcard .caticon img {
-  max-width: 72% !important;
-  max-height: 72% !important;
+  max-width: 70% !important;
+  max-height: 70% !important;
   width: auto !important;
   height: auto !important;
   object-fit: contain !important;
   object-position: center;
-  filter: drop-shadow(0 0 8px rgba(200,168,75,0.45)) drop-shadow(0 0 20px rgba(200,168,75,0.12));
-  border-radius: 12px;
+  filter: drop-shadow(0 0 6px rgba(200,168,75,0.4)) drop-shadow(0 0 16px rgba(200,168,75,0.1));
+  border-radius: 14px;
 }
 
 /* Onboarding „Was ist dein Handwerk?“: Icon fest 48px, sitzt klar im Rahmen */
@@ -387,8 +387,8 @@ body {
 
 @media (max-width: 374px) {
   .catcard { padding: 10px 6px 10px; border-radius: 13px; }
-  .catcard .caticon { height: 100px; padding: 10px; }
-  .catcard .caticon img { max-width: 68%; max-height: 68%; }
+  .catcard .caticon { height: 100px; padding: 12px; }
+  .catcard .caticon img { max-width: 66%; max-height: 66%; }
   .catcard .catlbl { font-size: 11px; margin-top: 7px; }
   .catcard .catsub { font-size: 8px; }
 }
