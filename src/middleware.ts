@@ -9,6 +9,7 @@ const publicPaths = [
   '/rentals',
   '/datenschutz',
   '/impressum',
+  '/agb',
   '/auth',
   '/api/auth',
 ]

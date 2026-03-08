@@ -15,11 +15,10 @@ export default function DatenschutzPage() {
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>1. Verantwortlicher</h2>
           <p>
             ChairMatch Deutschland<br />
-            Yusuf Demir<br />
-            [Straße + Hausnummer]<br />
-            [PLZ Stadt]<br />
-            E-Mail: info@chairmatch.de<br />
-            Telefon: [Telefonnummer]
+            Yusuf Ferhat Demir<br />
+            Schillerstrasse 31<br />
+            60313 Frankfurt am Main<br />
+            E-Mail: info@chairmatch.de
           </p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>2. Erhobene Daten</h2>

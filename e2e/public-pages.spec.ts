@@ -9,6 +9,7 @@ const publicPages = [
   { path: '/auth', titleMatch: /ChairMatch/ },
   { path: '/datenschutz', titleMatch: /ChairMatch/ },
   { path: '/impressum', titleMatch: /ChairMatch/ },
+  { path: '/agb', titleMatch: /ChairMatch/ },
 ]
 
 for (const { path, titleMatch } of publicPages) {

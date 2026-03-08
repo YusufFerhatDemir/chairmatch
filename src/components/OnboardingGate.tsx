@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { CATEGORIES, CATEGORY_ICONS, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
 
@@ -269,8 +270,8 @@ export default function OnboardingGate({ slides, children }: Props) {
               {provCat === cat.id && (
                 <div style={{ position: 'absolute', top: 8, right: 8, width: 20, height: 20, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#080706', fontWeight: 800 }}>✓</div>
               )}
-              <div className="caticon" style={{ height: 80 }}>
-                <img src={CATEGORY_ICONS[cat.id] || '/icons/01_barbershop_256x384.png'} alt={cat.label} />
+              <div className="caticon" style={{ height: 80, padding: 8, boxSizing: 'border-box' }}>
+                <img src={CATEGORY_ICONS[cat.id] || '/icons/01_barbershop_256x384.png'} alt={cat.label} style={{ maxWidth: '72%', maxHeight: '72%', objectFit: 'contain' }} />
               </div>
               <div className="catlbl" style={{ fontSize: 12 }}>{cat.label}</div>
               <div className="catsub">{cat.sub}</div>
@@ -515,7 +516,12 @@ export default function OnboardingGate({ slides, children }: Props) {
           <div style={{ width: 22, height: 22, borderRadius: 5, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: 'var(--gold)', background: agb ? 'rgba(200,168,75,.15)' : 'transparent', flexShrink: 0 }}>
             {agb ? '✓' : ''}
           </div>
-          <span style={{ fontSize: 12, color: 'var(--cream)', textAlign: 'left' }}>Ich akzeptiere die AGB & Datenschutzerklärung</span>
+          <span style={{ fontSize: 12, color: 'var(--cream)', textAlign: 'left' }}>
+            Ich akzeptiere die{' '}
+            <Link href="/agb" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>AGB</Link>
+            {' '}& die{' '}
+            <Link href="/datenschutz" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>Datenschutzerklärung</Link>
+          </span>
         </button>
 
         <button className="bgold" disabled={!agb} onClick={() => {
@@ -581,20 +587,20 @@ export default function OnboardingGate({ slides, children }: Props) {
         padding: 'max(env(safe-area-inset-top, 30px), 30px) 30px max(env(safe-area-inset-bottom, 30px), 30px)',
       }}>
         {isFirst ? (
-          <div style={{ marginBottom: 10, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
-            <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 140, objectFit: 'contain' }} />
+          <div style={{ marginBottom: 10, padding: 16, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', boxSizing: 'border-box' }}>
+            <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 120, maxWidth: 280, objectFit: 'contain', display: 'block' }} />
           </div>
         ) : slide.imageUrl ? (
-          <div style={{ marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
-            <img src={slide.imageUrl} alt={slide.title} style={{ height: 140, objectFit: 'contain' }} />
+          <div style={{ marginBottom: 20, padding: 16, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', boxSizing: 'border-box' }}>
+            <img src={slide.imageUrl} alt={slide.title} style={{ height: 120, maxWidth: 280, objectFit: 'contain', display: 'block' }} />
           </div>
         ) : slide.icon === 'chair' ? (
-          <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>
-            <img src="/icons/12_stuhlvermietung_512x384.png" style={{ height: 140, objectFit: 'contain' }} alt="Stuhlvermietung" />
+          <div style={{ marginBottom: 14, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', boxSizing: 'border-box' }}>
+            <img src="/icons/12_stuhlvermietung_512x384.png" style={{ height: 120, maxWidth: 280, objectFit: 'contain', display: 'block' }} alt="Stuhlvermietung" />
           </div>
         ) : slide.icon === 'booking' ? (
-          <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>
-            <img src="/icons/11_termin_256x384.png" style={{ height: 150, objectFit: 'contain' }} alt="Termin" />
+          <div style={{ marginBottom: 14, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', boxSizing: 'border-box' }}>
+            <img src="/icons/11_termin_256x384.png" style={{ height: 120, maxWidth: 280, objectFit: 'contain', display: 'block' }} alt="Termin" />
           </div>
         ) : (
           <div style={{ fontSize: 60, marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>{slide.icon || '✨'}</div>

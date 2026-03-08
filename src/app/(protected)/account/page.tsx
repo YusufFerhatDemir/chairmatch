@@ -173,6 +173,7 @@ export default function AccountPage() {
           {([
             ['📋 Datenschutzerklärung (DSGVO)', '/datenschutz'] as const,
             ['📄 Impressum', '/impressum'] as const,
+            ['📜 AGB', '/agb'] as const,
             ['💺 Als Anbieter registrieren', '/register/anbieter'] as const,
           ]).map(([label, href]) => (
             <Link key={href} href={href} style={{ textDecoration: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(200,168,75,0.06)' }}>
