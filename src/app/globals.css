@@ -350,14 +350,22 @@ body {
 }
 
 .catcard .caticon img {
-  max-width: 72%;
-  max-height: 72%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
+  max-width: 72% !important;
+  max-height: 72% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
   object-position: center;
   filter: drop-shadow(0 0 8px rgba(200,168,75,0.45)) drop-shadow(0 0 20px rgba(200,168,75,0.12));
   border-radius: 12px;
+}
+
+/* Onboarding „Was ist dein Handwerk?“: Icon fest 48px, sitzt klar im Rahmen */
+.catcard .caticon img.icon-in-frame {
+  max-width: 56px !important;
+  max-height: 48px !important;
+  height: 48px !important;
+  width: auto !important;
 }
 
 .catcard .catlbl {

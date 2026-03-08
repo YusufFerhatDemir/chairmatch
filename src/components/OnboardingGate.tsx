@@ -270,8 +270,8 @@ export default function OnboardingGate({ slides, children }: Props) {
               {provCat === cat.id && (
                 <div style={{ position: 'absolute', top: 8, right: 8, width: 20, height: 20, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#080706', fontWeight: 800 }}>✓</div>
               )}
-              <div className="caticon" style={{ height: 80, padding: 8, boxSizing: 'border-box' }}>
-                <img src={CATEGORY_ICONS[cat.id] || '/icons/01_barbershop_256x384.png'} alt={cat.label} style={{ maxWidth: '72%', maxHeight: '72%', objectFit: 'contain' }} />
+              <div className="caticon" style={{ height: 80, padding: 8, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img className="icon-in-frame" src={CATEGORY_ICONS[cat.id] || '/icons/01_barbershop_256x384.png'} alt={cat.label} style={{ objectFit: 'contain' }} />
               </div>
               <div className="catlbl" style={{ fontSize: 12 }}>{cat.label}</div>
               <div className="catsub">{cat.sub}</div>
