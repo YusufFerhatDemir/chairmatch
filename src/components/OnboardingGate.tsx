@@ -153,12 +153,59 @@ export default function OnboardingGate({ slides, children }: Props) {
   const logo = () => (
     <div style={{
       marginBottom: 20,
-      padding: 20,
-      animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
-      display: 'inline-block',
-      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 10,
     }}>
-      <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} />
+      <div
+        style={{
+          width: 96,
+          height: 96,
+          borderRadius: '999px',
+          background: 'radial-gradient(circle at 30% 20%, rgba(245,224,128,0.9), rgba(200,168,75,0.18) 40%, transparent 70%)',
+          boxShadow: '0 0 40px rgba(200,168,75,0.35)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
+        }}
+      >
+        <img
+          src="/icons/logo_symbol_512x512.png"
+          alt="ChairMatch"
+          style={{
+            width: 52,
+            height: 52,
+            objectFit: 'contain',
+            display: 'block',
+          }}
+        />
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <p
+          className="cinzel"
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            letterSpacing: 2,
+            color: 'var(--gold2)',
+            lineHeight: 1,
+            marginBottom: 3,
+          }}
+        >
+          CHAIR<span style={{ color: 'var(--gold3)' }}>MATCH</span>
+        </p>
+        <p
+          style={{
+            fontSize: 8,
+            letterSpacing: 3,
+            color: 'var(--stone)',
+          }}
+        >
+          DEUTSCHLAND
+        </p>
+      </div>
     </div>
   )
 
@@ -574,7 +621,19 @@ export default function OnboardingGate({ slides, children }: Props) {
   }
 
   // ═══ SLIDES ═══
-  const slide = slides[step] || { title: 'Willkommen', subtitle: '', icon: null, imageUrl: null }
+  const rawSlide = slides[step] || { title: 'Willkommen', subtitle: '', icon: null, imageUrl: null }
+  const slide = (() => {
+    if (!rawSlide) return { title: 'Willkommen', subtitle: '', icon: null, imageUrl: null }
+    // Entdecken-Slide: kurz erklären, was ChairMatch macht
+    if (rawSlide.title === 'Entdecken') {
+      return {
+        ...rawSlide,
+        subtitle:
+          'ChairMatch verbindet dich mit Friseuren, Kosmetikstudios, Massagen & mehr in deiner Nähe – buche Termine in Sekunden, ohne Telefonstress.',
+      }
+    }
+    return rawSlide
+  })()
   const isFirst = step === 0
   const isLast = step === slides.length - 1
 
@@ -593,20 +652,87 @@ export default function OnboardingGate({ slides, children }: Props) {
         padding: 'max(env(safe-area-inset-top, 30px), 30px) 30px max(env(safe-area-inset-bottom, 30px), 30px)',
       }}>
         {isFirst ? (
-          <div style={{ marginBottom: 10, padding: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', boxSizing: 'border-box' }}>
-            <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} />
-          </div>
+          logo()
         ) : slide.imageUrl ? (
-          <div style={{ marginBottom: 20, padding: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', boxSizing: 'border-box' }}>
-            <img src={slide.imageUrl} alt={slide.title} style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} />
+          <div
+            style={{
+              marginBottom: 20,
+              padding: 18,
+              borderRadius: 26,
+              background:
+                'radial-gradient(circle at 30% 15%, rgba(245,224,128,0.22), transparent 55%), radial-gradient(circle at 70% 85%, rgba(200,168,75,0.18), transparent 60%)',
+              boxShadow: '0 0 40px rgba(0,0,0,0.85)',
+              animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box',
+            }}
+          >
+            <img
+              src={slide.imageUrl}
+              alt={slide.title}
+              style={{
+                height: 110,
+                maxWidth: 260,
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
           </div>
         ) : slide.icon === 'chair' ? (
-          <div style={{ marginBottom: 14, padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', boxSizing: 'border-box' }}>
-            <img src="/icons/12_stuhlvermietung_512x384.png" style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} alt="Stuhlvermietung" />
+          <div
+            style={{
+              marginBottom: 14,
+              padding: 18,
+              borderRadius: 26,
+              background:
+                'radial-gradient(circle at 30% 15%, rgba(245,224,128,0.24), transparent 55%), radial-gradient(circle at 70% 85%, rgba(200,168,75,0.2), transparent 60%)',
+              boxShadow: '0 0 40px rgba(0,0,0,0.85)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
+              boxSizing: 'border-box',
+            }}
+          >
+            <img
+              src="/icons/12_stuhlvermietung_512x384.png"
+              style={{
+                height: 110,
+                maxWidth: 260,
+                objectFit: 'contain',
+                display: 'block',
+              }}
+              alt="Stuhlvermietung"
+            />
           </div>
         ) : slide.icon === 'booking' ? (
-          <div style={{ marginBottom: 14, padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', boxSizing: 'border-box' }}>
-            <img src="/icons/11_termin_256x384.png" style={{ height: 110, maxWidth: 260, objectFit: 'contain', display: 'block' }} alt="Termin" />
+          <div
+            style={{
+              marginBottom: 14,
+              padding: 18,
+              borderRadius: 26,
+              background:
+                'radial-gradient(circle at 30% 15%, rgba(245,224,128,0.24), transparent 55%), radial-gradient(circle at 70% 85%, rgba(200,168,75,0.2), transparent 60%)',
+              boxShadow: '0 0 40px rgba(0,0,0,0.85)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
+              boxSizing: 'border-box',
+            }}
+          >
+            <img
+              src="/icons/11_termin_256x384.png"
+              style={{
+                height: 110,
+                maxWidth: 260,
+                objectFit: 'contain',
+                display: 'block',
+              }}
+              alt="Termin"
+            />
           </div>
         ) : (
           <div style={{ fontSize: 60, marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>{slide.icon || '✨'}</div>
