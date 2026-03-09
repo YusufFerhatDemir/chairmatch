@@ -310,6 +310,36 @@ body {
   50% { filter: drop-shadow(0 0 20px rgba(232,208,106,0.8)) drop-shadow(0 0 40px rgba(200,168,75,0.3)); }
 }
 
+/* Brand logo (pin + star) */
+.brand-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-logo__img {
+  display: block;
+}
+
+.brand-logo--star-animate::after {
+  content: '';
+  position: absolute;
+  width: 56%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(245,224,128,0.9), rgba(200,168,75,0.0) 70%);
+  opacity: 0.55;
+  transform: scale(1);
+  pointer-events: none;
+  animation: brandStarPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes brandStarPulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.06); }
+}
+
 /* ═══ CATEGORY CARDS ═══ */
 .catcard {
   width: 100%;

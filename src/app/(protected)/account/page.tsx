@@ -1,5 +1,6 @@
-'use client'
+ 'use client'
 
+import { BrandLogo } from '@/components/BrandLogo'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -55,8 +56,7 @@ export default function AccountPage() {
         {/* Logo Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
           <div style={{ animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', flexShrink: 0 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon-512.png" width={36} height={36} alt="ChairMatch" style={{ objectFit: 'contain' }} />
+            <BrandLogo size={36} variant="glow" animateStar />
           </div>
           <div>
             <p className="cinzel" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, color: 'var(--gold2)', lineHeight: 1 }}>

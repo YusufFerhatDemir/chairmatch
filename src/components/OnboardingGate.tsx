@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
+import { BrandLogo } from '@/components/BrandLogo'
 import { CATEGORIES, CATEGORY_ICONS, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
 
 interface Slide {
@@ -158,30 +159,7 @@ export default function OnboardingGate({ slides, children }: Props) {
       alignItems: 'center',
       gap: 10,
     }}>
-      <div
-        style={{
-          width: 96,
-          height: 96,
-          borderRadius: '999px',
-          background: 'radial-gradient(circle at 30% 20%, rgba(245,224,128,0.9), rgba(200,168,75,0.18) 40%, transparent 70%)',
-          boxShadow: '0 0 40px rgba(200,168,75,0.35)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
-        }}
-      >
-        <img
-          src="/icon-512.png"
-          alt="ChairMatch"
-          style={{
-            width: 52,
-            height: 52,
-            objectFit: 'contain',
-            display: 'block',
-          }}
-        />
-      </div>
+      <BrandLogo size={76} variant="glow" animateStar />
       <div style={{ textAlign: 'center' }}>
         <p
           className="cinzel"

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { BrandLogo } from '@/components/BrandLogo'
 
 const STEP_NAMES = ['Persönliche Daten', 'Geschäftsdaten', 'Services & Stuhl', 'Bestätigung']
 const CATEGORIES = ['Barbershop', 'Friseur', 'Kosmetik', 'Ästhetik', 'Nail & Lash', 'Massage']
@@ -34,10 +35,7 @@ export default function AnbieterRegisterPage() {
       <div className="shell">
         <div className="screen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '36px 22px', textAlign: 'center' }}>
           <div style={{ animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', marginBottom: 16 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <div style={{ padding: 16, display: 'inline-block', boxSizing: 'border-box' }}>
-            <img src="/icons/logo_lockup_512x384.png" alt="ChairMatch" style={{ height: 100, maxWidth: 240, objectFit: 'contain', display: 'block' }} />
-          </div>
+            <BrandLogo size={80} variant="glow" animateStar />
           </div>
           <h2 className="cinzel" style={{ fontSize: 22, marginBottom: 8, color: 'var(--gold2)' }}>Eingereicht!</h2>
           <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 18, lineHeight: 1.7 }}>
