@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import type { CSSProperties } from 'react'
 
 interface BrandLogoProps {
@@ -42,13 +41,14 @@ export function BrandLogo({
         ...style,
       }}
     >
-      <Image
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={src}
         alt="ChairMatch"
         width={dimension}
         height={dimension}
         className="brand-logo__img"
-        priority={false}
+        style={{ objectFit: 'contain', display: 'block' }}
       />
     </div>
   )
