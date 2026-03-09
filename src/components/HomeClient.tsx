@@ -170,7 +170,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       <div style={{ padding: '20px var(--pad) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexShrink: 1 }}>
           <div style={{ animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', flexShrink: 0 }}>
-            <img src="/icons/logo_symbol_512x512.png" width={36} height={36} alt="ChairMatch" style={{ objectFit: 'contain' }} />
+            <img src="/icon-512.png" width={36} height={36} alt="ChairMatch" style={{ objectFit: 'contain' }} />
           </div>
           <div style={{ minWidth: 0 }}>
             <p className="cinzel" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, color: 'var(--gold2)', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

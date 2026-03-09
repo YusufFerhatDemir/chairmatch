@@ -14,7 +14,7 @@ export function Logo({ size = 60, animate = true }: LogoProps) {
       }}
     >
       <img
-        src="/icons/logo_symbol_512x512.png"
+        src="/icon-512.png"
         width={size}
         height={size}
         alt="ChairMatch"

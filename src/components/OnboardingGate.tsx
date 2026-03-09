@@ -172,7 +172,7 @@ export default function OnboardingGate({ slides, children }: Props) {
         }}
       >
         <img
-          src="/icons/logo_symbol_512x512.png"
+          src="/icon-512.png"
           alt="ChairMatch"
           style={{
             width: 52,

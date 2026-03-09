@@ -56,7 +56,7 @@ export default function AccountPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
           <div style={{ animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', flexShrink: 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/logo_symbol_512x512.png" width={36} height={36} alt="ChairMatch" style={{ objectFit: 'contain' }} />
+            <img src="/icon-512.png" width={36} height={36} alt="ChairMatch" style={{ objectFit: 'contain' }} />
           </div>
           <div>
             <p className="cinzel" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, color: 'var(--gold2)', lineHeight: 1 }}>
