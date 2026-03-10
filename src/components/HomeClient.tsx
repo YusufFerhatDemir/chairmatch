@@ -299,6 +299,24 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         </div>
       </section>
 
+      {/* Vermietung CTA: Stuhl / Kabine / OP-Raum für Anbieter */}
+      <section style={{ padding: '16px var(--pad) 0' }}>
+        <div className="card" style={{ padding: 16 }}>
+          <p style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--gold2)', marginBottom: 6 }}>STUHL · KABINE · OP-RAUM</p>
+          <p style={{ fontSize: 13, color: 'var(--cream)', lineHeight: 1.45, marginBottom: 12 }}>
+            Als Barber, Friseur, Masseur oder Praxis: Stuhl, Liege oder OP-Raum tageweise mieten – oder selbst vermieten.
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Link href="/rentals" className="bgold" style={{ padding: '10px 16px', fontSize: 12, textDecoration: 'none', borderRadius: 'var(--btn-radius)' }}>
+              Angebote finden
+            </Link>
+            <Link href="/register/anbieter" className="boutline" style={{ padding: '10px 16px', fontSize: 12, textDecoration: 'none', borderRadius: 'var(--btn-radius)' }}>
+              Anbieter werden
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Top Specialists Scroll */}
       <section style={{ marginTop: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 var(--pad) 12px' }}>

@@ -660,8 +660,11 @@ export default function OnboardingGate({ slides, children }: Props) {
           </div>
         ) : slide.icon === 'chair' ? (
           <div
+            className="icon-in-frame"
             style={{
-              marginBottom: 14,
+              marginBottom: 20,
+              width: 200,
+              height: 140,
               padding: 18,
               borderRadius: 26,
               background:
@@ -677,9 +680,11 @@ export default function OnboardingGate({ slides, children }: Props) {
             <img
               src="/icons/12_stuhlvermietung_512x384.png"
               style={{
-                height: 110,
-                maxWidth: 260,
+                height: '100%',
+                maxHeight: 110,
+                maxWidth: '100%',
                 objectFit: 'contain',
+                objectPosition: 'center',
                 display: 'block',
               }}
               alt="Stuhlvermietung"
@@ -687,8 +692,11 @@ export default function OnboardingGate({ slides, children }: Props) {
           </div>
         ) : slide.icon === 'booking' ? (
           <div
+            className="icon-in-frame"
             style={{
-              marginBottom: 14,
+              marginBottom: 20,
+              width: 200,
+              height: 140,
               padding: 18,
               borderRadius: 26,
               background:
@@ -704,9 +712,11 @@ export default function OnboardingGate({ slides, children }: Props) {
             <img
               src="/icons/11_termin_256x384.png"
               style={{
-                height: 110,
-                maxWidth: 260,
+                height: '100%',
+                maxHeight: 110,
+                maxWidth: '100%',
                 objectFit: 'contain',
+                objectPosition: 'center',
                 display: 'block',
               }}
               alt="Termin"

@@ -18,6 +18,7 @@ const publicPrefixes = [
   '/salon/',
   '/category/',
   '/api/auth/',
+  '/api/analytics/',
   '/api/newsletter',
   '/register/',
   '/_next/',
@@ -32,6 +33,7 @@ const publicPrefixes = [
 ]
 
 const providerPaths = ['/provider']
+const ownerPaths = ['/owner']
 const adminPaths = ['/admin']
 
 export default auth((req) => {
@@ -54,6 +56,13 @@ export default auth((req) => {
 
   // Provider routes
   if (providerPaths.some(p => pathname.startsWith(p))) {
+    if (!['anbieter', 'provider', 'admin', 'super_admin'].includes(role)) {
+      return NextResponse.redirect(new URL('/', req.url))
+    }
+  }
+
+  // Owner routes (Standortanbieter – Anbieter haben Zugang)
+  if (ownerPaths.some(p => pathname.startsWith(p))) {
     if (!['anbieter', 'provider', 'admin', 'super_admin'].includes(role)) {
       return NextResponse.redirect(new URL('/', req.url))
     }

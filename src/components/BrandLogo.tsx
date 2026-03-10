@@ -17,10 +17,10 @@ export function BrandLogo({
   className,
   style,
 }: BrandLogoProps) {
-  const src =
-    variant === 'dark'
-      ? '/brand/chairmatch_logo_pin_symbol_dark_512.png'
-      : '/brand/chairmatch_logo_pin_symbol_gradient_512.png'
+  // Vereinheitlichtes Logo: wir nutzen das PWA/App-Icon (/icon-512.png),
+  // damit es überall (Startseite, Onboarding, Login) gleich aussieht und
+  // keine 404-Probleme durch fehlende /brand-Assets mehr entstehen.
+  const src = '/icon-512.png'
 
   const dimension = size
 

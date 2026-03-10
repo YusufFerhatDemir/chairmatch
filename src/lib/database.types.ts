@@ -101,6 +101,7 @@ export interface Database {
           currency: string
           is_active: boolean
           sort_order: number
+          risk_level: string | null
           created_at: string
         }
         Insert: {
@@ -114,6 +115,7 @@ export interface Database {
           currency?: string
           is_active?: boolean
           sort_order?: number
+          risk_level?: string | null
         }
         Update: Partial<Database['public']['Tables']['services']['Insert']>
       }
@@ -331,6 +333,83 @@ export interface Database {
           image_url?: string | null
           is_active?: boolean
         }
+      }
+      visit_logs: {
+        Row: {
+          id: string
+          path: string
+          ip: string | null
+          country: string | null
+          region: string | null
+          city: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          path: string
+          ip?: string | null
+          country?: string | null
+          region?: string | null
+          city?: string | null
+          user_agent?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['visit_logs']['Insert']>
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          user_id: string | null
+          action: string
+          entity: string
+          entity_id: string
+          details: Record<string, unknown> | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          action: string
+          entity: string
+          entity_id: string
+          details?: Record<string, unknown> | null
+        }
+        Update: Partial<Database['public']['Tables']['audit_logs']['Insert']>
+      }
+      documents: {
+        Row: { id: string; owner_type: string; owner_id: string; doc_type: string; file_url: string | null; expiry_date: string | null; verified_status: string; version: number; created_at: string }
+        Insert: { id?: string; owner_type: string; owner_id: string; doc_type: string; file_url?: string | null; expiry_date?: string | null; verified_status?: string; version?: number }
+        Update: Partial<Database['public']['Tables']['documents']['Insert']>
+      }
+      insurance_policies: {
+        Row: { id: string; provider_user_id: string; plan_type: string; risk_level: string; status: string; valid_from: string; valid_until: string; pdf_url: string | null; created_at: string }
+        Insert: { id?: string; provider_user_id: string; plan_type: string; risk_level: string; status?: string; valid_from: string; valid_until: string; pdf_url?: string | null }
+        Update: Partial<Database['public']['Tables']['insurance_policies']['Insert']>
+      }
+      authorities_packs: {
+        Row: { id: string; location_id: string; created_by: string | null; file_url: string | null; created_at: string }
+        Insert: { id?: string; location_id: string; created_by?: string | null; file_url?: string | null }
+        Update: Partial<Database['public']['Tables']['authorities_packs']['Insert']>
+      }
+      submission_tickets: {
+        Row: { id: string; location_id: string; pack_id: string | null; plan_type: string; status: string; proof_file_url: string | null; admin_notes: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; location_id: string; pack_id?: string | null; plan_type: string; status?: string; proof_file_url?: string | null; admin_notes?: string | null }
+        Update: Partial<Database['public']['Tables']['submission_tickets']['Insert']>
+      }
+      consents: {
+        Row: { id: string; booking_id: string; signed_pdf_url: string | null; signed_at: string; checksum: string | null }
+        Insert: { id?: string; booking_id: string; signed_pdf_url?: string | null; signed_at?: string; checksum?: string | null }
+        Update: Partial<Database['public']['Tables']['consents']['Insert']>
+      }
+      protect_pricing: {
+        Row: { id: string; risk_level: string; day_price_cents: number; month_price_cents: number; year_price_cents: number; currency: string; active: boolean; created_at: string }
+        Insert: { id?: string; risk_level: string; day_price_cents: number; month_price_cents: number; year_price_cents: number; currency?: string; active?: boolean }
+        Update: Partial<Database['public']['Tables']['protect_pricing']['Insert']>
+      }
+      compliance_plans: {
+        Row: { id: string; plan_type: string; price_cents: number; included_submissions: number; min_term_months: number; extra_submission_price_cents: number; created_at: string }
+        Insert: { id?: string; plan_type: string; price_cents: number; included_submissions?: number; min_term_months?: number; extra_submission_price_cents?: number }
+        Update: Partial<Database['public']['Tables']['compliance_plans']['Insert']>
       }
     }
   }

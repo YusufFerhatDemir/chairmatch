@@ -72,6 +72,24 @@ export default async function AdminPage() {
           <Link href="/admin/statistik" className="card" style={{ textDecoration: 'none' }}>
             <span style={{ color: 'var(--cream)', fontWeight: 600 }}>Statistik</span>
           </Link>
+          <Link href="/admin/besucher" className="card" style={{ textDecoration: 'none' }}>
+            <span style={{ color: 'var(--cream)', fontWeight: 600 }}>Besucher &amp; Analytics</span>
+          </Link>
+          <Link href="/admin/audit-logs" className="card" style={{ textDecoration: 'none' }}>
+            <span style={{ color: 'var(--cream)', fontWeight: 600 }}>Audit-Logs</span>
+          </Link>
+          <Link href="/admin/dokumente" className="card" style={{ textDecoration: 'none' }}>
+            <span style={{ color: 'var(--cream)', fontWeight: 600 }}>Dokumente prüfen</span>
+          </Link>
+          <Link href="/admin/tickets" className="card" style={{ textDecoration: 'none' }}>
+            <span style={{ color: 'var(--cream)', fontWeight: 600 }}>Einreich-Tickets</span>
+          </Link>
+          <Link href="/admin/risk-settings" className="card" style={{ textDecoration: 'none' }}>
+            <span style={{ color: 'var(--cream)', fontWeight: 600 }}>Risk-Settings</span>
+          </Link>
+          <Link href="/admin/pricing" className="card" style={{ textDecoration: 'none' }}>
+            <span style={{ color: 'var(--cream)', fontWeight: 600 }}>Pricing</span>
+          </Link>
           {userRole === 'super_admin' && (
             <Link href="/admin/super" className="card" style={{
               textDecoration: 'none',

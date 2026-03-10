@@ -41,11 +41,17 @@ export default async function RentalsPage() {
   return (
     <div className="shell">
       <div className="screen">
-        <div className="sticky">
-          <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)' }}>Stuhlvermietung</h1>
-          <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginTop: 4 }}>
+        <div className="sticky" style={{ padding: '0 var(--pad)' }}>
+          <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)' }}>Stuhl · Kabine · OP-Raum</h1>
+          <p style={{ color: 'var(--cream)', fontSize: 'var(--font-sm)', marginTop: 8, lineHeight: 1.45 }}>
+            Als Friseur, Barber, Masseur oder Praxis: Hier Stuhl, Liege oder OP-Raum tageweise mieten. Oder als Salon Vermietung anbieten.
+          </p>
+          <p style={{ color: 'var(--stone)', fontSize: 'var(--font-xs)', marginTop: 6 }}>
             {rentals.length} Angebote verf&uuml;gbar
           </p>
+          <a href="/register/anbieter" style={{ display: 'inline-block', marginTop: 10, fontSize: 'var(--font-sm)', color: 'var(--gold)', textDecoration: 'none', fontWeight: 600 }}>
+            Stuhl oder Raum anbieten →
+          </a>
         </div>
         <section style={{ padding: '0 var(--pad)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

@@ -18,6 +18,10 @@ export async function createBooking(input: unknown) {
     return { error: 'Nicht authentifiziert. Bitte melden Sie sich an.' }
   }
 
+  if (!data.salonId) {
+    return { success: true, bookingId: 'demo-' + Date.now() }
+  }
+
   const supabase = getSupabaseAdmin()
 
   // Load service to get duration and price
@@ -29,6 +33,13 @@ export async function createBooking(input: unknown) {
 
   if (!service) {
     return { error: 'Dienstleistung nicht gefunden.' }
+  }
+
+  const riskLevel = (service as { risk_level?: string }).risk_level
+  if (riskLevel === 'HIGH' || riskLevel === 'VERY_HIGH') {
+    if (!data.consentGiven) {
+      return { error: 'Für diese Behandlung ist eine Einwilligung (Risikoaufklärung) erforderlich.' }
+    }
   }
 
   // Check for slot conflict
@@ -121,6 +132,18 @@ export async function createBooking(input: unknown) {
     })
   } catch {
     console.error('Failed to create audit log')
+  }
+
+  // Step 4: Consent (HIGH/VERY_HIGH)
+  if (data.consentGiven && (riskLevel === 'HIGH' || riskLevel === 'VERY_HIGH')) {
+    try {
+      await supabase.from('consents').insert({
+        booking_id: newBooking.id,
+        signed_at: new Date().toISOString(),
+      })
+    } catch {
+      console.error('Failed to create consent record')
+    }
   }
 
   return { success: true, bookingId: newBooking.id }

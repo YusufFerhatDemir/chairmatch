@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/provider', '/admin', '/auth', '/api/'],
+      disallow: ['/provider', '/owner', '/admin', '/auth', '/api/'],
     },
     sitemap: 'https://chairmatch.de/sitemap.xml',
   }

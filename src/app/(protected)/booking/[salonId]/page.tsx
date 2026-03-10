@@ -9,8 +9,11 @@ import { PROMO_CODES } from '@/lib/constants'
 interface Service {
   id: string
   name: string
-  durationMinutes: number
-  priceCents: number
+  durationMinutes?: number
+  duration_minutes?: number
+  priceCents?: number
+  price_cents?: number
+  risk_level?: string | null
 }
 
 interface Staff {
@@ -57,7 +60,7 @@ export default function BookingPage() {
   const [promoValid, setPromoValid] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState(false)
+  const [consentGiven, setConsentGiven] = useState(false)
 
   // Try demo provider
   const demoP = PROVS.find(p => p.id === salonId)
@@ -110,7 +113,7 @@ export default function BookingPage() {
   }
 
   // Calculate final price
-  const basePrice = selectedService ? selectedService.priceCents / 100 : 0
+  const basePrice = selectedService ? ((selectedService.priceCents ?? selectedService.price_cents ?? 0) / 100) : 0
   const promoDiscount = promoValid && promoCode.trim().toUpperCase() in PROMO_CODES
     ? PROMO_CODES[promoCode.trim().toUpperCase()]
     : null
@@ -119,9 +122,16 @@ export default function BookingPage() {
     : 0
   const finalPrice = Math.max(0, basePrice - discountAmount)
 
+  const needsConsent = selectedService && ['HIGH', 'VERY_HIGH'].includes(String((selectedService as Service).risk_level ?? ''))
+  const canSubmit = !needsConsent || consentGiven
+
   async function handleSubmit() {
     if (!selectedService || !startTime) {
       setError('Bitte Service und Uhrzeit auswählen.')
+      return
+    }
+    if (needsConsent && !consentGiven) {
+      setError('Bitte bestätige die Risikoaufklärung und Kontraindikationen.')
       return
     }
 
@@ -143,13 +153,14 @@ export default function BookingPage() {
           customerName: name || undefined,
           customerEmail: email || undefined,
           customerPhone: phone || undefined,
+          consentGiven: needsConsent ? true : undefined,
         }),
       })
 
       if (!res.ok) {
         // For demo providers, just simulate success
         if (demoP) {
-          setDone(true)
+          saveAndRedirectToSuccess()
           return
         }
         const data = await res.json()
@@ -157,11 +168,11 @@ export default function BookingPage() {
         return
       }
 
-      setDone(true)
+      saveAndRedirectToSuccess()
     } catch {
       // For demo, just show success
       if (demoP) {
-        setDone(true)
+        saveAndRedirectToSuccess()
         return
       }
       setError('Verbindungsfehler.')
@@ -170,60 +181,23 @@ export default function BookingPage() {
     }
   }
 
-  // Confirmation screen
-  if (done) {
-    const waMsg = encodeURIComponent(
-      `Mein Termin bei ${salon?.name}:\n${selectedService?.name} · ${selectedService?.durationMinutes} min\n${days[selectedDay]?.full} · ${startTime}\n${finalPrice.toFixed(0)} €\n\nGebucht über ChairMatch`
-    )
-    return (
-      <div className="shell">
-        <div className="screen" style={{ padding: 'var(--pad)' }}>
-          <div style={{ padding: '36px 22px', textAlign: 'center' }}>
-            <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(74,138,90,.15)', border: '1px solid rgba(74,138,90,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, margin: '0 auto 14px' }}>✓</div>
-            <h2 className="cinzel" style={{ fontSize: 22, marginBottom: 6, color: 'var(--gold2)' }}>BESTÄTIGT!</h2>
-            <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 18 }}>
-              {salon?.name} · {selectedService?.name} · {selectedService?.durationMinutes} min · {days[selectedDay]?.full} · {startTime}
-            </p>
-            <div className="card" style={{ padding: 14, marginBottom: 16, textAlign: 'left' }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)', marginBottom: 8 }}>Buchungsdetails</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                <span style={{ color: 'var(--stone)' }}>Service</span>
-                <span style={{ color: 'var(--cream)' }}>{selectedService?.name}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                <span style={{ color: 'var(--stone)' }}>Datum</span>
-                <span style={{ color: 'var(--cream)' }}>{days[selectedDay]?.full}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                <span style={{ color: 'var(--stone)' }}>Uhrzeit</span>
-                <span style={{ color: 'var(--cream)' }}>{startTime}</span>
-              </div>
-              {selectedSpec && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                  <span style={{ color: 'var(--stone)' }}>Spezialist</span>
-                  <span style={{ color: 'var(--cream)' }}>{selectedSpec.nm}</span>
-                </div>
-              )}
-              {promoDiscount && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                  <span style={{ color: 'var(--stone)' }}>Rabatt</span>
-                  <span style={{ color: '#6ABF80' }}>−{discountAmount.toFixed(0)} €</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 15 }}>
-                <span style={{ color: 'var(--gold2)', fontWeight: 700 }}>Gesamt</span>
-                <span style={{ fontWeight: 800, color: 'var(--gold2)' }}>{finalPrice.toFixed(0)} €</span>
-              </div>
-            </div>
-            <p style={{ fontSize: 11, color: 'var(--stone)', marginBottom: 16 }}>Keine Buchungsgebühren · Bezahlung vor Ort</p>
-            <a href={`https://wa.me/?text=${waMsg}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 14, background: '#25D366', color: '#fff', borderRadius: 14, fontSize: 14, fontWeight: 700, textDecoration: 'none', marginBottom: 10 }}>
-              💬 Per WhatsApp teilen
-            </a>
-            <button onClick={() => router.push('/')} className="bgold">Fertig</button>
-          </div>
-        </div>
-      </div>
-    )
+  const BOOKING_SUCCESS_KEY = 'cm_booking_success'
+  function saveAndRedirectToSuccess() {
+    const payload = {
+      salonName: salon?.name ?? '',
+      serviceName: selectedService?.name ?? '',
+      durationMinutes: selectedService?.durationMinutes ?? selectedService?.duration_minutes ?? 0,
+      dateFull: days[selectedDay]?.full ?? '',
+      startTime,
+      finalPrice,
+      discountAmount,
+      specName: selectedSpec?.nm,
+      hasPromo: !!promoDiscount,
+    }
+    try {
+      sessionStorage.setItem(BOOKING_SUCCESS_KEY, JSON.stringify(payload))
+    } catch {}
+    router.replace('/booking/success')
   }
 
   return (
@@ -269,9 +243,9 @@ export default function BookingPage() {
                 }}>
                   <div>
                     <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--cream)' }}>{s.name}</p>
-                    <p style={{ fontSize: 12, color: 'var(--stone)' }}>{s.durationMinutes} min</p>
+                    <p style={{ fontSize: 12, color: 'var(--stone)' }}>{s.durationMinutes ?? s.duration_minutes ?? 0} min</p>
                   </div>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--gold2)' }}>{(s.priceCents / 100).toFixed(0)} €</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--gold2)' }}>{((s.priceCents ?? s.price_cents ?? 0) / 100).toFixed(0)} €</span>
                 </button>
               ))}
             </div>
@@ -428,9 +402,17 @@ export default function BookingPage() {
               </div>
             )}
 
+            {needsConsent && (
+              <div style={{ marginBottom: 16, padding: 14, background: 'rgba(232,80,64,0.08)', border: '1px solid rgba(232,80,64,0.2)', borderRadius: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', fontSize: 13, color: 'var(--cream)' }}>
+                  <input type="checkbox" checked={consentGiven} onChange={e => setConsentGiven(e.target.checked)} style={{ marginTop: 2 }} />
+                  <span>Ich bestätige die Risikoaufklärung, Kontraindikationen und Datenschutz-Hinweise für diese Behandlung.</span>
+                </label>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setStep(2)} className="boutline" style={{ flex: 1, cursor: 'pointer' }}>Zurück</button>
-              <button onClick={handleSubmit} className="bgold" style={{ flex: 1 }} disabled={loading}>
+              <button type="button" onClick={handleSubmit} className="bgold" style={{ flex: 1 }} disabled={loading || !canSubmit}>
                 {loading ? 'Wird gebucht...' : 'Jetzt buchen'}
               </button>
             </div>

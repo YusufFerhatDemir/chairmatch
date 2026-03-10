@@ -29,6 +29,7 @@ export default function DatenschutzPage() {
             <li>Bewertungen und Kommentare</li>
             <li>Zahlungsinformationen bei Anbietern (IBAN)</li>
             <li>Technisch notwendige Session-Daten</li>
+            <li><strong style={{ color: 'var(--cream)' }}>Besucherdaten (Logging):</strong> Beim Aufruf unserer Seiten werden zur Betriebs- und Statistikzwecken sowie zur Missbrauchsabwehr anonymisiert bzw. minimal die aufgerufene Seite, IP-Adresse, Herkunft (Land/Region) und ein gekürzter Browser-Kennung (User-Agent) erfasst und für eine begrenzte Zeit gespeichert. Es findet kein Profiling oder Weitergabe an Dritte zu Werbezwecken statt.</li>
           </ul>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>3. Rechtsgrundlage</h2>
@@ -60,8 +61,8 @@ export default function DatenschutzPage() {
           </ul>
           <p style={{ marginTop: 8 }}>Anfragen richten Sie an: info@chairmatch.de</p>
 
-          <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>8. Cookies</h2>
-          <p>Wir verwenden ausschließlich technisch notwendige Cookies für die Funktionalität der Plattform (Session-Management). Es findet kein IP-Tracking, kein Profiling und keine Weitergabe an Dritte zu Werbezwecken statt.</p>
+          <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>8. Cookies &amp; Besucher-Logging</h2>
+          <p>Wir verwenden ausschließlich technisch notwendige Cookies für die Funktionalität der Plattform (Session-Management). Zusätzlich erfassen wir beim Seitenaufruf minimale Besucherdaten (Seite, IP, Herkunft, Browser-Kennung) für Betrieb, Statistik und Missbrauchsabwehr; siehe Abschnitt 2. Es findet kein Profiling und keine Weitergabe an Dritte zu Werbezwecken statt.</p>
         </div>
         <div style={{ height: 40 }} />
       </div>

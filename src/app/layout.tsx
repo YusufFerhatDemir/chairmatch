@@ -4,6 +4,7 @@ import { Providers } from './providers'
 import DynamicTheme from '@/components/DynamicTheme'
 import BottomNav from '@/components/BottomNav'
 import ConsentBanner from '@/components/ConsentBanner'
+import VisitTracker from '@/components/VisitTracker'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -70,6 +71,7 @@ export default function RootLayout({
       <body className={dmSans.className}>
         <DynamicTheme />
         <Providers>
+          <VisitTracker />
           {children}
           <BottomNav />
           <ConsentBanner />

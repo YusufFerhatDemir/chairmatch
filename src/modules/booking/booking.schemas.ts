@@ -1,13 +1,17 @@
 import { z } from 'zod'
 
 export const createBookingSchema = z.object({
-  salonId: z.string().uuid(),
+  salonId: z.string().uuid().optional(),
   serviceId: z.string().uuid(),
   staffId: z.string().uuid().optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
   notes: z.string().max(500).optional(),
   promoCode: z.string().max(20).optional(),
+  customerName: z.string().max(200).optional(),
+  customerEmail: z.string().email().max(200).optional(),
+  customerPhone: z.string().max(50).optional(),
+  consentGiven: z.boolean().optional(),
 })
 
 export const cancelBookingSchema = z.object({

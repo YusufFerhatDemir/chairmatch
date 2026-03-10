@@ -31,14 +31,38 @@ export default async function StatistikPage() {
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
   ])
 
-  // Calculate average rating in JS
+  const since7d = new Date()
+  since7d.setDate(since7d.getDate() - 7)
+  const { count: bookingsLast7 } = await supabase
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', since7d.toISOString())
+
   const { data: ratings } = await supabase.from('reviews').select('rating')
-  const avgRat = ratings?.length ? ratings.reduce((a: number, b: any) => a + b.rating, 0) / ratings.length : 0
+  const avgRat = ratings?.length ? ratings.reduce((a: number, b: { rating?: number }) => a + (b.rating ?? 0), 0) / ratings.length : 0
+
+  const { data: topSalons } = await supabase
+    .from('bookings')
+    .select('salon_id')
+  const salonCounts = (topSalons ?? []).reduce((acc: Record<string, number>, b: { salon_id: string }) => {
+    acc[b.salon_id] = (acc[b.salon_id] || 0) + 1
+    return acc
+  }, {})
+  const topSalonIds = Object.entries(salonCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id]) => id)
+  const { data: salonNames } = topSalonIds.length > 0
+    ? await supabase.from('salons').select('id, name').in('id', topSalonIds)
+    : { data: [] }
+  const nameMap = new Map((salonNames ?? []).map((s: { id: string; name: string }) => [s.id, s.name]))
+  const topSalonsList = topSalonIds.map(id => ({ id, name: nameMap.get(id) || id.slice(0, 8), count: salonCounts[id] }))
 
   const stats = [
     { label: 'Salons gesamt', value: totalSalons ?? 0 },
     { label: 'Salons aktiv', value: activeSalons ?? 0 },
     { label: 'Buchungen gesamt', value: totalBookings ?? 0 },
+    { label: 'Buchungen (7 Tage)', value: bookingsLast7 ?? 0 },
     { label: 'Pending', value: pendingBookings ?? 0 },
     { label: 'Bestätigt', value: confirmedBookings ?? 0 },
     { label: 'Abgeschlossen', value: completedBookings ?? 0 },
@@ -55,7 +79,7 @@ export default async function StatistikPage() {
         <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 8, marginBottom: 24 }}>
           Statistik
         </h1>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
           {stats.map(s => (
             <div key={s.label} className="card" style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--gold)' }}>{s.value}</div>
@@ -63,6 +87,23 @@ export default async function StatistikPage() {
             </div>
           ))}
         </div>
+
+        <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Top Salons (Buchungen)</h2>
+        <div className="card" style={{ padding: 14 }}>
+          {topSalonsList.length === 0 ? (
+            <p style={{ fontSize: 13, color: 'var(--stone)' }}>Noch keine Buchungen.</p>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {topSalonsList.map((s, i) => (
+                <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < topSalonsList.length - 1 ? '1px solid var(--border)' : 'none', fontSize: 13 }}>
+                  <span style={{ color: 'var(--cream)' }}>{s.name}</span>
+                  <span style={{ color: 'var(--gold2)', fontWeight: 600 }}>{s.count} Buchungen</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <div style={{ height: 40 }} />
       </div>
     </div>
