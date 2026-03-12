@@ -24,7 +24,10 @@ export default function AGBPage() {
           <p>Zur Nutzung bestimmter Funktionen ist eine Registrierung erforderlich. Sie stellen wahrheitsgemäße Angaben bereit und halten Ihre Zugangsdaten geheim. Ein Konto ist nicht übertragbar.</p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>§ 4 Buchungen und Vermietungen</h2>
-          <p>Buchungen und Mietanfragen erfolgen über die Plattform. Bestätigung, Preise und Leistungsumfang vereinbaren Sie direkt mit dem Anbieter. Stornierungsbedingungen können je Anbieter unterschiedlich sein und werden vor der Buchung angezeigt.</p>
+          <p>Buchungen und Mietanfragen erfolgen über die Plattform. Bestätigung, Preise und Leistungsumfang vereinbaren Sie direkt mit dem Anbieter.</p>
+
+          <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>§ 4a Storno-Policy (Standard)</h2>
+          <p>Sofern der Anbieter keine abweichenden Bedingungen festlegt, gilt: Kostenlose Stornierung bis 24 Stunden vor dem Termin. Bei Stornierung weniger als 24 Stunden vorher: 50 % Gebühr. Bei No-Show (Nichterscheinen): 100 % des Betrags. Die genaue Storno-Policy wird im Buchungs-Flow (Schritt 3) angezeigt.</p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>§ 5 Preise und Zahlung</h2>
           <p>Preise und Zahlungsmodalitäten ergeben sich aus der Vereinbarung zwischen Ihnen und dem Anbieter. ChairMatch kann für die Vermittlung eigene Gebühren erheben; diese werden transparent ausgewiesen.</p>

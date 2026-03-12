@@ -14,23 +14,20 @@ export default function ImpressumPage() {
         <div style={{ color: 'var(--stone)', fontSize: 'var(--font-md)', lineHeight: 1.7 }}>
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8 }}>Angaben gemäß § 5 TMG</h2>
           <p>
-            ChairMatch Deutschland<br />
-            Yusuf Ferhat Demir<br />
-            Schillerstrasse 31<br />
-            60313 Frankfurt am Main<br />
-            Deutschland
+            ChairMatch GmbH<br />
+            [Adresse wird ergänzt]
           </p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>Kontakt</h2>
           <p>
-            E-Mail: info@chairmatch.de
+            E-Mail: legal@chairmatch.de
           </p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>Umsatzsteuer-ID</h2>
           <p>Kleinunternehmer gem. § 19 UStG</p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
-          <p>Yusuf Ferhat Demir<br />Schillerstrasse 31, 60313 Frankfurt am Main</p>
+          <p>ChairMatch GmbH</p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>EU-Streitschlichtung</h2>
           <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung bereit: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)' }}>https://ec.europa.eu/consumers/odr</a>. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>

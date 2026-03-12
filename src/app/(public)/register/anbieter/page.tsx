@@ -202,7 +202,7 @@ export default function AnbieterRegisterPage() {
                   </div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--cream)' }}>
                     {key === 'agb' ? (
-                      <>AGB akzeptieren (<Link href="/agb" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>AGB</Link>)</>)
+                      <>AGB für Anbieter akzeptieren (<Link href="/agb-provider" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>AGB-Provider</Link>)</>)
                     : (
                       <>Datenschutzerklärung akzeptieren (<Link href="/datenschutz" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>Datenschutz</Link>)</>)
                     }

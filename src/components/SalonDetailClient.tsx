@@ -73,6 +73,42 @@ function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   )
 }
 
+function ReviewCard({ review: r }: { review: SalonReview }) {
+  const [reported, setReported] = useState(false)
+  const isDemoId = typeof r.id === 'string' && r.id.startsWith('dr')
+  async function handleReport() {
+    if (reported || isDemoId) return
+    const res = await fetch(`/api/reviews/${r.id}/report`, { method: 'POST' })
+    if (res.ok) setReported(true)
+  }
+  return (
+    <div style={{ padding: '13px 15px', background: 'var(--c2)', borderRadius: 13, marginBottom: 8, border: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>{r.customer?.full_name || 'Gast'}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, color: 'var(--stone)' }}>{r.created_at}</span>
+          {!isDemoId && (
+            <button
+              onClick={handleReport}
+              disabled={reported}
+              style={{ fontSize: 10, color: reported ? 'var(--stone)' : 'var(--stone)', background: 'none', border: 'none', cursor: reported ? 'default' : 'pointer', textDecoration: 'underline' }}
+            >
+              {reported ? 'Gemeldet' : 'Melden'}
+            </button>
+          )}
+        </div>
+      </div>
+      <Stars rating={r.rating} />
+      {r.comment && <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6, marginTop: 5 }}>{r.comment}</p>}
+      {r.reply && (
+        <div style={{ marginTop: 8, paddingLeft: 12, borderLeft: '2px solid var(--border)' }}>
+          <p style={{ fontSize: 12, color: 'var(--stone)', fontStyle: 'italic' }}>Antwort: {r.reply}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function SalonDetailClient({ salon, services, staff, reviews, rentals }: Props) {
   const [tab, setTab] = useState<TabId>('info')
   const [isFav, setIsFav] = useState(false)
@@ -299,19 +335,7 @@ export default function SalonDetailClient({ salon, services, staff, reviews, ren
               </div>
               {/* Review Cards */}
               {displayReviews.map(r => (
-                <div key={r.id} style={{ padding: '13px 15px', background: 'var(--c2)', borderRadius: 13, marginBottom: 8, border: '1px solid var(--border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>{r.customer?.full_name || 'Gast'}</p>
-                    <span style={{ fontSize: 11, color: 'var(--stone)' }}>{r.created_at}</span>
-                  </div>
-                  <Stars rating={r.rating} />
-                  {r.comment && <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6, marginTop: 5 }}>{r.comment}</p>}
-                  {r.reply && (
-                    <div style={{ marginTop: 8, paddingLeft: 12, borderLeft: '2px solid var(--border)' }}>
-                      <p style={{ fontSize: 12, color: 'var(--stone)', fontStyle: 'italic' }}>Antwort: {r.reply}</p>
-                    </div>
-                  )}
-                </div>
+                <ReviewCard key={r.id} review={r} />
               ))}
             </div>
           )}

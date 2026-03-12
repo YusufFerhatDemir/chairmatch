@@ -402,6 +402,14 @@ export default function BookingPage() {
               </div>
             )}
 
+            {/* Storno-Policy (AGB § 4a) */}
+            <div style={{ marginBottom: 16, padding: 14, background: 'var(--c2)', border: '1px solid var(--border)', borderRadius: 12 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Storno</p>
+              <p style={{ fontSize: 12, color: 'var(--stone)', lineHeight: 1.6, margin: 0 }}>
+                Kostenlos bis 24h vorher · 50 % bei weniger als 24h · 100 % bei No-Show. <Link href="/agb" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>AGB</Link>
+              </p>
+            </div>
+
             {needsConsent && (
               <div style={{ marginBottom: 16, padding: 14, background: 'rgba(232,80,64,0.08)', border: '1px solid rgba(232,80,64,0.2)', borderRadius: 12 }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', fontSize: 13, color: 'var(--cream)' }}>

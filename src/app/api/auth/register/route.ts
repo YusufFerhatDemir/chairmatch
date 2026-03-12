@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { email, password, fullName } = parsed.data
+    const { email, password, fullName, agbAccepted, datenschutzAccepted, marketingAccepted } = parsed.data
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const { data, error } = await supabase.auth.signUp({
@@ -40,15 +40,49 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Update profile name (trigger may auto-create profile)
+    const supabaseAdmin = getSupabaseAdmin()
+
+    // Update profile
     try {
-      const supabaseAdmin = getSupabaseAdmin()
       await supabaseAdmin
         .from('profiles')
         .update({ full_name: fullName, email })
         .eq('id', data.user.id)
     } catch {
-      // Profile may not exist yet if trigger hasn't fired
+      /* trigger may not have created profile yet */
+    }
+
+    // consent_logs (DSGVO)
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || ''
+    const ipHash = ip ? Buffer.from(ip).toString('base64').slice(0, 32) : null
+    const version = '1.0'
+
+    if (agbAccepted) {
+      await supabaseAdmin.from('consent_logs').insert({
+        user_id: data.user.id,
+        type: 'agb',
+        version,
+        ip_hash: ipHash,
+        metadata: { source: 'signup' },
+      })
+    }
+    if (datenschutzAccepted) {
+      await supabaseAdmin.from('consent_logs').insert({
+        user_id: data.user.id,
+        type: 'datenschutz',
+        version,
+        ip_hash: ipHash,
+        metadata: { source: 'signup' },
+      })
+    }
+    if (marketingAccepted) {
+      await supabaseAdmin.from('consent_logs').insert({
+        user_id: data.user.id,
+        type: 'marketing',
+        version,
+        ip_hash: ipHash,
+        metadata: { source: 'signup' },
+      })
     }
 
     return NextResponse.json({ success: true })

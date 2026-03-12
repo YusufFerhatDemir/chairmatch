@@ -10,6 +10,9 @@ export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [agbAccepted, setAgbAccepted] = useState(false)
+  const [datenschutzAccepted, setDatenschutzAccepted] = useState(false)
+  const [marketingAccepted, setMarketingAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -28,7 +31,7 @@ export default function AuthPage() {
     setLoading(false)
 
     if (result?.error) {
-      setError('E-Mail oder Passwort falsch.')
+      setError(typeof result.error === 'string' ? result.error : result.error.message || 'E-Mail oder Passwort falsch.')
     } else {
       // Role-based redirect
       const res = await fetch('/api/auth/session')
@@ -49,7 +52,14 @@ export default function AuthPage() {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, fullName }),
+      body: JSON.stringify({
+        email,
+        password,
+        fullName,
+        agbAccepted,
+        datenschutzAccepted,
+        marketingAccepted,
+      }),
     })
 
     if (!res.ok) {
@@ -124,6 +134,22 @@ export default function AuthPage() {
               required
             />
           )}
+          {tab === 'register' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: 'var(--stone)' }}>
+                <input type="checkbox" checked={agbAccepted} onChange={e => setAgbAccepted(e.target.checked)} required />
+                <span>Ich akzeptiere die <Link href="/agb" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>AGB</Link> (Pflicht)</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: 'var(--stone)' }}>
+                <input type="checkbox" checked={datenschutzAccepted} onChange={e => setDatenschutzAccepted(e.target.checked)} required />
+                <span>Ich akzeptiere die <Link href="/datenschutz" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>Datenschutzerklärung</Link> (Pflicht)</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: 'var(--stone)' }}>
+                <input type="checkbox" checked={marketingAccepted} onChange={e => setMarketingAccepted(e.target.checked)} />
+                <span>Ich möchte Newsletter und Angebote erhalten (optional)</span>
+              </label>
+            </div>
+          )}
           <input
             className="inp"
             type="email"
@@ -135,12 +161,17 @@ export default function AuthPage() {
           <input
             className="inp"
             type="password"
-            placeholder="Passwort"
+            placeholder="Passwort (min. 10 Zeichen, 1 Großbuchstabe, 1 Zahl, 1 Sonderzeichen)"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={10}
           />
+          {tab === 'login' && (
+            <Link href="/auth/forgot-password" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline', alignSelf: 'flex-end' }}>
+              Passwort vergessen?
+            </Link>
+          )}
           <button type="submit" className="bgold" disabled={loading} style={{ marginTop: 8 }}>
             {loading ? 'Laden...' : tab === 'login' ? 'Anmelden' : 'Registrieren'}
           </button>

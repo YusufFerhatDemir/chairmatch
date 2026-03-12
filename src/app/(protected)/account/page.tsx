@@ -152,7 +152,7 @@ export default function AccountPage() {
             <span style={{ color: 'var(--cream)', fontSize: 13 }}>❤️ Favoriten</span>
           </Link>
 
-          {['anbieter', 'provider', 'admin', 'super_admin'].includes(role) && (
+          {(role === 'anbieter' || role === 'provider' || role === 'b2b' || role === 'admin' || role === 'super_admin') && (
             <Link href="/provider" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
               <span style={{ color: 'var(--cream)', fontSize: 13 }}>📊 Provider Dashboard</span>
             </Link>
@@ -165,8 +165,30 @@ export default function AccountPage() {
           )}
         </div>
 
-        {/* Rechtliches */}
+        {/* Betroffenenrechte (DSGVO) */}
         <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid rgba(200,168,75,0.08)' }}>
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 10 }}>
+            Meine Daten
+          </p>
+          <button
+            onClick={async () => {
+              const r = await fetch('/api/account/export')
+              if (!r.ok) return
+              const blob = await r.blob()
+              const a = document.createElement('a')
+              a.href = URL.createObjectURL(blob)
+              a.download = `chairmatch-export-${new Date().toISOString().slice(0, 10)}.json`
+              a.click()
+            }}
+            className="boutline"
+            style={{ width: '100%', marginBottom: 8, textAlign: 'left', padding: '12px 14px' }}
+          >
+            📤 Daten exportieren (JSON)
+          </button>
+        </div>
+
+        {/* Rechtliches */}
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(200,168,75,0.08)' }}>
           <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 10 }}>
             Rechtliches
           </p>
@@ -174,6 +196,7 @@ export default function AccountPage() {
             ['📋 Datenschutzerklärung (DSGVO)', '/datenschutz'] as const,
             ['📄 Impressum', '/impressum'] as const,
             ['📜 AGB', '/agb'] as const,
+            ['🍪 Cookie-Einstellungen', '/cookie-settings'] as const,
             ['💺 Als Anbieter registrieren', '/register/anbieter'] as const,
           ]).map(([label, href]) => (
             <Link key={href} href={href} style={{ textDecoration: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(200,168,75,0.06)' }}>
@@ -183,9 +206,23 @@ export default function AccountPage() {
           ))}
 
           <button
-            onClick={() => signOut({ callbackUrl: '/' })}
+            onClick={async () => {
+              if (!confirm('Konto wirklich löschen? Nach 30 Tagen erfolgt die endgültige Löschung.')) return
+              const r = await fetch('/api/account/delete', { method: 'POST' })
+              if (r.ok) {
+                await signOut({ callbackUrl: '/' })
+                router.push('/')
+              }
+            }}
             className="boutline"
             style={{ marginTop: 16, color: 'var(--red)', borderColor: 'rgba(232, 80, 64, 0.3)', width: '100%' }}
+          >
+            🗑️ Konto löschen
+          </button>
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="boutline"
+            style={{ marginTop: 8, borderColor: 'rgba(200,168,75,0.3)', width: '100%' }}
           >
             Abmelden
           </button>
