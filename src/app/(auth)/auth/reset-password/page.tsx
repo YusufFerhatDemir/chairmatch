@@ -1,27 +1,57 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const FALLBACK_URL = 'https://pwdbjqfpgumyfktbfswg.supabase.co'
+const FALLBACK_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3ZGJqcWZwZ3VteWZrdGJmc3dnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5OTc0MjAsImV4cCI6MjA4NzU3MzQyMH0.rLUoTNev2CVDswBAVoS2PT0xGvXbNDv7FKbDJ8i29Ws'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON
 
 export default function ResetPasswordPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [ready, setReady] = useState(false)
+  const supabaseRef = useRef(createClient(supabaseUrl, supabaseAnonKey))
 
   useEffect(() => {
-    const hash = typeof window !== 'undefined' ? window.location.hash : ''
-    if (!hash && typeof window !== 'undefined') {
-      setError('Kein gültiger Reset-Link. Bitte erneut anfordern.')
+    const supabase = supabaseRef.current
+
+    // Handle PKCE flow (code in URL query params)
+    const code = searchParams.get('code')
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error: err }) => {
+        if (err) {
+          setError('Link ungültig oder abgelaufen. Bitte erneut anfordern.')
+        } else {
+          setReady(true)
+        }
+      })
+      return
     }
-  }, [])
+
+    // Handle implicit flow (tokens in hash fragment)
+    const hash = typeof window !== 'undefined' ? window.location.hash : ''
+    if (hash && hash.includes('access_token')) {
+      // Supabase client auto-detects hash tokens
+      supabase.auth.onAuthStateChange((event) => {
+        if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+          setReady(true)
+        }
+      })
+      return
+    }
+
+    setError('Kein gültiger Reset-Link. Bitte erneut anfordern.')
+  }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -35,8 +65,7 @@ export default function ResetPasswordPage() {
     }
     setLoading(true)
     setError(null)
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
-    const { error: err } = await supabase.auth.updateUser({ password })
+    const { error: err } = await supabaseRef.current.auth.updateUser({ password })
     setLoading(false)
     if (err) {
       setError(err.message)
@@ -60,6 +89,8 @@ export default function ResetPasswordPage() {
           <p style={{ fontSize: 14, color: 'var(--stone)', textAlign: 'center', lineHeight: 1.7 }}>
             Passwort wurde geändert. Du wirst zur Anmeldung weitergeleitet.
           </p>
+        ) : !ready && !error ? (
+          <p style={{ fontSize: 14, color: 'var(--stone)', textAlign: 'center' }}>Link wird überprüft…</p>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {error && (
@@ -67,26 +98,30 @@ export default function ResetPasswordPage() {
                 {error}
               </div>
             )}
-            <input
-              className="inp"
-              type="password"
-              placeholder="Neues Passwort (min. 10 Zeichen)"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              minLength={10}
-            />
-            <input
-              className="inp"
-              type="password"
-              placeholder="Passwort bestätigen"
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              required
-            />
-            <button type="submit" className="bgold" disabled={loading}>
-              {loading ? 'Wird gespeichert...' : 'Passwort ändern'}
-            </button>
+            {ready && (
+              <>
+                <input
+                  className="inp"
+                  type="password"
+                  placeholder="Neues Passwort (min. 10 Zeichen)"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  minLength={10}
+                />
+                <input
+                  className="inp"
+                  type="password"
+                  placeholder="Passwort bestätigen"
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  required
+                />
+                <button type="submit" className="bgold" disabled={loading}>
+                  {loading ? 'Wird gespeichert...' : 'Passwort ändern'}
+                </button>
+              </>
+            )}
           </form>
         )}
       </div>

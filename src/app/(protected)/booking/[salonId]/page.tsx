@@ -27,6 +27,7 @@ interface SalonData {
   name: string
   category: string
   city: string
+  phone?: string
   services: Service[]
   staff: Staff[]
 }
@@ -193,6 +194,7 @@ export default function BookingPage() {
       discountAmount,
       specName: selectedSpec?.nm,
       hasPromo: !!promoDiscount,
+      salonPhone: salon?.phone ?? '',
     }
     try {
       sessionStorage.setItem(BOOKING_SUCCESS_KEY, JSON.stringify(payload))

@@ -49,6 +49,15 @@ export async function POST(req: NextRequest) {
 
     const supabaseAdmin = getSupabaseAdmin()
 
+    // Auto-confirm email (mailer_autoconfirm is off in Supabase)
+    try {
+      await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
+        email_confirm: true,
+      })
+    } catch {
+      /* if service_role_key is missing, user must confirm via email */
+    }
+
     // Update profile
     try {
       await supabaseAdmin

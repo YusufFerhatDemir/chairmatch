@@ -15,6 +15,7 @@ interface SavedBooking {
   discountAmount: number
   specName?: string
   hasPromo: boolean
+  salonPhone?: string
 }
 
 export default function BookingSuccessPage() {
@@ -97,8 +98,8 @@ export default function BookingSuccessPage() {
             </div>
           </div>
           <p style={{ fontSize: 11, color: 'var(--stone)', marginBottom: 16 }}>Keine Buchungsgebühren · Bezahlung vor Ort</p>
-          <a href={`https://wa.me/?text=${waMsg}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 14, background: '#25D366', color: '#fff', borderRadius: 14, fontSize: 14, fontWeight: 700, textDecoration: 'none', marginBottom: 10 }}>
-            💬 Per WhatsApp teilen
+          <a href={`https://wa.me/${data.salonPhone ? data.salonPhone.replace(/[^0-9]/g, '') : ''}?text=${waMsg}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 14, background: '#25D366', color: '#fff', borderRadius: 14, fontSize: 14, fontWeight: 700, textDecoration: 'none', marginBottom: 10 }}>
+            💬 {data.salonPhone ? 'Per WhatsApp kontaktieren' : 'Per WhatsApp teilen'}
           </a>
           <button type="button" onClick={handleFertig} className="bgold">Fertig</button>
         </div>
