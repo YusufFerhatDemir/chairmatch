@@ -8,9 +8,14 @@ export interface Database {
           full_name: string | null
           phone: string | null
           avatar_url: string | null
-          role: 'kunde' | 'anbieter' | 'admin' | 'super_admin'
+          role: 'kunde' | 'anbieter' | 'b2b' | 'admin' | 'super_admin'
           is_active: boolean
           preferred_language: 'de' | 'en' | 'tr'
+          onboarding_done: boolean
+          referral_code: string | null
+          referral_balance_cents: number
+          delete_requested_at: string | null
+          deleted_at: string | null
           created_at: string
           updated_at: string
         }
@@ -20,18 +25,23 @@ export interface Database {
           full_name?: string | null
           phone?: string | null
           avatar_url?: string | null
-          role?: 'kunde' | 'anbieter' | 'admin' | 'super_admin'
+          role?: 'kunde' | 'anbieter' | 'b2b' | 'admin' | 'super_admin'
           is_active?: boolean
           preferred_language?: 'de' | 'en' | 'tr'
+          onboarding_done?: boolean
+          referral_code?: string | null
         }
         Update: {
           email?: string | null
           full_name?: string | null
           phone?: string | null
           avatar_url?: string | null
-          role?: 'kunde' | 'anbieter' | 'admin' | 'super_admin'
+          role?: 'kunde' | 'anbieter' | 'b2b' | 'admin' | 'super_admin'
           is_active?: boolean
           preferred_language?: 'de' | 'en' | 'tr'
+          onboarding_done?: boolean
+          delete_requested_at?: string | null
+          deleted_at?: string | null
         }
       }
       salons: {
@@ -185,6 +195,9 @@ export interface Database {
           comment: string | null
           reply: string | null
           replied_at: string | null
+          reported_flag: boolean
+          reported_at: string | null
+          reported_by: string | null
           created_at: string
         }
         Insert: {
@@ -195,7 +208,13 @@ export interface Database {
           rating: number
           comment?: string | null
         }
-        Update: Partial<Database['public']['Tables']['reviews']['Insert']>
+        Update: Partial<Database['public']['Tables']['reviews']['Insert']> & {
+          reply?: string | null
+          replied_at?: string | null
+          reported_flag?: boolean
+          reported_at?: string | null
+          reported_by?: string | null
+        }
       }
       favorites: {
         Row: {
@@ -397,9 +416,44 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['submission_tickets']['Insert']>
       }
       consents: {
-        Row: { id: string; booking_id: string; signed_pdf_url: string | null; signed_at: string; checksum: string | null }
-        Insert: { id?: string; booking_id: string; signed_pdf_url?: string | null; signed_at?: string; checksum?: string | null }
+        Row: { id: string; user_id: string; booking_id: string | null; type: string; given: boolean; ip_hash: string | null; created_at: string }
+        Insert: { id?: string; user_id: string; booking_id?: string | null; type: string; given?: boolean; ip_hash?: string | null }
         Update: Partial<Database['public']['Tables']['consents']['Insert']>
+      }
+      consent_logs: {
+        Row: { id: string; user_id: string; type: string; version: string; ip_hash: string | null; metadata: Record<string, unknown> | null; created_at: string }
+        Insert: { id?: string; user_id: string; type: string; version: string; ip_hash?: string | null; metadata?: Record<string, unknown> | null }
+        Update: Partial<Database['public']['Tables']['consent_logs']['Insert']>
+      }
+      cookie_consents: {
+        Row: { id: string; session_id: string; choices: Record<string, boolean> | null; ip_hash: string | null; created_at: string }
+        Insert: { id?: string; session_id: string; choices?: Record<string, boolean> | null; ip_hash?: string | null }
+        Update: Partial<Database['public']['Tables']['cookie_consents']['Insert']>
+      }
+      login_attempts: {
+        Row: { id: string; ip: string; email: string; success: boolean; created_at: string }
+        Insert: { id?: string; ip: string; email: string; success: boolean }
+        Update: Partial<Database['public']['Tables']['login_attempts']['Insert']>
+      }
+      newsletter_subscribers: {
+        Row: { id: string; email: string; source: string | null; created_at: string }
+        Insert: { id?: string; email: string; source?: string | null }
+        Update: Partial<Database['public']['Tables']['newsletter_subscribers']['Insert']>
+      }
+      categories: {
+        Row: { id: string; slug: string; name: string; icon_url: string | null; sort_order: number; is_active: boolean; created_at: string }
+        Insert: { id?: string; slug: string; name: string; icon_url?: string | null; sort_order?: number; is_active?: boolean }
+        Update: Partial<Database['public']['Tables']['categories']['Insert']>
+      }
+      promo_codes: {
+        Row: { id: string; code: string; discount_percent: number | null; discount_fixed_cents: number | null; valid_from: string | null; valid_until: string | null; max_uses: number | null; current_uses: number; is_active: boolean; created_at: string }
+        Insert: { id?: string; code: string; discount_percent?: number | null; discount_fixed_cents?: number | null; valid_from?: string | null; valid_until?: string | null; max_uses?: number | null; is_active?: boolean }
+        Update: Partial<Database['public']['Tables']['promo_codes']['Insert']>
+      }
+      booking_policies: {
+        Row: { id: string; salon_id: string; min_cancel_hours: number; free_cancel_hours: number; created_at: string }
+        Insert: { id?: string; salon_id: string; min_cancel_hours?: number; free_cancel_hours?: number }
+        Update: Partial<Database['public']['Tables']['booking_policies']['Insert']>
       }
       protect_pricing: {
         Row: { id: string; risk_level: string; day_price_cents: number; month_price_cents: number; year_price_cents: number; currency: string; active: boolean; created_at: string }

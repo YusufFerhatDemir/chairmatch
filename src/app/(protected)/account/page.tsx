@@ -12,7 +12,7 @@ interface Booking {
   booking_date?: string
   start_time: string
   status: string
-  total_price_cents: number
+  price_cents: number
   salon: { name: string } | null
   service: { name: string } | null
 }
@@ -36,7 +36,7 @@ export default function AccountPage() {
   }
 
   const user = session.user
-  const role = (user as { role?: string }).role || 'customer'
+  const role = (user as { role?: string }).role || 'kunde'
 
   const statusColor: Record<string, string> = {
     confirmed: '#4A8A5A',
@@ -96,7 +96,7 @@ export default function AccountPage() {
         </div>
 
         {/* Stuhl Vermieten CTA */}
-        {role === 'customer' && (
+        {role === 'kunde' && (
           <Link href="/register/anbieter" style={{ textDecoration: 'none' }}>
             <div className="card" style={{ padding: 0, marginBottom: 14, background: 'linear-gradient(135deg, #1A1608, #100E04)', border: '1px solid rgba(200,168,75,0.2)', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -139,7 +139,7 @@ export default function AccountPage() {
                   {b.booking_date || b.date} · {b.start_time?.slice(0, 5)}
                 </span>
                 <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--gold2)' }}>
-                  {b.total_price_cents ? (b.total_price_cents / 100).toFixed(0) + ' €' : ''}
+                  {b.price_cents ? (b.price_cents / 100).toFixed(0) + ' €' : ''}
                 </span>
               </div>
             </div>

@@ -4,15 +4,16 @@ import { useState } from 'react'
 
 interface Salon {
   id: string; name: string; description: string | null; city: string | null
-  address: string | null; phone: string | null; email: string | null
-  website: string | null; tagline: string | null; avg_rating: number
-  review_count: number; is_live: boolean; status: string
+  street: string | null; house_number: string | null; postal_code: string | null
+  phone: string | null; email: string | null
+  website: string | null; avg_rating: number
+  review_count: number; is_active: boolean; is_verified: boolean
   opening_hours: Record<string, string> | null
 }
 
 interface Service {
   id: string; name: string; description: string | null
-  duration_min: number; price_cents: number; is_active: boolean; sort_order: number
+  duration_minutes: number; price_cents: number; is_active: boolean; sort_order: number
 }
 
 interface Booking {
@@ -40,8 +41,10 @@ export default function ProviderDashboardClient({ salon, services: initServices,
   const [tab, setTab] = useState<Tab>('overview')
   const [form, setForm] = useState({
     name: salon.name, description: salon.description || '', city: salon.city || '',
-    address: salon.address || '', phone: salon.phone || '', email: salon.email || '',
-    website: salon.website || '', tagline: salon.tagline || '',
+    street: salon.street || '', house_number: salon.house_number || '',
+    postal_code: salon.postal_code || '',
+    phone: salon.phone || '', email: salon.email || '',
+    website: salon.website || '',
   })
   const [hours, setHours] = useState<Record<string, string>>(salon.opening_hours || {})
   const [saving, setSaving] = useState(false)
@@ -68,7 +71,7 @@ export default function ProviderDashboardClient({ salon, services: initServices,
       body: JSON.stringify({
         name: newSvc.name,
         price_cents: Math.round(parseFloat(newSvc.price || '0') * 100),
-        duration_min: parseInt(newSvc.duration) || 30,
+        duration_minutes: parseInt(newSvc.duration) || 30,
       }),
     })
     if (res.ok) {
@@ -112,12 +115,15 @@ export default function ProviderDashboardClient({ salon, services: initServices,
   const inp = { className: 'inp', style: { width: '100%' } as const }
   const lbl = { style: { fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 } as const }
 
+  const address = [salon.street, salon.house_number].filter(Boolean).join(' ')
+  const statusLabel = salon.is_active ? (salon.is_verified ? 'Verifiziert' : 'Aktiv') : 'Inaktiv'
+
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
         <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginBottom: 4 }}>Dashboard</h1>
         <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginBottom: 8 }}>
-          {salon.name} · {salon.is_live ? '🟢 Online' : '🔴 Offline'} · Status: {salon.status}
+          {salon.name} · {salon.is_active ? '🟢 Online' : '🔴 Offline'} · {statusLabel}
         </p>
         <p style={{ marginBottom: 16 }}>
           <a href="/owner/locations" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>Standorte &amp; Compliance →</a>
@@ -168,8 +174,9 @@ export default function ProviderDashboardClient({ salon, services: initServices,
         {tab === 'edit' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {([
-              ['Salonname', 'name', 'text'], ['Tagline', 'tagline', 'text'],
-              ['Stadt', 'city', 'text'], ['Adresse', 'address', 'text'],
+              ['Salonname', 'name', 'text'],
+              ['Stadt', 'city', 'text'], ['Straße', 'street', 'text'],
+              ['Hausnr.', 'house_number', 'text'], ['PLZ', 'postal_code', 'text'],
               ['Telefon', 'phone', 'tel'], ['E-Mail', 'email', 'email'],
               ['Website', 'website', 'url'],
             ] as const).map(([label, key, type]) => (
@@ -223,8 +230,8 @@ export default function ProviderDashboardClient({ salon, services: initServices,
                     <div style={{ display: 'flex', gap: 8 }}>
                       <input {...inp} type="number" value={(svc.price_cents / 100).toString()} style={{ flex: 1 }}
                         onChange={e => setServices(p => p.map(s => s.id === svc.id ? { ...s, price_cents: Math.round(parseFloat(e.target.value) * 100) } : s))} />
-                      <input {...inp} type="number" value={svc.duration_min.toString()} style={{ flex: 1 }}
-                        onChange={e => setServices(p => p.map(s => s.id === svc.id ? { ...s, duration_min: parseInt(e.target.value) || 30 } : s))} />
+                      <input {...inp} type="number" value={svc.duration_minutes.toString()} style={{ flex: 1 }}
+                        onChange={e => setServices(p => p.map(s => s.id === svc.id ? { ...s, duration_minutes: parseInt(e.target.value) || 30 } : s))} />
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button className="bgold" onClick={() => updateService(svc)} style={{ flex: 1, fontSize: 12 }}>Speichern</button>
@@ -235,7 +242,7 @@ export default function ProviderDashboardClient({ salon, services: initServices,
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: 600, color: 'var(--cream)' }}>{svc.name}</div>
-                      <div style={{ fontSize: 12, color: 'var(--stone)' }}>{(svc.price_cents / 100).toFixed(0)}€ · {svc.duration_min} Min.</div>
+                      <div style={{ fontSize: 12, color: 'var(--stone)' }}>{(svc.price_cents / 100).toFixed(0)}€ · {svc.duration_minutes} Min.</div>
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => setEditSvc(svc.id)} style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', fontSize: 13 }}>✎</button>

@@ -31,7 +31,11 @@ export default async function SearchPage({ searchParams }: Props) {
       .limit(50)
 
     if (q) {
-      query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`)
+      // Sanitize: remove PostgREST special chars to prevent filter injection
+      const safeQ = q.replace(/[%_(),.]/g, '')
+      if (safeQ) {
+        query = query.or(`name.ilike.%${safeQ}%,description.ilike.%${safeQ}%`)
+      }
     }
 
     if (city) {

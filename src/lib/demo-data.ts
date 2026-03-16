@@ -51,7 +51,7 @@ export interface DemoProvider {
   ver: boolean
   live: boolean
   frei: number
-  tier: 'gold' | 'premium' | 'free'
+  tier: 'gold' | 'premium' | 'starter'
   boost: number
   logo: string | null
   sps: string[]
@@ -251,7 +251,7 @@ export const PROVS: DemoProvider[] = [
     rt: 4.7, rc: 189, tl: 'Classic & Modern Barbering',
     tags: ['Herrenschnitt', 'Fade', 'Rasur', 'Bart'],
     disc: 10, bc: '#2A4A3A', prom: false, ver: true, live: true, frei: 4,
-    tier: 'free', boost: 40, logo: null, sps: ['s9'],
+    tier: 'starter', boost: 40, logo: null, sps: ['s9'],
     rental: [{ type: 'stuhl', pr: 35 }],
     svs: [
       { id: 'sv25', nm: 'Classic Cut', dur: 35, pr: 32 },
@@ -271,7 +271,7 @@ export const PROVS: DemoProvider[] = [
     rt: 4.8, rc: 267, tl: 'Kreative Haarkunst & Farbe',
     tags: ['Schnitt', 'Farbe', 'Strähnchen', 'Styling'],
     disc: 0, bc: '#9A70C8', prom: false, ver: true, live: true, frei: 3,
-    tier: 'free', boost: 35, logo: null, sps: ['s8'],
+    tier: 'starter', boost: 35, logo: null, sps: ['s8'],
     rental: [{ type: 'stuhl', pr: 38 }],
     svs: [
       { id: 'sv28', nm: 'Kreativ-Schnitt', dur: 50, pr: 48 },
@@ -291,7 +291,7 @@ export const PROVS: DemoProvider[] = [
     rt: 4.7, rc: 198, tl: 'Medical Skincare & Treatments',
     tags: ['Facial', 'Laser', 'Anti-Aging', 'Ultraschall'],
     disc: 5, bc: '#C86090', prom: false, ver: true, live: true, frei: 2,
-    tier: 'free', boost: 30, logo: null, sps: ['s10'],
+    tier: 'starter', boost: 30, logo: null, sps: ['s10'],
     rental: [],
     svs: [
       { id: 'sv31', nm: 'Medical Facial', dur: 60, pr: 80 },
@@ -311,7 +311,7 @@ export const PROVS: DemoProvider[] = [
     rt: 4.8, rc: 156, tl: 'Trendy Nail Designs & Care',
     tags: ['Shellac', 'Gel', 'Pediküre', 'Nail Art'],
     disc: 0, bc: '#C8987A', prom: false, ver: false, live: true, frei: 5,
-    tier: 'free', boost: 25, logo: null, sps: ['s11'],
+    tier: 'starter', boost: 25, logo: null, sps: ['s11'],
     rental: [],
     svs: [
       { id: 'sv34', nm: 'Shellac Classic', dur: 45, pr: 38 },
@@ -331,7 +331,7 @@ export const PROVS: DemoProvider[] = [
     rt: 4.6, rc: 142, tl: 'Entspannung pur',
     tags: ['Klassisch', 'Aromatherapie', 'Fußreflexzonen'],
     disc: 0, bc: '#4AA890', prom: false, ver: true, live: true, frei: 4,
-    tier: 'free', boost: 20, logo: null, sps: ['s12'],
+    tier: 'starter', boost: 20, logo: null, sps: ['s12'],
     rental: [{ type: 'liege', pr: 30 }],
     svs: [
       { id: 'sv37', nm: 'Klassische Massage', dur: 60, pr: 65 },
@@ -351,7 +351,7 @@ export const PROVS: DemoProvider[] = [
     rt: 4.7, rc: 167, tl: 'Perfekte Wimpern & Brauen',
     tags: ['Extensions', 'Lifting', 'Tinting', 'Brow'],
     disc: 15, bc: '#B8A060', prom: false, ver: true, live: true, frei: 3,
-    tier: 'free', boost: 30, logo: null, sps: ['s13'],
+    tier: 'starter', boost: 30, logo: null, sps: ['s13'],
     rental: [],
     svs: [
       { id: 'sv40', nm: 'Lash Lifting & Tinting', dur: 60, pr: 55 },

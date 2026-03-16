@@ -105,8 +105,8 @@ export default async function SalonDetailPage({ params }: Props) {
       review_count: salon.review_count,
       is_verified: salon.is_verified,
       subscription_tier: salon.subscription_tier || 'starter',
-      tagline: salon.tagline || salon.description,
-      tags: salon.tags,
+      tagline: salon.description || '',
+      tags: [] as string[],
       phone: salon.phone,
       opening_hours: salon.opening_hours as Record<string, { open: string; close: string } | null> | null,
     }

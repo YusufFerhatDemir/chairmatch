@@ -11,7 +11,7 @@ async function requireAdmin() {
   return session
 }
 
-// Salon actions: approve, suspend, toggle live
+// Salon actions: approve, suspend, toggle active
 export async function PATCH(req: NextRequest) {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -19,12 +19,22 @@ export async function PATCH(req: NextRequest) {
   const supabase = getSupabaseAdmin()
 
   if (action === 'salon-status') {
-    const { error } = await supabase.from('salons').update({ status: data.status, is_live: data.status === 'approved' }).eq('id', id)
+    // Map status to is_active/is_verified
+    const updates: Record<string, boolean> = {}
+    if (data.status === 'approved') {
+      updates.is_active = true
+      updates.is_verified = true
+    } else if (data.status === 'suspended') {
+      updates.is_active = false
+    } else if (data.status === 'pending') {
+      updates.is_verified = false
+    }
+    const { error } = await supabase.from('salons').update(updates).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  if (action === 'salon-toggle-live') {
-    const { error } = await supabase.from('salons').update({ is_live: data.is_live }).eq('id', id)
+  if (action === 'salon-toggle-active') {
+    const { error } = await supabase.from('salons').update({ is_active: data.is_active }).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 

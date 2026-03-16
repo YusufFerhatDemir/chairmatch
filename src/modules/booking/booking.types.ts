@@ -51,10 +51,10 @@ export type StatusTransition = {
 }
 
 export const VALID_TRANSITIONS: StatusTransition[] = [
-  { from: 'PENDING', to: 'CONFIRMED', actor: 'provider' },
-  { from: 'PENDING', to: 'CANCELLED', actor: 'customer' },
-  { from: 'CONFIRMED', to: 'COMPLETED', actor: 'provider' },
-  { from: 'CONFIRMED', to: 'CANCELLED', actor: 'customer' },
-  { from: 'CONFIRMED', to: 'CANCELLED', actor: 'provider' },
-  { from: 'CONFIRMED', to: 'NO_SHOW', actor: 'provider' },
+  { from: 'pending', to: 'confirmed', actor: 'provider' },
+  { from: 'pending', to: 'cancelled', actor: 'customer' },
+  { from: 'confirmed', to: 'completed', actor: 'provider' },
+  { from: 'confirmed', to: 'cancelled', actor: 'customer' },
+  { from: 'confirmed', to: 'cancelled', actor: 'provider' },
+  { from: 'confirmed', to: 'no_show', actor: 'provider' },
 ]
