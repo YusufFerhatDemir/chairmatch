@@ -7,8 +7,8 @@ export default function PublicLoading() {
       }}>
         <div style={{
           width: 40, height: 40,
-          border: '3px solid rgba(176, 120, 8, 0.2)',
-          borderTopColor: '#B07808',
+          border: '3px solid rgba(190, 133, 16, 0.2)',
+          borderTopColor: '#BE8510',
           borderRadius: '50%',
           animation: 'spin 0.8s linear infinite',
         }} />

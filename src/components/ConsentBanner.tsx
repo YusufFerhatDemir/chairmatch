@@ -86,7 +86,7 @@ export default function ConsentBanner() {
         right: 0,
         zIndex: 9999,
         background: 'var(--c1)',
-        borderTop: '1px solid rgba(176,120,8,0.15)',
+        borderTop: '1px solid rgba(190,133,16,0.15)',
         padding: '16px var(--pad)',
         display: 'flex',
         flexDirection: 'column',

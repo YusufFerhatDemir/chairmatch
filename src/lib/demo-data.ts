@@ -83,7 +83,7 @@ export const PROVS: DemoProvider[] = [
     id: 'p1', cat: 'barber', nm: 'BlackLabel Barbershop', st: 'Münchener Str. 17', city: 'Frankfurt',
     rt: 4.9, rc: 412, tl: 'Premium Fades & Beard Design',
     tags: ['Fade', 'Skin Fade', 'Bart', 'Herrenschnitt', 'Rasur'],
-    disc: 15, bc: '#B07808', prom: true, ver: true, live: true, frei: 3,
+    disc: 15, bc: '#BE8510', prom: true, ver: true, live: true, frei: 3,
     tier: 'gold', boost: 95, logo: null, sps: ['s1', 's5'],
     rental: [{ type: 'stuhl', pr: 45 }, { type: 'raum', pr: 60 }],
     svs: [

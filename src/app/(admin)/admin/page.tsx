@@ -93,8 +93,8 @@ export default async function AdminPage() {
           {userRole === 'super_admin' && (
             <Link href="/admin/super" className="card" style={{
               textDecoration: 'none',
-              borderColor: 'rgba(176, 120, 8, 0.3)',
-              background: 'linear-gradient(135deg, rgba(176,120,8,0.08), rgba(176,120,8,0.02))',
+              borderColor: 'rgba(190, 133, 16, 0.3)',
+              background: 'linear-gradient(135deg, rgba(190,133,16,0.08), rgba(190,133,16,0.02))',
             }}>
               <span style={{ color: 'var(--gold2)', fontWeight: 700 }}>Super Admin Panel</span>
             </Link>
