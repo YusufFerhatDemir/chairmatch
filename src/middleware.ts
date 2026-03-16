@@ -29,6 +29,7 @@ const publicPrefixes = [
   '/register/',
   '/_next/',
   '/icons/',
+  '/brand/',
   '/favicon',
   '/manifest',
   '/sw.js',
