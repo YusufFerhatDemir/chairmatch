@@ -379,13 +379,7 @@ body {
   height: 100%;
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 0 8px rgba(190,133,16,0.35)) drop-shadow(0 0 20px rgba(190,133,16,0.10));
-  transition: filter 0.3s;
-}
-
-.catcard:hover .caticon img,
-.catcard:active .caticon img {
-  filter: drop-shadow(0 0 12px rgba(190,133,16,0.50)) drop-shadow(0 0 28px rgba(190,133,16,0.18));
+  filter: drop-shadow(0 0 6px rgba(190,133,16,0.25));
 }
 
 /* Onboarding „Was ist dein Handwerk?”: kompaktere Icons */
