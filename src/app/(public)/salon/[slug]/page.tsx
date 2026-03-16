@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import SalonDetailClient from '@/components/SalonDetailClient'
@@ -7,6 +8,49 @@ import { PROVS } from '@/lib/demo-data'
 
 interface Props {
   params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+
+  const demo = PROVS.find(p => p.id === slug)
+  if (demo) {
+    return {
+      title: `${demo.nm} — ${demo.city}`,
+      description: `${demo.tl}. ★ ${demo.rt} (${demo.rc} Bewertungen). Jetzt Termin buchen bei ${demo.nm} in ${demo.city}.`,
+      openGraph: {
+        title: `${demo.nm} — Termin buchen | ChairMatch`,
+        description: `${demo.tl}. ★ ${demo.rt} Bewertung. ${demo.city}.`,
+        url: `https://chairmatch.de/salon/${slug}`,
+        type: 'website',
+      },
+    }
+  }
+
+  try {
+    const supabase = getSupabaseAdmin()
+    const { data: salon } = await supabase
+      .from('salons')
+      .select('name, description, city, avg_rating, review_count')
+      .or(`slug.eq.${slug},id.eq.${slug}`)
+      .limit(1)
+      .maybeSingle()
+
+    if (salon) {
+      return {
+        title: `${salon.name} — ${salon.city || 'Deutschland'}`,
+        description: `${salon.description || salon.name}. ★ ${salon.avg_rating} (${salon.review_count} Bewertungen). Jetzt Termin buchen.`,
+        openGraph: {
+          title: `${salon.name} — Termin buchen | ChairMatch`,
+          description: `${salon.description || salon.name}. ★ ${salon.avg_rating} Bewertung.`,
+          url: `https://chairmatch.de/salon/${slug}`,
+          type: 'website',
+        },
+      }
+    }
+  } catch {}
+
+  return { title: 'Salon — ChairMatch' }
 }
 
 export default async function SalonDetailPage({ params }: Props) {
@@ -58,7 +102,22 @@ export default async function SalonDetailPage({ params }: Props) {
       price_per_day_cents: r.pr * 100, description: null,
     }))
 
-    return <SalonDetailClient salon={salonData} services={services} staff={[]} reviews={reviews} rentals={rentals} />
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'BeautySalon',
+      name: demoProvider.nm,
+      description: demoProvider.tl,
+      address: { '@type': 'PostalAddress', streetAddress: demoProvider.st, addressLocality: demoProvider.city, addressCountry: 'DE' },
+      aggregateRating: { '@type': 'AggregateRating', ratingValue: demoProvider.rt, reviewCount: demoProvider.rc, bestRating: 5 },
+      url: `https://chairmatch.de/salon/${slug}`,
+    }
+
+    return (
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <SalonDetailClient salon={salonData} services={services} staff={[]} reviews={reviews} rentals={rentals} />
+      </>
+    )
   }
 
   // Otherwise try DB
@@ -111,7 +170,20 @@ export default async function SalonDetailPage({ params }: Props) {
       opening_hours: salon.opening_hours as Record<string, { open: string; close: string } | null> | null,
     }
 
+    const dbJsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'BeautySalon',
+      name: salon.name,
+      description: salon.description || '',
+      address: { '@type': 'PostalAddress', streetAddress: salon.street || '', addressLocality: salon.city || '', addressCountry: 'DE' },
+      aggregateRating: salon.review_count > 0 ? { '@type': 'AggregateRating', ratingValue: salon.avg_rating, reviewCount: salon.review_count, bestRating: 5 } : undefined,
+      telephone: salon.phone || undefined,
+      url: `https://chairmatch.de/salon/${salon.slug || salon.id}`,
+    }
+
     return (
+      <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dbJsonLd) }} />
       <SalonDetailClient
         salon={salonData}
         services={(servicesRes.data || []).map(s => ({ id: s.id, name: s.name, duration_minutes: s.duration_minutes, price_cents: s.price_cents }))}
@@ -119,6 +191,7 @@ export default async function SalonDetailPage({ params }: Props) {
         reviews={(reviewsRes.data || []).map(r => ({ id: r.id, rating: r.rating, comment: r.comment, reply: r.reply, customer: r.customer, created_at: r.created_at }))}
         rentals={(rentalsRes.data || []).map(r => ({ id: r.id, type: r.type, name: r.name, price_per_day_cents: r.price_per_day_cents, description: r.description }))}
       />
+      </>
     )
   } catch {
     notFound()

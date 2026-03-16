@@ -16,6 +16,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/agb`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/agb-provider`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/cookie-settings`, changeFrequency: 'monthly', priority: 0.2 },
+    { url: `${base}/auth`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/register/anbieter`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${base}/search`, changeFrequency: 'daily', priority: 0.8 },
   ]
 
   try {
@@ -26,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data: salons } = await supabase
       .from('salons')
       .select('slug, updated_at')
-      .eq('is_live', true)
+      .eq('is_active', true)
       .limit(500)
 
     const salonPages: MetadataRoute.Sitemap = (salons ?? []).map(s => ({
