@@ -83,13 +83,11 @@ export async function POST(req: NextRequest) {
       name: d.geschaeft,
       slug: `${slug}-${Date.now().toString(36)}`,
       city: d.city,
-      address: `${d.st}, ${d.plz} ${d.city}`,
+      street: d.st,
+      postal_code: d.plz,
       category: d.kat.toLowerCase(),
-      status: 'pending',
-      is_live: false,
-      chair_rental: d.chair,
-      chair_price_day: d.chair && d.cpr ? parseFloat(d.cpr) : null,
-      gewerbe_check: d.gb,
+      is_active: false,
+      is_verified: false,
     })
 
     if (salonError) {

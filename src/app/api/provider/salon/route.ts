@@ -22,7 +22,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Kein Salon gefunden' }, { status: 404 })
   }
 
-  const allowed = ['name', 'description', 'city', 'address', 'phone', 'email', 'website', 'opening_hours', 'tagline']
+  const allowed = ['name', 'description', 'city', 'street', 'house_number', 'postal_code', 'phone', 'email', 'website', 'opening_hours', 'category', 'logo_url', 'cover_url']
   const updates: Record<string, unknown> = {}
   for (const key of allowed) {
     if (key in body) updates[key] = body[key]

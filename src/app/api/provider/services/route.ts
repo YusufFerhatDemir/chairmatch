@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       salon_id: salonId,
       name: body.name,
       description: body.description || null,
-      duration_min: body.duration_min || 30,
+      duration_minutes: body.duration_minutes || 30,
       price_cents: body.price_cents || 0,
       is_active: true,
       sort_order: body.sort_order || 0,
@@ -50,7 +50,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const supabase = getSupabaseAdmin()
 
-  const allowed = ['name', 'description', 'duration_min', 'price_cents', 'is_active', 'sort_order']
+  const allowed = ['name', 'description', 'duration_minutes', 'price_cents', 'is_active', 'sort_order']
   const updates: Record<string, unknown> = {}
   for (const key of allowed) {
     if (key in body) updates[key] = body[key]

@@ -138,8 +138,10 @@ export async function createBooking(input: unknown) {
   if (data.consentGiven && (riskLevel === 'HIGH' || riskLevel === 'VERY_HIGH')) {
     try {
       await supabase.from('consents').insert({
+        user_id: customerId,
         booking_id: newBooking.id,
-        signed_at: new Date().toISOString(),
+        type: riskLevel || 'HIGH',
+        given: true,
       })
     } catch {
       console.error('Failed to create consent record')

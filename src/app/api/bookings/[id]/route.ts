@@ -43,7 +43,8 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const { newStatus } = await request.json()
+    const body = await request.json()
+    const newStatus = body.newStatus || body.status
 
     let result
     switch (newStatus?.toLowerCase()) {
