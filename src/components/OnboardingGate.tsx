@@ -406,7 +406,7 @@ export default function OnboardingGate({ slides, children }: Props) {
       function addCustomEq() {
         if (!ceNm.trim()) { showToast('Bitte Name eingeben'); return }
         if (allEquip.some(e => e.nm === ceNm.trim())) { showToast('Existiert bereits'); return }
-        const eq = { nm: ceNm.trim(), pr: Number(cePr) || 0, icon: '🔧' }
+        const eq = { nm: ceNm.trim(), pr: Number(cePr) || 0, icon: '' }
         setCustomEquip(prev => [...prev, eq])
         setProvEquip(prev => [...prev, eq.nm])
         setCeNm(''); setCePr('')
@@ -447,7 +447,13 @@ export default function OnboardingGate({ slides, children }: Props) {
                     <div style={{ width: 20, height: 20, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: active ? 'rgba(200,168,75,.15)' : 'transparent', flexShrink: 0 }}>
                       {active ? '✓' : ''}
                     </div>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>{eq.icon}</span>
+                    <span style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {CATEGORY_ICONS[provCat] ? (
+                        <img src={CATEGORY_ICONS[provCat]} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                      ) : (
+                        <span style={{ fontSize: 14 }}>{eq.icon}</span>
+                      )}
+                    </span>
                     <span style={{ flex: 1, fontSize: 13, fontWeight: active ? 700 : 400, color: active ? 'var(--cream)' : 'var(--stone)' }}>
                       {eq.nm} {isCustom && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'rgba(200,168,75,.1)', color: 'var(--gold2)', marginLeft: 4 }}>EIGENER</span>}
                     </span>

@@ -17,10 +17,7 @@ export function BrandLogo({
   className,
   style,
 }: BrandLogoProps) {
-  // Vereinheitlichtes Logo: wir nutzen das PWA/App-Icon (/icon-512.png),
-  // damit es überall (Startseite, Onboarding, Login) gleich aussieht und
-  // keine 404-Probleme durch fehlende /brand-Assets mehr entstehen.
-  const src = '/icon-512.png'
+  const src = '/icons/logo_symbol_512x512.png'
 
   const dimension = size
 

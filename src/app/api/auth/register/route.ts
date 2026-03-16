@@ -3,8 +3,11 @@ import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { registerSchema } from '@/modules/auth/auth.schemas'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const FALLBACK_URL = 'https://pwdbjqfpgumyfktbfswg.supabase.co'
+const FALLBACK_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3ZGJqcWZwZ3VteWZrdGJmc3dnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5OTc0MjAsImV4cCI6MjA4NzU3MzQyMH0.rLUoTNev2CVDswBAVoS2PT0xGvXbNDv7FKbDJ8i29Ws'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,7 +33,11 @@ export async function POST(req: NextRequest) {
     })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      const msg = error.message || ''
+      const friendly = msg.toLowerCase().includes('database') || msg.toLowerCase().includes('saving')
+        ? 'Registrierung fehlgeschlagen. Bitte Supabase-Migration prüfen (profiles.full_name, Trigger handle_new_user).'
+        : msg
+      return NextResponse.json({ error: friendly }, { status: 400 })
     }
 
     if (!data.user) {
@@ -57,32 +64,36 @@ export async function POST(req: NextRequest) {
     const ipHash = ip ? Buffer.from(ip).toString('base64').slice(0, 32) : null
     const version = '1.0'
 
-    if (agbAccepted) {
-      await supabaseAdmin.from('consent_logs').insert({
-        user_id: data.user.id,
-        type: 'agb',
-        version,
-        ip_hash: ipHash,
-        metadata: { source: 'signup' },
-      })
-    }
-    if (datenschutzAccepted) {
-      await supabaseAdmin.from('consent_logs').insert({
-        user_id: data.user.id,
-        type: 'datenschutz',
-        version,
-        ip_hash: ipHash,
-        metadata: { source: 'signup' },
-      })
-    }
-    if (marketingAccepted) {
-      await supabaseAdmin.from('consent_logs').insert({
-        user_id: data.user.id,
-        type: 'marketing',
-        version,
-        ip_hash: ipHash,
-        metadata: { source: 'signup' },
-      })
+    try {
+      if (agbAccepted) {
+        await supabaseAdmin.from('consent_logs').insert({
+          user_id: data.user.id,
+          type: 'agb',
+          version,
+          ip_hash: ipHash,
+          metadata: { source: 'signup' },
+        })
+      }
+      if (datenschutzAccepted) {
+        await supabaseAdmin.from('consent_logs').insert({
+          user_id: data.user.id,
+          type: 'datenschutz',
+          version,
+          ip_hash: ipHash,
+          metadata: { source: 'signup' },
+        })
+      }
+      if (marketingAccepted) {
+        await supabaseAdmin.from('consent_logs').insert({
+          user_id: data.user.id,
+          type: 'marketing',
+          version,
+          ip_hash: ipHash,
+          metadata: { source: 'signup' },
+        })
+      }
+    } catch {
+      /* consent_logs optional, Registrierung trotzdem erfolgreich */
     }
 
     return NextResponse.json({ success: true })
