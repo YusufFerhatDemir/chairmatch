@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin()
     const { error } = await supabase
-      .from('newsletter')
-      .upsert({ email: parsed.data.email }, { onConflict: 'email' })
+      .from('newsletter_subscribers')
+      .upsert({ email: parsed.data.email, source: 'website' }, { onConflict: 'email' })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
