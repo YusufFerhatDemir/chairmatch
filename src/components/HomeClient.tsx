@@ -50,22 +50,52 @@ function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
     <span style={{ display: 'inline-flex', gap: 1 }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: '#E8C86A', fontSize: size }}>★</span>
+        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: 'var(--gold)', fontSize: size }}>★</span>
       ))}
     </span>
   )
 }
 
-function getCategoryIcon(slug: string): string {
-  const map: Record<string, string> = {
-    barber: '01_barbershop_256x384.png', friseur: '02_friseur_256x384.png',
-    kosmetik: '03_kosmetik_256x384.png', aesthetik: '04_aesthetik_256x384.png',
-    nail: '05_nagelstudio_256x384.png', massage: '06_massage_256x384.png',
-    lash: '07_lash_brows_256x384.png', arzt: '08_arzt_klinik_256x384.png',
-    opraum: '09_op_raum_512x384.png', angebote: '10_angebote_256x384.png',
-    termin: '11_termin_256x384.png',
+function CategorySvgIcon({ slug }: { slug: string }) {
+  const s = { width: 32, height: 32, viewBox: '0 0 24 24', fill: 'none', stroke: 'var(--gold)', strokeWidth: 1.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  switch (slug) {
+    case 'barber': return (
+      <svg {...s}><path d="M6 3v18M18 3v18M6 8h12M6 16h12" /><circle cx="9" cy="12" r="1.5" fill="rgba(200,168,75,0.2)" /><circle cx="15" cy="12" r="1.5" fill="rgba(200,168,75,0.2)" /></svg>
+    )
+    case 'friseur': return (
+      <svg {...s}><path d="M4 20L12 4l8 16" /><path d="M7.5 14h9" /><circle cx="12" cy="9" r="2" fill="rgba(200,168,75,0.15)" /></svg>
+    )
+    case 'kosmetik': return (
+      <svg {...s}><circle cx="12" cy="10" r="6" /><path d="M12 16v5M8 21h8" /><path d="M9 8.5c0-1 .5-2 1.5-2.5" /><circle cx="12" cy="10" r="2" fill="rgba(200,168,75,0.15)" /></svg>
+    )
+    case 'aesthetik': return (
+      <svg {...s}><path d="M12 3l1.5 4.5H18l-3.5 2.5L16 14.5 12 12l-4 2.5 1.5-4.5L6 7.5h4.5z" fill="rgba(200,168,75,0.12)" /><path d="M5 19c2-2 4.5-3 7-3s5 1 7 3" /></svg>
+    )
+    case 'nail': return (
+      <svg {...s}><path d="M8 3h8v4c0 4-2 8-4 10-2-2-4-6-4-10z" fill="rgba(200,168,75,0.1)" /><path d="M8 7h8" /><path d="M10 17v4M14 17v4M7 21h10" /></svg>
+    )
+    case 'massage': return (
+      <svg {...s}><path d="M4 14c0-3 3-5 8-5s8 2 8 5" /><ellipse cx="12" cy="9" rx="8" ry="3" fill="rgba(200,168,75,0.1)" /><path d="M6 14v3c0 1 .5 2 2 2h8c1.5 0 2-1 2-2v-3" /><circle cx="12" cy="6" r="2" /></svg>
+    )
+    case 'lash': return (
+      <svg {...s}><ellipse cx="12" cy="13" rx="5" ry="3" /><path d="M7 13c-1-3 0-6 2-8M17 13c1-3 0-6-2-8M9 10c0-2 1-4 3-5M15 10c0-2-1-4-3-5" /><circle cx="12" cy="13" r="1" fill="var(--gold)" /></svg>
+    )
+    case 'arzt': return (
+      <svg {...s}><path d="M12 3v18M6 9h12" /><rect x="6" y="6" width="12" height="6" rx="1" fill="rgba(200,168,75,0.1)" /><path d="M8 18h8" /><circle cx="12" cy="16" r="2" /></svg>
+    )
+    case 'opraum': return (
+      <svg {...s}><rect x="3" y="8" width="18" height="10" rx="2" fill="rgba(200,168,75,0.08)" /><path d="M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3" /><path d="M12 12v3M10.5 13.5h3" /><path d="M3 18h18" /></svg>
+    )
+    case 'angebote': return (
+      <svg {...s}><path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7z" fill="rgba(200,168,75,0.08)" /><path d="M9 12l2 2 4-4" /></svg>
+    )
+    case 'termin': return (
+      <svg {...s}><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /><path d="M9 16l2 2 4-4" /></svg>
+    )
+    default: return (
+      <svg {...s}><circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 3" /></svg>
+    )
   }
-  return map[slug] || '01_barbershop_256x384.png'
 }
 
 export default function HomeClient({ categories, dbSalons, greeting, topOfferPercent }: Props) {
@@ -288,7 +318,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
             <a key={cat.id} href={`/category/${cat.slug}`} style={{ textDecoration: 'none' }}>
               <div className="catcard">
                 <div className="caticon">
-                  <img src={cat.icon_url || `/icons/${getCategoryIcon(cat.slug)}`} alt={cat.label} />
+                  <CategorySvgIcon slug={cat.slug} />
                 </div>
                 <div className="catlbl">{cat.label}</div>
                 <div className="catsub">{cat.description || ''}</div>
@@ -390,7 +420,7 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
         <div style={{
           height: 3,
           background: p.tier === 'gold'
-            ? 'linear-gradient(90deg,#C8A84B,#F5E080,#C8A84B)'
+            ? 'linear-gradient(90deg,#C8A84B,#D4B262,#C8A84B)'
             : p.tier === 'premium'
               ? 'linear-gradient(90deg,#9A70C8,#C8A84B)'
               : p.bc,

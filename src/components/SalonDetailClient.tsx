@@ -67,7 +67,7 @@ function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
     <span style={{ display: 'inline-flex', gap: 1 }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: '#E8C86A', fontSize: size }}>★</span>
+        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: 'var(--gold)', fontSize: size }}>★</span>
       ))}
     </span>
   )

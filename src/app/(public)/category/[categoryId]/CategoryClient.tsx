@@ -27,7 +27,7 @@ function Stars({ rating }: { rating: number }) {
   return (
     <span style={{ display: 'inline-flex', gap: 1 }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: '#E8C86A', fontSize: 12 }}>★</span>
+        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: 'var(--gold)', fontSize: 12 }}>★</span>
       ))}
     </span>
   )
@@ -95,7 +95,7 @@ export default function CategoryClient({ categoryId, category, dbSalons }: Props
                   }}>
                     <div style={{
                       height: 3,
-                      background: p.tier === 'gold' ? 'linear-gradient(90deg,#C8A84B,#F5E080,#C8A84B)' : p.tier === 'premium' ? 'linear-gradient(90deg,#9A70C8,#C8A84B)' : p.bc,
+                      background: p.tier === 'gold' ? 'linear-gradient(90deg,#C8A84B,#D4B262,#C8A84B)' : p.tier === 'premium' ? 'linear-gradient(90deg,#9A70C8,#C8A84B)' : p.bc,
                     }} />
                     <div style={{ padding: '13px 15px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 7, gap: 10 }}>

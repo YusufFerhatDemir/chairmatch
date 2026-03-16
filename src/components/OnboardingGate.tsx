@@ -171,31 +171,31 @@ export default function OnboardingGate({ slides, children }: Props) {
 
   const logo = () => (
     <div style={{
-      marginBottom: 20,
+      marginBottom: 24,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: 10,
+      gap: 14,
     }}>
-      <BrandLogo size={76} variant="glow" animateStar />
+      <BrandLogo size={110} animateStar={false} />
       <div style={{ textAlign: 'center' }}>
         <p
           className="cinzel"
           style={{
-            fontSize: 17,
+            fontSize: 22,
             fontWeight: 700,
-            letterSpacing: 2,
+            letterSpacing: 3,
             color: 'var(--gold2)',
             lineHeight: 1,
-            marginBottom: 3,
+            marginBottom: 4,
           }}
         >
           CHAIR<span style={{ color: 'var(--gold3)' }}>MATCH</span>
         </p>
         <p
           style={{
-            fontSize: 8,
-            letterSpacing: 3,
+            fontSize: 9,
+            letterSpacing: 4,
             color: 'var(--stone)',
           }}
         >
@@ -655,99 +655,44 @@ export default function OnboardingGate({ slides, children }: Props) {
       }}>
         {isFirst ? (
           logo()
-        ) : slide.imageUrl ? (
-          <div
-            style={{
-              marginBottom: 20,
-              padding: 18,
-              borderRadius: 26,
-              background:
-                'radial-gradient(circle at 30% 15%, rgba(245,224,128,0.22), transparent 55%), radial-gradient(circle at 70% 85%, rgba(200,168,75,0.18), transparent 60%)',
-              boxShadow: '0 0 40px rgba(0,0,0,0.85)',
-              animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxSizing: 'border-box',
-            }}
-          >
-            <img
-              src={slide.imageUrl}
-              alt={slide.title}
-              style={{
-                height: 110,
-                maxWidth: 260,
-                objectFit: 'contain',
-                display: 'block',
-              }}
-            />
-          </div>
-        ) : slide.icon === 'chair' ? (
-          <div
-            className="icon-in-frame"
-            style={{
-              marginBottom: 20,
-              width: 200,
-              height: 140,
-              padding: 18,
-              borderRadius: 26,
-              background:
-                'radial-gradient(circle at 30% 15%, rgba(245,224,128,0.24), transparent 55%), radial-gradient(circle at 70% 85%, rgba(200,168,75,0.2), transparent 60%)',
-              boxShadow: '0 0 40px rgba(0,0,0,0.85)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
-              boxSizing: 'border-box',
-            }}
-          >
-            <img
-              src="/icons/12_stuhlvermietung_512x384.png"
-              style={{
-                height: '100%',
-                maxHeight: 110,
-                maxWidth: '100%',
-                objectFit: 'contain',
-                objectPosition: 'center',
-                display: 'block',
-              }}
-              alt="Stuhlvermietung"
-            />
-          </div>
-        ) : slide.icon === 'booking' ? (
-          <div
-            className="icon-in-frame"
-            style={{
-              marginBottom: 20,
-              width: 200,
-              height: 140,
-              padding: 18,
-              borderRadius: 26,
-              background:
-                'radial-gradient(circle at 30% 15%, rgba(245,224,128,0.24), transparent 55%), radial-gradient(circle at 70% 85%, rgba(200,168,75,0.2), transparent 60%)',
-              boxShadow: '0 0 40px rgba(0,0,0,0.85)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
-              boxSizing: 'border-box',
-            }}
-          >
-            <img
-              src="/icons/11_termin_256x384.png"
-              style={{
-                height: '100%',
-                maxHeight: 110,
-                maxWidth: '100%',
-                objectFit: 'contain',
-                objectPosition: 'center',
-                display: 'block',
-              }}
-              alt="Termin"
-            />
-          </div>
         ) : (
-          <div style={{ fontSize: 60, marginBottom: 20, animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite' }}>{slide.icon || '✨'}</div>
+          <div style={{
+            marginBottom: 28,
+            width: 96,
+            height: 96,
+            borderRadius: 28,
+            border: '1.5px solid rgba(200,168,75,0.2)',
+            background: 'rgba(200,168,75,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {(slide.imageUrl?.includes('termin') || slide.icon === 'booking') ? (
+              /* Kalender-Icon — sauberes SVG */
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+                <path d="M9 16l2 2 4-4" />
+              </svg>
+            ) : (slide.imageUrl?.includes('stuhl') || slide.icon === 'chair') ? (
+              /* Stuhl-Icon — sauberes SVG */
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 11V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v5" />
+                <path d="M4 11h16a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1z" />
+                <path d="M6 15v4" />
+                <path d="M18 15v4" />
+                <path d="M8 19h8" />
+              </svg>
+            ) : (
+              /* Entdecken — Kompass-Icon */
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="rgba(200,168,75,0.15)" stroke="var(--gold)" />
+              </svg>
+            )}
+          </div>
         )}
 
         <p className="cinzel" style={{ fontSize: 22, fontWeight: 600, marginBottom: 10, lineHeight: 1.3, color: 'var(--gold2)' }}>
