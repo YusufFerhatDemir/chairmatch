@@ -17,7 +17,7 @@ export function BrandLogo({
   className,
   style,
 }: BrandLogoProps) {
-  const src = '/icons/logo_symbol_512x512.png'
+  const src = '/icons/chairmatch-pin-logo.png'
 
   const dimension = size
 
