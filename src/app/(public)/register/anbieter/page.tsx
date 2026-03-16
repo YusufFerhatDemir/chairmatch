@@ -35,7 +35,7 @@ export default function AnbieterRegisterPage() {
       <div className="shell">
         <div className="screen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '36px 22px', textAlign: 'center' }}>
           <div style={{ animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block', marginBottom: 16 }}>
-            <BrandLogo size={80} variant="glow" animateStar />
+            <BrandLogo size={80} variant="dark" animateStar />
           </div>
           <h2 className="cinzel" style={{ fontSize: 22, marginBottom: 8, color: 'var(--gold2)' }}>Eingereicht!</h2>
           <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 18, lineHeight: 1.7 }}>
@@ -100,7 +100,7 @@ export default function AnbieterRegisterPage() {
                         fontFamily: 'inherit',
                         background: f.kat === c ? 'var(--gold)' : 'var(--c3)',
                         color: f.kat === c ? '#080706' : 'var(--stone)',
-                        border: `1px solid ${f.kat === c ? 'var(--gold)' : 'rgba(200,168,75,0.12)'}`,
+                        border: `1px solid ${f.kat === c ? 'var(--gold)' : 'rgba(214,177,90,0.12)'}`,
                       }}
                     >
                       {c}
@@ -117,7 +117,7 @@ export default function AnbieterRegisterPage() {
                 style={{
                   display: 'flex', gap: 10, alignItems: 'center', padding: '12px 14px',
                   background: 'var(--c2)', borderRadius: 12, cursor: 'pointer',
-                  border: `1px solid ${f.gb ? 'var(--gold)' : 'rgba(200,168,75,0.1)'}`,
+                  border: `1px solid ${f.gb ? 'var(--gold)' : 'rgba(214,177,90,0.1)'}`,
                 }}
               >
                 <div style={{
@@ -149,8 +149,8 @@ export default function AnbieterRegisterPage() {
                 onClick={() => upd('chair', !f.chair)}
                 style={{
                   display: 'flex', gap: 10, alignItems: 'center', padding: '13px 15px',
-                  background: f.chair ? 'rgba(200,168,75,0.06)' : 'var(--c2)', borderRadius: 12, cursor: 'pointer',
-                  border: `1.5px solid ${f.chair ? 'var(--gold)' : 'rgba(200,168,75,0.1)'}`,
+                  background: f.chair ? 'rgba(214,177,90,0.06)' : 'var(--c2)', borderRadius: 12, cursor: 'pointer',
+                  border: `1.5px solid ${f.chair ? 'var(--gold)' : 'rgba(214,177,90,0.1)'}`,
                 }}
               >
                 <div style={{
@@ -183,7 +183,7 @@ export default function AnbieterRegisterPage() {
               </p>
               <div className="card" style={{ padding: 14, marginBottom: 16 }}>
                 {([['Name', `${f.vn} ${f.nn}`], ['E-Mail', f.em], ['Geschäft', f.geschaeft], ['Stadt', f.city], ['Kategorie', f.kat], ['Stuhlmiete', f.chair ? `${f.cpr}€/Tag` : 'Nein']] as const).map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgba(200,168,75,0.06)', fontSize: 13 }}>
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgba(214,177,90,0.06)', fontSize: 13 }}>
                     <span style={{ color: 'var(--stone)' }}>{k}</span>
                     <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{v || '—'}</span>
                   </div>
@@ -191,7 +191,7 @@ export default function AnbieterRegisterPage() {
               </div>
 
               {(['agb', 'dsgvo'] as const).map(key => (
-                <div key={key} onClick={() => upd(key, !f[key])} style={{ display: 'flex', gap: 10, padding: '12px 0', borderBottom: '1px solid rgba(200,168,75,0.06)', cursor: 'pointer', alignItems: 'center' }}>
+                <div key={key} onClick={() => upd(key, !f[key])} style={{ display: 'flex', gap: 10, padding: '12px 0', borderBottom: '1px solid rgba(214,177,90,0.06)', cursor: 'pointer', alignItems: 'center' }}>
                   <div style={{
                     width: 20, height: 20, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, flexShrink: 0,

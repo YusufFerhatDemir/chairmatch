@@ -1,0 +1,45 @@
+/* ═══ BRAND LOGO — Module CSS ═══ */
+
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* ── Star Glow Pulse Overlay ── */
+.starPulse::after {
+  content: '';
+  position: absolute;
+  width: 50%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    var(--gold-glow, rgba(214, 177, 90, 0.35)) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: starPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}

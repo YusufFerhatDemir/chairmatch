@@ -91,11 +91,11 @@ export default function CategoryClient({ categoryId, category, dbSalons }: Props
                 <a key={p.id} href={`/salon/${p.id}`} style={{ textDecoration: 'none' }}>
                   <div className="card" style={{
                     overflow: 'hidden',
-                    border: p.tier === 'gold' ? '1.5px solid rgba(200,168,75,.3)' : p.tier === 'premium' ? '1.5px solid rgba(200,168,75,.15)' : undefined,
+                    border: p.tier === 'gold' ? '1.5px solid rgba(214,177,90,.3)' : p.tier === 'premium' ? '1.5px solid rgba(214,177,90,.15)' : undefined,
                   }}>
                     <div style={{
                       height: 3,
-                      background: p.tier === 'gold' ? 'linear-gradient(90deg,#C8A84B,#D4B262,#C8A84B)' : p.tier === 'premium' ? 'linear-gradient(90deg,#9A70C8,#C8A84B)' : p.bc,
+                      background: p.tier === 'gold' ? 'linear-gradient(90deg,#D6B15A,#F2C16B,#D6B15A)' : p.tier === 'premium' ? 'linear-gradient(90deg,#9A70C8,#D6B15A)' : p.bc,
                     }} />
                     <div style={{ padding: '13px 15px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 7, gap: 10 }}>
@@ -123,7 +123,7 @@ export default function CategoryClient({ categoryId, category, dbSalons }: Props
                       {p.rental.length > 0 && (
                         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
                           {p.rental.map((r, i) => (
-                            <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(200,168,75,.08)', border: '1px solid rgba(200,168,75,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
+                            <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(214,177,90,.08)', border: '1px solid rgba(214,177,90,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
                               {r.type === 'stuhl' ? '💺' : r.type === 'liege' ? '🛏' : r.type === 'opraum' ? '🏥' : '🚪'} {r.pr}€/Tag
                             </span>
                           ))}

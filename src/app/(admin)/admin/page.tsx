@@ -94,7 +94,7 @@ export default async function AdminPage() {
             <Link href="/admin/super" className="card" style={{
               textDecoration: 'none',
               borderColor: 'rgba(200, 168, 75, 0.3)',
-              background: 'linear-gradient(135deg, rgba(200,168,75,0.08), rgba(200,168,75,0.02))',
+              background: 'linear-gradient(135deg, rgba(214,177,90,0.08), rgba(214,177,90,0.02))',
             }}>
               <span style={{ color: 'var(--gold2)', fontWeight: 700 }}>Super Admin Panel</span>
             </Link>

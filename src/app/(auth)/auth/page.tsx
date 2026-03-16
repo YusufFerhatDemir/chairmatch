@@ -95,7 +95,7 @@ export default function AuthPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
           <div style={{ animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
-            <BrandLogo size={64} variant="glow" animateStar />
+            <BrandLogo size={64} variant="dark" animateStar />
           </div>
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', textAlign: 'center', marginTop: 12 }}>
             {tab === 'login' ? 'Anmelden' : 'Registrieren'}

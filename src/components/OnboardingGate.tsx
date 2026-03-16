@@ -177,7 +177,7 @@ export default function OnboardingGate({ slides, children }: Props) {
       alignItems: 'center',
       gap: 14,
     }}>
-      <BrandLogo size={110} animateStar={false} />
+      <BrandLogo size={120} variant="dark" animateStar priority />
       <div style={{ textAlign: 'center' }}>
         <p
           className="cinzel"
@@ -313,7 +313,7 @@ export default function OnboardingGate({ slides, children }: Props) {
               setCustomEquip([])
             }} className="catcard" style={{
               border: provCat === cat.id ? '1.5px solid var(--gold)' : '1px solid #2a2418',
-              boxShadow: provCat === cat.id ? '0 0 28px rgba(200,168,75,.1)' : undefined,
+              boxShadow: provCat === cat.id ? '0 0 28px rgba(214,177,90,.1)' : undefined,
               position: 'relative',
             }}>
               {provCat === cat.id && (
@@ -378,11 +378,11 @@ export default function OnboardingGate({ slides, children }: Props) {
                 display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--c2)', borderRadius: 12,
                 border: active ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer', textAlign: 'left', width: '100%',
               }}>
-                <div style={{ width: 20, height: 20, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: active ? 'rgba(200,168,75,.15)' : 'transparent', flexShrink: 0 }}>
+                <div style={{ width: 20, height: 20, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: active ? 'rgba(214,177,90,.15)' : 'transparent', flexShrink: 0 }}>
                   {active ? '✓' : ''}
                 </div>
                 <span style={{ flex: 1, fontSize: 13, fontWeight: active ? 700 : 400, color: active ? 'var(--cream)' : 'var(--stone)' }}>
-                  {s.nm} {isCustom && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'rgba(200,168,75,.1)', color: 'var(--gold2)', marginLeft: 4 }}>EIGENER</span>}
+                  {s.nm} {isCustom && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'rgba(214,177,90,.1)', color: 'var(--gold2)', marginLeft: 4 }}>EIGENER</span>}
                 </span>
                 <span style={{ fontSize: 11, color: 'var(--stone)', flexShrink: 0 }}>{s.dur} min</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold2)', flexShrink: 0 }}>{s.pr}€</span>
@@ -462,7 +462,7 @@ export default function OnboardingGate({ slides, children }: Props) {
                     display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--c2)', borderRadius: 12,
                     border: active ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer', textAlign: 'left', width: '100%',
                   }}>
-                    <div style={{ width: 20, height: 20, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: active ? 'rgba(200,168,75,.15)' : 'transparent', flexShrink: 0 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: active ? 'rgba(214,177,90,.15)' : 'transparent', flexShrink: 0 }}>
                       {active ? '✓' : ''}
                     </div>
                     <span style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -473,7 +473,7 @@ export default function OnboardingGate({ slides, children }: Props) {
                       )}
                     </span>
                     <span style={{ flex: 1, fontSize: 13, fontWeight: active ? 700 : 400, color: active ? 'var(--cream)' : 'var(--stone)' }}>
-                      {eq.nm} {isCustom && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'rgba(200,168,75,.1)', color: 'var(--gold2)', marginLeft: 4 }}>EIGENER</span>}
+                      {eq.nm} {isCustom && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'rgba(214,177,90,.1)', color: 'var(--gold2)', marginLeft: 4 }}>EIGENER</span>}
                     </span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: eq.pr === 0 ? 'var(--green)' : 'var(--gold2)', flexShrink: 0 }}>
                       {eq.pr === 0 ? 'Inkl.' : `+${eq.pr}€`}
@@ -568,7 +568,7 @@ export default function OnboardingGate({ slides, children }: Props) {
 
         {/* AGB Checkbox */}
         <button onClick={() => setAgb(!agb)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: 12, background: 'var(--c2)', borderRadius: 12, border: agb ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer', marginBottom: 20 }}>
-          <div style={{ width: 22, height: 22, borderRadius: 5, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: 'var(--gold)', background: agb ? 'rgba(200,168,75,.15)' : 'transparent', flexShrink: 0 }}>
+          <div style={{ width: 22, height: 22, borderRadius: 5, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: 'var(--gold)', background: agb ? 'rgba(214,177,90,.15)' : 'transparent', flexShrink: 0 }}>
             {agb ? '✓' : ''}
           </div>
           <span style={{ fontSize: 12, color: 'var(--cream)', textAlign: 'left' }}>
@@ -661,8 +661,8 @@ export default function OnboardingGate({ slides, children }: Props) {
             width: 96,
             height: 96,
             borderRadius: 28,
-            border: '1.5px solid rgba(200,168,75,0.2)',
-            background: 'rgba(200,168,75,0.05)',
+            border: '1.5px solid rgba(214,177,90,0.2)',
+            background: 'rgba(214,177,90,0.05)',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -689,7 +689,7 @@ export default function OnboardingGate({ slides, children }: Props) {
               /* Entdecken — Kompass-Icon */
               <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
-                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="rgba(200,168,75,0.15)" stroke="var(--gold)" />
+                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="rgba(214,177,90,0.15)" stroke="var(--gold)" />
               </svg>
             )}
           </div>

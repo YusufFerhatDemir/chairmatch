@@ -13,7 +13,7 @@ export default function Loading() {
         width: 40,
         height: 40,
         border: '3px solid rgba(200, 168, 75, 0.2)',
-        borderTopColor: '#c8a84b',
+        borderTopColor: '#D6B15A',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite',
       }} />

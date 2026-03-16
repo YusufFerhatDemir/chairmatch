@@ -7,6 +7,6 @@ interface LogoProps {
 
 export function Logo({ size = 60, animate = true }: LogoProps) {
   return (
-    <BrandLogo size={size} variant="glow" animateStar={animate} />
+    <BrandLogo size={size} variant="dark" animateStar={animate} />
   )
 }
