@@ -12,8 +12,8 @@ export default function Loading() {
       <div style={{
         width: 40,
         height: 40,
-        border: '3px solid rgba(200, 168, 75, 0.2)',
-        borderTopColor: '#D6B15A',
+        border: '3px solid rgba(176, 120, 8, 0.2)',
+        borderTopColor: '#B07808',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite',
       }} />

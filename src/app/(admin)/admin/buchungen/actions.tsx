@@ -24,7 +24,7 @@ export default function AdminBookingActions({ bookings: init }: { bookings: Book
 
   const statusColor = (s: string) => {
     if (s === 'confirmed') return { bg: 'rgba(74,138,90,0.15)', c: '#6ABF80', bc: 'rgba(74,138,90,0.3)' }
-    if (s === 'pending') return { bg: 'rgba(214,177,90,0.1)', c: 'var(--gold)', bc: 'rgba(214,177,90,0.2)' }
+    if (s === 'pending') return { bg: 'rgba(176,120,8,0.1)', c: 'var(--gold)', bc: 'rgba(176,120,8,0.2)' }
     if (s === 'cancelled') return { bg: 'rgba(232,80,64,0.1)', c: 'var(--red)', bc: 'rgba(232,80,64,0.2)' }
     return { bg: 'var(--c3)', c: 'var(--stone)', bc: 'var(--c4)' }
   }

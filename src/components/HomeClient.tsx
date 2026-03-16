@@ -60,34 +60,34 @@ function CategorySvgIcon({ slug }: { slug: string }) {
   const s = { width: 32, height: 32, viewBox: '0 0 24 24', fill: 'none', stroke: 'var(--gold)', strokeWidth: 1.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
   switch (slug) {
     case 'barber': return (
-      <svg {...s}><path d="M6 3v18M18 3v18M6 8h12M6 16h12" /><circle cx="9" cy="12" r="1.5" fill="rgba(214,177,90,0.2)" /><circle cx="15" cy="12" r="1.5" fill="rgba(214,177,90,0.2)" /></svg>
+      <svg {...s}><path d="M6 3v18M18 3v18M6 8h12M6 16h12" /><circle cx="9" cy="12" r="1.5" fill="rgba(176,120,8,0.2)" /><circle cx="15" cy="12" r="1.5" fill="rgba(176,120,8,0.2)" /></svg>
     )
     case 'friseur': return (
-      <svg {...s}><path d="M4 20L12 4l8 16" /><path d="M7.5 14h9" /><circle cx="12" cy="9" r="2" fill="rgba(214,177,90,0.15)" /></svg>
+      <svg {...s}><path d="M4 20L12 4l8 16" /><path d="M7.5 14h9" /><circle cx="12" cy="9" r="2" fill="rgba(176,120,8,0.15)" /></svg>
     )
     case 'kosmetik': return (
-      <svg {...s}><circle cx="12" cy="10" r="6" /><path d="M12 16v5M8 21h8" /><path d="M9 8.5c0-1 .5-2 1.5-2.5" /><circle cx="12" cy="10" r="2" fill="rgba(214,177,90,0.15)" /></svg>
+      <svg {...s}><circle cx="12" cy="10" r="6" /><path d="M12 16v5M8 21h8" /><path d="M9 8.5c0-1 .5-2 1.5-2.5" /><circle cx="12" cy="10" r="2" fill="rgba(176,120,8,0.15)" /></svg>
     )
     case 'aesthetik': return (
-      <svg {...s}><path d="M12 3l1.5 4.5H18l-3.5 2.5L16 14.5 12 12l-4 2.5 1.5-4.5L6 7.5h4.5z" fill="rgba(214,177,90,0.12)" /><path d="M5 19c2-2 4.5-3 7-3s5 1 7 3" /></svg>
+      <svg {...s}><path d="M12 3l1.5 4.5H18l-3.5 2.5L16 14.5 12 12l-4 2.5 1.5-4.5L6 7.5h4.5z" fill="rgba(176,120,8,0.12)" /><path d="M5 19c2-2 4.5-3 7-3s5 1 7 3" /></svg>
     )
     case 'nail': return (
-      <svg {...s}><path d="M8 3h8v4c0 4-2 8-4 10-2-2-4-6-4-10z" fill="rgba(214,177,90,0.1)" /><path d="M8 7h8" /><path d="M10 17v4M14 17v4M7 21h10" /></svg>
+      <svg {...s}><path d="M8 3h8v4c0 4-2 8-4 10-2-2-4-6-4-10z" fill="rgba(176,120,8,0.1)" /><path d="M8 7h8" /><path d="M10 17v4M14 17v4M7 21h10" /></svg>
     )
     case 'massage': return (
-      <svg {...s}><path d="M4 14c0-3 3-5 8-5s8 2 8 5" /><ellipse cx="12" cy="9" rx="8" ry="3" fill="rgba(214,177,90,0.1)" /><path d="M6 14v3c0 1 .5 2 2 2h8c1.5 0 2-1 2-2v-3" /><circle cx="12" cy="6" r="2" /></svg>
+      <svg {...s}><path d="M4 14c0-3 3-5 8-5s8 2 8 5" /><ellipse cx="12" cy="9" rx="8" ry="3" fill="rgba(176,120,8,0.1)" /><path d="M6 14v3c0 1 .5 2 2 2h8c1.5 0 2-1 2-2v-3" /><circle cx="12" cy="6" r="2" /></svg>
     )
     case 'lash': return (
       <svg {...s}><ellipse cx="12" cy="13" rx="5" ry="3" /><path d="M7 13c-1-3 0-6 2-8M17 13c1-3 0-6-2-8M9 10c0-2 1-4 3-5M15 10c0-2-1-4-3-5" /><circle cx="12" cy="13" r="1" fill="var(--gold)" /></svg>
     )
     case 'arzt': return (
-      <svg {...s}><path d="M12 3v18M6 9h12" /><rect x="6" y="6" width="12" height="6" rx="1" fill="rgba(214,177,90,0.1)" /><path d="M8 18h8" /><circle cx="12" cy="16" r="2" /></svg>
+      <svg {...s}><path d="M12 3v18M6 9h12" /><rect x="6" y="6" width="12" height="6" rx="1" fill="rgba(176,120,8,0.1)" /><path d="M8 18h8" /><circle cx="12" cy="16" r="2" /></svg>
     )
     case 'opraum': return (
-      <svg {...s}><rect x="3" y="8" width="18" height="10" rx="2" fill="rgba(214,177,90,0.08)" /><path d="M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3" /><path d="M12 12v3M10.5 13.5h3" /><path d="M3 18h18" /></svg>
+      <svg {...s}><rect x="3" y="8" width="18" height="10" rx="2" fill="rgba(176,120,8,0.08)" /><path d="M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3" /><path d="M12 12v3M10.5 13.5h3" /><path d="M3 18h18" /></svg>
     )
     case 'angebote': return (
-      <svg {...s}><path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7z" fill="rgba(214,177,90,0.08)" /><path d="M9 12l2 2 4-4" /></svg>
+      <svg {...s}><path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7z" fill="rgba(176,120,8,0.08)" /><path d="M9 12l2 2 4-4" /></svg>
     )
     case 'termin': return (
       <svg {...s}><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /><path d="M9 16l2 2 4-4" /></svg>
@@ -233,7 +233,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
 
       {/* Inline Search */}
       <div style={{ padding: '0 var(--pad) 10px', position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(214,177,90,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(176,120,8,0.1)' }}>
           <span>🔍</span>
           <input
             type="text"
@@ -255,7 +255,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         {searchFocused && !searchQuery && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
             {SEARCH_SUGGESTIONS.map(s => (
-              <button key={s} onClick={() => setSearchQuery(s)} style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(214,177,90,.08)', border: '1px solid rgba(214,177,90,.15)', color: 'var(--gold2)', cursor: 'pointer' }}>
+              <button key={s} onClick={() => setSearchQuery(s)} style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(176,120,8,.08)', border: '1px solid rgba(176,120,8,.15)', color: 'var(--gold2)', cursor: 'pointer' }}>
                 {s}
               </button>
             ))}
@@ -293,11 +293,11 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           {/* Toggles */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
             <button onClick={() => setFilterOnlyAvail(!filterOnlyAvail)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyAvail ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
-              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyAvail ? 'rgba(214,177,90,.15)' : 'transparent' }}>{filterOnlyAvail ? '✓' : ''}</span>
+              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyAvail ? 'rgba(176,120,8,.15)' : 'transparent' }}>{filterOnlyAvail ? '✓' : ''}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Verfügbare</span>
             </button>
             <button onClick={() => setFilterOnlyDisc(!filterOnlyDisc)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyDisc ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
-              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyDisc ? 'rgba(214,177,90,.15)' : 'transparent' }}>{filterOnlyDisc ? '✓' : ''}</span>
+              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyDisc ? 'rgba(176,120,8,.15)' : 'transparent' }}>{filterOnlyDisc ? '✓' : ''}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Rabatte</span>
             </button>
           </div>
@@ -355,7 +355,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 var(--pad) 4px', WebkitOverflowScrolling: 'touch' }}>
           {SPECS.map(s => (
             <div key={s.id} style={{ flexShrink: 0, textAlign: 'center', width: 68 }}>
-              <div style={{ width: 54, height: 54, borderRadius: '50%', background: s.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, border: '2px solid rgba(214,177,90,.2)', margin: '0 auto 5px', color: 'var(--cream)' }}>
+              <div style={{ width: 54, height: 54, borderRadius: '50%', background: s.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, border: '2px solid rgba(176,120,8,.2)', margin: '0 auto 5px', color: 'var(--cream)' }}>
                 {s.ini}
               </div>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--cream)' }}>{s.nm.split(' ')[0]}</p>
@@ -413,16 +413,16 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
     <a href={`/salon/${p.id}`} style={{ textDecoration: 'none' }}>
       <div className="card" style={{
         overflow: 'hidden',
-        border: p.tier === 'gold' ? '1.5px solid rgba(214,177,90,.3)' : p.tier === 'premium' ? '1.5px solid rgba(214,177,90,.15)' : undefined,
-        boxShadow: p.tier === 'gold' ? '0 0 20px rgba(214,177,90,.08)' : undefined,
+        border: p.tier === 'gold' ? '1.5px solid rgba(176,120,8,.3)' : p.tier === 'premium' ? '1.5px solid rgba(176,120,8,.15)' : undefined,
+        boxShadow: p.tier === 'gold' ? '0 0 20px rgba(176,120,8,.08)' : undefined,
       }}>
         {/* Tier stripe */}
         <div style={{
           height: 3,
           background: p.tier === 'gold'
-            ? 'linear-gradient(90deg,#D6B15A,#F2C16B,#D6B15A)'
+            ? 'linear-gradient(90deg,#B07808,#C89018,#B07808)'
             : p.tier === 'premium'
-              ? 'linear-gradient(90deg,#9A70C8,#D6B15A)'
+              ? 'linear-gradient(90deg,#9A70C8,#B07808)'
               : p.bc,
         }} />
 
@@ -463,8 +463,8 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
           {p.rental.length > 0 && (
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
               {p.rental.map((r, i) => (
-                <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(214,177,90,.08)', border: '1px solid rgba(214,177,90,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
-                  {RENTAL_ICONS[r.type] ? <img src={RENTAL_ICONS[r.type]} width={16} height={16} alt={r.type} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(214,177,90,0.4))', borderRadius: 3, verticalAlign: 'middle', marginRight: 3 }} /> : null}{r.pr}€/Tag
+                <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(176,120,8,.08)', border: '1px solid rgba(176,120,8,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
+                  {RENTAL_ICONS[r.type] ? <img src={RENTAL_ICONS[r.type]} width={16} height={16} alt={r.type} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(176,120,8,0.4))', borderRadius: 3, verticalAlign: 'middle', marginRight: 3 }} /> : null}{r.pr}€/Tag
                 </span>
               ))}
             </div>

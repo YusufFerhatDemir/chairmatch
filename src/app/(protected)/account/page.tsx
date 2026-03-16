@@ -98,9 +98,9 @@ export default function AccountPage() {
         {/* Stuhl Vermieten CTA */}
         {role === 'kunde' && (
           <Link href="/register/anbieter" style={{ textDecoration: 'none' }}>
-            <div className="card" style={{ padding: 0, marginBottom: 14, background: 'linear-gradient(135deg, #1A1608, #100E04)', border: '1px solid rgba(214,177,90,0.2)', overflow: 'hidden' }}>
+            <div className="card" style={{ padding: 0, marginBottom: 14, background: 'linear-gradient(135deg, #1A1608, #100E04)', border: '1px solid rgba(176,120,8,0.2)', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{ flexShrink: 0, width: 100, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0A0600, #180C04)', borderRight: '1px solid rgba(214,177,90,0.12)' }}>
+                <div style={{ flexShrink: 0, width: 100, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0A0600, #180C04)', borderRight: '1px solid rgba(176,120,8,0.12)' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/icons/12_stuhlvermietung_512x384.png" alt="Stuhl" style={{ height: 80, objectFit: 'contain' }} />
                 </div>
@@ -166,7 +166,7 @@ export default function AccountPage() {
         </div>
 
         {/* Betroffenenrechte (DSGVO) */}
-        <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid rgba(214,177,90,0.08)' }}>
+        <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid rgba(176,120,8,0.08)' }}>
           <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 10 }}>
             Meine Daten
           </p>
@@ -188,7 +188,7 @@ export default function AccountPage() {
         </div>
 
         {/* Rechtliches */}
-        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(214,177,90,0.08)' }}>
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(176,120,8,0.08)' }}>
           <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 10 }}>
             Rechtliches
           </p>
@@ -199,7 +199,7 @@ export default function AccountPage() {
             ['🍪 Cookie-Einstellungen', '/cookie-settings'] as const,
             ['💺 Als Anbieter registrieren', '/register/anbieter'] as const,
           ]).map(([label, href]) => (
-            <Link key={href} href={href} style={{ textDecoration: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(214,177,90,0.06)' }}>
+            <Link key={href} href={href} style={{ textDecoration: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(176,120,8,0.06)' }}>
               <span style={{ fontSize: 13, color: 'var(--cream)' }}>{label}</span>
               <span style={{ color: 'var(--stone)' }}>›</span>
             </Link>
@@ -222,7 +222,7 @@ export default function AccountPage() {
           <button
             onClick={() => signOut({ callbackUrl: '/' })}
             className="boutline"
-            style={{ marginTop: 8, borderColor: 'rgba(214,177,90,0.3)', width: '100%' }}
+            style={{ marginTop: 8, borderColor: 'rgba(176,120,8,0.3)', width: '100%' }}
           >
             Abmelden
           </button>
