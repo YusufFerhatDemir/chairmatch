@@ -80,7 +80,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, color: 'var(--cream)' }}>{s.name}</div>
                     <div style={{ fontSize: 'var(--font-sm)', color: 'var(--stone)' }}>
-                      &star; {Number(s.avg_rating).toFixed(1)} &middot; {s.city}
+                      ★ {Number(s.avg_rating).toFixed(1)} · {s.city}
                     </div>
                   </div>
                 </div>

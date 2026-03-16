@@ -7,7 +7,7 @@ import HomeClient from '@/components/HomeClient'
 
 export default async function HomePage() {
   let categories: { id: string; slug: string; label: string; description: string | null; icon_url: string | null; sort_order: number; is_active: boolean }[] = []
-  let salons: { id: string; name: string; slug: string | null; description: string | null; city: string | null; logo_url: string | null; avg_rating: number; is_verified: boolean; review_count: number; services: { id: string; name: string }[] }[] = []
+  let salons: { id: string; name: string; slug: string | null; description: string | null; city: string | null; logo_url: string | null; avg_rating: number; is_verified: boolean; review_count: number; category: string; subscription_tier: string; street: string | null; services: { id: string; name: string; price_cents: number }[]; rental_equipment: { type: string; price_per_day_cents: number }[] }[] = []
   let topOfferPercent: number | null = null
 
   const slides = await getCachedOnboardingSlides().catch(() => [])
@@ -23,7 +23,7 @@ export default async function HomePage() {
         .order('sort_order', { ascending: true }),
       supabase
         .from('salons')
-        .select('id, name, slug, description, city, logo_url, avg_rating, is_verified, review_count, services(id, name)')
+        .select('id, name, slug, description, city, logo_url, avg_rating, is_verified, review_count, category, subscription_tier, street, services(id, name, price_cents), rental_equipment(type, price_per_day_cents)')
         .eq('is_active', true)
         .order('avg_rating', { ascending: false })
         .limit(20),

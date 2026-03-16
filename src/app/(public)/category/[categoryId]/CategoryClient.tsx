@@ -51,8 +51,11 @@ export default function CategoryClient({ categoryId, category, dbSalons }: Props
     })
   }
 
-  // Get demo providers for this category
-  const demoProviders = PROVS.filter(p => p.cat === categoryId)
+  // Get demo providers for this category, excluding any that exist in DB (by name match)
+  const dbNames = new Set(dbSalons.map(s => s.name.toLowerCase()))
+  const demoProviders = dbSalons.length > 0
+    ? PROVS.filter(p => p.cat === categoryId && !dbNames.has(p.nm.toLowerCase()))
+    : PROVS.filter(p => p.cat === categoryId)
 
   // Category label fallback
   const categoryLabels: Record<string, string> = {

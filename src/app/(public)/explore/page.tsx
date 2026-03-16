@@ -68,7 +68,7 @@ export default async function ExplorePage() {
                     <div style={{ fontWeight: 700, fontSize: 'var(--font-md)', color: 'var(--cream)' }}>{s.name}</div>
                     <div style={{ fontSize: 'var(--font-sm)', color: 'var(--stone)', marginTop: 2 }}>{s.description}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                      <span style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)' }}>&star; {Number(s.avg_rating).toFixed(1)}</span>
+                      <span style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)' }}>★ {Number(s.avg_rating).toFixed(1)}</span>
                       <span style={{ fontSize: 'var(--font-xs)', color: 'var(--stone2)' }}>{s.city}</span>
                     </div>
                   </div>

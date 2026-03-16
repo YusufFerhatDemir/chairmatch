@@ -34,8 +34,8 @@ interface DBSalon {
   brand_color?: string
   is_promoted?: boolean
   free_slots?: number
-  street?: string
-  services: { id: string; name: string }[]
+  street?: string | null
+  services: { id: string; name: string; price_cents?: number }[]
   rental_equipment?: { type: string; price_per_day_cents: number }[]
 }
 
@@ -125,7 +125,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
     live: true, frei: s.free_slots || 0, boost: 0,
     tier: (s.subscription_tier || 'free') as DemoProvider['tier'],
     logo: s.logo_url || null, sps: [],
-    svs: s.services?.map(sv => ({ id: sv.id, nm: sv.name, pr: 0, dur: 30 })) || [],
+    svs: s.services?.map(sv => ({ id: sv.id, nm: sv.name, pr: sv.price_cents ? sv.price_cents / 100 : 0, dur: 30 })) || [],
     rental: s.rental_equipment?.map(r => ({ type: r.type as DemoRental['type'], pr: r.price_per_day_cents / 100 })) || [],
     revs: [], gal: [],
   }))
@@ -443,17 +443,19 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
           {/* Availability & Price */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: p.live ? '#4A8A5A' : '#C04040' }} />
-                <span style={{ fontSize: 11, color: p.live ? '#6ABF80' : 'var(--stone)' }}>
-                  {p.live ? `${p.frei} frei` : 'Ausgebucht'}
-                </span>
-              </div>
+              {p.frei > 0 && (
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4A8A5A' }} />
+                  <span style={{ fontSize: 11, color: '#6ABF80' }}>{p.frei} frei</span>
+                </div>
+              )}
               <span style={{ fontSize: 10, color: '#6ABF80', fontWeight: 600 }}>● Offen</span>
             </div>
-            <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--gold2)' }}>
-              ab {minPrice} €
-            </span>
+            {minPrice > 0 && (
+              <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--gold2)' }}>
+                ab {minPrice} €
+              </span>
+            )}
           </div>
         </div>
       </div>

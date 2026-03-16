@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { BrandLogo } from '@/components/BrandLogo'
 
 export default function AuthPage() {
   const [tab, setTab] = useState<'login' | 'register'>('login')
@@ -92,9 +93,14 @@ export default function AuthPage() {
           ← Zurück
         </Link>
 
-        <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', textAlign: 'center', marginBottom: 32 }}>
-          {tab === 'login' ? 'Anmelden' : 'Registrieren'}
-        </h1>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
+          <div style={{ animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite', display: 'inline-block' }}>
+            <BrandLogo size={64} variant="glow" animateStar />
+          </div>
+          <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', textAlign: 'center', marginTop: 12 }}>
+            {tab === 'login' ? 'Anmelden' : 'Registrieren'}
+          </h1>
+        </div>
 
         {/* Tab toggle */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
