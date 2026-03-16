@@ -114,23 +114,22 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
     })
   }
 
-  // Use DB salons if available, fallback to demo data
-  const providers = dbSalons.length > 0 ? PROVS.concat(
-    dbSalons.filter(s => !PROVS.some(p => p.id === s.id)).map(s => ({
-      id: s.id, nm: s.name, st: s.street || '',
-      city: s.city || '', cat: s.category || 'friseur',
-      rt: s.avg_rating || 4.5, rc: s.review_count || 0,
-      tl: s.tagline || s.description?.slice(0, 60) || '',
-      tags: s.tags || [], disc: s.discount || 0, bc: s.brand_color || '',
-      prom: s.is_promoted || false, ver: s.is_verified,
-      live: true, frei: s.free_slots || 0, boost: 0,
-      tier: (s.subscription_tier || 'free') as DemoProvider['tier'],
-      logo: s.logo_url || null, sps: [],
-      svs: s.services?.map(sv => ({ id: sv.id, nm: sv.name, pr: 0, dur: 30 })) || [],
-      rental: s.rental_equipment?.map(r => ({ type: r.type as DemoRental['type'], pr: r.price_per_day_cents / 100 })) || [],
-      revs: [], gal: [],
-    }))
-  ) : PROVS
+  // DB salons → real providers. If DB is empty, show demo data as fallback.
+  const dbProviders: DemoProvider[] = dbSalons.map(s => ({
+    id: s.id, nm: s.name, st: s.street || '',
+    city: s.city || '', cat: s.category || 'friseur',
+    rt: s.avg_rating || 4.5, rc: s.review_count || 0,
+    tl: s.tagline || s.description?.slice(0, 60) || '',
+    tags: s.tags || [], disc: s.discount || 0, bc: s.brand_color || '',
+    prom: s.is_promoted || false, ver: s.is_verified,
+    live: true, frei: s.free_slots || 0, boost: 0,
+    tier: (s.subscription_tier || 'free') as DemoProvider['tier'],
+    logo: s.logo_url || null, sps: [],
+    svs: s.services?.map(sv => ({ id: sv.id, nm: sv.name, pr: 0, dur: 30 })) || [],
+    rental: s.rental_equipment?.map(r => ({ type: r.type as DemoRental['type'], pr: r.price_per_day_cents / 100 })) || [],
+    revs: [], gal: [],
+  }))
+  const providers = dbProviders.length > 0 ? dbProviders : PROVS
 
   function getFiltered(): DemoProvider[] {
     let list = [...providers]

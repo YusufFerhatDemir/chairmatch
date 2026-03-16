@@ -86,7 +86,7 @@ export default function OnboardingGate({ slides, children }: Props) {
     setTimeout(() => setToast(''), 3000)
   }
 
-  function finish(r: string) {
+  async function finish(r: string) {
     sessionStorage.setItem('cm_onboarded', '1')
     sessionStorage.setItem('cm_role', r)
     if (profile.vn || profile.email) {
@@ -97,6 +97,24 @@ export default function OnboardingGate({ slides, children }: Props) {
     if (provEquip.length) localStorage.setItem('cm_prov_equip', JSON.stringify(provEquip))
     if (customServices.length) localStorage.setItem('cm_custom_svcs', JSON.stringify(customServices))
     if (customEquip.length) localStorage.setItem('cm_custom_equip', JSON.stringify(customEquip))
+
+    // Persist provider/B2B data to DB
+    if ((r === 'PROVIDER' || r === 'B2B') && profile.email && profile.vn && profile.nn) {
+      try {
+        await fetch('/api/register-provider', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vn: profile.vn, nn: profile.nn, em: profile.email, tel: profile.phone || '',
+            geschaeft: profile.biz || `${profile.vn} ${profile.nn}`,
+            st: profile.street || '', plz: profile.plz || '', city: profile.city || '',
+            kat: provCat || 'friseur', iban: profile.iban || '', gb: true,
+            chair: false, agb: true, dsgvo: true,
+          }),
+        })
+      } catch { /* best effort */ }
+    }
+
     setDone(true)
   }
 
