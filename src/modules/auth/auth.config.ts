@@ -22,14 +22,15 @@ async function logLoginAttempt(ip: string, email: string, success: boolean) {
   }
 }
 
-// Demo accounts — matched against profiles table by email
-const DEMO_ACCOUNTS: Record<string, { password: string; id: string; name: string; role: string }> = {
-  'kunde@chairmatch.de':    { password: 'kunde123',    id: 'dddddddd-0001-4000-a000-000000000001', name: 'Demo Kunde',       role: 'kunde' },
-  'anbieter@chairmatch.de': { password: 'anbieter123', id: 'dddddddd-0002-4000-a000-000000000002', name: 'Demo Anbieter',    role: 'anbieter' },
-  'b2b@chairmatch.de':      { password: 'b2b123',      id: 'dddddddd-0005-4000-a000-000000000005', name: 'Demo B2B',          role: 'b2b' },
-  'admin@chairmatch.de':    { password: 'admin123',    id: 'dddddddd-0003-4000-a000-000000000003', name: 'Demo Admin',        role: 'admin' },
-  'super@chairmatch.de':    { password: 'super123',    id: 'dddddddd-0004-4000-a000-000000000004', name: 'Super Admin',       role: 'super_admin' },
-}
+// Demo accounts — only active in development
+const IS_DEV = process.env.NODE_ENV === 'development'
+const DEMO_ACCOUNTS: Record<string, { password: string; id: string; name: string; role: string }> = IS_DEV ? {
+  'kunde@chairmatch.de':    { password: 'Cm!Kunde#2026xQ',    id: 'dddddddd-0001-4000-a000-000000000001', name: 'Demo Kunde',       role: 'kunde' },
+  'anbieter@chairmatch.de': { password: 'Cm!Anbieter#2026xQ', id: 'dddddddd-0002-4000-a000-000000000002', name: 'Demo Anbieter',    role: 'anbieter' },
+  'b2b@chairmatch.de':      { password: 'Cm!B2B#2026xQ',      id: 'dddddddd-0005-4000-a000-000000000005', name: 'Demo B2B',          role: 'b2b' },
+  'admin@chairmatch.de':    { password: 'Cm!Admin#2026xQ',     id: 'dddddddd-0003-4000-a000-000000000003', name: 'Demo Admin',        role: 'admin' },
+  'super@chairmatch.de':    { password: 'Cm!Super#2026xQ',     id: 'dddddddd-0004-4000-a000-000000000004', name: 'Super Admin',       role: 'super_admin' },
+} : {}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,

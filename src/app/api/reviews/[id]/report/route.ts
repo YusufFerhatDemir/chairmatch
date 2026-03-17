@@ -8,6 +8,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
+  }
   const { id } = await params
   if (!id) return NextResponse.json({ error: 'Review-ID fehlt' }, { status: 400 })
 

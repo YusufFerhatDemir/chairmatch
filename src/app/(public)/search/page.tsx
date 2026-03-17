@@ -59,7 +59,35 @@ export default async function SearchPage({ searchParams }: Props) {
           <h1 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginTop: 8 }}>
             {q ? `Suche: "${q}"` : city ? `Salons in ${city}` : 'Suche'}
           </h1>
-          <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginTop: 4 }}>
+
+          <form action="/search" method="GET" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <input
+              type="text"
+              name="q"
+              defaultValue={q || ''}
+              placeholder="Salon, Service, Stadt..."
+              autoComplete="off"
+              style={{
+                flex: 1,
+                padding: '12px 14px',
+                borderRadius: 12,
+                border: '1px solid rgba(176,144,96,0.2)',
+                background: 'var(--c2)',
+                color: 'var(--cream)',
+                fontSize: 14,
+                outline: 'none',
+              }}
+            />
+            <button
+              type="submit"
+              className="bgold"
+              style={{ width: 'auto', padding: '12px 18px', fontSize: 14, flexShrink: 0 }}
+            >
+              Suchen
+            </button>
+          </form>
+
+          <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginTop: 8 }}>
             {salons.length} Ergebnis{salons.length !== 1 ? 'se' : ''}
           </p>
         </div>

@@ -97,7 +97,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    return NextResponse.json({ success: true, tempPassword: password })
+    // Send welcome email with temp password (do not return password in JSON)
+    try {
+      const { sendWelcomeEmail } = await import('@/lib/email')
+      await sendWelcomeEmail(d.em, `${d.vn} ${d.nn}`)
+    } catch { /* email service may not be configured */ }
+
+    return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json(
       { error: 'Interner Serverfehler' },

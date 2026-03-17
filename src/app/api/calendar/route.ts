@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { generateICS } from '@/lib/calendar'
+import { getServerSession } from '@/modules/auth/session'
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const bookingId = searchParams.get('bookingId')
 

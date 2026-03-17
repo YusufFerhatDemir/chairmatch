@@ -126,6 +126,10 @@ const publicPrefixes = [
   '/api/newsletter',
   '/api/cookies',
   '/api/availability',
+  '/api/stripe/webhook',
+  '/api/errors',
+  '/api/reviews/aggregate',
+  '/api/salons/',
   '/register/',
   '/_next/',
   '/icons/',
@@ -173,6 +177,13 @@ export default auth((req) => {
   // ------ Auth-Prüfung ------
   const session = req.auth
   if (!session) {
+    // API-Routen: 401 JSON statt Redirect
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: 'Nicht authentifiziert', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      )
+    }
     const loginUrl = new URL('/auth', req.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)
@@ -181,18 +192,22 @@ export default auth((req) => {
   const role = (session.user as { role?: string })?.role || ''
 
   // ------ RBAC ------
+  const forbidden = () => pathname.startsWith('/api/')
+    ? NextResponse.json({ error: 'Keine Berechtigung', code: 'FORBIDDEN' }, { status: 403 })
+    : NextResponse.redirect(new URL('/', req.url))
+
   if (providerPaths.some(p => pathname.startsWith(p))) {
-    if (!isProviderOrAbove(role)) return NextResponse.redirect(new URL('/', req.url))
+    if (!isProviderOrAbove(role)) return forbidden()
   }
 
   if (ownerPaths.some(p => pathname.startsWith(p))) {
     if (!isBusinessOwnerOrAbove(role) && !isProviderOrAbove(role)) {
-      return NextResponse.redirect(new URL('/', req.url))
+      return forbidden()
     }
   }
 
   if (adminPaths.some(p => pathname.startsWith(p))) {
-    if (!isAdminOrAbove(role)) return NextResponse.redirect(new URL('/', req.url))
+    if (!isAdminOrAbove(role)) return forbidden()
   }
 
   return NextResponse.next()

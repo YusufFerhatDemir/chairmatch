@@ -8,6 +8,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
+    }
+
     const { id } = await params
     const supabase = getSupabaseAdmin()
 
@@ -15,7 +20,7 @@ export async function GET(
       .from('bookings')
       .select(`
         *,
-        salon:salons!inner(name, category, city),
+        salon:salons!inner(name, category, city, owner_id),
         service:services!inner(name, duration_minutes, price_cents),
         customer:profiles!bookings_customer_id_fkey(full_name, email)
       `)
@@ -24,6 +29,16 @@ export async function GET(
 
     if (error || !booking) {
       return NextResponse.json({ error: 'Nicht gefunden' }, { status: 404 })
+    }
+
+    // Only allow booking owner, salon owner, or admin to view
+    const role = (session.user as { role?: string }).role || ''
+    const isCustomer = booking.customer_id === session.user.id
+    const isSalonOwner = (booking.salon as { owner_id?: string })?.owner_id === session.user.id
+    const isAdmin = ['admin', 'super_admin'].includes(role)
+
+    if (!isCustomer && !isSalonOwner && !isAdmin) {
+      return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
     }
 
     return NextResponse.json(booking)
