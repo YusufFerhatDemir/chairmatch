@@ -155,9 +155,16 @@ export default function SalonDetailClient({ salon, services, staff, reviews, ren
   function toggleFav() {
     const favs: string[] = JSON.parse(localStorage.getItem('cm_favorites') || '[]')
     const id = demoP?.id || salon.id
-    const next = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id]
+    const adding = !favs.includes(id)
+    const next = adding ? [...favs, id] : favs.filter(f => f !== id)
     localStorage.setItem('cm_favorites', JSON.stringify(next))
     setIsFav(!isFav)
+    // Sync to DB via API (non-blocking)
+    fetch('/api/favorites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ salonId: salon.id, action: adding ? 'add' : 'remove' }),
+    }).catch(() => {})
   }
 
   const dayLabels: Record<string, string> = { mo: 'Mo', di: 'Di', mi: 'Mi', do: 'Do', fr: 'Fr', sa: 'Sa', so: 'So' }

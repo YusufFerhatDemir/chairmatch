@@ -1,19 +1,53 @@
 {
+  "id": "/",
   "name": "ChairMatch — Beauty Booking Deutschland",
   "short_name": "ChairMatch",
   "description": "Buche Termine bei Top-Salons, Barbershops & Kosmetikstudios in ganz Deutschland. 0% Provision.",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#060504",
   "theme_color": "#080706",
   "orientation": "portrait",
   "scope": "/",
   "lang": "de",
+  "dir": "ltr",
   "categories": ["beauty", "lifestyle", "health"],
+  "prefer_related_applications": false,
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "ChairMatch Startseite"
+    },
+    {
+      "src": "/screenshots/salon.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Salon-Detailseite"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Termin buchen",
+      "short_name": "Buchen",
+      "url": "/explore",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Angebote",
+      "short_name": "Angebote",
+      "url": "/offers",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }

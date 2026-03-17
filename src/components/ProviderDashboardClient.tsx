@@ -34,7 +34,7 @@ interface Props {
   reviews: Review[]
 }
 
-type Tab = 'overview' | 'edit' | 'services' | 'bookings'
+type Tab = 'overview' | 'edit' | 'services' | 'bookings' | 'fotos' | 'statistik'
 
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
@@ -106,11 +106,46 @@ export default function ProviderDashboardClient({ salon, services: initServices,
     window.location.reload()
   }
 
+  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([])
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+
+  async function loadPhotos() {
+    const res = await fetch(`/api/upload?salonId=${salon.id}`)
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data)) setPhotos(data)
+    }
+  }
+
+  async function uploadPhoto(file: File) {
+    setUploadingPhoto(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('salonId', salon.id)
+    const res = await fetch('/api/upload', { method: 'POST', body: formData })
+    if (res.ok) {
+      const img = await res.json()
+      setPhotos(prev => [...prev, img])
+    }
+    setUploadingPhoto(false)
+  }
+
+  async function deletePhoto(id: string) {
+    const res = await fetch(`/api/upload/${id}`, { method: 'DELETE' })
+    if (res.ok) setPhotos(prev => prev.filter(p => p.id !== id))
+  }
+
+  // Revenue and stats
+  const confirmedBookings = bookings.filter(b => b.status === 'confirmed' || b.status === 'completed')
+  const pendingBookings = bookings.filter(b => b.status === 'pending')
+
   const tabs: { key: Tab; label: string }[] = [
     { key: 'overview', label: 'Übersicht' },
     { key: 'edit', label: 'Salon' },
     { key: 'services', label: 'Services' },
     { key: 'bookings', label: 'Termine' },
+    { key: 'fotos', label: 'Fotos' },
+    { key: 'statistik', label: 'Statistik' },
   ]
 
   const inp = { className: 'inp', style: { width: '100%' } as const }
@@ -287,6 +322,120 @@ export default function ProviderDashboardClient({ salon, services: initServices,
                 </div>
               </div>
             ))}
+          </>
+        )}
+
+        {/* FOTOS */}
+        {tab === 'fotos' && (
+          <>
+            <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Salon-Fotos</h2>
+            <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 16 }}>Max. 5 MB pro Bild · JPG, PNG oder WebP</p>
+
+            <label
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                height: 120, borderRadius: 16, border: '2px dashed rgba(176,144,96,0.3)',
+                background: 'rgba(176,144,96,0.04)', cursor: 'pointer', marginBottom: 16,
+                color: 'var(--gold)', fontSize: 14, fontWeight: 600,
+              }}
+            >
+              {uploadingPhoto ? 'Hochladen...' : '+ Foto hochladen'}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: 'none' }}
+                onChange={e => {
+                  const f = e.target.files?.[0]
+                  if (f) uploadPhoto(f)
+                  e.target.value = ''
+                }}
+                disabled={uploadingPhoto}
+              />
+            </label>
+
+            {photos.length === 0 && !uploadingPhoto && (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <p style={{ color: 'var(--stone)', fontSize: 13 }}>Noch keine Fotos hochgeladen.</p>
+                <button className="boutline" onClick={loadPhotos} style={{ marginTop: 8, fontSize: 12 }}>Fotos laden</button>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+              {photos.map(p => (
+                <div key={p.id} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(176,144,96,0.15)' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.url} alt="Salon" style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
+                  <button
+                    onClick={() => deletePhoto(p.id)}
+                    style={{
+                      position: 'absolute', top: 6, right: 6, width: 28, height: 28,
+                      borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: 'none',
+                      color: '#fff', fontSize: 14, cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* STATISTIK */}
+        {tab === 'statistik' && (
+          <>
+            <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginBottom: 16 }}>Statistik</h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
+              <div className="card" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--gold)' }}>{confirmedBookings.length}</div>
+                <div style={{ fontSize: 11, color: 'var(--stone)' }}>Bestätigte Termine</div>
+              </div>
+              <div className="card" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--cream)' }}>{pendingBookings.length}</div>
+                <div style={{ fontSize: 11, color: 'var(--stone)' }}>Ausstehend</div>
+              </div>
+              <div className="card" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--gold)' }}>★ {Number(salon.avg_rating).toFixed(1)}</div>
+                <div style={{ fontSize: 11, color: 'var(--stone)' }}>Durchschnitt</div>
+              </div>
+              <div className="card" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--cream)' }}>{salon.review_count}</div>
+                <div style={{ fontSize: 11, color: 'var(--stone)' }}>Bewertungen</div>
+              </div>
+            </div>
+
+            {/* Rating breakdown */}
+            <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Bewertungsverteilung</h3>
+              {[5, 4, 3, 2, 1].map(star => {
+                const count = reviews.filter(r => r.rating === star).length
+                const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0
+                return (
+                  <div key={star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: 'var(--gold)', width: 20 }}>{star}★</span>
+                    <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'var(--c3)' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', borderRadius: 4, background: 'linear-gradient(90deg, var(--gold), var(--gold2))' }} />
+                    </div>
+                    <span style={{ fontSize: 11, color: 'var(--stone)', width: 30, textAlign: 'right' }}>{count}</span>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Service popularity */}
+            <div className="card" style={{ padding: 16 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Services</h3>
+              {services.length === 0 ? (
+                <p style={{ color: 'var(--stone)', fontSize: 12 }}>Keine Services.</p>
+              ) : services.map(svc => (
+                <div key={svc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(176,144,96,0.06)' }}>
+                  <span style={{ fontSize: 13, color: 'var(--cream)' }}>{svc.name}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>{(svc.price_cents / 100).toFixed(0)} €</span>
+                </div>
+              ))}
+            </div>
           </>
         )}
 

@@ -60,6 +60,17 @@ export const metadata: Metadata = {
     icon: '/icon.svg',
     apple: '/icon-180.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ChairMatch',
+    startupImage: '/icon-512.png',
+  },
+  formatDetection: {
+    telephone: true,
+    email: true,
+    address: true,
+  },
   robots: {
     index: true,
     follow: true,
