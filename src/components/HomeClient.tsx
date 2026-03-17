@@ -4,7 +4,8 @@ import { BrandLogo } from '@/components/BrandLogo'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PROVS, SPECS, SEARCH_SUGGESTIONS, CITIES, getProviderSpecs, type DemoProvider, type DemoRental } from '@/lib/demo-data'
-import { PROMO_CODES, RENTAL_ICONS } from '@/lib/constants'
+import { PROMO_CODES } from '@/lib/constants'
+import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, type LucideIcon } from 'lucide-react'
 
 interface Category {
   id: string
@@ -56,33 +57,31 @@ function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   )
 }
 
-const CAT_ICONS: Record<string, string> = {
-  barber: '/icons/01_barbershop_256x384.png',
-  friseur: '/icons/02_friseur_256x384.png',
-  kosmetik: '/icons/03_kosmetik_256x384.png',
-  aesthetik: '/icons/04_aesthetik_256x384.png',
-  nail: '/icons/05_nagelstudio_256x384.png',
-  massage: '/icons/06_massage_256x384.png',
-  lash: '/icons/07_lash_brows_256x384.png',
-  arzt: '/icons/08_arzt_klinik_256x384.png',
-  opraum: '/icons/09_op_raum_256x384.png',
-  angebote: '/icons/10_angebote_256x384.png',
-  termin: '/icons/11_termin_256x384.png',
+const CAT_LUCIDE: Record<string, LucideIcon> = {
+  barber: Scissors,
+  friseur: Paintbrush,
+  kosmetik: Sparkles,
+  aesthetik: Syringe,
+  nail: Hand,
+  massage: Heart,
+  lash: Eye,
+  arzt: Stethoscope,
+  opraum: Cross,
+  angebote: Tag,
+  termin: CalendarCheck,
+}
+
+const RENTAL_LUCIDE: Record<string, LucideIcon> = {
+  stuhl: Armchair,
+  liege: BedDouble,
+  raum: DoorOpen,
+  opraum: Cross,
 }
 
 function CategoryIcon({ slug, label }: { slug: string; label: string }) {
-  const src = CAT_ICONS[slug]
-  if (!src) return null
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={label}
-      style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }}
-      loading="lazy"
-      decoding="async"
-    />
-  )
+  const Icon = CAT_LUCIDE[slug]
+  if (!Icon) return null
+  return <Icon size={36} aria-label={label} />
 }
 
 export default function HomeClient({ categories, dbSalons, greeting, topOfferPercent }: Props) {
@@ -449,7 +448,7 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
               {p.rental.map((r, i) => (
                 <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(176,144,96,.08)', border: '1px solid rgba(176,144,96,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
-                  {RENTAL_ICONS[r.type] ? <img src={RENTAL_ICONS[r.type]} width={16} height={16} alt={r.type} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(176,144,96,0.4))', borderRadius: 3, verticalAlign: 'middle', marginRight: 3 }} /> : null}{r.pr}€/Tag
+                  {(() => { const RIcon = RENTAL_LUCIDE[r.type]; return RIcon ? <RIcon size={14} style={{ color: '#D4AF37', verticalAlign: 'middle', marginRight: 3, display: 'inline' }} /> : null })()}{r.pr}€/Tag
                 </span>
               ))}
             </div>

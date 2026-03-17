@@ -389,24 +389,15 @@ body {
   pointer-events: none;
 }
 
-.catcard .caticon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
+.catcard .caticon svg {
+  color: #D4AF37;
   filter: drop-shadow(0 0 8px rgba(212,175,55,0.35)) drop-shadow(0 0 20px rgba(191,149,63,0.12));
-  transition: filter 0.3s ease;
+  transition: filter 0.3s ease, color 0.3s ease;
 }
 
-.catcard:hover .caticon img {
+.catcard:hover .caticon svg {
+  color: #E8D06A;
   filter: drop-shadow(0 0 12px rgba(212,175,55,0.5)) drop-shadow(0 0 28px rgba(191,149,63,0.2));
-}
-
-/* Onboarding „Was ist dein Handwerk?”: kompaktere Icons */
-.catcard .caticon img.icon-in-frame {
-  width: auto;
-  height: 72px;
-  max-width: 88px;
 }
 
 .catcard .catlbl {

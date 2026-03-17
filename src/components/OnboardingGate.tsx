@@ -4,7 +4,20 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { BrandLogo } from '@/components/BrandLogo'
-import { CATEGORIES, CATEGORY_ICONS, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
+import { CATEGORIES, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
+import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, type LucideIcon } from 'lucide-react'
+
+const CAT_LUCIDE: Record<string, LucideIcon> = {
+  barber: Scissors,
+  friseur: Paintbrush,
+  kosmetik: Sparkles,
+  aesthetik: Syringe,
+  nail: Hand,
+  massage: Heart,
+  lash: Eye,
+  arzt: Stethoscope,
+  opraum: Cross,
+}
 
 interface Slide {
   id: string
@@ -320,7 +333,7 @@ export default function OnboardingGate({ slides, children }: Props) {
                 <div style={{ position: 'absolute', top: 8, right: 8, width: 20, height: 20, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#080706', fontWeight: 800 }}>✓</div>
               )}
               <div className="caticon" style={{ height: 80, padding: 8, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img className="icon-in-frame" src={CATEGORY_ICONS[cat.id] || '/icons/01_barbershop_256x384.png'} alt={cat.label} style={{ objectFit: 'contain' }} />
+                {(() => { const Icon = CAT_LUCIDE[cat.id]; return Icon ? <Icon size={36} aria-label={cat.label} /> : null })()}
               </div>
               <div className="catlbl" style={{ fontSize: 12 }}>{cat.label}</div>
               <div className="catsub">{cat.sub}</div>
@@ -465,12 +478,8 @@ export default function OnboardingGate({ slides, children }: Props) {
                     <div style={{ width: 20, height: 20, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: active ? 'rgba(176,144,96,.15)' : 'transparent', flexShrink: 0 }}>
                       {active ? '✓' : ''}
                     </div>
-                    <span style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {CATEGORY_ICONS[provCat] ? (
-                        <img src={CATEGORY_ICONS[provCat]} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
-                      ) : (
-                        <span style={{ fontSize: 14 }}>{eq.icon}</span>
-                      )}
+                    <span style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4AF37' }}>
+                      {(() => { const Icon = CAT_LUCIDE[provCat]; return Icon ? <Icon size={18} /> : <span style={{ fontSize: 14 }}>{eq.icon}</span> })()}
                     </span>
                     <span style={{ flex: 1, fontSize: 13, fontWeight: active ? 700 : 400, color: active ? 'var(--cream)' : 'var(--stone)' }}>
                       {eq.nm} {isCustom && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'rgba(176,144,96,.1)', color: 'var(--gold2)', marginLeft: 4 }}>EIGENER</span>}
