@@ -6,6 +6,65 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
+function NotificationBell() {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    fetch('/api/notifications').then(r => r.json()).then(d => {
+      if (d.unreadCount) setCount(d.unreadCount)
+    }).catch(() => {})
+  }, [])
+  return (
+    <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ color: 'var(--cream)', fontSize: 13 }}>🔔 Benachrichtigungen</span>
+      {count > 0 && (
+        <span style={{ background: 'var(--gold)', color: '#060504', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10 }}>
+          {count}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function TwoFactorToggle() {
+  const [enabled, setEnabled] = useState<boolean | null>(null)
+  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    fetch('/api/auth/2fa/setup').then(r => r.json()).then(d => {
+      setEnabled(d.enabled === true)
+    }).catch(() => {})
+  }, [])
+  return (
+    <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ color: 'var(--cream)', fontSize: 13 }}>🔐 Zwei-Faktor-Auth (2FA)</span>
+      {enabled === null ? (
+        <span style={{ fontSize: 11, color: 'var(--stone)' }}>...</span>
+      ) : enabled ? (
+        <span className="badge badge-gold" style={{ fontSize: 9 }}>Aktiv</span>
+      ) : (
+        <button
+          className="boutline"
+          disabled={loading}
+          onClick={async () => {
+            setLoading(true)
+            const r = await fetch('/api/auth/2fa/setup', { method: 'POST' })
+            if (r.ok) {
+              const d = await r.json()
+              if (d.qrUrl) {
+                window.open(d.qrUrl, '_blank')
+              }
+              setEnabled(true)
+            }
+            setLoading(false)
+          }}
+          style={{ fontSize: 11, padding: '4px 12px' }}
+        >
+          {loading ? '...' : 'Aktivieren'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 interface Booking {
   id: string
   date?: string
@@ -152,16 +211,30 @@ export default function AccountPage() {
             <span style={{ color: 'var(--cream)', fontSize: 13 }}>❤️ Favoriten</span>
           </Link>
 
+          <NotificationBell />
+
+          <TwoFactorToggle />
+
           {(role === 'anbieter' || role === 'provider' || role === 'b2b' || role === 'admin' || role === 'super_admin') && (
-            <Link href="/provider" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
-              <span style={{ color: 'var(--cream)', fontSize: 13 }}>📊 Provider Dashboard</span>
-            </Link>
+            <>
+              <Link href="/provider" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
+                <span style={{ color: 'var(--cream)', fontSize: 13 }}>📊 Provider Dashboard</span>
+              </Link>
+              <Link href="/owner/compliance" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
+                <span style={{ color: 'var(--cream)', fontSize: 13 }}>📋 Compliance & Dokumente</span>
+              </Link>
+            </>
           )}
 
           {['admin', 'super_admin'].includes(role) && (
-            <Link href="/admin" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
-              <span style={{ color: 'var(--cream)', fontSize: 13 }}>⚙️ Admin Panel</span>
-            </Link>
+            <>
+              <Link href="/admin" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
+                <span style={{ color: 'var(--cream)', fontSize: 13 }}>⚙️ Admin Panel</span>
+              </Link>
+              <Link href="/admin/mis" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
+                <span style={{ color: 'var(--cream)', fontSize: 13 }}>📈 MIS Dashboard</span>
+              </Link>
+            </>
           )}
         </div>
 
