@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PROVS, getProviderSpecs, type DemoProvider, type DemoSpec } from '@/lib/demo-data'
+import SalonMap from '@/components/SalonMap'
 
 interface SalonData {
   id: string
@@ -233,6 +234,15 @@ export default function SalonDetailClient({ salon, services, staff, reviews, ren
                     </div>
                   )
                 })}
+              </div>
+
+              {/* Map */}
+              <div className="card" style={{ padding: 14 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)', marginBottom: 8 }}>Standort</p>
+                <SalonMap
+                  address={[salon.street, salon.city].filter(Boolean).join(', ')}
+                  salonName={salon.name}
+                />
               </div>
 
               {/* Top 4 Services Preview */}

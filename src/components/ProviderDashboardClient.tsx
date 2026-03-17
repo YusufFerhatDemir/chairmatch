@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ComplianceStatus } from '@/components/ComplianceStatus'
 
 interface Salon {
   id: string; name: string; description: string | null; city: string | null
@@ -122,9 +123,12 @@ export default function ProviderDashboardClient({ salon, services: initServices,
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
         <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginBottom: 4 }}>Dashboard</h1>
-        <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginBottom: 8 }}>
-          {salon.name} · {salon.is_active ? '🟢 Online' : '🔴 Offline'} · {statusLabel}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+          <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)' }}>
+            {salon.name} · {salon.is_active ? '🟢 Online' : '🔴 Offline'} · {statusLabel}
+          </p>
+          <ComplianceStatus salonId={salon.id} compact />
+        </div>
         <p style={{ marginBottom: 16 }}>
           <a href="/owner/locations" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>Standorte &amp; Compliance →</a>
         </p>

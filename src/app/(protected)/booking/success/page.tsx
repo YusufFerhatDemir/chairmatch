@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { CalendarPlus } from 'lucide-react'
+import { generateGoogleCalendarUrl } from '@/lib/calendar'
 
 const STORAGE_KEY = 'cm_booking_success'
 
 interface SavedBooking {
+  salonId?: string
   salonName: string
   serviceName: string
   durationMinutes: number
   dateFull: string
+  bookingDate?: string
   startTime: string
   finalPrice: number
   discountAmount: number
@@ -98,6 +102,67 @@ export default function BookingSuccessPage() {
             </div>
           </div>
           <p style={{ fontSize: 11, color: 'var(--stone)', marginBottom: 16 }}>Keine Buchungsgebühren · Bezahlung vor Ort</p>
+
+          {/* Calendar buttons */}
+          {(() => {
+            const bookingDate = data.bookingDate || ''
+            const timeParts = data.startTime.split(':')
+            const startH = parseInt(timeParts[0] || '0', 10)
+            const startM = parseInt(timeParts[1] || '0', 10)
+            const endTotalMin = startH * 60 + startM + data.durationMinutes
+            const endH = String(Math.floor(endTotalMin / 60)).padStart(2, '0')
+            const endM = String(endTotalMin % 60).padStart(2, '0')
+            const endTime = `${endH}:${endM}`
+
+            const calendarBooking = {
+              id: data.salonId || 'booking',
+              booking_date: bookingDate,
+              start_time: data.startTime,
+              end_time: endTime,
+              salon: { name: data.salonName },
+              service: { name: data.serviceName },
+            }
+
+            const googleUrl = bookingDate ? generateGoogleCalendarUrl(calendarBooking) : ''
+            const icsUrl = data.salonId ? `/api/calendar?bookingId=${encodeURIComponent(data.salonId)}` : ''
+
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, justifyContent: 'center' }}>
+                <CalendarPlus size={16} style={{ color: 'var(--gold2)', flexShrink: 0 }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)', marginRight: 4 }}>Zum Kalender hinzufügen</span>
+                {googleUrl && (
+                  <a
+                    href={googleUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      padding: '6px 12px', borderRadius: 10, fontSize: 12, fontWeight: 700,
+                      background: 'var(--c2)', border: '1px solid var(--border)',
+                      color: 'var(--gold)', textDecoration: 'none',
+                    }}
+                  >
+                    Google Calendar
+                  </a>
+                )}
+                {icsUrl && (
+                  <a
+                    href={icsUrl}
+                    download
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      padding: '6px 12px', borderRadius: 10, fontSize: 12, fontWeight: 700,
+                      background: 'var(--c2)', border: '1px solid var(--border)',
+                      color: 'var(--gold)', textDecoration: 'none',
+                    }}
+                  >
+                    .ics herunterladen
+                  </a>
+                )}
+              </div>
+            )
+          })()}
+
           <a href={`https://wa.me/${data.salonPhone ? data.salonPhone.replace(/[^0-9]/g, '') : ''}?text=${waMsg}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 14, background: '#25D366', color: '#fff', borderRadius: 14, fontSize: 14, fontWeight: 700, textDecoration: 'none', marginBottom: 10 }}>
             💬 {data.salonPhone ? 'Per WhatsApp kontaktieren' : 'Per WhatsApp teilen'}
           </a>

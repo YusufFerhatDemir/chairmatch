@@ -185,10 +185,12 @@ export default function BookingPage() {
   const BOOKING_SUCCESS_KEY = 'cm_booking_success'
   function saveAndRedirectToSuccess() {
     const payload = {
+      salonId,
       salonName: salon?.name ?? '',
       serviceName: selectedService?.name ?? '',
       durationMinutes: selectedService?.durationMinutes ?? selectedService?.duration_minutes ?? 0,
       dateFull: days[selectedDay]?.full ?? '',
+      bookingDate: days[selectedDay]?.iso ?? '',
       startTime,
       finalPrice,
       discountAmount,

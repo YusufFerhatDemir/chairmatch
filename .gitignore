@@ -17,10 +17,8 @@ CLAUDE_CODE_MASTER_PROMPT.md
 vite.config.d.ts
 vite.config.js
 .playwright-mcp/
-test-*.png
-test-prod-*.png
-artifact-*.png
-debug-*.png
-new-logo-*.png
-logo-direct-check.png
-final-logo-onboarding.png
+# Test screenshots
+/*.png
+
+# Supabase temp files
+supabase/.temp/
