@@ -9,7 +9,7 @@ interface RiskBadgeProps {
 
 const STYLES: Record<RiskLevel, { bg: string; color: string; label: string }> = {
   LOW: { bg: 'rgba(74,138,90,0.2)', color: '#4A8A5A', label: 'LOW' },
-  MED: { bg: 'rgba(190,133,16,0.2)', color: 'var(--gold2)', label: 'MED' },
+  MED: { bg: 'rgba(160,120,48,0.2)', color: 'var(--gold2)', label: 'MED' },
   HIGH: { bg: 'rgba(232,168,64,0.2)', color: '#E8A840', label: 'HIGH' },
   VERY_HIGH: { bg: 'rgba(232,80,64,0.2)', color: '#E85040', label: 'VERY_HIGH' },
 }

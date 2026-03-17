@@ -26,7 +26,7 @@
   border-radius: 999px;
   background: radial-gradient(
     circle,
-    var(--gold-glow, rgba(190, 133, 16, 0.35)) 0%,
+    var(--gold-glow, rgba(160, 120, 48, 0.35)) 0%,
     transparent 70%
   );
   pointer-events: none;

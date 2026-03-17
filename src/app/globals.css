@@ -1,20 +1,23 @@
 /* ═══ DESIGN SYSTEM — GOLD PALETTE TOKENS ═══ */
 :root {
-  /* ── Gold Palette (strict — from icon color-extraction) ── */
-  --gold-50:  #F8E4BC;
-  --gold-100: #E8C070;
-  --gold-200: #D8A030;
-  --gold-300: #D09820;
-  --gold-400: #BE8510;
-  --gold-500: #966808;
-  --gold-600: #6C4404;
-  --gold-glow: rgba(190, 133, 16, 0.30);
+  /* ── Gold Palette (warm bronze-gold — kein Gelb!) ── */
+  --gold-50:  #E8D4B0;
+  --gold-100: #C4A468;
+  --gold-200: #A88C40;
+  --gold-300: #C09848;
+  --gold-400: #A07830;
+  --gold-500: #7C5C1C;
+  --gold-600: #5C4010;
+  --gold-glow: rgba(160, 120, 48, 0.30);
+
+  /* ── Metallic gold gradient for premium text ── */
+  --gold-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 30%, #B38728 50%, #FBF5B7 70%, #AA771C 100%);
 
   /* ── Semantic aliases (backwards-compatible) ── */
   --gold:   var(--gold-400);
   --gold2:  var(--gold-300);
   --gold3:  var(--gold-400);
-  --goldlo: rgba(190, 133, 16, 0.08);
+  --goldlo: rgba(160, 120, 48, 0.08);
 
   /* ── Backgrounds ── */
   --bg:  #0B0B0F;
@@ -36,8 +39,8 @@
   /* ── Surfaces ── */
   --cardbg:  var(--c1);
   --sheetbg: var(--c1);
-  --border:   rgba(190, 133, 16, 0.08);
-  --borderhi: rgba(190, 133, 16, 0.15);
+  --border:   rgba(160, 120, 48, 0.08);
+  --borderhi: rgba(160, 120, 48, 0.15);
 
   /* ── Layout ── */
   --sai-top: env(safe-area-inset-top, 0px);
@@ -183,7 +186,7 @@ body {
   background: rgba(11, 11, 15, 0.97);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(190, 133, 16, 0.12);
+  border-top: 1px solid rgba(160, 120, 48, 0.12);
   display: flex;
   justify-content: space-around;
   padding: 10px 0 calc(10px + var(--sai-bottom));
@@ -224,7 +227,7 @@ body {
 
 /* ═══ BUTTONS ═══ */
 .bgold {
-  background: linear-gradient(135deg, var(--gold), #966808);
+  background: linear-gradient(135deg, #BF953F, #B38728, #AA771C);
   color: #080706;
   border: none;
   border-radius: var(--btn-radius);
@@ -249,7 +252,7 @@ body {
 .boutline {
   background: transparent;
   color: var(--gold);
-  border: 1px solid rgba(190, 133, 16, 0.3);
+  border: 1px solid rgba(160, 120, 48, 0.3);
   border-radius: var(--btn-radius);
   padding: 12px 20px;
   font-weight: 600;
@@ -259,8 +262,8 @@ body {
 }
 
 .boutline:hover {
-  background: rgba(190, 133, 16, 0.08);
-  border-color: rgba(190, 133, 16, 0.5);
+  background: rgba(160, 120, 48, 0.08);
+  border-color: rgba(160, 120, 48, 0.5);
 }
 
 /* ═══ INPUTS ═══ */
@@ -331,8 +334,8 @@ body {
 }
 
 @keyframes logoGlow {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(190,133,16,0.4)) drop-shadow(0 0 25px rgba(190,133,16,0.12)); }
-  50% { filter: drop-shadow(0 0 18px rgba(190,133,16,0.65)) drop-shadow(0 0 35px rgba(190,133,16,0.2)); }
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(160,120,48,0.4)) drop-shadow(0 0 25px rgba(160,120,48,0.12)); }
+  50% { filter: drop-shadow(0 0 18px rgba(160,120,48,0.65)) drop-shadow(0 0 35px rgba(160,120,48,0.2)); }
 }
 
 /* Brand logo styles moved to components/Brand/BrandLogo.module.css */
@@ -342,12 +345,12 @@ body {
   width: 100%;
   text-align: left;
   border-radius: 16px;
-  border: 1px solid rgba(190,133,16,0.10);
+  border: 1px solid rgba(160,120,48,0.10);
   background: var(--c1);
   padding: 12px 8px 12px;
   cursor: pointer;
   transition: box-shadow 0.25s, transform 0.2s, border-color 0.25s;
-  box-shadow: 0 0 0 1px rgba(190,133,16,0.05), 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(190,133,16,0.04);
+  box-shadow: 0 0 0 1px rgba(160,120,48,0.05), 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(160,120,48,0.04);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -360,7 +363,7 @@ body {
 
 .catcard.on {
   border-color: var(--gold);
-  box-shadow: 0 0 0 1px rgba(190,133,16,0.18), 0 0 28px rgba(190,133,16,0.1), 0 24px 80px rgba(0,0,0,0.60);
+  box-shadow: 0 0 0 1px rgba(160,120,48,0.18), 0 0 28px rgba(160,120,48,0.1), 0 24px 80px rgba(0,0,0,0.60);
 }
 
 /* Icon-Box: Kategorie-Icons */
@@ -379,7 +382,7 @@ body {
   height: 100%;
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 0 6px rgba(190,133,16,0.25));
+  filter: drop-shadow(0 0 6px rgba(160,120,48,0.25));
 }
 
 /* Onboarding „Was ist dein Handwerk?”: kompaktere Icons */
@@ -449,9 +452,9 @@ body {
 }
 
 .badge-gold {
-  background: rgba(190, 133, 16, 0.15);
+  background: rgba(160, 120, 48, 0.15);
   color: var(--gold2);
-  border: 1px solid rgba(190, 133, 16, 0.2);
+  border: 1px solid rgba(160, 120, 48, 0.2);
 }
 
 .badge-green {
@@ -480,6 +483,14 @@ body {
 
 .text-gold {
   color: var(--gold);
+}
+
+/* Metallic gold shimmer text — für edle Headlines */
+.text-gold-metallic {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .bg-card {

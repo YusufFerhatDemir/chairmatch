@@ -188,8 +188,8 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexShrink: 1 }}>
           <BrandLogo size={42} variant="dark" animateStar={false} />
           <div style={{ minWidth: 0 }}>
-            <p className="cinzel" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, color: 'var(--gold2)', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              CHAIR<span style={{ color: 'var(--gold3)' }}>MATCH</span>
+            <p className="cinzel text-gold-metallic" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              CHAIRMATCH
             </p>
             <p style={{ fontSize: 8, letterSpacing: 3, color: 'var(--stone)', marginTop: 2 }}>DEUTSCHLAND</p>
           </div>
@@ -218,7 +218,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
 
       {/* Inline Search */}
       <div style={{ padding: '0 var(--pad) 10px', position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(190,133,16,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(160,120,48,0.1)' }}>
           <span>🔍</span>
           <input
             type="text"
@@ -240,7 +240,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         {searchFocused && !searchQuery && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
             {SEARCH_SUGGESTIONS.map(s => (
-              <button key={s} onClick={() => setSearchQuery(s)} style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(190,133,16,.08)', border: '1px solid rgba(190,133,16,.15)', color: 'var(--gold2)', cursor: 'pointer' }}>
+              <button key={s} onClick={() => setSearchQuery(s)} style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(160,120,48,.08)', border: '1px solid rgba(160,120,48,.15)', color: 'var(--gold2)', cursor: 'pointer' }}>
                 {s}
               </button>
             ))}
@@ -278,11 +278,11 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           {/* Toggles */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
             <button onClick={() => setFilterOnlyAvail(!filterOnlyAvail)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyAvail ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
-              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyAvail ? 'rgba(190,133,16,.15)' : 'transparent' }}>{filterOnlyAvail ? '✓' : ''}</span>
+              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyAvail ? 'rgba(160,120,48,.15)' : 'transparent' }}>{filterOnlyAvail ? '✓' : ''}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Verfügbare</span>
             </button>
             <button onClick={() => setFilterOnlyDisc(!filterOnlyDisc)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyDisc ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
-              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyDisc ? 'rgba(190,133,16,.15)' : 'transparent' }}>{filterOnlyDisc ? '✓' : ''}</span>
+              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyDisc ? 'rgba(160,120,48,.15)' : 'transparent' }}>{filterOnlyDisc ? '✓' : ''}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Rabatte</span>
             </button>
           </div>
@@ -340,7 +340,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 var(--pad) 4px', WebkitOverflowScrolling: 'touch' }}>
           {SPECS.map(s => (
             <div key={s.id} style={{ flexShrink: 0, textAlign: 'center', width: 68 }}>
-              <div style={{ width: 54, height: 54, borderRadius: '50%', background: s.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, border: '2px solid rgba(190,133,16,.2)', margin: '0 auto 5px', color: 'var(--cream)' }}>
+              <div style={{ width: 54, height: 54, borderRadius: '50%', background: s.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, border: '2px solid rgba(160,120,48,.2)', margin: '0 auto 5px', color: 'var(--cream)' }}>
                 {s.ini}
               </div>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--cream)' }}>{s.nm.split(' ')[0]}</p>
@@ -398,16 +398,16 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
     <a href={`/salon/${p.id}`} style={{ textDecoration: 'none' }}>
       <div className="card" style={{
         overflow: 'hidden',
-        border: p.tier === 'gold' ? '1.5px solid rgba(190,133,16,.3)' : p.tier === 'premium' ? '1.5px solid rgba(190,133,16,.15)' : undefined,
-        boxShadow: p.tier === 'gold' ? '0 0 20px rgba(190,133,16,.08)' : undefined,
+        border: p.tier === 'gold' ? '1.5px solid rgba(160,120,48,.3)' : p.tier === 'premium' ? '1.5px solid rgba(160,120,48,.15)' : undefined,
+        boxShadow: p.tier === 'gold' ? '0 0 20px rgba(160,120,48,.08)' : undefined,
       }}>
         {/* Tier stripe */}
         <div style={{
           height: 3,
           background: p.tier === 'gold'
-            ? 'linear-gradient(90deg,#BE8510,#D09820,#BE8510)'
+            ? 'linear-gradient(90deg,#A07830,#C09848,#A07830)'
             : p.tier === 'premium'
-              ? 'linear-gradient(90deg,#9A70C8,#BE8510)'
+              ? 'linear-gradient(90deg,#9A70C8,#A07830)'
               : p.bc,
         }} />
 
@@ -448,8 +448,8 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
           {p.rental.length > 0 && (
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
               {p.rental.map((r, i) => (
-                <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(190,133,16,.08)', border: '1px solid rgba(190,133,16,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
-                  {RENTAL_ICONS[r.type] ? <img src={RENTAL_ICONS[r.type]} width={16} height={16} alt={r.type} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(190,133,16,0.4))', borderRadius: 3, verticalAlign: 'middle', marginRight: 3 }} /> : null}{r.pr}€/Tag
+                <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(160,120,48,.08)', border: '1px solid rgba(160,120,48,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
+                  {RENTAL_ICONS[r.type] ? <img src={RENTAL_ICONS[r.type]} width={16} height={16} alt={r.type} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(160,120,48,0.4))', borderRadius: 3, verticalAlign: 'middle', marginRight: 3 }} /> : null}{r.pr}€/Tag
                 </span>
               ))}
             </div>

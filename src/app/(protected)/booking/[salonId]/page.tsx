@@ -258,7 +258,7 @@ export default function BookingPage() {
               {days.map((d, i) => (
                 <button key={i} onClick={() => setSelectedDay(i)} style={{
                   flexShrink: 0, width: 56, padding: '10px 0', borderRadius: 14, textAlign: 'center', cursor: 'pointer',
-                  background: selectedDay === i ? 'rgba(190,133,16,.1)' : 'var(--c2)',
+                  background: selectedDay === i ? 'rgba(160,120,48,.1)' : 'var(--c2)',
                   border: selectedDay === i ? '1.5px solid var(--gold)' : '1px solid var(--border)',
                 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: selectedDay === i ? 'var(--gold2)' : 'var(--stone)' }}>{d.day}</p>
@@ -297,7 +297,7 @@ export default function BookingPage() {
               {specs.length > 0 ? specs.map(spec => (
                 <button key={spec.id} onClick={() => setSelectedSpec(spec)} style={{
                   flexShrink: 0, width: 106, padding: '13px 10px', borderRadius: 16, textAlign: 'center', cursor: 'pointer',
-                  background: selectedSpec?.id === spec.id ? 'rgba(190,133,16,.08)' : 'var(--c2)',
+                  background: selectedSpec?.id === spec.id ? 'rgba(160,120,48,.08)' : 'var(--c2)',
                   border: selectedSpec?.id === spec.id ? '1.5px solid var(--gold)' : '1px solid var(--border)',
                 }}>
                   <div style={{ width: 48, height: 48, borderRadius: '50%', background: spec.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, margin: '0 auto 6px', color: 'var(--cream)' }}>
@@ -310,7 +310,7 @@ export default function BookingPage() {
               )) : (salon?.staff || []).map(m => (
                 <button key={m.id} onClick={() => setSelectedSpec({ id: m.id, nm: m.name, role: m.title || '', rt: 0, cat: '', ini: m.name.split(' ').map(n => n[0]).join('').slice(0, 2), col: 'var(--c3)' })} style={{
                   flexShrink: 0, width: 106, padding: '13px 10px', borderRadius: 16, textAlign: 'center', cursor: 'pointer',
-                  background: selectedSpec?.id === m.id ? 'rgba(190,133,16,.08)' : 'var(--c2)',
+                  background: selectedSpec?.id === m.id ? 'rgba(160,120,48,.08)' : 'var(--c2)',
                   border: selectedSpec?.id === m.id ? '1.5px solid var(--gold)' : '1px solid var(--border)',
                 }}>
                   <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--c3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, margin: '0 auto 6px', color: 'var(--cream)' }}>
