@@ -36,7 +36,7 @@ export default function AdminUserActions({ users: init }: { users: User[] }) {
               onChange={e => changeRole(u.id, e.target.value)}
               disabled={changing === u.id}
               style={{
-                background: 'var(--c3)', color: 'var(--gold2)', border: '1px solid rgba(160,120,48,0.2)',
+                background: 'var(--c3)', color: 'var(--gold2)', border: '1px solid rgba(176,144,96,0.2)',
                 borderRadius: 8, padding: '6px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'inherit',
               }}

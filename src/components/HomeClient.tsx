@@ -50,7 +50,7 @@ function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
     <span style={{ display: 'inline-flex', gap: 1 }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: 'var(--gold)', fontSize: size }}>★</span>
+        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: '#D4AF37', fontSize: size, textShadow: i <= Math.round(rating) ? '0 0 6px rgba(212,175,55,0.5)' : 'none' }}>★</span>
       ))}
     </span>
   )
@@ -188,10 +188,10 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexShrink: 1 }}>
           <BrandLogo size={42} variant="dark" animateStar={false} />
           <div style={{ minWidth: 0 }}>
-            <p className="cinzel text-gold-metallic" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p className="cinzel text-gold-metallic" style={{ fontSize: 17, fontWeight: 700, letterSpacing: 3, lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               CHAIRMATCH
             </p>
-            <p style={{ fontSize: 8, letterSpacing: 3, color: 'var(--stone)', marginTop: 2 }}>DEUTSCHLAND</p>
+            <p className="text-gold-accent" style={{ fontSize: 8, letterSpacing: 3, marginTop: 2 }}>DEUTSCHLAND</p>
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -204,8 +204,8 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {topOfferPercent && (
         <div style={{ margin: '14px var(--pad)' }}>
           <div className="card" style={{ padding: 18, background: 'linear-gradient(135deg, #1E1A08, #141008)' }}>
-            <span className="badge badge-gold" style={{ marginBottom: 10, display: 'inline-flex' }}>SONDERANGEBOT</span>
-            <p className="cinzel" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3, marginBottom: 4, color: 'var(--gold2)' }}>
+            <span style={{ marginBottom: 10, display: 'inline-flex', fontSize: 10, padding: '4px 10px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#BF953F,#FCF6BA,#B38728)', color: '#1a1000' }}>SONDERANGEBOT</span>
+            <p className="cinzel text-gold-metallic" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3, marginBottom: 4 }}>
               Spare bis zu {topOfferPercent}%<br />auf erste Buchung
             </p>
             <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 12 }}>Code: CHAIR2026</p>
@@ -218,7 +218,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
 
       {/* Inline Search */}
       <div style={{ padding: '0 var(--pad) 10px', position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(160,120,48,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(176,144,96,0.1)' }}>
           <span>🔍</span>
           <input
             type="text"
@@ -240,7 +240,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         {searchFocused && !searchQuery && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
             {SEARCH_SUGGESTIONS.map(s => (
-              <button key={s} onClick={() => setSearchQuery(s)} style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(160,120,48,.08)', border: '1px solid rgba(160,120,48,.15)', color: 'var(--gold2)', cursor: 'pointer' }}>
+              <button key={s} onClick={() => setSearchQuery(s)} style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'rgba(176,144,96,.08)', border: '1px solid rgba(176,144,96,.15)', color: 'var(--gold2)', cursor: 'pointer' }}>
                 {s}
               </button>
             ))}
@@ -278,11 +278,11 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           {/* Toggles */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
             <button onClick={() => setFilterOnlyAvail(!filterOnlyAvail)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyAvail ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
-              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyAvail ? 'rgba(160,120,48,.15)' : 'transparent' }}>{filterOnlyAvail ? '✓' : ''}</span>
+              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyAvail ? 'rgba(176,144,96,.15)' : 'transparent' }}>{filterOnlyAvail ? '✓' : ''}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Verfügbare</span>
             </button>
             <button onClick={() => setFilterOnlyDisc(!filterOnlyDisc)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyDisc ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
-              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyDisc ? 'rgba(160,120,48,.15)' : 'transparent' }}>{filterOnlyDisc ? '✓' : ''}</span>
+              <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyDisc ? 'rgba(176,144,96,.15)' : 'transparent' }}>{filterOnlyDisc ? '✓' : ''}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Rabatte</span>
             </button>
           </div>
@@ -295,8 +295,8 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Categories Grid */}
       <section style={{ padding: '0 var(--pad)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase' }}>Kategorien</p>
-          <Link href="/explore" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>Alle</Link>
+          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Kategorien</p>
+          <Link href="/explore" className="text-gold-accent" style={{ fontSize: 12, textDecoration: 'none' }}>Alle</Link>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {categories.map((cat) => (
@@ -316,7 +316,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Vermietung CTA: Stuhl / Kabine / OP-Raum für Anbieter */}
       <section style={{ padding: '16px var(--pad) 0' }}>
         <div className="card" style={{ padding: 16 }}>
-          <p style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--gold2)', marginBottom: 6 }}>STUHL · KABINE · OP-RAUM</p>
+          <p className="text-gold-metallic" style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', marginBottom: 6 }}>STUHL · KABINE · OP-RAUM</p>
           <p style={{ fontSize: 13, color: 'var(--cream)', lineHeight: 1.45, marginBottom: 12 }}>
             Als Barber, Friseur, Masseur oder Praxis: Stuhl, Liege oder OP-Raum tageweise mieten – oder selbst vermieten.
           </p>
@@ -334,13 +334,13 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Top Specialists Scroll */}
       <section style={{ marginTop: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 var(--pad) 12px' }}>
-          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase' }}>Top Spezialisten</p>
+          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Top Spezialisten</p>
           <span className="badge badge-green" style={{ fontSize: 9 }}>Heute verfügbar</span>
         </div>
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 var(--pad) 4px', WebkitOverflowScrolling: 'touch' }}>
           {SPECS.map(s => (
             <div key={s.id} style={{ flexShrink: 0, textAlign: 'center', width: 68 }}>
-              <div style={{ width: 54, height: 54, borderRadius: '50%', background: s.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, border: '2px solid rgba(160,120,48,.2)', margin: '0 auto 5px', color: 'var(--cream)' }}>
+              <div style={{ width: 54, height: 54, borderRadius: '50%', background: s.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, border: '2px solid rgba(176,144,96,.2)', margin: '0 auto 5px', color: 'var(--cream)' }}>
                 {s.ini}
               </div>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--cream)' }}>{s.nm.split(' ')[0]}</p>
@@ -353,7 +353,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Provider Cards */}
       <section style={{ padding: '20px var(--pad) 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase' }}>Alle Anbieter</p>
+          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Alle Anbieter</p>
           <span style={{ fontSize: 12, color: 'var(--stone)' }}>{filtered.length} gefunden</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -398,16 +398,16 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
     <a href={`/salon/${p.id}`} style={{ textDecoration: 'none' }}>
       <div className="card" style={{
         overflow: 'hidden',
-        border: p.tier === 'gold' ? '1.5px solid rgba(160,120,48,.3)' : p.tier === 'premium' ? '1.5px solid rgba(160,120,48,.15)' : undefined,
-        boxShadow: p.tier === 'gold' ? '0 0 20px rgba(160,120,48,.08)' : undefined,
+        border: p.tier === 'gold' ? '1.5px solid rgba(176,144,96,.3)' : p.tier === 'premium' ? '1.5px solid rgba(176,144,96,.15)' : undefined,
+        boxShadow: p.tier === 'gold' ? '0 0 20px rgba(176,144,96,.08)' : undefined,
       }}>
         {/* Tier stripe */}
         <div style={{
           height: 3,
           background: p.tier === 'gold'
-            ? 'linear-gradient(90deg,#A07830,#C09848,#A07830)'
+            ? 'linear-gradient(90deg,#AA771C,#D4AF37,#FCF6BA,#D4AF37,#AA771C)'
             : p.tier === 'premium'
-              ? 'linear-gradient(90deg,#9A70C8,#A07830)'
+              ? 'linear-gradient(90deg,#9A70C8,#D4AF37)'
               : p.bc,
         }} />
 
@@ -417,8 +417,8 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
             <div style={{ flex: 1, minWidth: 0 }}>
               {/* Tier badges */}
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 5 }}>
-                {p.tier === 'gold' && <span className="badge badge-gold" style={{ fontSize: 9, padding: '3px 8px' }}>👑 GOLD</span>}
-                {p.tier === 'premium' && <span className="badge badge-gold" style={{ fontSize: 9, padding: '3px 8px' }}>⚡ PREMIUM</span>}
+                {p.tier === 'gold' && <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#BF953F,#FCF6BA,#B38728)', color: '#1a1000' }}>👑 GOLD</span>}
+                {p.tier === 'premium' && <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#9A70C8,#C8A0F0)', color: '#1a1020' }}>⚡ PREMIUM</span>}
                 {p.ver && <span className="badge badge-green" style={{ fontSize: 9, padding: '3px 8px' }}>✓ Verifiziert</span>}
                 {p.disc > 0 && <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 6, background: 'rgba(232,80,64,.12)', color: 'var(--red)', fontWeight: 700 }}>−{p.disc}%</span>}
               </div>
@@ -438,7 +438,7 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
               </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Stars rating={p.rt} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold2)' }}>{p.rt}</span>
+                <span className="text-gold-accent" style={{ fontSize: 12, fontWeight: 700 }}>{p.rt}</span>
               </div>
               <span style={{ fontSize: 11, color: 'var(--stone)' }}>({p.rc})</span>
             </div>
@@ -448,8 +448,8 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
           {p.rental.length > 0 && (
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
               {p.rental.map((r, i) => (
-                <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(160,120,48,.08)', border: '1px solid rgba(160,120,48,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
-                  {RENTAL_ICONS[r.type] ? <img src={RENTAL_ICONS[r.type]} width={16} height={16} alt={r.type} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(160,120,48,0.4))', borderRadius: 3, verticalAlign: 'middle', marginRight: 3 }} /> : null}{r.pr}€/Tag
+                <span key={i} style={{ fontSize: 10, padding: '3px 7px', borderRadius: 6, background: 'rgba(176,144,96,.08)', border: '1px solid rgba(176,144,96,.15)', color: 'var(--gold2)', fontWeight: 600 }}>
+                  {RENTAL_ICONS[r.type] ? <img src={RENTAL_ICONS[r.type]} width={16} height={16} alt={r.type} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(176,144,96,0.4))', borderRadius: 3, verticalAlign: 'middle', marginRight: 3 }} /> : null}{r.pr}€/Tag
                 </span>
               ))}
             </div>
@@ -467,7 +467,7 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
               <span style={{ fontSize: 10, color: '#6ABF80', fontWeight: 600 }}>● Offen</span>
             </div>
             {minPrice > 0 && (
-              <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--gold2)' }}>
+              <span className="text-gold-metallic" style={{ fontSize: 15, fontWeight: 800 }}>
                 ab {minPrice} €
               </span>
             )}

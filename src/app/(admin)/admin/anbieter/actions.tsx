@@ -38,9 +38,9 @@ export default function AdminSalonActions({ salons: init }: { salons: Salon[] })
               <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>★ {Number(s.avg_rating).toFixed(1)}</span>
               <span className="badge" style={{
                 fontSize: 9,
-                background: s.status === 'approved' ? 'rgba(74,138,90,0.15)' : s.status === 'pending' ? 'rgba(160,120,48,0.1)' : 'rgba(232,80,64,0.1)',
+                background: s.status === 'approved' ? 'rgba(74,138,90,0.15)' : s.status === 'pending' ? 'rgba(176,144,96,0.1)' : 'rgba(232,80,64,0.1)',
                 color: s.status === 'approved' ? '#6ABF80' : s.status === 'pending' ? 'var(--gold)' : 'var(--red)',
-                border: `1px solid ${s.status === 'approved' ? 'rgba(74,138,90,0.3)' : s.status === 'pending' ? 'rgba(160,120,48,0.2)' : 'rgba(232,80,64,0.2)'}`,
+                border: `1px solid ${s.status === 'approved' ? 'rgba(74,138,90,0.3)' : s.status === 'pending' ? 'rgba(176,144,96,0.2)' : 'rgba(232,80,64,0.2)'}`,
               }}>{s.status.toUpperCase()}</span>
             </div>
           </div>
