@@ -1,6 +1,12 @@
 import { MetadataRoute } from 'next'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
+
+const CATEGORY_SLUGS = [
+  'barber', 'friseur', 'kosmetik', 'aesthetik',
+  'nail', 'massage', 'lash', 'arzt', 'opraum',
+]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = 'https://chairmatch.de'
@@ -11,21 +17,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/explore`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${base}/offers`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${base}/rentals`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${base}/auth`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/register/anbieter`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/datenschutz`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/impressum`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/agb`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/agb-provider`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/cookie-settings`, changeFrequency: 'monthly', priority: 0.2 },
-    { url: `${base}/auth`, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${base}/register/anbieter`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/search`, changeFrequency: 'daily', priority: 0.8 },
   ]
 
+  // Category pages (all 9 categories)
+  const catPages: MetadataRoute.Sitemap = CATEGORY_SLUGS.map(slug => ({
+    url: `${base}/category/${slug}`,
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }))
+
   try {
-    const { getSupabaseAdmin } = await import('@/lib/supabase-server')
     const supabase = getSupabaseAdmin()
 
-    // Dynamic: salons
+    // Dynamic: salons from Supabase
     const { data: salons } = await supabase
       .from('salons')
       .select('slug, updated_at')
@@ -39,20 +51,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }))
 
-    // Dynamic: categories
-    const { data: categories } = await supabase
-      .from('categories')
-      .select('slug')
-      .eq('is_active', true)
-
-    const catPages: MetadataRoute.Sitemap = (categories ?? []).map(c => ({
-      url: `${base}/category/${c.slug}`,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
-
-    return [...staticPages, ...salonPages, ...catPages]
+    return [...staticPages, ...catPages, ...salonPages]
   } catch {
-    return staticPages
+    // If DB fails, still return static + category pages
+    return [...staticPages, ...catPages]
   }
 }

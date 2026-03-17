@@ -6,6 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import ConsentBanner from '@/components/ConsentBanner'
 import VisitTracker from '@/components/VisitTracker'
 import ChatWidget from '@/components/ChatWidget'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -121,11 +122,13 @@ export default function RootLayout({
         />
         <DynamicTheme />
         <Providers>
-          <VisitTracker />
-          {children}
-          <BottomNav />
-          <ChatWidget />
-          <ConsentBanner />
+          <ErrorBoundary>
+            <VisitTracker />
+            {children}
+            <BottomNav />
+            <ChatWidget />
+            <ConsentBanner />
+          </ErrorBoundary>
         </Providers>
         <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}` }} />
       </body>
