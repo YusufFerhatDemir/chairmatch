@@ -23,17 +23,24 @@
   "screenshots": [
     {
       "src": "/screenshots/home.png",
-      "sizes": "1170x2532",
+      "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "ChairMatch Startseite"
     },
     {
-      "src": "/screenshots/salon.png",
-      "sizes": "1170x2532",
+      "src": "/screenshots/explore.png",
+      "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Salon-Detailseite"
+      "label": "Salons entdecken"
+    },
+    {
+      "src": "/screenshots/offers.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Aktuelle Angebote"
     }
   ],
   "shortcuts": [
