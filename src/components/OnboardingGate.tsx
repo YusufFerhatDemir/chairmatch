@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { BrandLogo } from '@/components/BrandLogo'
 import { CATEGORIES, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, type LucideIcon } from 'lucide-react'
 
@@ -203,27 +202,54 @@ export default function OnboardingGate({ slides, children }: Props) {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: 14,
+      gap: 16,
     }}>
-      <BrandLogo size={120} variant="dark" animateStar priority />
+      {/* Pure SVG Pin Logo — kein PNG, kein dunkles Quadrat */}
+      <div style={{ filter: 'drop-shadow(0 0 24px rgba(212,175,55,0.35)) drop-shadow(0 0 60px rgba(191,149,63,0.12))' }}>
+        <svg width="100" height="130" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logo-pin-gold" x1="15" y1="8" x2="85" y2="120" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#BF953F"/>
+              <stop offset="20%" stopColor="#FCF6BA"/>
+              <stop offset="40%" stopColor="#D4AF37"/>
+              <stop offset="60%" stopColor="#FBF5B7"/>
+              <stop offset="80%" stopColor="#B38728"/>
+              <stop offset="100%" stopColor="#AA771C"/>
+            </linearGradient>
+            <radialGradient id="logo-inner-glow" cx="50%" cy="38%" r="35%">
+              <stop offset="0%" stopColor="rgba(252,246,186,0.2)"/>
+              <stop offset="100%" stopColor="transparent"/>
+            </radialGradient>
+          </defs>
+          {/* Subtle inner glow */}
+          <circle cx="50" cy="48" r="32" fill="url(#logo-inner-glow)"/>
+          {/* Pin body */}
+          <path d="M50 6C28.5 6 11 23.5 11 45C11 70 50 124 50 124C50 124 89 70 89 45C89 23.5 71.5 6 50 6Z" stroke="url(#logo-pin-gold)" strokeWidth="2.5" fill="none"/>
+          {/* Inner circle */}
+          <circle cx="50" cy="45" r="22" stroke="url(#logo-pin-gold)" strokeWidth="1.8" fill="none"/>
+          {/* 4-point star sparkle */}
+          <path d="M50 28L53.5 40.5L66 45L53.5 49.5L50 62L46.5 49.5L34 45L46.5 40.5Z" fill="url(#logo-pin-gold)" opacity="0.85"/>
+          {/* Tiny highlight dot */}
+          <circle cx="50" cy="45" r="3" fill="url(#logo-pin-gold)" opacity="0.5"/>
+        </svg>
+      </div>
       <div style={{ textAlign: 'center' }}>
         <p
-          className="cinzel"
+          className="cinzel text-gold-metallic"
           style={{
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: 700,
-            letterSpacing: 3,
-            color: 'var(--gold2)',
+            letterSpacing: 4,
             lineHeight: 1,
-            marginBottom: 4,
+            marginBottom: 5,
           }}
         >
-          CHAIR<span style={{ color: 'var(--gold3)' }}>MATCH</span>
+          CHAIRMATCH
         </p>
         <p
           style={{
             fontSize: 9,
-            letterSpacing: 4,
+            letterSpacing: 5,
             color: 'var(--stone)',
           }}
         >
@@ -683,39 +709,41 @@ export default function OnboardingGate({ slides, children }: Props) {
         ) : (
           <div style={{
             marginBottom: 28,
-            width: 96,
-            height: 96,
-            borderRadius: 28,
-            border: '1.5px solid rgba(176,144,96,0.25)',
-            background: 'rgba(176,144,96,0.05)',
+            width: 110,
+            height: 110,
+            borderRadius: 30,
+            border: '1.5px solid rgba(176,144,96,0.2)',
+            background: 'linear-gradient(145deg, rgba(191,149,63,0.06) 0%, rgba(11,11,15,0.95) 50%, rgba(179,135,40,0.04) 100%)',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            filter: 'drop-shadow(0 0 12px rgba(212,175,55,0.15))',
+            filter: 'drop-shadow(0 0 20px rgba(212,175,55,0.12))',
+            boxShadow: '0 0 40px rgba(191,149,63,0.06), inset 0 1px 0 rgba(252,246,186,0.05)',
           }}>
             {(slide.imageUrl?.includes('termin') || slide.icon === 'booking') ? (
-              /* Kalender-Icon — sauberes SVG */
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-                <path d="M9 16l2 2 4-4" />
+              /* Kalender-Icon — premium SVG */
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" stroke="url(#caticon-gold)" strokeWidth="1.8" fill="rgba(191,149,63,0.06)"/>
+                <line x1="16" y1="2" x2="16" y2="6" stroke="url(#caticon-gold)" strokeWidth="2"/>
+                <line x1="8" y1="2" x2="8" y2="6" stroke="url(#caticon-gold)" strokeWidth="2"/>
+                <line x1="3" y1="10" x2="21" y2="10" stroke="url(#caticon-gold)" strokeWidth="1.5"/>
+                <path d="M9 16l2 2 4-4" stroke="url(#caticon-gold)" strokeWidth="2"/>
               </svg>
             ) : (slide.imageUrl?.includes('stuhl') || slide.icon === 'chair') ? (
-              /* Stuhl-Icon — sauberes SVG */
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 11V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v5" />
-                <path d="M4 11h16a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1z" />
-                <path d="M6 15v4" />
-                <path d="M18 15v4" />
-                <path d="M8 19h8" />
+              /* Stuhl-Icon — premium SVG */
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 11V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v5" stroke="url(#caticon-gold)" strokeWidth="1.8"/>
+                <path d="M4 11h16a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1z" stroke="url(#caticon-gold)" strokeWidth="1.8" fill="rgba(191,149,63,0.06)"/>
+                <path d="M6 15v4" stroke="url(#caticon-gold)" strokeWidth="2"/>
+                <path d="M18 15v4" stroke="url(#caticon-gold)" strokeWidth="2"/>
+                <path d="M8 19h8" stroke="url(#caticon-gold)" strokeWidth="1.8"/>
               </svg>
             ) : (
-              /* Entdecken — Kompass-Icon */
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="rgba(191,149,63,0.12)" stroke="url(#caticon-gold)" />
+              /* Entdecken — Kompass-Icon premium */
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" stroke="url(#caticon-gold)" strokeWidth="1.8"/>
+                <circle cx="12" cy="12" r="3" stroke="url(#caticon-gold)" strokeWidth="1.5" fill="rgba(191,149,63,0.1)"/>
+                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="url(#caticon-gold)" opacity="0.2" stroke="url(#caticon-gold)" strokeWidth="1"/>
               </svg>
             )}
           </div>
