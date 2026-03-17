@@ -14,20 +14,25 @@ export default function ImpressumPage() {
         <div style={{ color: 'var(--stone)', fontSize: 'var(--font-md)', lineHeight: 1.7 }}>
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8 }}>Angaben gemäß § 5 TMG</h2>
           <p>
-            ChairMatch GmbH<br />
-            [Adresse wird ergänzt]
+            ChairMatch GmbH (i. Gr.)<br />
+            Vertreten durch: Yusuf Ferhat Demir, Geschäftsführer<br />
+            Deutschland
+          </p>
+          <p style={{ marginTop: 8, fontSize: 12, color: 'var(--stone2)' }}>
+            Handelsregistereintragung in Vorbereitung
           </p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>Kontakt</h2>
           <p>
-            E-Mail: legal@chairmatch.de
+            E-Mail: legal@chairmatch.de<br />
+            Web: chairmatch.de
           </p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>Umsatzsteuer-ID</h2>
-          <p>Kleinunternehmer gem. § 19 UStG</p>
+          <p>Kleinunternehmer gem. § 19 UStG — Umsatzsteuer-ID wird nach Handelsregistereintragung beantragt.</p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
-          <p>ChairMatch GmbH</p>
+          <p>Yusuf Ferhat Demir<br />ChairMatch GmbH (i. Gr.)</p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>EU-Streitschlichtung</h2>
           <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung bereit: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)' }}>https://ec.europa.eu/consumers/odr</a>. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
