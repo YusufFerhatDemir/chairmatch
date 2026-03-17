@@ -158,8 +158,23 @@ export default function OnboardingGate({ slides, children }: Props) {
 
   // ═══ RENDER ═══
 
+  const goldGradientDefs = (
+    <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
+      <defs>
+        <linearGradient id="caticon-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#BF953F" />
+          <stop offset="22%" stopColor="#FCF6BA" />
+          <stop offset="45%" stopColor="#B38728" />
+          <stop offset="67%" stopColor="#FBF5B7" />
+          <stop offset="100%" stopColor="#AA771C" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+
   const shell = (content: React.ReactNode) => (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)', width: '100%', maxWidth: 'var(--shell-max)', margin: '0 auto' }}>
+      {goldGradientDefs}
       <div id="ob-scroll" style={{
         height: '100%',
         overflowY: 'auto',
@@ -333,7 +348,7 @@ export default function OnboardingGate({ slides, children }: Props) {
                 <div style={{ position: 'absolute', top: 8, right: 8, width: 20, height: 20, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#080706', fontWeight: 800 }}>✓</div>
               )}
               <div className="caticon" style={{ height: 80, padding: 8, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {(() => { const Icon = CAT_LUCIDE[cat.id]; return Icon ? <Icon size={36} aria-label={cat.label} /> : null })()}
+                {(() => { const Icon = CAT_LUCIDE[cat.id]; return Icon ? <Icon size={40} stroke="url(#caticon-gold)" aria-label={cat.label} /> : null })()}
               </div>
               <div className="catlbl" style={{ fontSize: 12 }}>{cat.label}</div>
               <div className="catsub">{cat.sub}</div>
@@ -650,6 +665,7 @@ export default function OnboardingGate({ slides, children }: Props) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)', width: '100%', maxWidth: 'var(--shell-max)', margin: '0 auto' }}>
+      {goldGradientDefs}
       <div id="ob-scroll" style={{
         height: '100%',
         overflowY: 'auto',
@@ -670,15 +686,16 @@ export default function OnboardingGate({ slides, children }: Props) {
             width: 96,
             height: 96,
             borderRadius: 28,
-            border: '1.5px solid rgba(176,144,96,0.2)',
+            border: '1.5px solid rgba(176,144,96,0.25)',
             background: 'rgba(176,144,96,0.05)',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
+            filter: 'drop-shadow(0 0 12px rgba(212,175,55,0.15))',
           }}>
             {(slide.imageUrl?.includes('termin') || slide.icon === 'booking') ? (
               /* Kalender-Icon — sauberes SVG */
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
                 <line x1="8" y1="2" x2="8" y2="6" />
@@ -687,7 +704,7 @@ export default function OnboardingGate({ slides, children }: Props) {
               </svg>
             ) : (slide.imageUrl?.includes('stuhl') || slide.icon === 'chair') ? (
               /* Stuhl-Icon — sauberes SVG */
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 11V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v5" />
                 <path d="M4 11h16a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1z" />
                 <path d="M6 15v4" />
@@ -696,9 +713,9 @@ export default function OnboardingGate({ slides, children }: Props) {
               </svg>
             ) : (
               /* Entdecken — Kompass-Icon */
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
-                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="rgba(176,144,96,0.15)" stroke="var(--gold)" />
+                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="rgba(191,149,63,0.12)" stroke="url(#caticon-gold)" />
               </svg>
             )}
           </div>

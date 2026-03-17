@@ -371,12 +371,12 @@ body {
 .catcard .caticon {
   width: 80px;
   height: 80px;
-  background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, rgba(191,149,63,0.03) 50%, transparent 70%);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border-radius: 14px;
+  border-radius: 16px;
   position: relative;
 }
 
@@ -384,20 +384,19 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 14px;
-  border: 1px solid rgba(212,175,55,0.12);
+  border-radius: 16px;
+  border: 1px solid rgba(212,175,55,0.18);
   pointer-events: none;
 }
 
 .catcard .caticon svg {
-  color: #D4AF37;
-  filter: drop-shadow(0 0 8px rgba(212,175,55,0.35)) drop-shadow(0 0 20px rgba(191,149,63,0.12));
-  transition: filter 0.3s ease, color 0.3s ease;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 6px rgba(212,175,55,0.5)) drop-shadow(0 0 16px rgba(191,149,63,0.2));
+  transition: filter 0.3s ease;
 }
 
 .catcard:hover .caticon svg {
-  color: #E8D06A;
-  filter: drop-shadow(0 0 12px rgba(212,175,55,0.5)) drop-shadow(0 0 28px rgba(191,149,63,0.2));
+  filter: drop-shadow(0 0 10px rgba(212,175,55,0.7)) drop-shadow(0 0 24px rgba(191,149,63,0.35));
 }
 
 .catcard .catlbl {

@@ -78,10 +78,27 @@ const RENTAL_LUCIDE: Record<string, LucideIcon> = {
   opraum: Cross,
 }
 
+/** Hidden SVG with gold gradient definition — referenced by all category icons */
+function GoldGradientDefs() {
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
+      <defs>
+        <linearGradient id="caticon-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#BF953F" />
+          <stop offset="22%" stopColor="#FCF6BA" />
+          <stop offset="45%" stopColor="#B38728" />
+          <stop offset="67%" stopColor="#FBF5B7" />
+          <stop offset="100%" stopColor="#AA771C" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}
+
 function CategoryIcon({ slug, label }: { slug: string; label: string }) {
   const Icon = CAT_LUCIDE[slug]
   if (!Icon) return null
-  return <Icon size={36} aria-label={label} />
+  return <Icon size={44} stroke="url(#caticon-gold)" aria-label={label} />
 }
 
 export default function HomeClient({ categories, dbSalons, greeting, topOfferPercent }: Props) {
@@ -182,6 +199,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
 
   return (
     <>
+      <GoldGradientDefs />
       {/* Logo Header + Greeting */}
       <div style={{ padding: '20px var(--pad) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexShrink: 1 }}>

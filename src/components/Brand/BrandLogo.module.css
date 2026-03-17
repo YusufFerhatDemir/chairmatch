@@ -16,6 +16,7 @@
   object-position: center;
   image-rendering: -webkit-optimize-contrast;
   filter: drop-shadow(0 0 8px rgba(212,175,55,0.4)) drop-shadow(0 0 20px rgba(191,149,63,0.15));
+  mix-blend-mode: screen;
 }
 
 /* ── Metallic Gold Halo Ring ── */
