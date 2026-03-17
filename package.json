@@ -24,11 +24,16 @@
     "appointment"
   ],
   "dependencies": {
+    "@stripe/stripe-js": "^8.10.0",
     "@supabase/supabase-js": "^2.98.0",
+    "lucide-react": "^0.577.0",
     "next": "^15.5.12",
     "next-auth": "^5.0.0-beta.30",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "resend": "^6.9.4",
+    "stripe": "^20.4.1",
+    "web-push": "^3.6.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {
