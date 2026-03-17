@@ -331,12 +331,12 @@ body {
 
 @keyframes logoFloat {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-5px); }
 }
 
 @keyframes logoGlow {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(176,144,96,0.4)) drop-shadow(0 0 25px rgba(176,144,96,0.12)); }
-  50% { filter: drop-shadow(0 0 18px rgba(176,144,96,0.65)) drop-shadow(0 0 35px rgba(176,144,96,0.2)); }
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(212,175,55,0.4)) drop-shadow(0 0 22px rgba(191,149,63,0.15)); }
+  50% { filter: drop-shadow(0 0 20px rgba(212,175,55,0.65)) drop-shadow(0 0 40px rgba(191,149,63,0.25)); }
 }
 
 /* Brand logo styles moved to components/Brand/BrandLogo.module.css */
@@ -371,11 +371,22 @@ body {
 .catcard .caticon {
   width: 80px;
   height: 80px;
-  background: transparent;
+  background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border-radius: 14px;
+  position: relative;
+}
+
+.catcard .caticon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(212,175,55,0.12);
+  pointer-events: none;
 }
 
 .catcard .caticon img {
@@ -383,7 +394,12 @@ body {
   height: 100%;
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 0 6px rgba(176,144,96,0.25));
+  filter: drop-shadow(0 0 8px rgba(212,175,55,0.35)) drop-shadow(0 0 20px rgba(191,149,63,0.12));
+  transition: filter 0.3s ease;
+}
+
+.catcard:hover .caticon img {
+  filter: drop-shadow(0 0 12px rgba(212,175,55,0.5)) drop-shadow(0 0 28px rgba(191,149,63,0.2));
 }
 
 /* Onboarding „Was ist dein Handwerk?”: kompaktere Icons */

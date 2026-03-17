@@ -186,7 +186,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Logo Header + Greeting */}
       <div style={{ padding: '20px var(--pad) 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexShrink: 1 }}>
-          <BrandLogo size={42} variant="dark" animateStar={false} />
+          <BrandLogo size={48} variant="dark" animateStar={true} />
           <div style={{ minWidth: 0 }}>
             <p className="cinzel text-gold-metallic" style={{ fontSize: 17, fontWeight: 700, letterSpacing: 3, lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               CHAIRMATCH
