@@ -87,7 +87,7 @@ function ReviewCard({ review: r }: { review: SalonReview }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>{r.customer?.full_name || 'Gast'}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, color: 'var(--stone)' }}>{r.created_at}</span>
+          <span style={{ fontSize: 11, color: 'var(--stone)' }}>{new Date(r.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
           {!isDemoId && (
             <button
               onClick={handleReport}
