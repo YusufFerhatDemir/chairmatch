@@ -1,9 +1,24 @@
 import Stripe from 'stripe'
 
-// Server-side Stripe instance
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-12-18.acacia' as Stripe.LatestApiVersion,
-  typescript: true,
+// Server-side Stripe instance — lazy init to prevent build-time crash
+let _stripe: Stripe | null = null
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    const key = process.env.STRIPE_SECRET_KEY
+    if (!key) throw new Error('STRIPE_SECRET_KEY ist nicht konfiguriert')
+    _stripe = new Stripe(key, {
+      apiVersion: '2025-12-18.acacia' as Stripe.LatestApiVersion,
+      typescript: true,
+    })
+  }
+  return _stripe
+}
+
+// Backwards compat — lazy getter
+export const stripe = new Proxy({} as Stripe, {
+  get(_, prop) {
+    return (getStripe() as unknown as Record<string | symbol, unknown>)[prop]
+  },
 })
 
 // Public key for client-side
