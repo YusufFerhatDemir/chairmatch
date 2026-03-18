@@ -49,9 +49,9 @@ interface Props {
 
 function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
-    <span style={{ display: 'inline-flex', gap: 1 }}>
+    <span style={{ display: 'inline-flex', gap: 1 }} role="img" aria-label={`${rating.toFixed(1)} von 5 Sternen`}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: '#D4AF37', fontSize: size, textShadow: i <= Math.round(rating) ? '0 0 6px rgba(212,175,55,0.5)' : 'none' }}>★</span>
+        <span key={i} aria-hidden="true" style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: '#D4AF37', fontSize: size, textShadow: i <= Math.round(rating) ? '0 0 6px rgba(212,175,55,0.5)' : 'none' }}>★</span>
       ))}
     </span>
   )
@@ -106,7 +106,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
   const [searchFocused, setSearchFocused] = useState(false)
   const [favorites, setFavorites] = useState<string[]>([])
   const [nlEmail, setNlEmail] = useState('')
-  const [nlStatus, setNlStatus] = useState<'idle' | 'ok' | 'err'>('idle')
+  const [nlStatus, setNlStatus] = useState<'idle' | 'ok' | 'err' | 'loading'>('idle')
   const [showFilter, setShowFilter] = useState(false)
   const [filterCity, setFilterCity] = useState('all')
   const [filterMinRating, setFilterMinRating] = useState(0)
@@ -247,9 +247,9 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--cream)', fontSize: 14 }}
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: 'var(--stone)', fontSize: 16, cursor: 'pointer', padding: 0 }}>✕</button>
+            <button onClick={() => setSearchQuery('')} aria-label="Suche löschen" style={{ background: 'none', border: 'none', color: 'var(--stone)', fontSize: 16, cursor: 'pointer', padding: 0 }}>✕</button>
           )}
-          <button onClick={() => setShowFilter(!showFilter)} style={{ background: 'none', border: 'none', color: showFilter ? 'var(--gold)' : 'var(--stone)', fontSize: 18, cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => setShowFilter(!showFilter)} aria-label="Filter anzeigen" aria-expanded={showFilter} style={{ background: 'none', border: 'none', color: showFilter ? 'var(--gold)' : 'var(--stone)', fontSize: 18, cursor: 'pointer', padding: 0 }}>
             ☰
           </button>
         </div>
@@ -389,14 +389,15 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
             <p style={{ fontSize: 13, color: 'var(--gold2)', fontWeight: 700 }}>Erfolgreich angemeldet!</p>
           ) : (
             <div style={{ display: 'flex', gap: 8 }}>
-              <input type="email" placeholder="E-Mail Adresse" className="inp" style={{ flex: 1 }} value={nlEmail} onChange={e => setNlEmail(e.target.value)} />
-              <button className="bgold" style={{ padding: '10px 16px', fontSize: 12, whiteSpace: 'nowrap' }} onClick={async () => {
-                if (!nlEmail) return
+              <input type="email" placeholder="E-Mail Adresse" className="inp" aria-label="Newsletter E-Mail" style={{ flex: 1 }} value={nlEmail} onChange={e => setNlEmail(e.target.value)} />
+              <button className="bgold" disabled={nlStatus === 'loading'} style={{ padding: '10px 16px', fontSize: 12, whiteSpace: 'nowrap' }} onClick={async () => {
+                if (!nlEmail || nlStatus === 'loading') return
+                setNlStatus('loading')
                 try {
                   const res = await fetch('/api/newsletter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: nlEmail }) })
                   setNlStatus(res.ok ? 'ok' : 'err')
                 } catch { setNlStatus('err') }
-              }}>Anmelden</button>
+              }}>{nlStatus === 'loading' ? '...' : 'Anmelden'}</button>
             </div>
           )}
           {nlStatus === 'err' && <p style={{ fontSize: 11, color: 'var(--red)', marginTop: 6 }}>Fehler — bitte erneut versuchen.</p>}
