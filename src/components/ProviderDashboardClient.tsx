@@ -160,7 +160,7 @@ export default function ProviderDashboardClient({ salon, services: initServices,
         <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginBottom: 4 }}>Dashboard</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)' }}>
-            {salon.name} · {salon.is_active ? '🟢 Online' : '🔴 Offline'} · {statusLabel}
+            {salon.name} · <span aria-label={salon.is_active ? 'Online' : 'Offline'}>{salon.is_active ? '🟢 Online' : '🔴 Offline'}</span> · {statusLabel}
           </p>
           <ComplianceStatus salonId={salon.id} compact />
         </div>
@@ -284,8 +284,8 @@ export default function ProviderDashboardClient({ salon, services: initServices,
                       <div style={{ fontSize: 12, color: 'var(--stone)' }}>{(svc.price_cents / 100).toFixed(0)}€ · {svc.duration_minutes} Min.</div>
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => setEditSvc(svc.id)} style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', fontSize: 13 }}>✎</button>
-                      <button onClick={() => deleteService(svc.id)} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 13 }}>✕</button>
+                      <button onClick={() => setEditSvc(svc.id)} aria-label="Service bearbeiten" style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', fontSize: 13 }}>✎</button>
+                      <button onClick={() => deleteService(svc.id)} aria-label="Service löschen" style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 13 }}>✕</button>
                     </div>
                   </div>
                 )}
