@@ -103,11 +103,13 @@ export default function AuthPage() {
         </div>
 
         {/* Tab toggle */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }} role="tablist">
           <button
             onClick={() => setTab('login')}
             className={tab === 'login' ? 'bgold' : 'boutline'}
             style={{ flex: 1 }}
+            role="tab"
+            aria-selected={tab === 'login'}
           >
             Anmelden
           </button>
@@ -115,6 +117,8 @@ export default function AuthPage() {
             onClick={() => setTab('register')}
             className={tab === 'register' ? 'bgold' : 'boutline'}
             style={{ flex: 1 }}
+            role="tab"
+            aria-selected={tab === 'register'}
           >
             Registrieren
           </button>
@@ -151,12 +155,39 @@ export default function AuthPage() {
           <input
             className="inp"
             type="password"
-            placeholder={tab === 'register' ? 'Passwort (min. 10 Zeichen, 1 Großbuchstabe, 1 Zahl, 1 Sonderzeichen)' : 'Passwort'}
+            placeholder={tab === 'register' ? 'Passwort (min. 10 Zeichen)' : 'Passwort'}
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
             minLength={tab === 'register' ? 10 : 1}
+            autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
           />
+          {tab === 'register' && password.length > 0 && (() => {
+            const checks = [
+              { ok: password.length >= 10, label: '10+ Zeichen' },
+              { ok: /[A-Z]/.test(password), label: 'Großbuchstabe' },
+              { ok: /[0-9]/.test(password), label: 'Zahl' },
+              { ok: /[^A-Za-z0-9]/.test(password), label: 'Sonderzeichen' },
+            ]
+            const passed = checks.filter(c => c.ok).length
+            const color = passed <= 1 ? 'var(--red)' : passed <= 2 ? '#D4A020' : passed <= 3 ? '#C8A84B' : 'var(--green)'
+            return (
+              <div style={{ marginTop: -4 }}>
+                <div style={{ display: 'flex', gap: 3, marginBottom: 4 }}>
+                  {[0, 1, 2, 3].map(i => (
+                    <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < passed ? color : 'var(--c3)' }} />
+                  ))}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px' }}>
+                  {checks.map(c => (
+                    <span key={c.label} style={{ fontSize: 10, color: c.ok ? 'var(--green)' : 'var(--stone2)' }}>
+                      {c.ok ? '✓' : '○'} {c.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
           {tab === 'login' && (
             <Link href="/auth/forgot-password" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline', alignSelf: 'flex-end' }}>
               Passwort vergessen?

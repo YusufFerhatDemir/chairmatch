@@ -28,14 +28,18 @@ export default async function FavoritesPage() {
         <section style={{ padding: '0 var(--pad)' }}>
           {favs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <div style={{ fontSize: 48, marginBottom: 12, opacity: 0.5 }}>❤️</div>
               <p style={{ color: 'var(--stone)', fontSize: 'var(--font-md)' }}>Noch keine Favoriten gespeichert.</p>
+              <p style={{ color: 'var(--stone2)', fontSize: 'var(--font-sm)', marginTop: 4 }}>
+                Tippe auf das Herz-Symbol bei einem Salon, um ihn hier zu speichern.
+              </p>
               <Link href="/explore" className="boutline" style={{ display: 'inline-block', marginTop: 16, textDecoration: 'none' }}>
                 Salons entdecken
               </Link>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {favs.map((f: any) => (
+              {favs.map((f: { id: string; salon: { id: string; name: string; slug: string | null; city: string | null; avg_rating: number } }) => (
                 <Link key={f.id} href={`/salon/${f.salon.slug || f.salon.id}`} style={{ textDecoration: 'none' }}>
                   <div className="card" style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
                     <div style={{

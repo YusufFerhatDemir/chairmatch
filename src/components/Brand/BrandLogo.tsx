@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import styles from './BrandLogo.module.css'
 
 interface BrandLogoProps {
@@ -29,6 +29,7 @@ export function BrandLogo({
   style,
   priority = false,
 }: BrandLogoProps) {
+  const [imgError, setImgError] = useState(false)
   const src = ASSETS[variant]
 
   const rootClass = [
@@ -44,16 +45,24 @@ export function BrandLogo({
       className={rootClass}
       style={{ width: size, height: size, ...style }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt="ChairMatch"
-        width={size}
-        height={size}
-        className={styles.img}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding="async"
-      />
+      {imgError ? (
+        <svg width={size} height={size} viewBox="0 0 64 64" fill="none" aria-label="ChairMatch Logo">
+          <rect width="64" height="64" rx="16" fill="#141108" />
+          <text x="32" y="38" textAnchor="middle" fill="#B09060" fontSize="14" fontWeight="700" fontFamily="sans-serif">CM</text>
+        </svg>
+      ) : (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={src}
+          alt="ChairMatch Logo"
+          width={size}
+          height={size}
+          className={styles.img}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          onError={() => setImgError(true)}
+        />
+      )}
     </div>
   )
 }

@@ -34,9 +34,9 @@ interface SalonData {
 
 function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
-    <span style={{ display: 'inline-flex', gap: 1 }}>
+    <span style={{ display: 'inline-flex', gap: 1 }} role="img" aria-label={`${rating.toFixed(1)} von 5 Sternen`}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: 'var(--gold)', fontSize: size }}>★</span>
+        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: 'var(--gold)', fontSize: size }} aria-hidden="true">★</span>
       ))}
     </span>
   )
