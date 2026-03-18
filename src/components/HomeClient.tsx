@@ -315,7 +315,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Kategorien</p>
           <Link href="/explore" className="text-gold-accent" style={{ fontSize: 12, textDecoration: 'none' }}>Alle</Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        <div className="cat-grid">
           {categories.map((cat) => (
             <a key={cat.id} href={`/category/${cat.slug}`} style={{ textDecoration: 'none' }}>
               <div className="catcard">
@@ -403,6 +403,19 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           {nlStatus === 'err' && <p style={{ fontSize: 11, color: 'var(--red)', marginTop: 6 }}>Fehler — bitte erneut versuchen.</p>}
         </div>
       </section>
+
+      {/* Footer */}
+      <footer style={{ borderTop: '1px solid rgba(176,144,96,.15)', padding: '28px 20px 32px', marginTop: 32, textAlign: 'center' }}>
+        <p style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1, marginBottom: 14 }}>
+          © {new Date().getFullYear()} ChairMatch — Alle Rechte vorbehalten.
+        </p>
+        <nav style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px 18px' }}>
+          <Link href="/impressum" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'none' }}>Impressum</Link>
+          <Link href="/datenschutz" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'none' }}>Datenschutz</Link>
+          <Link href="/agb" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'none' }}>AGB</Link>
+          <Link href="/cookie-settings" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'none' }}>Cookie-Einstellungen</Link>
+        </nav>
+      </footer>
 
       <div style={{ height: 80 }} />
     </>

@@ -662,8 +662,16 @@ export default function OnboardingGate({ slides, children }: Props) {
           </button>
         ))}
       </div>
+      {/* Skip — direkt entdecken */}
+      <button
+        onClick={() => finish('CUSTOMER')}
+        className="bgold"
+        style={{ marginTop: 20, width: '100%', background: 'transparent', border: '1.5px solid var(--gold)', color: 'var(--gold2)', fontSize: 14, fontWeight: 700 }}
+      >
+        Ohne Anmeldung entdecken →
+      </button>
       {/* Login link */}
-      <div style={{ width: '100%', borderTop: '1px solid var(--border)', marginTop: 24, paddingTop: 20, textAlign: 'center' }}>
+      <div style={{ width: '100%', borderTop: '1px solid var(--border)', marginTop: 20, paddingTop: 20, textAlign: 'center' }}>
         <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 10 }}>Bereits registriert?</p>
         <button onClick={() => setPhase('login')} className="boutline" style={{ padding: '12px 24px', fontSize: 13 }}>
           Anmelden →
@@ -781,6 +789,13 @@ export default function OnboardingGate({ slides, children }: Props) {
             {isLast ? "Los geht's" : 'Weiter →'}
           </button>
         </div>
+        {/* Skip — direkt zur Plattform */}
+        <button
+          onClick={() => finish('CUSTOMER')}
+          style={{ marginTop: 18, background: 'none', border: 'none', color: 'var(--stone)', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3 }}
+        >
+          Überspringen — direkt entdecken
+        </button>
         {/* Bottom spacer for iOS safe area */}
         <div style={{ flexShrink: 0, height: 30 }} />
       </div>
