@@ -61,6 +61,10 @@ function formatPrice(cents: number): string {
   }).format(cents / 100)
 }
 
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 function formatDate(dateStr: string): string {
   try {
     return new Intl.DateTimeFormat('de-DE', {
@@ -151,19 +155,19 @@ export async function sendBookingConfirmation(to: string, details: BookingEmailD
   const subject = `Buchungsbestätigung — ${details.salonName}`
   const html = baseLayout(subject, `
     <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Buchung bestätigt</h2>
-    <p>Hallo${details.customerName ? ` ${details.customerName}` : ''},</p>
+    <p>Hallo${details.customerName ? ` ${esc(details.customerName)}` : ''},</p>
     <p>deine Buchung wurde erfolgreich bestätigt. Hier die Details:</p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:20px 0;background:#1a1a1a;border-radius:8px;border:1px solid #444">
       <tr><td style="padding:12px 16px;color:#999;font-size:13px;border-bottom:1px solid #333">Salon</td>
-          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;font-weight:600;border-bottom:1px solid #333">${details.salonName}</td></tr>
+          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;font-weight:600;border-bottom:1px solid #333">${esc(details.salonName)}</td></tr>
       <tr><td style="padding:12px 16px;color:#999;font-size:13px;border-bottom:1px solid #333">Service</td>
-          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${details.serviceName}</td></tr>
+          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${esc(details.serviceName)}</td></tr>
       <tr><td style="padding:12px 16px;color:#999;font-size:13px;border-bottom:1px solid #333">Datum</td>
           <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${formatDate(details.date)}</td></tr>
       <tr><td style="padding:12px 16px;color:#999;font-size:13px;border-bottom:1px solid #333">Uhrzeit</td>
           <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${details.startTime} – ${details.endTime}</td></tr>
       ${details.staffName ? `<tr><td style="padding:12px 16px;color:#999;font-size:13px;border-bottom:1px solid #333">Mitarbeiter</td>
-          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${details.staffName}</td></tr>` : ''}
+          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${esc(details.staffName)}</td></tr>` : ''}
       <tr><td style="padding:12px 16px;color:#999;font-size:13px">Preis</td>
           <td style="padding:12px 16px;color:#D4AF37;font-size:14px;font-weight:700">${formatPrice(details.priceCents)}</td></tr>
     </table>
@@ -182,13 +186,13 @@ export async function sendBookingReminder(to: string, details: BookingEmailDetai
   const subject = `Erinnerung: Termin morgen bei ${details.salonName}`
   const html = baseLayout(subject, `
     <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Terminerinnerung</h2>
-    <p>Hallo${details.customerName ? ` ${details.customerName}` : ''},</p>
+    <p>Hallo${details.customerName ? ` ${esc(details.customerName)}` : ''},</p>
     <p>dein Termin ist morgen. Vergiss nicht:</p>
     <div style="background:#1a1a1a;border-radius:8px;border-left:4px solid #D4AF37;padding:20px;margin:20px 0">
-      <p style="margin:0;color:#D4AF37;font-weight:700;font-size:16px">${details.serviceName}</p>
-      <p style="margin:6px 0 0;color:#e0e0e0">${details.salonName}</p>
+      <p style="margin:0;color:#D4AF37;font-weight:700;font-size:16px">${esc(details.serviceName)}</p>
+      <p style="margin:6px 0 0;color:#e0e0e0">${esc(details.salonName)}</p>
       <p style="margin:6px 0 0;color:#e0e0e0">${formatDate(details.date)} um ${details.startTime} Uhr</p>
-      ${details.staffName ? `<p style="margin:6px 0 0;color:#999">Mitarbeiter: ${details.staffName}</p>` : ''}
+      ${details.staffName ? `<p style="margin:6px 0 0;color:#999">Mitarbeiter: ${esc(details.staffName)}</p>` : ''}
     </div>
     ${goldButton('Buchung ansehen', `https://chairmatch.de/booking/${details.bookingId}`)}
     <p style="font-size:13px;color:#777;margin-top:24px">Musst du umbuchen? Du kannst den Termin bis 24h vorher kostenlos stornieren.</p>
@@ -203,7 +207,7 @@ export async function sendBookingReminder(to: string, details: BookingEmailDetai
 export async function sendWelcomeEmail(to: string, name: string) {
   const subject = 'Willkommen bei ChairMatch!'
   const html = baseLayout(subject, `
-    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Willkommen, ${name}!</h2>
+    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Willkommen, ${esc(name)}!</h2>
     <p>Schön, dass du dabei bist. ChairMatch verbindet dich mit den besten Salons und Beauty-Experten in ganz Deutschland.</p>
     <div style="margin:24px 0">
       <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%">
@@ -278,10 +282,10 @@ export async function sendProviderNotification(
 
   const html = baseLayout(subject, `
     <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">${icon} ${title}</h2>
-    ${details.salonName ? `<p style="color:#999;font-size:13px;margin:0 0 12px">Salon: <strong style="color:#e0e0e0">${details.salonName}</strong></p>` : ''}
-    ${details.customerName ? `<p>Kunde: <strong>${details.customerName}</strong></p>` : ''}
+    ${details.salonName ? `<p style="color:#999;font-size:13px;margin:0 0 12px">Salon: <strong style="color:#e0e0e0">${esc(details.salonName)}</strong></p>` : ''}
+    ${details.customerName ? `<p>Kunde: <strong>${esc(details.customerName)}</strong></p>` : ''}
     ${details.message ? `<div style="background:#1a1a1a;border-radius:8px;border-left:4px solid #D4AF37;padding:16px;margin:16px 0">
-      <p style="margin:0;color:#e0e0e0">${details.message}</p>
+      <p style="margin:0;color:#e0e0e0">${esc(details.message)}</p>
     </div>` : ''}
     ${details.bookingId ? goldButton('Details ansehen', `https://chairmatch.de/provider#booking-${details.bookingId}`) : goldButton('Dashboard öffnen', 'https://chairmatch.de/provider')}
     <p style="font-size:13px;color:#777;margin-top:24px">Du erhältst diese E-Mail, weil du als Anbieter bei ChairMatch registriert bist.</p>

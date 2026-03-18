@@ -133,6 +133,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (content.length > 5000) {
+      return NextResponse.json(
+        { error: 'Nachricht darf maximal 5000 Zeichen lang sein' },
+        { status: 400 }
+      )
+    }
+
     if (receiverId === userId) {
       return NextResponse.json(
         { error: 'Nachricht an sich selbst nicht erlaubt' },

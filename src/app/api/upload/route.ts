@@ -71,8 +71,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Build a unique storage path
-    const ext = file.name.split('.').pop() || 'jpg'
+    // Build a unique storage path — derive extension from validated MIME type
+    const MIME_TO_EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+    const ext = MIME_TO_EXT[file.type] || 'jpg'
     const timestamp = Date.now()
     const randomSuffix = Math.random().toString(36).slice(2, 8)
     const storagePath = `${salonId}/${imageType}/${timestamp}-${randomSuffix}.${ext}`
