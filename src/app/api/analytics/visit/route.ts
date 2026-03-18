@@ -9,7 +9,8 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}))
-    const path = typeof body.path === 'string' ? body.path : request.nextUrl.pathname || '/'
+    const rawPath = typeof body.path === 'string' ? body.path : request.nextUrl.pathname || '/'
+    const path = rawPath.slice(0, 255)
 
     const ip =
       request.headers.get('x-real-ip') ||

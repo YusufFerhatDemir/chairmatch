@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 300 // ISR: 5 Minuten
 
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { data: salon } = await supabase
       .from('salons')
       .select('name, description, city, avg_rating, review_count')
-      .or(`slug.eq.${slug},id.eq.${slug}`)
+      .eq('slug', slug)
       .limit(1)
       .maybeSingle()
 

@@ -25,11 +25,27 @@ export async function GET(req: NextRequest) {
     .lte('delete_requested_at', cutoffIso)
 
   let deleted = 0
+  const errors: string[] = []
   for (const row of toDelete ?? []) {
+    // 1. Mark profile as deleted
     const { error } = await supabase.from('profiles').update({ deleted_at: new Date().toISOString() }).eq('id', row.id)
-    if (!error) deleted++
-    // auth.users löschen erfordert Admin API — hier nur profiles
+    if (error) {
+      errors.push(`profile ${row.id}: ${error.message}`)
+      continue
+    }
+    // 2. Delete auth.users via Admin API
+    try {
+      const { error: authErr } = await supabase.auth.admin.deleteUser(row.id)
+      if (authErr) errors.push(`auth ${row.id}: ${authErr.message}`)
+    } catch {
+      errors.push(`auth ${row.id}: Admin API nicht verfügbar`)
+    }
+    deleted++
   }
 
-  return NextResponse.json({ ok: true, deleted, total: toDelete?.length ?? 0 })
+  if (errors.length > 0) {
+    console.error('Hard-delete errors:', errors)
+  }
+
+  return NextResponse.json({ ok: true, deleted, total: toDelete?.length ?? 0, errors: errors.length })
 }

@@ -101,12 +101,18 @@ export default function AccountPage() {
     confirmed: '#4A8A5A',
     pending: 'var(--gold)',
     cancelled: '#C04040',
+    completed: '#3A7A4A',
+    no_show: '#8A4A4A',
+    failed: '#C04040',
   }
 
   const statusLabel: Record<string, string> = {
     confirmed: 'Bestätigt',
     pending: 'Ausstehend',
     cancelled: 'Storniert',
+    completed: 'Abgeschlossen',
+    no_show: 'Nicht erschienen',
+    failed: 'Fehlgeschlagen',
   }
 
   return (

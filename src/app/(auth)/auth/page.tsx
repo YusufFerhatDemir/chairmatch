@@ -135,33 +135,44 @@ export default function AuthPage() {
 
         <form onSubmit={tab === 'login' ? handleLogin : handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {tab === 'register' && (
+            <label>
+              <span className="sr-only">Vollständiger Name</span>
+              <input
+                className="inp"
+                type="text"
+                placeholder="Vollständiger Name"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                required
+                autoComplete="name"
+              />
+            </label>
+          )}
+          <label>
+            <span className="sr-only">E-Mail</span>
             <input
               className="inp"
-              type="text"
-              placeholder="Vollständiger Name"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
+              type="email"
+              placeholder="E-Mail"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               required
+              autoComplete="email"
             />
-          )}
-          <input
-            className="inp"
-            type="email"
-            placeholder="E-Mail"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-          <input
-            className="inp"
-            type="password"
-            placeholder={tab === 'register' ? 'Passwort (min. 10 Zeichen)' : 'Passwort'}
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            minLength={tab === 'register' ? 10 : 1}
-            autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
-          />
+          </label>
+          <label>
+            <span className="sr-only">Passwort</span>
+            <input
+              className="inp"
+              type="password"
+              placeholder={tab === 'register' ? 'Passwort (min. 10 Zeichen)' : 'Passwort'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              minLength={tab === 'register' ? 10 : 1}
+              autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
+            />
+          </label>
           {tab === 'register' && password.length > 0 && (() => {
             const checks = [
               { ok: password.length >= 10, label: '10+ Zeichen' },
@@ -172,7 +183,7 @@ export default function AuthPage() {
             const passed = checks.filter(c => c.ok).length
             const color = passed <= 1 ? 'var(--red)' : passed <= 2 ? '#D4A020' : passed <= 3 ? '#C8A84B' : 'var(--green)'
             return (
-              <div style={{ marginTop: -4 }}>
+              <div style={{ marginTop: -4 }} role="status" aria-live="polite" aria-label={`Passwortstärke: ${passed} von 4`}>
                 <div style={{ display: 'flex', gap: 3, marginBottom: 4 }}>
                   {[0, 1, 2, 3].map(i => (
                     <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < passed ? color : 'var(--c3)' }} />

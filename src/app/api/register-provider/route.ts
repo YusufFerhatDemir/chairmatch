@@ -43,7 +43,9 @@ export async function POST(req: NextRequest) {
 
     // 1. Create Supabase Auth user
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
-    const password = Math.random().toString(36).slice(-10) + 'A1!'
+    const bytes = new Uint8Array(16)
+    crypto.getRandomValues(bytes)
+    const password = Array.from(bytes, b => b.toString(36)).join('').slice(0, 14) + 'A1!'
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: d.em,
       password,

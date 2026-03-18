@@ -12,7 +12,9 @@ export async function POST(
     return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
   }
   const { id } = await params
-  if (!id) return NextResponse.json({ error: 'Review-ID fehlt' }, { status: 400 })
+  if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    return NextResponse.json({ error: 'Ungültige Review-ID' }, { status: 400 })
+  }
 
   const supabase = getSupabaseAdmin()
   const { error } = await supabase
