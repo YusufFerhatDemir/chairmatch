@@ -17,6 +17,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/explore`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${base}/offers`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${base}/rentals`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${base}/search`, changeFrequency: 'daily', priority: 0.8 },
+    { url: `${base}/landing`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${base}/pitch`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/auth`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/register/anbieter`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/datenschutz`, changeFrequency: 'monthly', priority: 0.3 },
@@ -24,7 +27,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/agb`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/agb-provider`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/cookie-settings`, changeFrequency: 'monthly', priority: 0.2 },
-    { url: `${base}/search`, changeFrequency: 'daily', priority: 0.8 },
   ]
 
   // Category pages (all 9 categories)
@@ -42,7 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('salons')
       .select('slug, updated_at')
       .eq('is_active', true)
-      .limit(500)
+      .limit(5000)
 
     const salonPages: MetadataRoute.Sitemap = (salons ?? []).map(s => ({
       url: `${base}/salon/${s.slug}`,

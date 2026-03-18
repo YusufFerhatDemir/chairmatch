@@ -4,8 +4,13 @@ import { getServerSession } from '@/modules/auth/session'
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
+    }
+
     const body = await request.json()
-    const result = await createBooking(body)
+    const result = await createBooking({ ...body, customerId: session.user.id })
 
     if ('error' in result) {
       return NextResponse.json({ error: result.error }, { status: 400 })

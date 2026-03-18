@@ -18,12 +18,12 @@ export default function BottomNav() {
   if (HIDDEN_PATHS.some(p => pathname.startsWith(p))) return null
 
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-nav" role="tablist" aria-label="Hauptnavigation">
       {TABS.map(tab => {
         const active = tab.match(pathname)
         return (
-          <Link key={tab.href} href={tab.href} className="bottom-nav-btn" style={{ color: active ? 'var(--gold)' : 'var(--stone2)' }}>
-            <span style={{ fontSize: 20, lineHeight: 1 }}>{tab.icon}</span>
+          <Link key={tab.href} href={tab.href} className="bottom-nav-btn" role="tab" aria-selected={active} aria-label={tab.label} style={{ color: active ? 'var(--gold)' : 'var(--stone2)' }}>
+            <span style={{ fontSize: 20, lineHeight: 1 }} aria-hidden="true">{tab.icon}</span>
             <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.05em' }}>{tab.label}</span>
           </Link>
         )

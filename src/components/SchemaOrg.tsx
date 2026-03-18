@@ -1,6 +1,7 @@
 interface SchemaOrgProps {
   salon: {
     name: string
+    slug?: string | null
     category: string
     city?: string | null
     street?: string | null
@@ -29,7 +30,7 @@ export default function SchemaOrg({ salon }: SchemaOrgProps) {
     '@context': 'https://schema.org',
     '@type': schemaType,
     name: salon.name,
-    url: `https://chairmatch.de/salon/${encodeURIComponent(salon.name.toLowerCase().replace(/\s+/g, '-'))}`,
+    url: `https://chairmatch.de/salon/${salon.slug || encodeURIComponent(salon.name.toLowerCase().replace(/\s+/g, '-'))}`,
     address: {
       '@type': 'PostalAddress',
       streetAddress: salon.street || '',

@@ -194,7 +194,7 @@ export default function ChatWidget() {
       {/* Floating Button */}
       <button
         onClick={() => setOpen(!open)}
-        aria-label="Chat oeffnen"
+        aria-label="Chat öffnen"
         style={{
           position: 'fixed',
           bottom: 80,
@@ -285,7 +285,7 @@ export default function ChatWidget() {
                   setActiveConv(null)
                   fetchConversations()
                 }}
-                aria-label="Zurueck"
+                aria-label="Zurück"
                 style={{
                   background: 'none',
                   border: 'none',
@@ -521,7 +521,7 @@ export default function ChatWidget() {
                 >
                   Noch keine Nachrichten.
                   <br />
-                  Starten Sie ein Gespraech ueber eine Salon-Seite.
+                  Starten Sie ein Gespräch über eine Salon-Seite.
                 </p>
               </div>
             ) : (

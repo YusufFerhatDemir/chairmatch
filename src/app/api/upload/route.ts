@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const file = formData.get('file') as File | null
-    const bucket = (formData.get('bucket') as string) || 'salon-images'
+    const ALLOWED_BUCKETS = ['salon-images', 'salons', 'uploads']
+    const requestedBucket = (formData.get('bucket') as string) || 'salon-images'
+    const bucket = ALLOWED_BUCKETS.includes(requestedBucket) ? requestedBucket : 'salon-images'
     const salonId = formData.get('salonId') as string | null
     const imageType = formData.get('imageType') as string | null
 

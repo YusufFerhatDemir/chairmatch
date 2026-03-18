@@ -53,11 +53,32 @@ export async function PATCH(
 ) {
   try {
     const session = await getServerSession()
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }
 
     const { id } = await params
+
+    // Verify the user is salon owner or admin before allowing status changes
+    const supabase = getSupabaseAdmin()
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('salon_id, salons!inner(owner_id)')
+      .eq('id', id)
+      .single()
+
+    if (!booking) {
+      return NextResponse.json({ error: 'Buchung nicht gefunden' }, { status: 404 })
+    }
+
+    const role = (session.user as { role?: string }).role || ''
+    const isSalonOwner = (booking.salons as { owner_id?: string })?.owner_id === session.user.id
+    const isAdmin = ['admin', 'super_admin'].includes(role)
+
+    if (!isSalonOwner && !isAdmin) {
+      return NextResponse.json({ error: 'Nur Saloninhaber oder Admins können den Status ändern' }, { status: 403 })
+    }
+
     const body = await request.json()
     const newStatus = body.newStatus || body.status
 

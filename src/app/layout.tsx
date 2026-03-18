@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { DM_Sans, Cinzel, Cormorant_Garamond } from 'next/font/google'
+import { DM_Sans, Cinzel } from 'next/font/google'
 import { Providers } from './providers'
 import DynamicTheme from '@/components/DynamicTheme'
 import BottomNav from '@/components/BottomNav'
@@ -21,12 +21,6 @@ const cinzel = Cinzel({
   display: 'swap',
 })
 
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-cormorant',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: {
@@ -95,7 +89,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="de" className={`${dmSans.variable} ${cinzel.variable} ${cormorant.variable}`}>
+    <html lang="de" className={`${dmSans.variable} ${cinzel.variable}`}>
       <body className={dmSans.className}>
         <script
           type="application/ld+json"
