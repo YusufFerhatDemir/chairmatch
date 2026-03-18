@@ -144,6 +144,8 @@ const publicPrefixes = [
   '/sitemap',
   '/og-image',
   '/icon',
+  '/screenshots/',
+  '/apple-touch-icon',
 ]
 
 const providerPaths = ['/provider']
