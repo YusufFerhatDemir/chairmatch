@@ -113,6 +113,8 @@ const publicPaths = [
   '/agb',
   '/agb-provider',
   '/cookie-settings',
+  '/landing',
+  '/pitch',
   '/auth',
   '/api/auth',
 ]
@@ -128,6 +130,7 @@ const publicPrefixes = [
   '/api/availability',
   '/api/stripe/webhook',
   '/api/errors',
+  '/api/cron/',
   '/api/reviews/aggregate',
   '/api/salons/',
   '/register/',
