@@ -41,6 +41,8 @@ export interface DemoProvider {
   nm: string
   st: string
   city: string
+  lat: number
+  lng: number
   rt: number
   rc: number
   tl: string
@@ -80,7 +82,7 @@ export const SPECS: DemoSpec[] = [
 
 export const PROVS: DemoProvider[] = [
   {
-    id: 'p1', cat: 'barber', nm: 'BlackLabel Barbershop', st: 'Münchener Str. 17', city: 'Frankfurt',
+    id: 'p1', cat: 'barber', nm: 'BlackLabel Barbershop', st: 'Münchener Str. 17', city: 'Frankfurt', lat: 50.1055, lng: 8.6842,
     rt: 4.9, rc: 412, tl: 'Premium Fades & Beard Design',
     tags: ['Fade', 'Skin Fade', 'Bart', 'Herrenschnitt', 'Rasur'],
     disc: 15, bc: '#B09060', prom: true, ver: true, live: true, frei: 3,
@@ -101,7 +103,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p2', cat: 'kosmetik', nm: 'Glow Studio', st: 'Schillerstr. 8', city: 'München',
+    id: 'p2', cat: 'kosmetik', nm: 'Glow Studio', st: 'Schillerstr. 8', city: 'München', lat: 48.1391, lng: 11.5602,
     rt: 4.8, rc: 287, tl: 'Luxury Skincare & Anti-Aging',
     tags: ['Facial', 'Peeling', 'Anti-Aging', 'Microdermabrasion'],
     disc: 10, bc: '#C86090', prom: true, ver: true, live: true, frei: 5,
@@ -122,7 +124,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p3', cat: 'aesthetik', nm: 'AesthetiQ Klinik', st: 'Kurfürstendamm 42', city: 'Berlin',
+    id: 'p3', cat: 'aesthetik', nm: 'AesthetiQ Klinik', st: 'Kurfürstendamm 42', city: 'Berlin', lat: 52.5046, lng: 13.3070,
     rt: 5.0, rc: 156, tl: 'Premium Ästhetik & Anti-Aging',
     tags: ['Botox', 'Filler', 'Lippen', 'Anti-Aging', 'PRP'],
     disc: 0, bc: '#4AA0D8', prom: true, ver: true, live: true, frei: 2,
@@ -143,7 +145,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p4', cat: 'nail', nm: 'NailArt Lounge', st: 'Breite Str. 12', city: 'Köln',
+    id: 'p4', cat: 'nail', nm: 'NailArt Lounge', st: 'Breite Str. 12', city: 'Köln', lat: 50.9381, lng: 6.9590,
     rt: 4.9, rc: 203, tl: 'Kreative Nagelkunst & Design',
     tags: ['Gel', 'Nail Art', 'French', 'Chrome', 'Maniküre'],
     disc: 20, bc: '#C8987A', prom: false, ver: true, live: true, frei: 4,
@@ -164,7 +166,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p5', cat: 'friseur', nm: 'Salon Elegance', st: 'Hauptstr. 55', city: 'Hamburg',
+    id: 'p5', cat: 'friseur', nm: 'Salon Elegance', st: 'Hauptstr. 55', city: 'Hamburg', lat: 53.5553, lng: 9.9920,
     rt: 4.9, rc: 328, tl: 'Meisterfriseur seit 2005',
     tags: ['Balayage', 'Highlights', 'Brautfrisur', 'Coloration'],
     disc: 0, bc: '#9A70C8', prom: true, ver: true, live: true, frei: 6,
@@ -185,7 +187,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p6', cat: 'massage', nm: 'ZenTouch Massage', st: 'Gartenstr. 22', city: 'Düsseldorf',
+    id: 'p6', cat: 'massage', nm: 'ZenTouch Massage', st: 'Gartenstr. 22', city: 'Düsseldorf', lat: 51.2300, lng: 6.7826,
     rt: 5.0, rc: 178, tl: 'Therapeutische Massagen & Wellness',
     tags: ['Thai', 'Hot Stone', 'Tiefengewebe', 'Shiatsu'],
     disc: 0, bc: '#4AA890', prom: false, ver: true, live: true, frei: 3,
@@ -206,7 +208,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p7', cat: 'lash', nm: 'Lash & Brow Bar', st: 'Friedrichstr. 90', city: 'Berlin',
+    id: 'p7', cat: 'lash', nm: 'Lash & Brow Bar', st: 'Friedrichstr. 90', city: 'Berlin', lat: 52.5244, lng: 13.3884,
     rt: 4.9, rc: 245, tl: 'Premium Lash Extensions & Brow Design',
     tags: ['Volume Lash', 'Classic', 'Lifting', 'Brow Lamination'],
     disc: 10, bc: '#B8A060', prom: true, ver: true, live: true, frei: 2,
@@ -227,7 +229,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p8', cat: 'arzt', nm: 'DermaCare Praxis', st: 'Leopoldstr. 33', city: 'München',
+    id: 'p8', cat: 'arzt', nm: 'DermaCare Praxis', st: 'Leopoldstr. 33', city: 'München', lat: 48.1615, lng: 11.5865,
     rt: 4.8, rc: 134, tl: 'Dermatologie & Laser Therapie',
     tags: ['Hautkrebs', 'Laser', 'Akne', 'Pigmentflecken'],
     disc: 0, bc: '#6090C8', prom: false, ver: true, live: true, frei: 1,
@@ -247,7 +249,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p9', cat: 'barber', nm: "King's Cut", st: 'Zeil 44', city: 'Frankfurt',
+    id: 'p9', cat: 'barber', nm: "King's Cut", st: 'Zeil 44', city: 'Frankfurt', lat: 50.1145, lng: 8.6855,
     rt: 4.7, rc: 189, tl: 'Classic & Modern Barbering',
     tags: ['Herrenschnitt', 'Fade', 'Rasur', 'Bart'],
     disc: 10, bc: '#2A4A3A', prom: false, ver: true, live: true, frei: 4,
@@ -267,7 +269,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p10', cat: 'friseur', nm: 'Haarwerk Studio', st: 'Königstr. 30', city: 'Stuttgart',
+    id: 'p10', cat: 'friseur', nm: 'Haarwerk Studio', st: 'Königstr. 30', city: 'Stuttgart', lat: 48.7784, lng: 9.1800,
     rt: 4.8, rc: 267, tl: 'Kreative Haarkunst & Farbe',
     tags: ['Schnitt', 'Farbe', 'Strähnchen', 'Styling'],
     disc: 0, bc: '#9A70C8', prom: false, ver: true, live: true, frei: 3,
@@ -287,7 +289,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p11', cat: 'kosmetik', nm: 'Pure Beauty Lab', st: 'Sendlinger Str. 15', city: 'München',
+    id: 'p11', cat: 'kosmetik', nm: 'Pure Beauty Lab', st: 'Sendlinger Str. 15', city: 'München', lat: 48.1340, lng: 11.5685,
     rt: 4.7, rc: 198, tl: 'Medical Skincare & Treatments',
     tags: ['Facial', 'Laser', 'Anti-Aging', 'Ultraschall'],
     disc: 5, bc: '#C86090', prom: false, ver: true, live: true, frei: 2,
@@ -307,7 +309,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p12', cat: 'nail', nm: 'Glam Nails Berlin', st: 'Torstr. 77', city: 'Berlin',
+    id: 'p12', cat: 'nail', nm: 'Glam Nails Berlin', st: 'Torstr. 77', city: 'Berlin', lat: 52.5295, lng: 13.4010,
     rt: 4.8, rc: 156, tl: 'Trendy Nail Designs & Care',
     tags: ['Shellac', 'Gel', 'Pediküre', 'Nail Art'],
     disc: 0, bc: '#C8987A', prom: false, ver: false, live: true, frei: 5,
@@ -327,7 +329,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p13', cat: 'massage', nm: 'Wellness Oase', st: 'Am Stadtpark 5', city: 'Hamburg',
+    id: 'p13', cat: 'massage', nm: 'Wellness Oase', st: 'Am Stadtpark 5', city: 'Hamburg', lat: 53.5630, lng: 10.0230,
     rt: 4.6, rc: 142, tl: 'Entspannung pur',
     tags: ['Klassisch', 'Aromatherapie', 'Fußreflexzonen'],
     disc: 0, bc: '#4AA890', prom: false, ver: true, live: true, frei: 4,
@@ -347,7 +349,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p14', cat: 'lash', nm: 'Lash Perfect Studio', st: 'Schildergasse 20', city: 'Köln',
+    id: 'p14', cat: 'lash', nm: 'Lash Perfect Studio', st: 'Schildergasse 20', city: 'Köln', lat: 50.9353, lng: 6.9527,
     rt: 4.7, rc: 167, tl: 'Perfekte Wimpern & Brauen',
     tags: ['Extensions', 'Lifting', 'Tinting', 'Brow'],
     disc: 15, bc: '#B8A060', prom: false, ver: true, live: true, frei: 3,
@@ -367,7 +369,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p15', cat: 'opraum', nm: 'MedSpace Premium', st: 'Universitätsstr. 10', city: 'Düsseldorf',
+    id: 'p15', cat: 'opraum', nm: 'MedSpace Premium', st: 'Universitätsstr. 10', city: 'Düsseldorf', lat: 51.2350, lng: 6.7920,
     rt: 4.9, rc: 45, tl: 'Sterile OP-Räume auf höchstem Niveau',
     tags: ['OP-Raum', 'Steril', 'Chirurgie', 'Miete'],
     disc: 0, bc: '#50B8A0', prom: true, ver: true, live: true, frei: 1,
@@ -385,7 +387,7 @@ export const PROVS: DemoProvider[] = [
     ],
   },
   {
-    id: 'p16', cat: 'arzt', nm: 'HairClinic Pro', st: 'Schloßstr. 8', city: 'Berlin',
+    id: 'p16', cat: 'arzt', nm: 'HairClinic Pro', st: 'Schloßstr. 8', city: 'Berlin', lat: 52.4570, lng: 13.3260,
     rt: 4.8, rc: 89, tl: 'Haartransplantation & Haarmedizin',
     tags: ['Haartransplantation', 'PRP', 'Mesotherapie'],
     disc: 0, bc: '#6090C8', prom: false, ver: true, live: true, frei: 2,

@@ -34,7 +34,7 @@ interface Props {
   reviews: Review[]
 }
 
-type Tab = 'overview' | 'edit' | 'services' | 'bookings' | 'fotos' | 'statistik'
+type Tab = 'overview' | 'edit' | 'services' | 'bookings' | 'fotos' | 'statistik' | 'abo'
 
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
@@ -146,6 +146,7 @@ export default function ProviderDashboardClient({ salon, services: initServices,
     { key: 'bookings', label: 'Termine' },
     { key: 'fotos', label: 'Fotos' },
     { key: 'statistik', label: 'Statistik' },
+    { key: 'abo', label: 'Abo' },
   ]
 
   const inp = { className: 'inp', style: { width: '100%' } as const }
@@ -435,6 +436,115 @@ export default function ProviderDashboardClient({ salon, services: initServices,
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>{(svc.price_cents / 100).toFixed(0)} €</span>
                 </div>
               ))}
+            </div>
+          </>
+        )}
+
+        {/* ABO */}
+        {tab === 'abo' && (
+          <>
+            <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginBottom: 6 }}>Abonnement</h2>
+            <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 16 }}>Wähle das passende Paket für deinen Salon.</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Starter */}
+              <div className="card" style={{ padding: 18, border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--cream)' }}>Starter</h3>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--stone)' }}>Kostenlos</span>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {['Basis-Profil', 'Bis zu 5 Services', 'Terminbuchung', 'Grundstatistiken'].map(f => (
+                    <li key={f} style={{ fontSize: 13, color: 'var(--stone)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ color: '#6ABF80', fontSize: 14 }}>✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+                <button className="boutline" disabled style={{ width: '100%', fontSize: 13, opacity: 0.6 }}>Aktueller Plan</button>
+              </div>
+
+              {/* Premium */}
+              <div className="card" style={{ padding: 18, border: '1.5px solid rgba(154,112,200,.4)', boxShadow: '0 0 20px rgba(154,112,200,.08)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div>
+                    <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#9A70C8,#C8A0F0)', color: '#1a1020', marginBottom: 6, display: 'inline-block' }}>BELIEBT</span>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--cream)' }}>Premium</h3>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--cream)' }}>29€</span>
+                    <span style={{ fontSize: 12, color: 'var(--stone)' }}>/Monat</span>
+                  </div>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {['Unlimited Services', 'Erweiterte Statistiken', 'Priority Listing', 'Promo-Code Erstellung', 'Kundenbewertungs-Management'].map(f => (
+                    <li key={f} style={{ fontSize: 13, color: 'var(--stone)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ color: '#9A70C8', fontSize: 14 }}>✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  className="bgold"
+                  style={{ width: '100%', fontSize: 13 }}
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/stripe/checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'subscription', tier: 'premium', salonId: salon.id }),
+                      })
+                      if (res.ok) {
+                        const { url } = await res.json()
+                        if (url) window.location.href = url
+                      }
+                    } catch {}
+                  }}
+                >
+                  Upgrade auf Premium
+                </button>
+              </div>
+
+              {/* Gold */}
+              <div className="card" style={{ padding: 18, border: '1.5px solid rgba(176,144,96,.3)', boxShadow: '0 0 20px rgba(176,144,96,.08)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div>
+                    <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#BF953F,#FCF6BA,#B38728)', color: '#1a1000', marginBottom: 6, display: 'inline-block' }}>👑 GOLD</span>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--cream)' }}>Gold</h3>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--gold2)' }}>59€</span>
+                    <span style={{ fontSize: 12, color: 'var(--stone)' }}>/Monat</span>
+                  </div>
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {['Alles aus Premium', 'Featured Listing (Top-Platzierung)', 'Promo-Tools & Rabatt-Aktionen', 'Persönlicher Support', 'Gold-Badge auf Profil', 'Analytics-Dashboard'].map(f => (
+                    <li key={f} style={{ fontSize: 13, color: 'var(--stone)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ color: 'var(--gold)', fontSize: 14 }}>✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  style={{
+                    width: '100%', padding: '12px 0', borderRadius: 'var(--btn-radius)', fontSize: 13, fontWeight: 700,
+                    background: 'linear-gradient(135deg,#BF953F,#FCF6BA,#B38728)', color: '#1a1000',
+                    border: 'none', cursor: 'pointer',
+                  }}
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/stripe/checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'subscription', tier: 'gold', salonId: salon.id }),
+                      })
+                      if (res.ok) {
+                        const { url } = await res.json()
+                        if (url) window.location.href = url
+                      }
+                    } catch {}
+                  }}
+                >
+                  Upgrade auf Gold
+                </button>
+              </div>
             </div>
           </>
         )}

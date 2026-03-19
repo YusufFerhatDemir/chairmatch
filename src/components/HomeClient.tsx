@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PROVS, SPECS, SEARCH_SUGGESTIONS, CITIES, getProviderSpecs, type DemoProvider, type DemoRental } from '@/lib/demo-data'
 import { PROMO_CODES } from '@/lib/constants'
+import { haversine, formatDistance, requestUserLocation } from '@/lib/geo'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, type LucideIcon } from 'lucide-react'
 
 interface Category {
@@ -113,6 +114,25 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
   const [filterMaxPrice, setFilterMaxPrice] = useState(500)
   const [filterOnlyAvail, setFilterOnlyAvail] = useState(false)
   const [filterOnlyDisc, setFilterOnlyDisc] = useState(false)
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [locationAsked, setLocationAsked] = useState(false)
+
+  useEffect(() => {
+    // Check if location was previously granted
+    const savedLoc = localStorage.getItem('cm_user_location')
+    if (savedLoc) {
+      try { setUserLocation(JSON.parse(savedLoc)); setLocationAsked(true) } catch {}
+    }
+  }, [])
+
+  async function handleLocationRequest() {
+    setLocationAsked(true)
+    const loc = await requestUserLocation()
+    if (loc) {
+      setUserLocation(loc)
+      localStorage.setItem('cm_user_location', JSON.stringify(loc))
+    }
+  }
 
   useEffect(() => {
     // Load favorites: try DB first, fallback to localStorage
@@ -155,7 +175,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
     tl: s.tagline || s.description?.slice(0, 60) || '',
     tags: s.tags || [], disc: s.discount || 0, bc: s.brand_color || '',
     prom: s.is_promoted || false, ver: s.is_verified,
-    live: true, frei: s.free_slots || 0, boost: 0,
+    live: true, frei: s.free_slots || 0, boost: 0, lat: 0, lng: 0,
     tier: (s.subscription_tier || 'free') as DemoProvider['tier'],
     logo: s.logo_url || null, sps: [],
     svs: s.services?.map(sv => ({ id: sv.id, nm: sv.name, pr: sv.price_cents ? sv.price_cents / 100 : 0, dur: 30 })) || [],
@@ -232,6 +252,57 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           </div>
         </div>
       )}
+
+      {/* In deiner Nähe */}
+      {!userLocation && !locationAsked && (
+        <div style={{ padding: '0 var(--pad) 10px' }}>
+          <button
+            onClick={handleLocationRequest}
+            className="card"
+            style={{ width: '100%', padding: 14, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', border: '1px solid rgba(176,144,96,.2)', background: 'rgba(176,144,96,.04)' }}
+          >
+            <span style={{ fontSize: 20 }}>📍</span>
+            <div style={{ textAlign: 'left' }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>Salons in deiner Nähe</p>
+              <p style={{ fontSize: 11, color: 'var(--stone)' }}>Standort freigeben für Entfernungsanzeige</p>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {userLocation && (() => {
+        const nearby = [...providers]
+          .map(p => ({ ...p, dist: haversine(userLocation.lat, userLocation.lng, p.lat, p.lng) }))
+          .filter(p => p.lat !== 0)
+          .sort((a, b) => a.dist - b.dist)
+          .slice(0, 5)
+        if (nearby.length === 0) return null
+        return (
+          <section style={{ padding: '0 var(--pad) 10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                📍 In deiner Nähe
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
+              {nearby.map(p => (
+                <a key={p.id} href={`/salon/${p.id}`} style={{ textDecoration: 'none', flexShrink: 0, width: 160 }}>
+                  <div className="card" style={{ padding: 12, height: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold)' }}>★ {p.rt}</span>
+                      <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 10, background: 'rgba(74,138,90,.12)', color: '#6ABF80', fontWeight: 700 }}>
+                        {formatDistance(p.dist)}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nm}</p>
+                    <p style={{ fontSize: 11, color: 'var(--stone)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.city}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )
+      })()}
 
       {/* Inline Search */}
       <div style={{ padding: '0 var(--pad) 10px', position: 'relative' }}>
@@ -375,7 +446,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {filtered.map(p => (
-            <ProviderCard key={p.id} p={p} favorites={favorites} toggleFav={toggleFav} />
+            <ProviderCard key={p.id} p={p} favorites={favorites} toggleFav={toggleFav} userLocation={userLocation} />
           ))}
         </div>
       </section>
@@ -422,8 +493,9 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
   )
 }
 
-function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites: string[]; toggleFav: (id: string, e: React.MouseEvent) => void }) {
+function ProviderCard({ p, favorites, toggleFav, userLocation }: { p: DemoProvider; favorites: string[]; toggleFav: (id: string, e: React.MouseEvent) => void; userLocation: { lat: number; lng: number } | null }) {
   const minPrice = p.svs.length > 0 ? Math.min(...p.svs.map(s => s.pr)) : 0
+  const distance = userLocation && p.lat ? haversine(userLocation.lat, userLocation.lng, p.lat, p.lng) : null
 
   return (
     <a href={`/salon/${p.id}`} style={{ textDecoration: 'none' }}>
@@ -457,9 +529,14 @@ function ProviderCard({ p, favorites, toggleFav }: { p: DemoProvider; favorites:
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p style={{ fontSize: 15, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--cream)' }}>{p.nm}</p>
               </div>
-              {/* Address */}
-              <p style={{ fontSize: 12, color: 'var(--stone)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {p.st} · {p.city}
+              {/* Address + Distance */}
+              <p style={{ fontSize: 12, color: 'var(--stone)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>{p.st} · {p.city}</span>
+                {distance !== null && (
+                  <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'rgba(74,138,90,.1)', color: '#6ABF80', fontWeight: 700, flexShrink: 0 }}>
+                    {formatDistance(distance)}
+                  </span>
+                )}
               </p>
             </div>
             {/* Right: Fav + Rating */}

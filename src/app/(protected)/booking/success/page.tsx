@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CalendarPlus } from 'lucide-react'
+import { CalendarPlus, CreditCard, Store } from 'lucide-react'
 import { generateGoogleCalendarUrl } from '@/lib/calendar'
 
 const STORAGE_KEY = 'cm_booking_success'
@@ -20,6 +20,7 @@ interface SavedBooking {
   specName?: string
   hasPromo: boolean
   salonPhone?: string
+  bookingId?: string
 }
 
 export default function BookingSuccessPage() {
@@ -101,7 +102,54 @@ export default function BookingSuccessPage() {
               <span style={{ fontWeight: 800, color: 'var(--gold2)' }}>{data.finalPrice.toFixed(0)} €</span>
             </div>
           </div>
-          <p style={{ fontSize: 11, color: 'var(--stone)', marginBottom: 16 }}>Keine Buchungsgebühren · Bezahlung vor Ort</p>
+          {/* Payment Options */}
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--cream)', marginBottom: 10 }}>Zahlungsoptionen</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/stripe/checkout', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        type: 'booking',
+                        bookingId: data.bookingId || data.salonId,
+                        amount: Math.round(data.finalPrice * 100),
+                        serviceName: data.serviceName,
+                        salonName: data.salonName,
+                      }),
+                    })
+                    if (res.ok) {
+                      const { url } = await res.json()
+                      if (url) window.location.href = url
+                    }
+                  } catch {}
+                }}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '14px 16px', borderRadius: 14, fontSize: 13, fontWeight: 700,
+                  background: 'linear-gradient(135deg,#BF953F,#FCF6BA,#B38728)', color: '#1a1000',
+                  border: 'none', cursor: 'pointer',
+                }}
+              >
+                <CreditCard size={16} />
+                Jetzt bezahlen
+              </button>
+              <div style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '14px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600,
+                background: 'var(--c2)', color: 'var(--stone)',
+                border: '1px solid var(--border)',
+              }}>
+                <Store size={16} />
+                Vor Ort bezahlen
+              </div>
+            </div>
+            <p style={{ fontSize: 10, color: 'var(--stone)', marginTop: 6, textAlign: 'center' }}>
+              Keine Buchungsgebühren · Sichere Zahlung via Stripe
+            </p>
+          </div>
 
           {/* Calendar buttons */}
           {(() => {

@@ -14,6 +14,7 @@ export interface Database {
           onboarding_done: boolean
           referral_code: string | null
           referral_balance_cents: number
+          stripe_customer_id: string | null
           delete_requested_at: string | null
           deleted_at: string | null
           created_at: string
@@ -30,6 +31,7 @@ export interface Database {
           preferred_language?: 'de' | 'en' | 'tr'
           onboarding_done?: boolean
           referral_code?: string | null
+          stripe_customer_id?: string | null
         }
         Update: {
           email?: string | null
@@ -40,6 +42,7 @@ export interface Database {
           is_active?: boolean
           preferred_language?: 'de' | 'en' | 'tr'
           onboarding_done?: boolean
+          stripe_customer_id?: string | null
           delete_requested_at?: string | null
           deleted_at?: string | null
         }
@@ -167,6 +170,8 @@ export interface Database {
           price_cents: number
           notes: string | null
           cancellation_reason: string | null
+          stripe_session_id: string | null
+          payment_status: 'pending' | 'paid' | 'failed' | 'refunded' | null
           created_at: string
           updated_at: string
         }
@@ -182,6 +187,8 @@ export interface Database {
           status?: string
           price_cents: number
           notes?: string | null
+          stripe_session_id?: string | null
+          payment_status?: 'pending' | 'paid' | 'failed' | 'refunded' | null
         }
         Update: Partial<Database['public']['Tables']['bookings']['Insert']>
       }
