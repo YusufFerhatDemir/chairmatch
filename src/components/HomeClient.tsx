@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { PROVS, SPECS, SEARCH_SUGGESTIONS, CITIES, getProviderSpecs, type DemoProvider, type DemoRental } from '@/lib/demo-data'
 import { PROMO_CODES } from '@/lib/constants'
 import { haversine, formatDistance, requestUserLocation } from '@/lib/geo'
+import { RecommendationBanner } from '@/components/recommendations/RecommendationBanner'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, type LucideIcon } from 'lucide-react'
 
 interface Category {
@@ -252,6 +253,11 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           </div>
         </div>
       )}
+
+      {/* Dein Spezialist empfiehlt */}
+      <div style={{ padding: '0 var(--pad)' }}>
+        <RecommendationBanner />
+      </div>
 
       {/* In deiner Nähe */}
       {!userLocation && !locationAsked && (

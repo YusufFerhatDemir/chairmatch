@@ -116,6 +116,7 @@ const publicPaths = [
   '/landing',
   '/pitch',
   '/auth',
+  '/shop',
   '/api/auth',
 ]
 
@@ -133,6 +134,8 @@ const publicPrefixes = [
   '/api/cron/',
   '/api/reviews/aggregate',
   '/api/salons/',
+  '/api/products',
+  '/shop/',
   '/register/',
   '/_next/',
   '/icons/',

@@ -234,4 +234,143 @@ export type ThemeMode = 'dark' | 'light'
 
 export type TabId = 'home' | 'explore' | 'favorites' | 'offers' | 'account'
 
-export type DetailTab = 'info' | 'services' | 'team' | 'reviews' | 'gallery'
+export type DetailTab = 'info' | 'services' | 'team' | 'reviews' | 'gallery' | 'produkte'
+
+// ═══ Marketplace Types ═══
+
+export type SellerType = 'salon' | 'grosshaendler' | 'affiliate'
+export type ProductTarget = 'b2c' | 'b2b' | 'both'
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+export type CommissionType = 'rental' | 'new_customer' | 'product_recommendation' | 'product_sale'
+
+export interface Seller {
+  id: string
+  user_id: string
+  salon_id: string | null
+  seller_type: SellerType
+  company_name: string | null
+  description: string | null
+  logo_url: string | null
+  is_verified: boolean
+  is_active: boolean
+  commission_rate_override: number | null
+  created_at: string
+}
+
+export interface Product {
+  id: string
+  seller_id: string
+  salon_id: string | null
+  category_id: string | null
+  name: string
+  slug: string
+  description: string | null
+  price_cents: number
+  compare_at_price_cents: number | null
+  currency: string
+  stock_quantity: number
+  is_unlimited_stock: boolean
+  images: { url: string; alt: string; sort_order: number }[]
+  target: ProductTarget
+  is_active: boolean
+  is_featured: boolean
+  brand: string | null
+  tags: string[]
+  affiliate_url: string | null
+  created_at: string
+  seller?: Seller
+  category?: ProductCategory
+  variants?: ProductVariant[]
+}
+
+export interface ProductVariant {
+  id: string
+  product_id: string
+  name: string
+  price_cents: number
+  stock_quantity: number
+  sort_order: number
+  is_active: boolean
+}
+
+export interface ProductCategory {
+  id: string
+  slug: string
+  name: string
+  parent_slug: string | null
+  target: ProductTarget
+  icon_url: string | null
+  sort_order: number
+  is_active: boolean
+}
+
+export interface CartItem {
+  id: string
+  customer_id: string
+  product_id: string
+  variant_id: string | null
+  quantity: number
+  product?: Product
+  variant?: ProductVariant
+}
+
+export interface Order {
+  id: string
+  order_number: string
+  customer_id: string
+  status: OrderStatus
+  subtotal_cents: number
+  shipping_cents: number
+  tax_cents: number
+  total_cents: number
+  shipping_name: string | null
+  shipping_street: string | null
+  shipping_city: string | null
+  shipping_postal_code: string | null
+  tracking_number: string | null
+  tracking_url: string | null
+  payment_status: string
+  created_at: string
+  items?: OrderItem[]
+}
+
+export interface OrderItem {
+  id: string
+  order_id: string
+  product_id: string
+  variant_id: string | null
+  seller_id: string
+  quantity: number
+  unit_price_cents: number
+  total_cents: number
+  fulfillment_status: string
+  product?: Product
+}
+
+export interface Commission {
+  id: string
+  type: CommissionType
+  source_type: string
+  source_id: string
+  beneficiary_type: 'platform' | 'salon' | 'provider'
+  beneficiary_id: string | null
+  rate_percent: number
+  base_amount_cents: number
+  commission_cents: number
+  status: string
+  created_at: string
+}
+
+export interface ProductRecommendation {
+  id: string
+  booking_id: string
+  salon_id: string
+  staff_id: string | null
+  product_id: string
+  customer_id: string
+  message: string | null
+  is_viewed: boolean
+  is_purchased: boolean
+  created_at: string
+  product?: Product
+}

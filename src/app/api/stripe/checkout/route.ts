@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
-import { createBookingCheckout, createSubscriptionCheckout } from '@/lib/stripe'
+import { createBookingCheckout, createSubscriptionCheckout, createProductOrderCheckout } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
@@ -71,6 +71,50 @@ export async function POST(req: NextRequest) {
         successUrl: `${origin}/provider?subscription=success`,
         cancelUrl: `${origin}/provider?subscription=cancelled`,
       })
+
+      return NextResponse.json({ url: checkoutSession.url })
+    }
+
+    if (type === 'product_order') {
+      const { orderId } = body
+      if (!orderId) {
+        return NextResponse.json({ error: 'orderId fehlt' }, { status: 400 })
+      }
+
+      const supabase = getSupabaseAdmin()
+      const { data: order, error } = await supabase
+        .from('orders')
+        .select('*, order_items(*, products(name))')
+        .eq('id', orderId)
+        .eq('customer_id', session.user.id)
+        .single()
+
+      if (error || !order) {
+        return NextResponse.json({ error: 'Bestellung nicht gefunden' }, { status: 404 })
+      }
+
+      const items = ((order as Record<string, unknown>).order_items as { quantity: number; unit_price_cents: number; products: { name: string } | null }[]) || []
+      const lineItems = items.map(i => ({
+        name: i.products?.name || 'Produkt',
+        amountCents: i.unit_price_cents,
+        quantity: i.quantity,
+      }))
+
+      const origin = req.headers.get('origin') || 'https://chairmatch.de'
+      const checkoutSession = await createProductOrderCheckout({
+        orderId,
+        orderNumber: order.order_number,
+        customerEmail: session.user.email || '',
+        lineItems,
+        shippingCents: order.shipping_cents || 0,
+        successUrl: `${origin}/shop?order=success&order_id=${orderId}`,
+        cancelUrl: `${origin}/shop?order=cancelled`,
+      })
+
+      await supabase
+        .from('orders')
+        .update({ payment_status: 'pending', stripe_session_id: checkoutSession.id })
+        .eq('id', orderId)
 
       return NextResponse.json({ url: checkoutSession.url })
     }

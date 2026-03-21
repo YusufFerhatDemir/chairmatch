@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, STRIPE_WEBHOOK_SECRET } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { calculateNewCustomerCommission } from '@/modules/marketplace/commission.service'
 import type Stripe from 'stripe'
 
 // Disable body parsing — Stripe needs raw body
@@ -64,6 +65,41 @@ export async function POST(req: NextRequest) {
           entity_id: meta.booking_id,
           details: { amount: session.amount_total, currency: session.currency },
         })
+      }
+
+      if (meta.type === 'product_order' && meta.order_id) {
+        // Mark order as confirmed + paid
+        await supabase
+          .from('orders')
+          .update({
+            status: 'confirmed',
+            payment_status: 'paid',
+          })
+          .eq('id', meta.order_id)
+
+        // Create payment record
+        await supabase.from('payments').insert({
+          booking_id: meta.order_id, // reuse field for order reference
+          stripe_session_id: session.id,
+          stripe_payment_intent: session.payment_intent as string,
+          amount_cents: session.amount_total || 0,
+          currency: session.currency || 'eur',
+          status: 'succeeded',
+          payment_method: session.payment_method_types?.[0] || 'card',
+        })
+
+        await supabase.from('audit_logs').insert({
+          actor_id: meta.order_id,
+          action: 'product_order_paid',
+          entity_type: 'order',
+          entity_id: meta.order_id,
+          details: { amount: session.amount_total, order_number: meta.order_number },
+        })
+      }
+
+      // Trigger new customer commission after booking payment
+      if (meta.type === 'booking_payment' && meta.booking_id) {
+        calculateNewCustomerCommission(meta.booking_id).catch(console.error)
       }
 
       if (meta.type === 'provider_subscription' && meta.user_id) {

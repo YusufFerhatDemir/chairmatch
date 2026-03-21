@@ -62,7 +62,7 @@ interface Props {
   rentals: SalonRental[]
 }
 
-type TabId = 'info' | 'services' | 'team' | 'bewertungen' | 'galerie' | 'vermietung'
+type TabId = 'info' | 'services' | 'team' | 'bewertungen' | 'galerie' | 'vermietung' | 'produkte'
 
 function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
@@ -114,6 +114,20 @@ export default function SalonDetailClient({ salon, services, staff, reviews, ren
   const [tab, setTab] = useState<TabId>('info')
   const [isFav, setIsFav] = useState(false)
 
+  // Salon products
+  interface SalonProduct { id: string; name: string; slug: string; price_cents: number; brand: string | null; images: { url: string; alt: string }[]; description: string | null }
+  const [salonProducts, setSalonProducts] = useState<SalonProduct[]>([])
+  const [productsLoaded, setProductsLoaded] = useState(false)
+
+  useEffect(() => {
+    if (tab === 'produkte' && !productsLoaded) {
+      fetch(`/api/products?salonId=${salon.id}&limit=20`)
+        .then(r => r.ok ? r.json() : [])
+        .then(d => { setSalonProducts(d); setProductsLoaded(true) })
+        .catch(() => setProductsLoaded(true))
+    }
+  }, [tab, productsLoaded, salon.id])
+
   // Try to find matching demo provider for richer data
   const demoP = PROVS.find(p => p.id === salon.id || p.nm === salon.name)
   const demoSpecs = demoP ? getProviderSpecs(demoP) : []
@@ -139,12 +153,12 @@ export default function SalonDetailClient({ salon, services, staff, reviews, ren
   const displayTagline = demoP?.tl || salon.tagline || salon.description || ''
 
   const isB2B = typeof window !== 'undefined' && sessionStorage.getItem('cm_role') === 'B2B'
-  const baseTabs: TabId[] = ['info', 'services', 'team', 'bewertungen', 'galerie']
+  const baseTabs: TabId[] = ['info', 'services', 'team', 'bewertungen', 'galerie', 'produkte']
   if (isB2B && displayRentals.length > 0) baseTabs.splice(1, 0, 'vermietung')
 
   const tabLabels: Record<TabId, string> = {
     info: 'Info', services: 'Services', team: 'Team',
-    bewertungen: 'Bewertungen', galerie: 'Galerie', vermietung: 'Vermietung',
+    bewertungen: 'Bewertungen', galerie: 'Galerie', vermietung: 'Vermietung', produkte: 'Produkte',
   }
 
   useEffect(() => {
@@ -379,6 +393,39 @@ export default function SalonDetailClient({ salon, services, staff, reviews, ren
                 </div>
               )) : (
                 <p style={{ color: 'var(--stone)', textAlign: 'center', padding: 40 }}>Keine Galerie-Bilder vorhanden.</p>
+              )}
+            </div>
+          )}
+
+          {/* PRODUKTE TAB */}
+          {tab === 'produkte' && (
+            <div>
+              {!productsLoaded ? (
+                <p style={{ color: 'var(--stone)', textAlign: 'center', padding: 24 }}>Laden...</p>
+              ) : salonProducts.length === 0 ? (
+                <p style={{ color: 'var(--stone)', textAlign: 'center', padding: 24 }}>Keine Produkte verfügbar.</p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                  {salonProducts.map(p => (
+                    <a key={p.id} href={`/shop/${p.slug}`} style={{ textDecoration: 'none' }}>
+                      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                        {p.images?.[0]?.url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.images[0].url} alt={p.name} style={{ width: '100%', height: 120, objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: 120, background: 'var(--c3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--stone)' }}>
+                            🛍️
+                          </div>
+                        )}
+                        <div style={{ padding: '10px 12px' }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--cream)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
+                          {p.brand && <p style={{ fontSize: 10, color: 'var(--stone)' }}>{p.brand}</p>}
+                          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--gold2)', marginTop: 4 }}>{(p.price_cents / 100).toFixed(2)} €</p>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               )}
             </div>
           )}

@@ -472,6 +472,62 @@ export interface Database {
         Insert: { id?: string; plan_type: string; price_cents: number; included_submissions?: number; min_term_months?: number; extra_submission_price_cents?: number }
         Update: Partial<Database['public']['Tables']['compliance_plans']['Insert']>
       }
+      // ═══ Marketplace Tables ═══
+      product_categories: {
+        Row: { id: string; slug: string; name: string; parent_slug: string | null; target: 'b2c' | 'b2b' | 'both'; icon_url: string | null; sort_order: number; is_active: boolean; created_at: string }
+        Insert: { id?: string; slug: string; name: string; parent_slug?: string | null; target?: 'b2c' | 'b2b' | 'both'; icon_url?: string | null; sort_order?: number; is_active?: boolean }
+        Update: Partial<Database['public']['Tables']['product_categories']['Insert']>
+      }
+      sellers: {
+        Row: { id: string; user_id: string; salon_id: string | null; seller_type: 'salon' | 'grosshaendler' | 'affiliate'; company_name: string | null; description: string | null; logo_url: string | null; is_verified: boolean; is_active: boolean; commission_rate_override: number | null; stripe_connect_id: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; salon_id?: string | null; seller_type: 'salon' | 'grosshaendler' | 'affiliate'; company_name?: string | null; description?: string | null; logo_url?: string | null; is_verified?: boolean; is_active?: boolean; commission_rate_override?: number | null; stripe_connect_id?: string | null }
+        Update: Partial<Database['public']['Tables']['sellers']['Insert']>
+      }
+      products: {
+        Row: { id: string; seller_id: string; salon_id: string | null; category_id: string | null; name: string; slug: string; description: string | null; price_cents: number; compare_at_price_cents: number | null; currency: string; sku: string | null; barcode: string | null; weight_grams: number | null; stock_quantity: number; is_unlimited_stock: boolean; images: unknown[]; target: 'b2c' | 'b2b' | 'both'; is_active: boolean; is_featured: boolean; brand: string | null; tags: string[]; affiliate_url: string | null; affiliate_source: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; seller_id: string; salon_id?: string | null; category_id?: string | null; name: string; slug: string; description?: string | null; price_cents: number; compare_at_price_cents?: number | null; currency?: string; sku?: string | null; barcode?: string | null; weight_grams?: number | null; stock_quantity?: number; is_unlimited_stock?: boolean; images?: unknown[]; target?: 'b2c' | 'b2b' | 'both'; is_active?: boolean; is_featured?: boolean; brand?: string | null; tags?: string[]; affiliate_url?: string | null; affiliate_source?: string | null }
+        Update: Partial<Database['public']['Tables']['products']['Insert']>
+      }
+      product_variants: {
+        Row: { id: string; product_id: string; name: string; price_cents: number; sku: string | null; stock_quantity: number; sort_order: number; is_active: boolean; created_at: string }
+        Insert: { id?: string; product_id: string; name: string; price_cents: number; sku?: string | null; stock_quantity?: number; sort_order?: number; is_active?: boolean }
+        Update: Partial<Database['public']['Tables']['product_variants']['Insert']>
+      }
+      cart_items: {
+        Row: { id: string; customer_id: string; product_id: string; variant_id: string | null; quantity: number; created_at: string; updated_at: string }
+        Insert: { id?: string; customer_id: string; product_id: string; variant_id?: string | null; quantity?: number }
+        Update: Partial<Database['public']['Tables']['cart_items']['Insert']>
+      }
+      orders: {
+        Row: { id: string; order_number: string; customer_id: string; status: string; subtotal_cents: number; shipping_cents: number; tax_cents: number; total_cents: number; currency: string; shipping_name: string | null; shipping_street: string | null; shipping_city: string | null; shipping_postal_code: string | null; shipping_country: string; stripe_session_id: string | null; stripe_payment_intent: string | null; payment_status: string; notes: string | null; tracking_number: string | null; tracking_url: string | null; shipped_at: string | null; delivered_at: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; order_number: string; customer_id: string; status?: string; subtotal_cents: number; shipping_cents?: number; tax_cents?: number; total_cents: number; currency?: string; shipping_name?: string | null; shipping_street?: string | null; shipping_city?: string | null; shipping_postal_code?: string | null; stripe_session_id?: string | null; stripe_payment_intent?: string | null; payment_status?: string; notes?: string | null }
+        Update: Partial<Database['public']['Tables']['orders']['Insert']>
+      }
+      order_items: {
+        Row: { id: string; order_id: string; product_id: string; variant_id: string | null; seller_id: string; quantity: number; unit_price_cents: number; total_cents: number; fulfillment_status: string; created_at: string }
+        Insert: { id?: string; order_id: string; product_id: string; variant_id?: string | null; seller_id: string; quantity: number; unit_price_cents: number; total_cents: number; fulfillment_status?: string }
+        Update: Partial<Database['public']['Tables']['order_items']['Insert']>
+      }
+      commissions: {
+        Row: { id: string; type: string; source_type: string; source_id: string; beneficiary_type: string; beneficiary_id: string | null; rate_percent: number; base_amount_cents: number; commission_cents: number; currency: string; status: string; paid_out_at: string | null; created_at: string }
+        Insert: { id?: string; type: string; source_type: string; source_id: string; beneficiary_type: string; beneficiary_id?: string | null; rate_percent: number; base_amount_cents: number; commission_cents: number; currency?: string; status?: string }
+        Update: Partial<Database['public']['Tables']['commissions']['Insert']>
+      }
+      commission_rates: {
+        Row: { id: string; type: string; rate_percent: number; min_rate_percent: number | null; max_rate_percent: number | null; effective_from: string; created_at: string }
+        Insert: { id?: string; type: string; rate_percent: number; min_rate_percent?: number | null; max_rate_percent?: number | null }
+        Update: Partial<Database['public']['Tables']['commission_rates']['Insert']>
+      }
+      product_recommendations: {
+        Row: { id: string; booking_id: string; salon_id: string; staff_id: string | null; product_id: string; customer_id: string; message: string | null; is_viewed: boolean; is_purchased: boolean; purchased_order_item_id: string | null; created_at: string }
+        Insert: { id?: string; booking_id: string; salon_id: string; staff_id?: string | null; product_id: string; customer_id: string; message?: string | null }
+        Update: Partial<Database['public']['Tables']['product_recommendations']['Insert']> & { is_viewed?: boolean; is_purchased?: boolean; purchased_order_item_id?: string | null }
+      }
+      customer_salon_history: {
+        Row: { customer_id: string; salon_id: string; first_booking_id: string | null; first_booking_date: string; total_bookings: number; last_booking_date: string }
+        Insert: { customer_id: string; salon_id: string; first_booking_id?: string | null; first_booking_date?: string; total_bookings?: number; last_booking_date?: string }
+        Update: Partial<Database['public']['Tables']['customer_salon_history']['Insert']>
+      }
     }
   }
 }

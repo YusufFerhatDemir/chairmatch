@@ -98,6 +98,53 @@ export async function createSubscriptionCheckout(params: {
   return session
 }
 
+// Helper: create checkout for product order
+export async function createProductOrderCheckout(params: {
+  orderId: string
+  orderNumber: string
+  customerEmail: string
+  lineItems: { name: string; amountCents: number; quantity: number }[]
+  shippingCents: number
+  successUrl: string
+  cancelUrl: string
+}) {
+  const items: Stripe.Checkout.SessionCreateParams.LineItem[] = params.lineItems.map(li => ({
+    price_data: {
+      currency: 'eur',
+      product_data: { name: li.name },
+      unit_amount: li.amountCents,
+    },
+    quantity: li.quantity,
+  }))
+
+  if (params.shippingCents > 0) {
+    items.push({
+      price_data: {
+        currency: 'eur',
+        product_data: { name: 'Versand' },
+        unit_amount: params.shippingCents,
+      },
+      quantity: 1,
+    })
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card', 'sepa_debit', 'giropay'],
+    mode: 'payment',
+    customer_email: params.customerEmail,
+    line_items: items,
+    metadata: {
+      order_id: params.orderId,
+      order_number: params.orderNumber,
+      type: 'product_order',
+    },
+    success_url: params.successUrl,
+    cancel_url: params.cancelUrl,
+    locale: 'de',
+  })
+  return session
+}
+
 // Helper: create refund
 export async function createRefund(paymentIntentId: string, amountCents?: number) {
   return stripe.refunds.create({

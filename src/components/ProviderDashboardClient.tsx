@@ -34,7 +34,7 @@ interface Props {
   reviews: Review[]
 }
 
-type Tab = 'overview' | 'edit' | 'services' | 'bookings' | 'fotos' | 'statistik' | 'abo'
+type Tab = 'overview' | 'edit' | 'services' | 'bookings' | 'fotos' | 'statistik' | 'produkte' | 'abo'
 
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
@@ -106,6 +106,43 @@ export default function ProviderDashboardClient({ salon, services: initServices,
     window.location.reload()
   }
 
+  // Products state
+  interface ProductItem { id: string; name: string; price_cents: number; brand: string | null; is_active: boolean; stock_quantity: number; images: { url: string }[] }
+  const [products, setProducts] = useState<ProductItem[]>([])
+  const [productsLoaded, setProductsLoaded] = useState(false)
+  const [newProduct, setNewProduct] = useState({ name: '', price: '', brand: '', description: '' })
+  const [savingProduct, setSavingProduct] = useState(false)
+
+  async function loadProducts() {
+    const res = await fetch('/api/provider/products')
+    if (res.ok) { const d = await res.json(); setProducts(d); setProductsLoaded(true) }
+  }
+
+  async function addProduct() {
+    if (!newProduct.name || !newProduct.price) return
+    setSavingProduct(true)
+    const res = await fetch('/api/provider/products', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: newProduct.name,
+        priceCents: Math.round(parseFloat(newProduct.price) * 100),
+        brand: newProduct.brand || null,
+        description: newProduct.description || null,
+      }),
+    })
+    if (res.ok) {
+      const p = await res.json()
+      setProducts(prev => [p, ...prev])
+      setNewProduct({ name: '', price: '', brand: '', description: '' })
+    }
+    setSavingProduct(false)
+  }
+
+  async function deleteProduct(id: string) {
+    const res = await fetch(`/api/provider/products/${id}`, { method: 'DELETE' })
+    if (res.ok) setProducts(prev => prev.filter(p => p.id !== id))
+  }
+
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([])
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
 
@@ -146,6 +183,7 @@ export default function ProviderDashboardClient({ salon, services: initServices,
     { key: 'bookings', label: 'Termine' },
     { key: 'fotos', label: 'Fotos' },
     { key: 'statistik', label: 'Statistik' },
+    { key: 'produkte', label: 'Produkte' },
     { key: 'abo', label: 'Abo' },
   ]
 
@@ -437,6 +475,54 @@ export default function ProviderDashboardClient({ salon, services: initServices,
                 </div>
               ))}
             </div>
+          </>
+        )}
+
+        {/* PRODUKTE */}
+        {tab === 'produkte' && (
+          <>
+            <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginBottom: 6 }}>Produkte verkaufen</h2>
+            <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 16 }}>Biete deinen Kunden Pflegeprodukte direkt über ChairMatch an.</p>
+
+            {/* Add product form */}
+            <div className="card" style={{ padding: 14, marginBottom: 16 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)', marginBottom: 10 }}>Neues Produkt hinzufügen</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <input {...inp} placeholder="Produktname (z.B. Bartöl Premium)" value={newProduct.name} onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input {...inp} type="number" placeholder="Preis €" value={newProduct.price} onChange={e => setNewProduct(p => ({ ...p, price: e.target.value }))} style={{ flex: 1 }} />
+                  <input {...inp} placeholder="Marke" value={newProduct.brand} onChange={e => setNewProduct(p => ({ ...p, brand: e.target.value }))} style={{ flex: 1 }} />
+                </div>
+                <textarea className="inp" rows={2} style={{ width: '100%', resize: 'vertical' }} placeholder="Beschreibung (optional)"
+                  value={newProduct.description} onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} />
+                <button className="bgold" onClick={addProduct} disabled={savingProduct} style={{ fontSize: 13 }}>
+                  {savingProduct ? 'Wird gespeichert...' : '+ Produkt hinzufügen'}
+                </button>
+              </div>
+            </div>
+
+            {/* Product list */}
+            {!productsLoaded ? (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <button className="boutline" onClick={loadProducts} style={{ fontSize: 12 }}>Produkte laden</button>
+              </div>
+            ) : products.length === 0 ? (
+              <p style={{ color: 'var(--stone)' }}>Keine Produkte angelegt.</p>
+            ) : (
+              products.map(p => (
+                <div key={p.id} className="card" style={{ marginBottom: 8, padding: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--cream)' }}>{p.name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--stone)' }}>
+                        {(p.price_cents / 100).toFixed(2)} € {p.brand ? `· ${p.brand}` : ''} · {p.is_active ? 'Aktiv' : 'Inaktiv'}
+                      </div>
+                    </div>
+                    <button onClick={() => deleteProduct(p.id)} aria-label="Produkt löschen" style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 13 }}>✕</button>
+                  </div>
+                </div>
+              ))
+            )}
           </>
         )}
 

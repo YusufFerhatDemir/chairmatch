@@ -159,3 +159,42 @@ export const EQUIP_CATALOG: Record<string, { nm: string; pr: number; icon: strin
     { nm: 'Instrumenten-Set', pr: 20, icon: '🩺' },
   ],
 }
+
+// ═══ Marketplace Constants ═══
+
+export const PRODUCT_CATEGORIES_B2C = [
+  { slug: 'haarpflege', name: 'Haarpflege', icon: '💇' },
+  { slug: 'styling', name: 'Styling', icon: '💫' },
+  { slug: 'hautpflege', name: 'Hautpflege', icon: '🧴' },
+  { slug: 'nagelpflege', name: 'Nagelpflege', icon: '💅' },
+  { slug: 'bartpflege', name: 'Bartpflege', icon: '🧔' },
+  { slug: 'kosmetik-produkte', name: 'Kosmetik', icon: '💄' },
+] as const
+
+export const PRODUCT_CATEGORIES_B2B = [
+  { slug: 'profi-haarpflege', name: 'Profi-Haarpflege (Liter)', icon: '🧴' },
+  { slug: 'chemie', name: 'Chemie (Farbe, Blondierung)', icon: '🧪' },
+  { slug: 'werkzeug', name: 'Werkzeug (Scheren, Clipper)', icon: '✂️' },
+  { slug: 'einwegmaterial', name: 'Einwegmaterial', icon: '🧤' },
+  { slug: 'hygiene', name: 'Hygiene & Desinfektion', icon: '🧹' },
+  { slug: 'moebel-ausstattung', name: 'Möbel & Ausstattung', icon: '🪑' },
+  { slug: 'technik', name: 'Technik & Geräte', icon: '🔌' },
+] as const
+
+export const COMMISSION_DEFAULTS = {
+  rental: { min: 12, max: 15, default: 12 },
+  new_customer: { min: 15, max: 15, default: 15 },
+  product_recommendation_salon: { min: 5, max: 10, default: 7.5 },
+  product_recommendation_platform: { min: 3, max: 7, default: 5 },
+  product_sale_platform: { min: 8, max: 15, default: 10 },
+} as const
+
+export const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending: 'Ausstehend',
+  confirmed: 'Bestätigt',
+  processing: 'In Bearbeitung',
+  shipped: 'Versendet',
+  delivered: 'Geliefert',
+  cancelled: 'Storniert',
+  refunded: 'Erstattet',
+}
