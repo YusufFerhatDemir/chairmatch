@@ -90,7 +90,50 @@ export default function OnboardingGate({ slides, children }: Props) {
     if (el) el.scrollTop = 0
   }, [phase, provStep, step])
 
-  if (done === null) return null
+  // Timeout: if session check takes >3s, assume not logged in
+  useEffect(() => {
+    if (done !== null) return
+    const t = setTimeout(() => {
+      setDone(sessionStorage.getItem('cm_onboarded') === '1')
+    }, 3000)
+    return () => clearTimeout(t)
+  }, [done])
+
+  if (done === null) return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200,
+      background: 'var(--bg)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      width: '100%', maxWidth: 'var(--shell-max)', margin: '0 auto',
+    }}>
+      <div style={{
+        animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
+        marginBottom: 24,
+      }}>
+        <svg width="60" height="78" viewBox="0 0 100 130" fill="none">
+          <defs>
+            <linearGradient id="splash-gold" x1="15" y1="8" x2="85" y2="120" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#BF953F"/>
+              <stop offset="40%" stopColor="#D4AF37"/>
+              <stop offset="100%" stopColor="#AA771C"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 6C28.5 6 11 23.5 11 45C11 70 50 124 50 124C50 124 89 70 89 45C89 23.5 71.5 6 50 6Z" stroke="url(#splash-gold)" strokeWidth="2.5" fill="none"/>
+          <circle cx="50" cy="45" r="22" stroke="url(#splash-gold)" strokeWidth="1.8" fill="none"/>
+          <path d="M50 28L53.5 40.5L66 45L53.5 49.5L50 62L46.5 49.5L34 45L46.5 40.5Z" fill="url(#splash-gold)" opacity="0.85"/>
+        </svg>
+      </div>
+      <p className="cinzel" style={{ fontSize: 18, fontWeight: 700, letterSpacing: 3, color: 'var(--gold2)' }}>
+        CHAIRMATCH
+      </p>
+      <div style={{
+        marginTop: 20, width: 32, height: 3, borderRadius: 2,
+        background: 'var(--gold)', opacity: 0.4,
+        animation: 'pulse 1.5s ease-in-out infinite',
+      }} />
+    </div>
+  )
   if (done) return <>{children}</>
 
   function showToast(msg: string) {
