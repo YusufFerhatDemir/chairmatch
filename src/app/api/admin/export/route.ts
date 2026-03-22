@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     if (type === 'bookings') {
       const { data } = await supabase
         .from('bookings')
-        .select('id, salon_id, customer_id, status, total_price, booking_date, start_time, created_at')
+        .select('id, salon_id, customer_id, status, price_cents, booking_date, start_time, created_at')
         .order('created_at', { ascending: false })
         .limit(10000)
 
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         String(b.salon_id ?? ''),
         String(b.customer_id ?? ''),
         String(b.status ?? ''),
-        String(b.total_price ?? '0'),
+        ((Number(b.price_cents) || 0) / 100).toFixed(2),
         String(b.booking_date ?? ''),
         String(b.start_time ?? ''),
         String(b.created_at ?? ''),
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     if (type === 'revenue') {
       const { data } = await supabase
         .from('bookings')
-        .select('id, salon_id, total_price, status, created_at')
+        .select('id, salon_id, price_cents, status, created_at')
         .in('status', ['completed', 'confirmed'])
         .order('created_at', { ascending: false })
         .limit(10000)
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
       const rows = (data ?? []).map((b: Record<string, unknown>) => [
         String(b.id ?? ''),
         String(b.salon_id ?? ''),
-        String(b.total_price ?? '0'),
+        ((Number(b.price_cents) || 0) / 100).toFixed(2),
         String(b.status ?? ''),
         String(b.created_at ?? ''),
       ])
@@ -114,8 +114,8 @@ export async function GET(request: NextRequest) {
         .select('id, name, is_active, is_verified')
 
       const { data: documents } = await supabase
-        .from('owner_documents')
-        .select('salon_id, doc_type, status')
+        .from('compliance_documents')
+        .select('salon_id, document_type, status')
 
       const docsPerSalon: Record<string, { total: number; approved: number; types: string[] }> = {}
       for (const doc of documents ?? []) {
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
         if ((doc as { status?: string }).status === 'approved') {
           docsPerSalon[sid].approved += 1
         }
-        docsPerSalon[sid].types.push((doc as { doc_type?: string }).doc_type || 'unknown')
+        docsPerSalon[sid].types.push((doc as { document_type?: string }).document_type || 'unknown')
       }
 
       const headers = ['Salon ID', 'Name', 'Aktiv', 'Verifiziert', 'Dokumente eingereicht', 'Dokumente genehmigt', 'Dokumenttypen']

@@ -472,6 +472,11 @@ export interface Database {
         Insert: { id?: string; plan_type: string; price_cents: number; included_submissions?: number; min_term_months?: number; extra_submission_price_cents?: number }
         Update: Partial<Database['public']['Tables']['compliance_plans']['Insert']>
       }
+      compliance_documents: {
+        Row: { id: string; salon_id: string; document_type: string; file_url: string | null; file_name: string | null; status: string; expires_at: string | null; uploaded_by: string | null; reviewer_notes: string | null; reviewed_by: string | null; reviewed_at: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; salon_id: string; document_type: string; file_url?: string | null; file_name?: string | null; status?: string; expires_at?: string | null; uploaded_by?: string | null; reviewer_notes?: string | null; reviewed_by?: string | null; reviewed_at?: string | null }
+        Update: Partial<Database['public']['Tables']['compliance_documents']['Insert']>
+      }
       // ═══ Marketplace Tables ═══
       product_categories: {
         Row: { id: string; slug: string; name: string; parent_slug: string | null; target: 'b2c' | 'b2b' | 'both'; icon_url: string | null; sort_order: number; is_active: boolean; created_at: string }

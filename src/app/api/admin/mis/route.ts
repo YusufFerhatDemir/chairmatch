@@ -25,7 +25,7 @@ export async function GET() {
 
     const { data: payments } = await supabase
       .from('bookings')
-      .select('total_price, created_at, status')
+      .select('price_cents, created_at, status')
       .gte('created_at', twelveMonthsAgo.toISOString())
 
     const revenueByMonth: Record<string, number> = {}
@@ -44,7 +44,7 @@ export async function GET() {
       const date = new Date(b.created_at)
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       if (key in revenueByMonth) {
-        revenueByMonth[key] += Number(b.total_price) || 0
+        revenueByMonth[key] += (Number(b.price_cents) || 0) / 100
         bookingsByMonth[key] += 1
       }
       const status = b.status || 'unknown'
@@ -139,7 +139,7 @@ export async function GET() {
 
     // --- Compliance: documents submitted vs required ---
     const { data: documents } = await supabase
-      .from('owner_documents')
+      .from('compliance_documents')
       .select('salon_id, status')
 
     const docsPerSalon: Record<string, { submitted: number; approved: number }> = {}
@@ -166,13 +166,13 @@ export async function GET() {
     // --- Top 10 salons by revenue ---
     const { data: allBookingsForRevenue } = await supabase
       .from('bookings')
-      .select('salon_id, total_price')
+      .select('salon_id, price_cents')
       .in('status', ['completed', 'confirmed'])
 
     const revenueBySalon: Record<string, number> = {}
     for (const b of allBookingsForRevenue ?? []) {
       const sid = b.salon_id
-      revenueBySalon[sid] = (revenueBySalon[sid] || 0) + (Number(b.total_price) || 0)
+      revenueBySalon[sid] = (revenueBySalon[sid] || 0) + (Number(b.price_cents) || 0) / 100
     }
     const topSalonIdsByRevenue = Object.entries(revenueBySalon)
       .sort((a, b) => b[1] - a[1])
