@@ -14,10 +14,11 @@ export function getStripe(): Stripe {
   return _stripe
 }
 
-// Backwards compat — lazy getter
+// Backwards compat — lazy getter (Proxy delegates all property access to real instance)
 export const stripe = new Proxy({} as Stripe, {
-  get(_, prop) {
-    return (getStripe() as unknown as Record<string | symbol, unknown>)[prop]
+  get(_, prop: string | symbol) {
+    const instance = getStripe()
+    return Reflect.get(instance, prop, instance)
   },
 })
 

@@ -67,20 +67,22 @@ export async function recordFirstVisit(customerId: string, salonId: string, book
     }, { onConflict: 'customer_id,salon_id' })
 
   if (error) {
-    // If already exists, increment
-    try {
-      await supabase.rpc('increment_salon_visits' as never, {
-        p_customer_id: customerId,
-        p_salon_id: salonId,
+    // Already exists — increment visit count
+    const { data: existing } = await supabase
+      .from('customer_salon_history')
+      .select('total_bookings')
+      .eq('customer_id', customerId)
+      .eq('salon_id', salonId)
+      .single()
+
+    await supabase
+      .from('customer_salon_history')
+      .update({
+        total_bookings: (existing?.total_bookings ?? 1) + 1,
+        last_booking_date: new Date().toISOString(),
       })
-    } catch {
-      // Fallback: manual update
-      await supabase
-        .from('customer_salon_history')
-        .update({ total_bookings: 2, last_booking_date: new Date().toISOString() })
-        .eq('customer_id', customerId)
-        .eq('salon_id', salonId)
-    }
+      .eq('customer_id', customerId)
+      .eq('salon_id', salonId)
   }
 }
 
@@ -89,14 +91,13 @@ export async function calculateRentalCommission(rentalBookingId: string) {
   const supabase = getSupabaseAdmin()
   const { data: rental } = await supabase
     .from('rental_bookings')
-    .select('id, total_cents, equipment_id, rental_equipment(salon_id)')
+    .select('id, total_cents, equipment_id')
     .eq('id', rentalBookingId)
     .single()
 
   if (!rental || !rental.total_cents) return null
 
   const rate = await getRate('rental')
-  const equipment = rental.rental_equipment as unknown as { salon_id: string } | null
 
   return recordCommission({
     type: 'rental',

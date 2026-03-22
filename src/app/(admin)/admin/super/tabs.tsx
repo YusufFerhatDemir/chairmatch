@@ -4,11 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { href: '/admin/super/einstellungen' as const, label: 'Einstellungen' },
-  { href: '/admin/super/onboarding' as const, label: 'Onboarding' },
-  { href: '/admin/super/logo' as const, label: 'Logo' },
-  { href: '/admin/super/kategorien' as const, label: 'Kategorien' },
-]
+  { href: '/admin/super/einstellungen', label: 'Einstellungen' },
+  { href: '/admin/super/onboarding', label: 'Onboarding' },
+  { href: '/admin/super/logo', label: 'Logo' },
+  { href: '/admin/super/kategorien', label: 'Kategorien' },
+] as const
 
 export default function SuperAdminTabs() {
   const pathname = usePathname()
@@ -18,7 +18,7 @@ export default function SuperAdminTabs() {
       {tabs.map(tab => {
         const active = pathname === tab.href
         return (
-          <Link key={tab.href} href={tab.href as never} style={{
+          <Link key={tab.href} href={tab.href as typeof tab.href & string} style={{
             padding: '8px 14px', borderRadius: 'var(--btn-radius)',
             fontSize: 'var(--font-sm)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap',
             color: active ? '#080706' : 'var(--cream)',
