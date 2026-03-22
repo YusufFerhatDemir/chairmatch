@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
 
         // Create payment record
         await supabase.from('payments').insert({
-          booking_id: meta.booking_id,
+          source_type: 'booking',
+          source_id: meta.booking_id,
+          user_id: meta.user_id || null,
           stripe_session_id: session.id,
           stripe_payment_intent: session.payment_intent as string,
           amount_cents: session.amount_total || 0,
@@ -59,9 +61,9 @@ export async function POST(req: NextRequest) {
 
         // Audit log
         await supabase.from('audit_logs').insert({
-          actor_id: meta.booking_id,
+          user_id: meta.user_id || null,
           action: 'payment_completed',
-          entity_type: 'booking',
+          entity: 'booking',
           entity_id: meta.booking_id,
           details: { amount: session.amount_total, currency: session.currency },
         })
@@ -79,7 +81,9 @@ export async function POST(req: NextRequest) {
 
         // Create payment record
         await supabase.from('payments').insert({
-          booking_id: meta.order_id, // reuse field for order reference
+          source_type: 'order',
+          source_id: meta.order_id,
+          user_id: meta.user_id || null,
           stripe_session_id: session.id,
           stripe_payment_intent: session.payment_intent as string,
           amount_cents: session.amount_total || 0,
@@ -89,9 +93,9 @@ export async function POST(req: NextRequest) {
         })
 
         await supabase.from('audit_logs').insert({
-          actor_id: meta.order_id,
+          user_id: meta.user_id || null,
           action: 'product_order_paid',
-          entity_type: 'order',
+          entity: 'order',
           entity_id: meta.order_id,
           details: { amount: session.amount_total, order_number: meta.order_number },
         })
@@ -103,23 +107,17 @@ export async function POST(req: NextRequest) {
       }
 
       if (meta.type === 'provider_subscription' && meta.user_id) {
-        // Update provider subscription tier
+        // Update salon subscription tier (subscription_tier lives on salons, not profiles)
         const tier = meta.tier || 'starter'
-        await supabase
-          .from('profiles')
-          .update({ subscription_tier: tier })
-          .eq('id', meta.user_id)
-
-        // Update salon subscription tier
         await supabase
           .from('salons')
           .update({ subscription_tier: tier })
           .eq('owner_id', meta.user_id)
 
         await supabase.from('audit_logs').insert({
-          actor_id: meta.user_id,
+          user_id: meta.user_id,
           action: 'subscription_activated',
-          entity_type: 'profile',
+          entity: 'profile',
           entity_id: meta.user_id,
           details: { tier, subscription_id: session.subscription },
         })
@@ -140,9 +138,9 @@ export async function POST(req: NextRequest) {
 
       if (profiles?.[0]) {
         await supabase.from('audit_logs').insert({
-          actor_id: profiles[0].id,
+          user_id: profiles[0].id,
           action: 'payment_failed',
-          entity_type: 'profile',
+          entity: 'profile',
           entity_id: profiles[0].id,
           details: { invoice_id: invoice.id },
         })
@@ -161,11 +159,7 @@ export async function POST(req: NextRequest) {
         .limit(1)
 
       if (profiles?.[0]) {
-        await supabase
-          .from('profiles')
-          .update({ subscription_tier: 'starter' })
-          .eq('id', profiles[0].id)
-
+        // Downgrade salon subscription (subscription_tier lives on salons, not profiles)
         await supabase
           .from('salons')
           .update({ subscription_tier: 'starter' })
@@ -181,7 +175,7 @@ export async function POST(req: NextRequest) {
       if (paymentIntent) {
         await supabase
           .from('payments')
-          .update({ status: 'refunded', refunded_at: new Date().toISOString() })
+          .update({ status: 'refunded' })
           .eq('stripe_payment_intent', paymentIntent)
       }
       break

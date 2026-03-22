@@ -171,7 +171,9 @@ export interface Database {
           notes: string | null
           cancellation_reason: string | null
           stripe_session_id: string | null
+          stripe_payment_intent: string | null
           payment_status: 'pending' | 'paid' | 'failed' | 'refunded' | null
+          is_first_visit: boolean
           created_at: string
           updated_at: string
         }
@@ -298,6 +300,7 @@ export interface Database {
           end_date: string
           total_cents: number
           status: string
+          commission_id: string | null
           created_at: string
         }
         Insert: {
@@ -308,6 +311,7 @@ export interface Database {
           end_date: string
           total_cents: number
           status?: string
+          commission_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['rental_bookings']['Insert']>
       }
@@ -471,6 +475,56 @@ export interface Database {
         Row: { id: string; plan_type: string; price_cents: number; included_submissions: number; min_term_months: number; extra_submission_price_cents: number; created_at: string }
         Insert: { id?: string; plan_type: string; price_cents: number; included_submissions?: number; min_term_months?: number; extra_submission_price_cents?: number }
         Update: Partial<Database['public']['Tables']['compliance_plans']['Insert']>
+      }
+      payments: {
+        Row: { id: string; source_type: string; source_id: string; user_id: string | null; stripe_session_id: string; stripe_payment_intent: string; amount_cents: number; currency: string; status: string; payment_method: string; created_at: string; updated_at: string }
+        Insert: { id?: string; source_type: string; source_id: string; user_id?: string | null; stripe_session_id: string; stripe_payment_intent: string; amount_cents: number; currency?: string; status?: string; payment_method?: string }
+        Update: Partial<Database['public']['Tables']['payments']['Insert']>
+      }
+      notifications: {
+        Row: { id: string; user_id: string; title: string; body: string; type: string; reference_id: string | null; reference_type: string | null; is_read: boolean; read_at: string | null; created_at: string }
+        Insert: { id?: string; user_id: string; title: string; body: string; type?: string; reference_id?: string | null; reference_type?: string | null; is_read?: boolean }
+        Update: Partial<Database['public']['Tables']['notifications']['Insert']> & { read_at?: string | null }
+      }
+      push_subscriptions: {
+        Row: { id: string; user_id: string; endpoint: string; p256dh: string; auth: string; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; endpoint: string; p256dh: string; auth: string }
+        Update: Partial<Database['public']['Tables']['push_subscriptions']['Insert']>
+      }
+      conversations: {
+        Row: { id: string; salon_id: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; salon_id?: string | null }
+        Update: Partial<Database['public']['Tables']['conversations']['Insert']>
+      }
+      conversation_participants: {
+        Row: { id: string; conversation_id: string; user_id: string; created_at: string }
+        Insert: { id?: string; conversation_id: string; user_id: string }
+        Update: Partial<Database['public']['Tables']['conversation_participants']['Insert']>
+      }
+      messages: {
+        Row: { id: string; conversation_id: string; sender_id: string; content: string; is_read: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; conversation_id: string; sender_id: string; content: string; is_read?: boolean }
+        Update: Partial<Database['public']['Tables']['messages']['Insert']>
+      }
+      salon_images: {
+        Row: { id: string; salon_id: string; image_type: string; url: string; storage_path: string; bucket: string; uploaded_by: string; created_at: string; updated_at: string }
+        Insert: { id?: string; salon_id: string; image_type: string; url: string; storage_path: string; bucket?: string; uploaded_by: string }
+        Update: Partial<Database['public']['Tables']['salon_images']['Insert']>
+      }
+      app_settings: {
+        Row: { id: string; category: string; key: string; value: string; value_type: string | null; label: string | null; sort_order: number; created_at: string; updated_at: string }
+        Insert: { id?: string; category: string; key: string; value: string; value_type?: string | null; label?: string | null; sort_order?: number }
+        Update: Partial<Database['public']['Tables']['app_settings']['Insert']>
+      }
+      error_logs: {
+        Row: { id: string; message: string; stack: string | null; url: string | null; user_agent: string | null; ip: string | null; user_id: string | null; severity: string; component: string | null; context: Record<string, unknown> | null; created_at: string }
+        Insert: { id?: string; message: string; stack?: string | null; url?: string | null; user_agent?: string | null; ip?: string | null; user_id?: string | null; severity?: string; component?: string | null; context?: Record<string, unknown> | null }
+        Update: Partial<Database['public']['Tables']['error_logs']['Insert']>
+      }
+      user_2fa: {
+        Row: { id: string; user_id: string; secret: string; enabled: boolean; verified_at: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; secret: string; enabled?: boolean; verified_at?: string | null }
+        Update: Partial<Database['public']['Tables']['user_2fa']['Insert']>
       }
       compliance_documents: {
         Row: { id: string; salon_id: string; document_type: string; file_url: string | null; file_name: string | null; status: string; expires_at: string | null; uploaded_by: string | null; reviewer_notes: string | null; reviewed_by: string | null; reviewed_at: string | null; created_at: string; updated_at: string }
