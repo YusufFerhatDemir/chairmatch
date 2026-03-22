@@ -561,6 +561,19 @@ body {
   }
 }
 
+/* ═══ DASHBOARD LAYOUT ═══ */
+.dashboard-sidebar { display: flex; }
+.dashboard-menu-btn { display: none !important; }
+.dashboard-mobile-nav { display: none !important; }
+.dashboard-main { margin-left: 240px; }
+
+@media (max-width: 768px) {
+  .dashboard-sidebar { display: none !important; }
+  .dashboard-menu-btn { display: block !important; }
+  .dashboard-mobile-nav { display: block !important; }
+  .dashboard-main { margin-left: 0 !important; padding-bottom: 72px; }
+}
+
 /* ═══ PRINT ═══ */
 @media print {
   .bottom-nav, .nav, .overlay, .sheet { display: none !important; }

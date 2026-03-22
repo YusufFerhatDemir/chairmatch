@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/modules/auth/auth.config'
-import { isProviderOrAbove, isBusinessOwnerOrAbove, isAdminOrAbove } from '@/lib/rbac'
+import { isProviderOrAbove, isBusinessOwnerOrAbove, isInvestorOrAbove, isAdminOrAbove } from '@/lib/rbac'
 
 // ---------------------------------------------------------------------------
 // Rate Limiting — In-Memory (pro Serverless-Instanz)
@@ -117,6 +117,7 @@ const publicPaths = [
   '/pitch',
   '/auth',
   '/shop',
+  '/statistik',
   '/api/auth',
 ]
 
@@ -135,6 +136,8 @@ const publicPrefixes = [
   '/api/reviews/aggregate',
   '/api/salons/',
   '/api/products',
+  '/api/public-stats',
+  '/api/setup/',
   '/shop/',
   '/register/',
   '/_next/',
@@ -153,6 +156,7 @@ const publicPrefixes = [
 
 const providerPaths = ['/provider']
 const ownerPaths = ['/owner']
+const investorPaths = ['/investor']
 const adminPaths = ['/admin']
 
 // ---------------------------------------------------------------------------
@@ -212,6 +216,10 @@ export default auth((req) => {
     if (!isBusinessOwnerOrAbove(role) && !isProviderOrAbove(role)) {
       return forbidden()
     }
+  }
+
+  if (investorPaths.some(p => pathname.startsWith(p))) {
+    if (!isInvestorOrAbove(role)) return forbidden()
   }
 
   if (adminPaths.some(p => pathname.startsWith(p))) {

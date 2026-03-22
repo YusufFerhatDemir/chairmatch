@@ -127,7 +127,7 @@ export interface Profile {
   updated_at: string
 }
 
-export type UserRole = 'kunde' | 'anbieter' | 'admin' | 'super_admin'
+export type UserRole = 'kunde' | 'anbieter' | 'investor' | 'admin' | 'super_admin'
 
 export type AppLanguage = 'de' | 'en' | 'tr'
 

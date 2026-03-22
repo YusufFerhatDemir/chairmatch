@@ -40,6 +40,7 @@ export default function AuthPage() {
       const role = session?.user?.role
       if (role === 'super_admin') router.push('/admin/super')
       else if (role === 'admin') router.push('/admin')
+      else if (role === 'investor') router.push('/investor')
       else if (role === 'anbieter') router.push('/provider')
       else router.push('/')
     }

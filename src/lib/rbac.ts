@@ -10,6 +10,7 @@ export const ROLES = {
   CUSTOMER: 'CUSTOMER',
   PROVIDER: 'PROVIDER',
   BUSINESS_OWNER: 'BUSINESS_OWNER',
+  INVESTOR: 'INVESTOR',
   ADMIN: 'ADMIN',
   SUPER_ADMIN: 'SUPER_ADMIN',
 } as const
@@ -23,6 +24,7 @@ const ROLE_MAP: Record<string, Role> = {
   anbieter: ROLES.PROVIDER,
   provider: ROLES.PROVIDER,
   b2b: ROLES.BUSINESS_OWNER,
+  investor: ROLES.INVESTOR,
   admin: ROLES.ADMIN,
   super_admin: ROLES.SUPER_ADMIN,
 }
@@ -31,6 +33,7 @@ const HIERARCHY: Role[] = [
   ROLES.CUSTOMER,
   ROLES.PROVIDER,
   ROLES.BUSINESS_OWNER,
+  ROLES.INVESTOR,
   ROLES.ADMIN,
   ROLES.SUPER_ADMIN,
 ]
@@ -69,6 +72,11 @@ export function isBusinessOwnerOrAbove(role: string | null | undefined): boolean
 /** Darf ADMIN-Panel? */
 export function isAdminOrAbove(role: string | null | undefined): boolean {
   return hasRoleOrAbove(role ?? '', ROLES.ADMIN)
+}
+
+/** Darf Investor-Portal? (investor, admin, super_admin) */
+export function isInvestorOrAbove(role: string | null | undefined): boolean {
+  return hasRoleOrAbove(role ?? '', ROLES.INVESTOR)
 }
 
 /** Darf SUPER_ADMIN? */

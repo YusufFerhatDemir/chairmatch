@@ -13,7 +13,7 @@ async function requireAdmin() {
 
 const VALID_ACTIONS = ['salon-status', 'salon-toggle-active', 'user-role', 'booking-status'] as const
 const VALID_SALON_STATUSES = ['approved', 'suspended', 'pending'] as const
-const VALID_ROLES = ['kunde', 'anbieter', 'b2b', 'admin', 'super_admin'] as const
+const VALID_ROLES = ['kunde', 'anbieter', 'b2b', 'investor', 'admin', 'super_admin'] as const
 const VALID_BOOKING_STATUSES = ['confirmed', 'cancelled', 'completed', 'no_show'] as const
 
 // Salon actions: approve, suspend, toggle active

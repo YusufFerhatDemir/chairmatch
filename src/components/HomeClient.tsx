@@ -7,6 +7,7 @@ import { PROVS, SPECS, SEARCH_SUGGESTIONS, CITIES, getProviderSpecs, type DemoPr
 import { PROMO_CODES } from '@/lib/constants'
 import { haversine, formatDistance, requestUserLocation } from '@/lib/geo'
 import { RecommendationBanner } from '@/components/recommendations/RecommendationBanner'
+import Footer from '@/components/Footer'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, type LucideIcon } from 'lucide-react'
 
 interface Category {
@@ -481,18 +482,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid rgba(176,144,96,.15)', padding: '28px 20px 32px', marginTop: 32, textAlign: 'center' }}>
-        <p style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1, marginBottom: 14 }}>
-          © {new Date().getFullYear()} ChairMatch — Alle Rechte vorbehalten.
-        </p>
-        <nav style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px 18px' }}>
-          <Link href="/impressum" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'none' }}>Impressum</Link>
-          <Link href="/datenschutz" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'none' }}>Datenschutz</Link>
-          <Link href="/agb" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'none' }}>AGB</Link>
-          <Link href="/cookie-settings" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'none' }}>Cookie-Einstellungen</Link>
-        </nav>
-      </footer>
+      <Footer />
 
       <div style={{ height: 80 }} />
     </>

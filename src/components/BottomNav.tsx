@@ -10,7 +10,7 @@ const TABS: { href: '/' | '/explore' | '/offers' | '/account'; icon: string; lab
   { href: '/account', icon: '◎', label: 'KONTO', match: (p) => p === '/account' || p === '/favorites' },
 ]
 
-const HIDDEN_PATHS = ['/admin', '/provider', '/auth', '/register']
+const HIDDEN_PATHS = ['/admin', '/provider', '/auth', '/register', '/investor', '/owner']
 
 export default function BottomNav() {
   const pathname = usePathname()
