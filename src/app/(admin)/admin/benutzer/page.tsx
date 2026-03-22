@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic'
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { requireRole } from '@/modules/auth/session'
-import Link from 'next/link'
 import AdminUserActions from './actions'
 
 export default async function BenutzerPage() {
@@ -16,15 +15,11 @@ export default async function BenutzerPage() {
     .limit(200)
 
   return (
-    <div className="shell">
-      <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <Link href="/admin" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>← Admin</Link>
-        <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 8, marginBottom: 16 }}>
-          Benutzer ({(users ?? []).length})
-        </h1>
-        <AdminUserActions users={users ?? []} />
-        <div style={{ height: 40 }} />
-      </div>
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--cream)', marginBottom: 16 }}>
+        Benutzer ({(users ?? []).length})
+      </h2>
+      <AdminUserActions users={users ?? []} />
     </div>
   )
 }

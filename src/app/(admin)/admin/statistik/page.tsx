@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic'
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { requireRole } from '@/modules/auth/session'
-import Link from 'next/link'
 
 export default async function StatistikPage() {
   await requireRole(['admin', 'super_admin'])
@@ -73,38 +72,33 @@ export default async function StatistikPage() {
   ]
 
   return (
-    <div className="shell">
-      <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <Link href="/admin" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>← Admin</Link>
-        <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 8, marginBottom: 24 }}>
-          Statistik
-        </h1>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
-          {stats.map(s => (
-            <div key={s.label} className="card" style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--gold)' }}>{s.value}</div>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--stone)', marginTop: 4 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--cream)', marginBottom: 24 }}>
+        Statistik
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
+        {stats.map(s => (
+          <div key={s.label} style={{ background: 'var(--c1)', border: '1px solid rgba(176,144,96,0.08)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--gold)' }}>{s.value}</div>
+            <div style={{ fontSize: 11, color: 'var(--stone)', marginTop: 4 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
 
-        <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Top Salons (Buchungen)</h2>
-        <div className="card" style={{ padding: 14 }}>
-          {topSalonsList.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--stone)' }}>Noch keine Buchungen.</p>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {topSalonsList.map((s, i) => (
-                <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < topSalonsList.length - 1 ? '1px solid var(--border)' : 'none', fontSize: 13 }}>
-                  <span style={{ color: 'var(--cream)' }}>{s.name}</span>
-                  <span style={{ color: 'var(--gold2)', fontWeight: 600 }}>{s.count} Buchungen</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div style={{ height: 40 }} />
+      <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Top Salons (Buchungen)</h3>
+      <div style={{ background: 'var(--c1)', border: '1px solid rgba(176,144,96,0.08)', borderRadius: 12, padding: 14 }}>
+        {topSalonsList.length === 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--stone)' }}>Noch keine Buchungen.</p>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {topSalonsList.map((s, i) => (
+              <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < topSalonsList.length - 1 ? '1px solid rgba(176,144,96,0.08)' : 'none', fontSize: 13 }}>
+                <span style={{ color: 'var(--cream)' }}>{s.name}</span>
+                <span style={{ color: 'var(--gold2)', fontWeight: 600 }}>{s.count} Buchungen</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )
