@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
 
 export interface NavItem {
   href: string
@@ -21,14 +20,6 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ children, title, subtitle, navItems, branding = 'ChairMatch' }: DashboardShellProps) {
   const pathname = usePathname()
-
-  // Override body touch-action:manipulation so iOS touch scroll works in nested containers
-  useEffect(() => {
-    const body = document.body
-    const prev = body.style.touchAction
-    body.style.touchAction = 'auto'
-    return () => { body.style.touchAction = prev }
-  }, [])
 
   return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', background: 'var(--bg)', zIndex: 1 }}>

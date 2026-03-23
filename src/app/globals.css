@@ -94,12 +94,9 @@ html,
 body {
   height: 100%;
   font-family: 'DM Sans', sans-serif;
-  overflow: hidden;
   transition: background 0.3s, color 0.3s;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  touch-action: manipulation;
-  -webkit-touch-callout: none;
   background: var(--bg);
   color: var(--cream);
 }
@@ -122,6 +119,8 @@ body {
   background: var(--c1);
   position: relative;
   overflow: hidden;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
   box-shadow: -1px 0 0 var(--border), 1px 0 0 var(--border);
 }
 
