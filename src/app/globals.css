@@ -570,13 +570,17 @@ body {
 .dashboard-sidebar { display: flex; flex-direction: column; }
 .dashboard-menu-btn { display: none !important; }
 .dashboard-mobile-nav { display: none !important; }
-.dashboard-main { margin-left: 0; }
+.dashboard-main {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
 
 @media (max-width: 768px) {
   .dashboard-sidebar { display: none !important; }
   .dashboard-menu-btn { display: block !important; }
   .dashboard-mobile-nav { display: block !important; }
-  .dashboard-main { margin-left: 0 !important; padding-bottom: 72px; }
+  .dashboard-main { padding-bottom: 72px; }
 }
 
 /* ═══ PRINT ═══ */
