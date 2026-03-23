@@ -567,10 +567,10 @@ body {
 }
 
 /* ═══ DASHBOARD LAYOUT ═══ */
-.dashboard-sidebar { display: flex; }
+.dashboard-sidebar { display: flex; flex-direction: column; }
 .dashboard-menu-btn { display: none !important; }
 .dashboard-mobile-nav { display: none !important; }
-.dashboard-main { margin-left: 240px; }
+.dashboard-main { margin-left: 0; }
 
 @media (max-width: 768px) {
   .dashboard-sidebar { display: none !important; }

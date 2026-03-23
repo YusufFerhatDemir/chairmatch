@@ -22,7 +22,7 @@ export default function DashboardShell({ children, title, subtitle, navItems, br
   const pathname = usePathname()
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg)' }}>
       {/* Sidebar — desktop only */}
       <aside style={{
         width: 240,
@@ -31,11 +31,8 @@ export default function DashboardShell({ children, title, subtitle, navItems, br
         padding: '24px 0',
         display: 'flex',
         flexDirection: 'column',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        zIndex: 50,
+        flexShrink: 0,
+        overflowY: 'auto',
       }} className="dashboard-sidebar">
         {/* Brand */}
         <div style={{ padding: '0 20px 24px', borderBottom: '1px solid rgba(176,144,96,0.08)' }}>
@@ -88,7 +85,7 @@ export default function DashboardShell({ children, title, subtitle, navItems, br
       </aside>
 
       {/* Main content */}
-      <main style={{ flex: 1, marginLeft: 240, minWidth: 0 }} className="dashboard-main">
+      <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} className="dashboard-main">
         {/* Top bar */}
         <header style={{
           padding: '16px 28px',
