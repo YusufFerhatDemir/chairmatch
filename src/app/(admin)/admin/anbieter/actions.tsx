@@ -10,24 +10,29 @@ export default function AdminSalonActions({ salons: init }: { salons: Salon[] })
 
   async function act(id: string, action: string, data: Record<string, unknown>) {
     setLoading(id)
-    const res = await fetch('/api/admin', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, id, data }),
-    })
-    if (res.ok) {
-      if (action === 'salon-status') {
-        const status = data.status as string
-        setSalons(p => p.map(s => s.id === id ? {
-          ...s,
-          is_verified: status === 'approved',
-          is_active: status === 'approved' ? true : status === 'suspended' ? false : s.is_active,
-        } : s))
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, id, data }),
+      })
+      if (res.ok) {
+        if (action === 'salon-status') {
+          const status = data.status as string
+          setSalons(p => p.map(s => s.id === id ? {
+            ...s,
+            is_verified: status === 'approved',
+            is_active: status === 'approved' ? true : status === 'suspended' ? false : s.is_active,
+          } : s))
+        }
+        if (action === 'salon-toggle-active') {
+          setSalons(p => p.map(s => s.id === id ? { ...s, is_active: data.is_active as boolean } : s))
+        }
       }
-      if (action === 'salon-toggle-active') {
-        setSalons(p => p.map(s => s.id === id ? { ...s, is_active: data.is_active as boolean } : s))
-      }
+    } catch {
+      // network error — don't leave UI stuck
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   function getStatus(s: Salon): string {

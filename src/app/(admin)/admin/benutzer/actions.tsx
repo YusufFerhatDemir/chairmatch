@@ -12,14 +12,19 @@ export default function AdminUserActions({ users: init }: { users: User[] }) {
 
   async function changeRole(id: string, role: string) {
     setChanging(id)
-    const res = await fetch('/api/admin', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'user-role', id, data: { role } }),
-    })
-    if (res.ok) {
-      setUsers(p => p.map(u => u.id === id ? { ...u, role } : u))
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'user-role', id, data: { role } }),
+      })
+      if (res.ok) {
+        setUsers(p => p.map(u => u.id === id ? { ...u, role } : u))
+      }
+    } catch {
+      // network error — don't leave UI stuck
+    } finally {
+      setChanging(null)
     }
-    setChanging(null)
   }
 
   return (

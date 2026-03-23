@@ -152,11 +152,24 @@ export default function MISPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/admin/mis')
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000)
+
+    fetch('/api/admin/mis', { signal: controller.signal })
       .then(res => { if (!res.ok) throw new Error(res.status === 403 ? 'Keine Berechtigung' : 'Fehler'); return res.json() })
       .then(setData)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
+      .catch(err => {
+        if (err.name !== 'AbortError') setError(err.message)
+      })
+      .finally(() => {
+        clearTimeout(timeout)
+        setLoading(false)
+      })
+
+    return () => {
+      controller.abort()
+      clearTimeout(timeout)
+    }
   }, [])
 
   const handleExport = useCallback((type: string) => { window.open(`/api/admin/export?type=${type}`, '_blank') }, [])

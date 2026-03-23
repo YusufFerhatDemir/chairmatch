@@ -14,12 +14,17 @@ export default function AdminBookingActions({ bookings: init }: { bookings: Book
 
   async function changeStatus(id: string, status: string) {
     setLoading(id)
-    const res = await fetch('/api/admin', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'booking-status', id, data: { status } }),
-    })
-    if (res.ok) setBookings(p => p.map(b => b.id === id ? { ...b, status } : b))
-    setLoading(null)
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'booking-status', id, data: { status } }),
+      })
+      if (res.ok) setBookings(p => p.map(b => b.id === id ? { ...b, status } : b))
+    } catch {
+      // network error — don't leave UI stuck
+    } finally {
+      setLoading(null)
+    }
   }
 
   const statusColor = (s: string) => {
