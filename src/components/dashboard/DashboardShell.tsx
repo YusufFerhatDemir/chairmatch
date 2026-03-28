@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -21,8 +22,26 @@ interface DashboardShellProps {
 export default function DashboardShell({ children, title, subtitle, navItems, branding = 'ChairMatch' }: DashboardShellProps) {
   const pathname = usePathname()
 
+  // Lock body scroll on iOS — prevents touch events leaking to body
+  useEffect(() => {
+    const html = document.documentElement
+    const body = document.body
+    html.style.overflow = 'hidden'
+    html.style.height = '100%'
+    body.style.overflow = 'hidden'
+    body.style.height = '100%'
+    body.style.overscrollBehavior = 'none'
+    return () => {
+      html.style.overflow = ''
+      html.style.height = ''
+      body.style.overflow = ''
+      body.style.height = ''
+      body.style.overscrollBehavior = ''
+    }
+  }, [])
+
   return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', background: 'var(--bg)', zIndex: 1 }}>
+    <div style={{ height: '100dvh', width: '100%', display: 'flex', background: 'var(--bg)', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
       {/* Sidebar — desktop only */}
       <aside style={{
         width: 240,
@@ -85,7 +104,7 @@ export default function DashboardShell({ children, title, subtitle, navItems, br
       </aside>
 
       {/* Main content */}
-      <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehavior: 'contain' }} className="dashboard-main">
+      <main style={{ flex: 1, minWidth: 0, minHeight: 0, height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehavior: 'contain' }} className="dashboard-main">
         {/* Top bar */}
         <header style={{
           padding: '16px 28px',
@@ -120,7 +139,7 @@ export default function DashboardShell({ children, title, subtitle, navItems, br
       {/* Mobile bottom nav */}
       <nav className="dashboard-mobile-nav" style={{
         display: 'none',
-        position: 'fixed',
+        position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,

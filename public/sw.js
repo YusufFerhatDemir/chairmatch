@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chairmatch-v10';
+const CACHE_NAME = 'chairmatch-v11';
 const PRECACHE_URLS = [
   '/',
   '/explore',
