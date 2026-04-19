@@ -12,7 +12,9 @@ export default function ErrorPage({ reset }: { error: Error; reset: () => void }
           Etwas ist schiefgelaufen
         </h1>
         <p style={{ color: 'var(--stone)', fontSize: 'var(--font-md)', marginBottom: 24 }}>
-          Bitte versuche es erneut oder kehre zur Startseite zurück.
+          Bitte versuche es erneut oder kehre zur Startseite zurück.{' '}
+          Bei wiederholten Problemen:{' '}
+          <a href="mailto:support@chairmatch.de" style={{ color: 'var(--gold2)' }}>support@chairmatch.de</a>
         </p>
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={reset} className="bgold" style={{ padding: '12px 24px' }}>

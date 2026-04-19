@@ -179,6 +179,40 @@ Empfehlung: IT-Recht Kanzlei, e-recht24.de oder WBS.Legal
 
 ---
 
+## Supabase — E-Mail-Bestätigung aktivieren (optional aber empfohlen)
+
+Nach der Registrierung schickt Supabase standardmäßig eine Bestätigungs-E-Mail.
+Stelle sicher, dass das in deinem Prod-Projekt aktiv ist:
+
+1. Supabase Dashboard → dein Projekt → **Authentication → Providers → Email**
+2. **"Confirm email"** auf `ON` stellen
+3. Unter **Email Templates** kannst du Betreff und Text der Bestätigungs-Mail anpassen
+4. Die Redirect-URL nach Bestätigung auf `https://chairmatch.de` setzen
+
+> Wenn "Confirm email" aus ist, werden Nutzer sofort eingeloggt ohne Verifikation — funktioniert, ist aber weniger sicher.
+
+---
+
+## Was Code-seitig bereits erledigt ist (kein weiterer Aufwand)
+
+Zur Info — diese Punkte sind fertig implementiert, kein Handlungsbedarf:
+
+| Feature | Status |
+|---------|--------|
+| Cookie-Banner (DSGVO, Datenschutz-Link, Ablehnen-Button) | ✅ fertig |
+| Password-Reset-Flow (`/auth/forgot-password` → `/auth/reset-password`) | ✅ fertig |
+| Supabase-Credentials: keine hardcodierten Keys mehr | ✅ gefixt |
+| Error-Boundary (`/app/error.tsx`, `/app/global-error.tsx`) | ✅ fertig |
+| SEO-Metadata auf Legal-Pages (Impressum, Datenschutz, AGB) | ✅ fertig |
+| Sitemap (`/sitemap.xml`) + Robots (`/robots.txt`) | ✅ fertig |
+| Verified-Badge auf Salon-Karten (Tooltip + Aria-Label) | ✅ fertig |
+| Buchungsbestätigung kommuniziert "Zahlung vor Ort" | ✅ fertig |
+| Audit-Logs UI (`/admin/audit-logs`) | ✅ fertig |
+| Visit-Logs UI (`/admin/besucher`) | ✅ fertig |
+| Buchungsbestätigungs-E-Mail via Resend | ✅ fertig |
+
+---
+
 ## Zusammenfassung
 
 ```

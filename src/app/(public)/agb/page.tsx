@@ -1,7 +1,14 @@
 // RECHTLICHER HINWEIS: Diese AGB sind ein technisches Gerüst.
 // VOR LIVEGANG durch einen auf Verbraucher- und Plattformrecht spezialisierten Anwalt prüfen lassen.
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'AGB — Allgemeine Geschäftsbedingungen',
+  description: 'Allgemeine Geschäftsbedingungen von ChairMatch — Buchungen, Storno-Policy, Widerrufsbelehrung, Haftung.',
+  robots: { index: true, follow: false },
+}
 
 export default function AGBPage() {
   return (

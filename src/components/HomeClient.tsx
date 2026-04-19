@@ -518,7 +518,17 @@ function ProviderCard({ p, favorites, toggleFav, userLocation }: { p: DemoProvid
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 5 }}>
                 {p.tier === 'gold' && <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#BF953F,#FCF6BA,#B38728)', color: '#1a1000' }}>👑 GOLD</span>}
                 {p.tier === 'premium' && <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#9A70C8,#C8A0F0)', color: '#1a1020' }}>⚡ PREMIUM</span>}
-                {p.ver && <span className="badge badge-green" style={{ fontSize: 9, padding: '3px 8px' }}>✓ Verifiziert</span>}
+                {p.ver && (
+                  <span
+                    className="badge badge-green"
+                    style={{ fontSize: 9, padding: '3px 8px', cursor: 'default' }}
+                    title="Identität vom Betreiber verifiziert"
+                    aria-label="Verifizierter Salon — Identität vom Betreiber bestätigt"
+                    role="img"
+                  >
+                    ✓ Verifiziert
+                  </span>
+                )}
                 {p.disc > 0 && <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 6, background: 'rgba(232,80,64,.12)', color: 'var(--red)', fontWeight: 700 }}>−{p.disc}%</span>}
               </div>
               {/* Name */}

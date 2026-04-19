@@ -2,7 +2,14 @@
 // VOR LIVEGANG durch einen auf Datenschutzrecht spezialisierten Anwalt prüfen lassen.
 // Platzhalter ({{...}}) müssen vor Livegang ersetzt werden.
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Datenschutzerklärung',
+  description: 'Datenschutzerklärung von ChairMatch gemäß DSGVO — Verantwortlicher, Auftragsverarbeiter, Betroffenenrechte, Cookies.',
+  robots: { index: true, follow: false },
+}
 
 export default function DatenschutzPage() {
   return (

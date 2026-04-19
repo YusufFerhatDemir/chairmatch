@@ -1,7 +1,14 @@
 // RECHTLICHER HINWEIS: Vor Livegang durch einen Anwalt prüfen lassen.
 // {{PLACEHOLDER}} müssen vor Livegang ersetzt werden.
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Impressum',
+  description: 'Impressum und Anbieterkennzeichnung gemäß § 5 TMG für ChairMatch — Deutschlands Beauty-Booking-Plattform.',
+  robots: { index: false, follow: false },
+}
 
 export default function ImpressumPage() {
   return (
