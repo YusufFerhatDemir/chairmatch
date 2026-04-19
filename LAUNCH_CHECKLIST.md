@@ -1,181 +1,190 @@
-# ChairMatch — Launch Checklist
+# ChairMatch — Master Launch Checklist
 
-Alles was du selbst erledigen musst, bevor die App live geht.
-Code, Templates und Routen sind fertig — diese Liste sind die „letzten 20 %", die echte Accounts und Keys brauchen.
-
----
-
-## 1. Supabase — 10 Migrationen ausführen
-
-Die Datenbank-Schemas existieren als SQL-Dateien in `supabase/migrations/`. Führe sie **in dieser Reihenfolge** im Supabase SQL-Editor aus:
-
-> Supabase Dashboard → dein Prod-Projekt → **SQL Editor** → neue Query → Inhalt reinkopieren → **Run**
-
-| # | Datei | Was sie macht |
-|---|-------|---------------|
-| 1 | `20260307_ensure_tables.sql` | Basis-Tabellen (Newsletter, etc.) |
-| 2 | `20260309_audit_logs.sql` | Audit-Log-Tabelle |
-| 3 | `20260309_visit_logs.sql` | Besucher-Analytics (DSGVO-konform) |
-| 4 | `20260310_compliance_and_plans.sql` | Compliance-Dokumente, Abo-Pläne |
-| 5 | `20260311_spec_v2.sql` | RBAC-Rollen, Consent, Cookies, Verfügbarkeit |
-| 6 | `20260312_account_deletion.sql` | Soft-Delete für DSGVO Art. 17 |
-| 7 | `20260313_reviews_report.sql` | Bewertungs-Moderation (DSA) |
-| 8 | `20260316_fix_register_trigger.sql` | Profil-Trigger bei Registrierung |
-| 9 | `20260317_payments_and_compliance.sql` | Zahlungen, Compliance, Chat, Notifications |
-| 10 | `20260321_marketplace_and_commissions.sql` | Marktplatz & Provisionen |
-
-**Alternativ per CLI** (wenn Supabase CLI installiert):
-```bash
-supabase db push --db-url "postgresql://postgres:[DB_PASSWORT]@db.[PROJEKT_ID].supabase.co:5432/postgres"
-```
-Das DB-Passwort findest du in: Supabase → Settings → Database → Connection string.
+Du hast drei Guides. Das hier ist die Schaltzentrale — die richtige Reihenfolge, mit Zeitschätzung.
+Hak ab, mach weiter. Wenn etwas hängt, geh in den verlinkten Guide.
 
 ---
 
-## 2. Vercel — Umgebungsvariablen eintragen
+## Übersicht: Was wann zu tun ist
 
-> Vercel Dashboard → dein Projekt → **Settings → Environment Variables**
-> Für alle Variablen: Environment = **Production** (+ Preview wenn gewünscht)
-
-### Supabase
-| Variable | Wo du den Wert findest |
-|----------|------------------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API → Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API → anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → service_role (**geheim!**) |
-
-### Stripe
-| Variable | Wo du den Wert findest |
-|----------|------------------------|
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe → Developers → API Keys → Publishable key |
-| `STRIPE_SECRET_KEY` | Stripe → Developers → API Keys → Secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe → Webhooks → dein Endpoint → Signing secret |
-| `STRIPE_PRICE_STARTER` | Stripe → Products → Starter → Price ID |
-| `STRIPE_PRICE_PREMIUM` | Stripe → Products → Premium → Price ID |
-| `STRIPE_PRICE_GOLD` | Stripe → Products → Gold → Price ID |
-
-### E-Mail (Resend)
-| Variable | Wo du den Wert findest |
-|----------|------------------------|
-| `RESEND_API_KEY` | resend.com → API Keys → Create API Key |
-| `RESEND_FROM_EMAIL` | `ChairMatch <noreply@chairmatch.de>` (nach Domain-Verifizierung) |
-
-### Push Notifications (VAPID)
-| Variable | Wie generieren |
-|----------|----------------|
-| `VAPID_PUBLIC_KEY` | Terminal: `npx web-push generate-vapid-keys` — Public Key |
-| `VAPID_PRIVATE_KEY` | Terminal: `npx web-push generate-vapid-keys` — Private Key |
-| `VAPID_EMAIL` | `mailto:admin@chairmatch.de` |
-
-### App & Security
-| Variable | Wert |
-|----------|------|
-| `NEXT_PUBLIC_APP_URL` | `https://chairmatch.de` |
-| `ADMIN_SETUP_KEY` | `openssl rand -hex 32` im Terminal ausführen |
-| `CRON_SECRET` | `openssl rand -hex 32` im Terminal ausführen |
+| # | Schritt | Zeit | Guide |
+|---|---------|------|-------|
+| 1 | Supabase Datenbank | ~15 Min | [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) |
+| 2 | Vercel Env-Vars | ~20 Min | [VERCEL_ENV_SETUP.md](./VERCEL_ENV_SETUP.md) |
+| 3 | Resend Domain verifizieren | ~30 Min | [RESEND_DOMAIN_SETUP.md](./RESEND_DOMAIN_SETUP.md) |
+| 4 | Stripe Produkte + Webhook | ~30 Min | (unten) |
+| 5 | Legal-Seiten finalisieren | ~15 Min | (unten) |
+| 6 | Admin-Account einrichten | ~5 Min | (unten) |
+| 7 | End-to-End Test | ~1 Std | (unten) |
+| 8 | Anwaltliche Freigabe | ~1–3 Tage | (unten) |
 
 ---
 
-## 3. Resend — Domain verifizieren
+## Schritt 1 — Supabase Datenbank (~15 Min)
 
-Buchungsbestätigungs-Emails werden nur zugestellt, wenn `chairmatch.de` als verifizierte Absender-Domain in Resend eingetragen ist.
+**Alle 10 Migrationen in einem Copy-Paste** → [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
 
-1. resend.com → **Domains** → **Add Domain** → `chairmatch.de` eingeben
-2. Resend zeigt dir DNS-Einträge (SPF, DKIM, DMARC)
-3. Diese Einträge bei deinem DNS-Provider (z. B. Cloudflare, IONOS) eintragen
-4. Auf Verifizierung warten (meist 5–30 Minuten)
-5. Danach: `RESEND_API_KEY` in Vercel eintragen → E-Mails fließen
+- [ ] SQL-Editor öffnen (Link im Guide)
+- [ ] `supabase/migrations/_BUNDLED_FOR_PROD.sql` komplett reinkopieren
+- [ ] Run klicken → "Success" abwarten
+- [ ] Im Table Editor prüfen: `payments`, `consent_logs`, `product_categories` sichtbar?
 
 ---
 
-## 4. Stripe — Produkte und Webhook anlegen
+## Schritt 2 — Vercel Env-Vars (~20 Min)
 
-### Abo-Produkte anlegen
+**19 Keys** — am schnellsten per `.env.local`-Upload → [VERCEL_ENV_SETUP.md](./VERCEL_ENV_SETUP.md)
+
+- [ ] `.env.example` → `.env.local` kopieren, Werte eintragen
+- [ ] Vercel Dashboard → Settings → Environment Variables → Import .env
+- [ ] Deployment abwarten (~1–2 Min)
+- [ ] App öffnen → lädt sie ohne Fehler?
+
+**Reihenfolge innerhalb des Schritts:** Supabase-Keys zuerst (die hast du schon), dann Stripe, dann den Rest.
+
+---
+
+## Schritt 3 — Resend Domain + E-Mail (~30 Min)
+
+**Domain verifizieren → API Key erstellen → in Vercel eintragen** → [RESEND_DOMAIN_SETUP.md](./RESEND_DOMAIN_SETUP.md)
+
+- [ ] resend.com → Domain `chairmatch.de` hinzufügen
+- [ ] 3 DNS-Einträge (SPF / DKIM / DMARC) beim DNS-Provider setzen
+- [ ] Status in Resend: **Verified** ✓
+- [ ] API Key erstellen (`re_...`) → in Vercel als `RESEND_API_KEY` eintragen
+- [ ] `RESEND_FROM_EMAIL=ChairMatch <noreply@chairmatch.de>` in Vercel eintragen
+
+---
+
+## Schritt 4 — Stripe Produkte + Webhook (~30 Min)
+
+Stripe Dashboard: [dashboard.stripe.com](https://dashboard.stripe.com)
+
+### Abo-Produkte anlegen (falls noch nicht vorhanden)
+
 1. Stripe → **Products** → **Add product**
-2. Für jedes Tier (Starter, Premium, Gold): Preis in EUR festlegen, monatlich
-3. Nach dem Anlegen: **Price ID** (beginnt mit `price_...`) kopieren → in Vercel eintragen
+2. Für jedes der 3 Tiers:
+   - Name: `ChairMatch Starter` / `ChairMatch Premium` / `ChairMatch Gold`
+   - Preis in EUR, monatlich, wiederkehrend
+   - Nach Speichern: **Price ID** (`price_xxx`) kopieren
+3. Price IDs in Vercel eintragen:
+   - [ ] `STRIPE_PRICE_STARTER` = `price_xxx`
+   - [ ] `STRIPE_PRICE_PREMIUM` = `price_xxx`
+   - [ ] `STRIPE_PRICE_GOLD` = `price_xxx`
 
-### Webhook für Prod einrichten
+### Webhook einrichten
+
 1. Stripe → **Developers → Webhooks → Add endpoint**
 2. URL: `https://chairmatch.de/api/webhooks/stripe`
-3. Events abonnieren: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
-4. **Signing secret** (beginnt mit `whsec_`) → als `STRIPE_WEBHOOK_SECRET` in Vercel eintragen
+3. Events auswählen:
+   - `checkout.session.completed`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+   - `payment_intent.succeeded`
+   - `payment_intent.payment_failed`
+4. **Signing secret** (`whsec_xxx`) → in Vercel als `STRIPE_WEBHOOK_SECRET` eintragen
+- [ ] Webhook in Vercel eingetragen
+
+### API Keys (Live-Mode!)
+
+Stripe schaltet auf Live wenn du die Domain verifiziert hast:
+- [ ] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_live_xxx`
+- [ ] `STRIPE_SECRET_KEY` = `sk_live_xxx`
 
 ---
 
-## 5. Legal-Seiten — Platzhalter ersetzen
+## Schritt 5 — Legal-Seiten finalisieren (~15 Min)
 
-In den Legal-Seiten sind Platzhalter hinterlassen, die du VOR dem Launch ersetzen musst:
+Drei Platzhalter in den Rechtstexten müssen ersetzt werden:
 
 ### `src/app/(public)/impressum/page.tsx`
-- `{{HANDELSREGISTERGERICHT}}` → z. B. `Amtsgericht Frankfurt am Main`
-- `{{HRB_NUMMER}}` → deine HRB-Nummer nach GmbH-Eintragung
-- `{{UMSATZSTEUER_ID}}` → deine DE-USt-IdNr. (nach Finanzamt-Vergabe)
-- `GmbH i. Gr.` → nach Eintragung zu `GmbH` ändern
+
+| Platzhalter | Ersetzen durch |
+|-------------|----------------|
+| `{{HANDELSREGISTERGERICHT}}` | z. B. `Amtsgericht Frankfurt am Main` |
+| `{{HRB_NUMMER}}` | deine HRB-Nummer (nach GmbH-Eintragung) |
+| `{{UMSATZSTEUER_ID}}` | deine DE-USt-IdNr. (nach Finanzamt-Vergabe) |
 
 ### `src/app/(public)/datenschutz/page.tsx`
-- `{{DATENSCHUTZBEAUFTRAGTER_NAME}}` → falls kein DSB benötigt: Abschnitt löschen
-- `{{DSB_EMAIL}}` → E-Mail des DSB (oder Abschnitt löschen)
 
-### `src/lib/email.ts`
-- Zeile 8: `FROM_ADDRESS` ggf. aktualisieren (stimmt schon auf `noreply@chairmatch.de`)
-- Button-URLs auf `https://chairmatch.de` prüfen (schon korrekt)
+| Platzhalter | Ersetzen durch |
+|-------------|----------------|
+| `{{DATENSCHUTZBEAUFTRAGTER_NAME}}` | Name des DSB — oder **ganzen Abschnitt löschen** falls nicht gesetzlich erforderlich |
+| `{{DSB_EMAIL}}` | E-Mail des DSB — oder **Abschnitt löschen** |
+
+> **Wann ist ein DSB Pflicht?** Ab 20 Personen, die regelmäßig personenbezogene Daten verarbeiten. Als kleines Team: wahrscheinlich nicht Pflicht. Anwalt fragen.
+
+- [ ] Platzhalter ersetzt oder Abschnitte gelöscht
+- [ ] Commit + Push
 
 ---
 
-## 6. Anwaltliche Prüfung (obligatorisch vor Launch)
+## Schritt 6 — Admin-Account einrichten (~5 Min)
 
-Die Legal-Seiten (Impressum, Datenschutzerklärung, AGB, AGB-Provider) sind ein technisches Gerüst — **kein Rechtsrat**. Folgendes muss ein Anwalt prüfen:
+Nach dem ersten Nutzer-Signup über die App:
 
-- [ ] Datenschutzerklärung: alle Auftragsverarbeiter korrekt benannt, AVV geschlossen?
-- [ ] AGB: Widerrufsbelehrung für dein Geschäftsmodell korrekt formuliert?
+1. Supabase Dashboard → **Table Editor** → `profiles` → die User-ID deines Accounts kopieren
+2. API-Call ausführen (z. B. mit curl oder Insomnia):
+
+```bash
+curl -X POST https://chairmatch.de/api/setup/promote-admin \
+  -H "x-setup-key: DEIN_ADMIN_SETUP_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "DEINE_USER_ID"}'
+```
+
+3. Danach: `ADMIN_SETUP_KEY` aus Vercel **löschen** (einmaliger Gebrauch!)
+
+- [ ] Admin-Account promoted
+- [ ] `ADMIN_SETUP_KEY` aus Vercel entfernt
+
+---
+
+## Schritt 7 — End-to-End Test (~1 Std)
+
+Goldene Regel: teste wie ein echter Nutzer, nicht wie ein Entwickler.
+
+- [ ] Registrierung → kommt Welcome-Email an?
+- [ ] Salon suchen → Buchung anlegen → kommt Bestätigungsmail an Kunden?
+- [ ] Salon-Inhaber → kommt Provider-Notification an?
+- [ ] Datenschutz-Seite → alle Abschnitte korrekt, keine `{{PLATZHALTER}}` sichtbar?
+- [ ] Cookie-Banner → erscheint, Einstellungen speicherbar?
+- [ ] Mobile (iOS + Android) → App installierbar als PWA?
+- [ ] Stripe Testzahlung (mit Testkarte `4242 4242 4242 4242`) → Webhook empfangen?
+- [ ] Push-Notifications → Einwilligung geben → Test-Push kommt an?
+
+---
+
+## Schritt 8 — Anwaltliche Freigabe (~1–3 Tage)
+
+Die Legal-Seiten sind ein solides technisches Gerüst — kein Rechtsrat.
+Vor Launch: einen auf IT- und Datenschutzrecht spezialisierten Anwalt drüberschauen lassen.
+
+Checkliste für den Anwalt:
+- [ ] Datenschutzerklärung: alle AVV mit Auftragsverarbeitern geschlossen?
+- [ ] AGB: Widerrufsbelehrung korrekt für dein Geschäftsmodell?
+- [ ] Impressum: alle Pflichtangaben (USt-ID, HRB nach GmbH-Eintragung)?
 - [ ] AGB-Provider: P2B-Verordnung korrekt umgesetzt?
-- [ ] Impressum: Angaben vollständig (USt-ID, HRB nach Eintragung)?
-- [ ] DAC7-Meldepflicht: ab 30 Transaktionen/Anbieter/Jahr Meldung ans Finanzamt
+- [ ] DAC7-Meldepflicht ab 30 Transaktionen/Anbieter/Jahr beachtet?
 
-Empfehlung: IT-/Datenschutz-Anwalt oder Dienst wie e-recht24.de / WBS-Law.
+Empfehlung: IT-Recht Kanzlei, e-recht24.de oder WBS.Legal
 
 ---
 
-## 7. Domain und DNS
+## DNS & Domain (falls noch nicht erledigt)
 
-- [ ] Domain `chairmatch.de` auf Vercel gezeigt (CNAME oder A-Record)
-- [ ] HTTPS-Zertifikat in Vercel ausgestellt (automatisch über Let's Encrypt)
-- [ ] DNS-Einträge für Resend (SPF, DKIM, DMARC) gesetzt
+- [ ] Domain `chairmatch.de` auf Vercel gezeigt (A-Record oder CNAME)
+- [ ] HTTPS-Zertifikat automatisch ausgestellt (Vercel macht das per Let's Encrypt)
 - [ ] `NEXT_PUBLIC_APP_URL=https://chairmatch.de` in Vercel gesetzt
-
----
-
-## 8. Admin-Account einrichten
-
-Nach dem ersten Nutzer-Signup:
-1. Nutzer-ID aus Supabase Dashboard kopieren
-2. API-Call: `POST https://chairmatch.de/api/setup/promote-admin` mit Header `x-setup-key: [ADMIN_SETUP_KEY]`
-3. Danach: `ADMIN_SETUP_KEY` aus Vercel löschen (einmaliger Gebrauch!)
-
----
-
-## 9. Vor-Launch-Test
-
-- [ ] Testbuchung durchführen → Buchungsbestätigung kommt per E-Mail an?
-- [ ] Datenschutz-Seite aufrufen → alle Informationen korrekt?
-- [ ] Cookie-Banner erscheint → Einstellungen speicherbar?
-- [ ] Anbieter-Registrierung → Provider-Notification E-Mail kommt an?
-- [ ] Stripe Test-Zahlung → Webhook empfangen?
-- [ ] Push-Notifications → Einwilligung + Zustellung testen
 
 ---
 
 ## Zusammenfassung
 
-| Bereich | Aufwand | Status |
-|---------|---------|--------|
-| Supabase Migrationen | ~15 Min | ☐ |
-| Vercel Env-Vars | ~20 Min | ☐ |
-| Resend Domain | ~30 Min | ☐ |
-| Stripe Produkte + Webhook | ~30 Min | ☐ |
-| Legal Platzhalter ersetzen | ~15 Min | ☐ |
-| Anwaltliche Prüfung | ~1–3 Tage | ☐ |
-| Domain/DNS | ~15 Min | ☐ |
-| Admin-Account | ~5 Min | ☐ |
-| End-to-End-Test | ~1h | ☐ |
+```
+Supabase (15 Min) → Vercel Env (20 Min) → Resend (30 Min)
+→ Stripe (30 Min) → Legal (15 Min) → Admin (5 Min) → Test (1 Std) → Anwalt (1–3 Tage)
+```
+
+**Gesamtaufwand technisch:** ca. 2–3 Stunden an einem freien Nachmittag.
+**Mit Anwalt:** +1–3 Tage für Rückmeldung und Korrekturen.
