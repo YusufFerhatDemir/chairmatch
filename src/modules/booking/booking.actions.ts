@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createBookingSchema, cancelBookingSchema } from './booking.schemas'
 import { checkConflict, snapshotPolicy, validateTransition, validatePromoCode, calculatePrice } from './booking.service'
 import { getServerSession } from '@/modules/auth/session'
+import { sendBookingConfirmation, sendProviderNotification } from '@/lib/email'
 
 export async function createBooking(input: unknown) {
   const parsed = createBookingSchema.safeParse(input)
@@ -146,6 +147,54 @@ export async function createBooking(input: unknown) {
     } catch {
       console.error('Failed to create consent record')
     }
+  }
+
+  // Step 5: Send confirmation emails — best effort, never aborts booking
+  try {
+    const [customerRes, salonRes] = await Promise.all([
+      supabase.from('profiles').select('email, full_name').eq('id', customerId).single(),
+      supabase.from('salons').select('name, owner_id').eq('id', data.salonId).single(),
+    ])
+
+    const customerEmail = customerRes.data?.email
+    const customerName = customerRes.data?.full_name ?? undefined
+    const salonName = salonRes.data?.name ?? 'ChairMatch Salon'
+    const ownerId = salonRes.data?.owner_id
+
+    const emailDetails = {
+      bookingId: newBooking.id,
+      salonName,
+      serviceName: service.name,
+      date: data.date,
+      startTime: data.startTime,
+      endTime: endTimeStr,
+      priceCents: finalPriceCents,
+      customerName,
+    }
+
+    const tasks: Promise<unknown>[] = []
+
+    if (customerEmail) {
+      tasks.push(sendBookingConfirmation(customerEmail, emailDetails))
+    }
+
+    if (ownerId) {
+      const ownerRes = await supabase.from('profiles').select('email').eq('id', ownerId).single()
+      if (ownerRes.data?.email) {
+        tasks.push(
+          sendProviderNotification(ownerRes.data.email, 'new_booking', {
+            salonName,
+            customerName,
+            bookingId: newBooking.id,
+            message: `Neue Buchung: ${service.name} am ${data.date} um ${data.startTime} Uhr.`,
+          }),
+        )
+      }
+    }
+
+    await Promise.allSettled(tasks)
+  } catch {
+    console.error('Failed to send booking emails')
   }
 
   return { success: true, bookingId: newBooking.id }
