@@ -348,6 +348,8 @@ body {
 /* ═══ CATEGORY CARDS ═══ */
 .catcard {
   width: 100%;
+  min-width: 0;        /* erlaubt schrumpfen unter Inhalts-Mindestgröße */
+  box-sizing: border-box;
   text-align: left;
   border-radius: 16px;
   border: 1px solid rgba(191,149,63,0.35);
@@ -355,6 +357,7 @@ body {
   padding: 12px 8px 12px;
   cursor: pointer;
   transition: box-shadow 0.25s, transform 0.2s, border-color 0.25s;
+  overflow: hidden;    /* verhindert dass Label-Text die Karte sprengt */
   box-shadow: 0 0 12px rgba(191,149,63,0.08), 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(252,246,186,0.06);
   position: relative;
   display: flex;
@@ -519,7 +522,9 @@ body {
 /* ═══ CATEGORY GRID ═══ */
 .cat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* auto-fit: passt sich automatisch der Container-Breite an
+     minmax(112px, 1fr): Mindestens 112px pro Karte, dann gleich verteilt */
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   gap: 10px;
 }
 
@@ -543,25 +548,31 @@ body {
     border-right: 1px solid var(--border);
   }
   .cat-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 14px;
   }
 }
 
 @media (min-width: 1024px) {
   :root {
-    --shell-max: 860px;
+    --shell-max: 1100px;
     --pad: 32px;
   }
   .cat-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 16px;
   }
 }
 
 @media (min-width: 1280px) {
   :root {
-    --shell-max: 960px;
+    --shell-max: 1280px;
+  }
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --shell-max: 1440px;
   }
 }
 
