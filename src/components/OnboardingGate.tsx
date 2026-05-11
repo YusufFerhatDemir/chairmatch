@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { CATEGORIES, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, type LucideIcon } from 'lucide-react'
+import { BrandLogo } from '@/components/BrandLogo'
 
 const CAT_LUCIDE: Record<string, LucideIcon> = {
   barber: Scissors,
@@ -111,18 +112,7 @@ export default function OnboardingGate({ slides, children }: Props) {
         animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
         marginBottom: 24,
       }}>
-        <svg width="60" height="78" viewBox="0 0 100 130" fill="none">
-          <defs>
-            <linearGradient id="splash-gold" x1="15" y1="8" x2="85" y2="120" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#BF953F"/>
-              <stop offset="40%" stopColor="#D4AF37"/>
-              <stop offset="100%" stopColor="#AA771C"/>
-            </linearGradient>
-          </defs>
-          <path d="M50 6C28.5 6 11 23.5 11 45C11 70 50 124 50 124C50 124 89 70 89 45C89 23.5 71.5 6 50 6Z" stroke="url(#splash-gold)" strokeWidth="2.5" fill="none"/>
-          <circle cx="50" cy="45" r="22" stroke="url(#splash-gold)" strokeWidth="1.8" fill="none"/>
-          <path d="M50 28L53.5 40.5L66 45L53.5 49.5L50 62L46.5 49.5L34 45L46.5 40.5Z" fill="url(#splash-gold)" opacity="0.85"/>
-        </svg>
+        <BrandLogo size={96} variant="glow" priority={true} />
       </div>
       <p className="cinzel" style={{ fontSize: 18, fontWeight: 700, letterSpacing: 3, color: 'var(--gold2)' }}>
         CHAIRMATCH
@@ -247,35 +237,8 @@ export default function OnboardingGate({ slides, children }: Props) {
       alignItems: 'center',
       gap: 16,
     }}>
-      {/* Pure SVG Pin Logo — kein PNG, kein dunkles Quadrat */}
-      <div style={{ filter: 'drop-shadow(0 0 24px rgba(212,175,55,0.35)) drop-shadow(0 0 60px rgba(191,149,63,0.12))' }}>
-        <svg width="100" height="130" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="logo-pin-gold" x1="15" y1="8" x2="85" y2="120" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#BF953F"/>
-              <stop offset="20%" stopColor="#FCF6BA"/>
-              <stop offset="40%" stopColor="#D4AF37"/>
-              <stop offset="60%" stopColor="#FBF5B7"/>
-              <stop offset="80%" stopColor="#B38728"/>
-              <stop offset="100%" stopColor="#AA771C"/>
-            </linearGradient>
-            <radialGradient id="logo-inner-glow" cx="50%" cy="38%" r="35%">
-              <stop offset="0%" stopColor="rgba(252,246,186,0.2)"/>
-              <stop offset="100%" stopColor="transparent"/>
-            </radialGradient>
-          </defs>
-          {/* Subtle inner glow */}
-          <circle cx="50" cy="48" r="32" fill="url(#logo-inner-glow)"/>
-          {/* Pin body */}
-          <path d="M50 6C28.5 6 11 23.5 11 45C11 70 50 124 50 124C50 124 89 70 89 45C89 23.5 71.5 6 50 6Z" stroke="url(#logo-pin-gold)" strokeWidth="2.5" fill="none"/>
-          {/* Inner circle */}
-          <circle cx="50" cy="45" r="22" stroke="url(#logo-pin-gold)" strokeWidth="1.8" fill="none"/>
-          {/* 4-point star sparkle */}
-          <path d="M50 28L53.5 40.5L66 45L53.5 49.5L50 62L46.5 49.5L34 45L46.5 40.5Z" fill="url(#logo-pin-gold)" opacity="0.85"/>
-          {/* Tiny highlight dot */}
-          <circle cx="50" cy="45" r="3" fill="url(#logo-pin-gold)" opacity="0.5"/>
-        </svg>
-      </div>
+      {/* Premium Gold-Pin Logo — gleiches Asset wie auf Hauptseite */}
+      <BrandLogo size={120} variant="glow" priority={true} />
       <div style={{ textAlign: 'center' }}>
         <p
           className="cinzel text-gold-metallic"
