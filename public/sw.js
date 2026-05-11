@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chairmatch-v11';
+const CACHE_NAME = 'chairmatch-v12'; // v11 -> v12: bust alte Logo-Caches
 const PRECACHE_URLS = [
   '/',
   '/explore',
@@ -111,7 +111,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for static assets
+  // Brand-Assets (Logos, Icons): IMMER stale-while-revalidate
+  // → User sieht sofort gecachte Version, im Hintergrund wird neue geholt + Cache aktualisiert
+  // → Bei nächstem Reload sieht er die neue Version (kein Hard-Refresh nötig)
+  if (url.pathname.startsWith('/brand/') || url.pathname.startsWith('/icons/') || url.pathname.startsWith('/icon-') || url.pathname === '/icon.svg' || url.pathname === '/favicon.ico') {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const networkPromise = fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        }).catch(() => cached);
+        // Falls cached → sofort returnen, Network läuft im Hintergrund
+        // Falls nicht cached → auf Network warten
+        return cached || networkPromise;
+      })
+    );
+    return;
+  }
+
+  // Cache-first for static assets (styles, scripts, fonts, sonstige images)
   if (request.destination === 'style' || request.destination === 'script' || request.destination === 'image' || request.destination === 'font') {
     event.respondWith(
       caches.match(request).then((cached) =>
