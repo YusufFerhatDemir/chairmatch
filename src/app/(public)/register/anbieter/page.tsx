@@ -4,8 +4,65 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { BrandLogo } from '@/components/BrandLogo'
 
-const STEP_NAMES = ['Persönliche Daten', 'Geschäftsdaten', 'Services & Stuhl', 'Bestätigung']
-const CATEGORIES = ['Barbershop', 'Friseur', 'Kosmetik', 'Ästhetik', 'Nail & Lash', 'Massage']
+const STEP_NAMES = ['Persönliche Daten', 'Geschäftsdaten', 'Services & Vermietung', 'Bestätigung']
+const CATEGORIES = ['Barbershop', 'Friseur', 'Kosmetik', 'Ästhetik', 'Nail & Lash', 'Massage', 'OP-Raum'] as const
+
+/**
+ * Dynamische Labels für Schritt 3 — passend zur Kategorie.
+ * Damit ein Ästhetik-Arzt nicht "Stuhl vermieten" liest, sondern "Praxisraum vermieten".
+ */
+function getRentalLabels(kat: string) {
+  switch (kat) {
+    case 'Ästhetik':
+      return {
+        title: 'PRAXISRAUM / BEHANDLUNGSLIEGE VERMIETEN',
+        subtitle: 'Freie Behandlungsräume oder Liegen tageweise vermieten. 0 % Provision.',
+        toggle: 'Ja, ich vermiete Räume / Liegen',
+        sub: 'Zusatzeinnahmen · ca. 80–150 €/Tag',
+        priceLabel: 'Preis/Tag (€)',
+        placeholder: '95',
+      }
+    case 'Massage':
+      return {
+        title: 'MASSAGELIEGE / RAUM VERMIETEN',
+        subtitle: 'Freie Liegen oder Behandlungsräume tageweise vermieten. 0 % Provision.',
+        toggle: 'Ja, ich vermiete Liegen',
+        sub: 'Zusatzeinnahmen · ca. 40–60 €/Tag',
+        priceLabel: 'Preis/Tag (€)',
+        placeholder: '50',
+      }
+    case 'Kosmetik':
+    case 'Nail & Lash':
+      return {
+        title: 'BEHANDLUNGSPLATZ / KABINE VERMIETEN',
+        subtitle: 'Freie Kabinen oder Arbeitsplätze tageweise vermieten. 0 % Provision.',
+        toggle: 'Ja, ich vermiete Behandlungsplätze',
+        sub: 'Zusatzeinnahmen · ca. 45–75 €/Tag',
+        priceLabel: 'Preis/Tag (€)',
+        placeholder: '55',
+      }
+    case 'OP-Raum':
+      return {
+        title: 'OP-RAUM VERMIETEN',
+        subtitle: 'Premium-Kategorie. Tagesweise Vermietung an Ärzte / Ästhetik-Praxen. Hygiene- und Approbations-Check Pflicht.',
+        toggle: 'Ja, ich vermiete OP-Räume',
+        sub: 'Zusatzeinnahmen · ca. 250–500 €/Tag',
+        priceLabel: 'Preis/Tag (€)',
+        placeholder: '350',
+      }
+    case 'Barbershop':
+    case 'Friseur':
+    default:
+      return {
+        title: 'STUHL / KABINE VERMIETEN',
+        subtitle: 'Freie Stühle tageweise vermieten. 0 % Provision.',
+        toggle: 'Ja, ich vermiete Stühle',
+        sub: 'Zusatzeinnahmen · ca. 35–55 €/Tag',
+        priceLabel: 'Preis/Tag (€)',
+        placeholder: '45',
+      }
+  }
+}
 
 interface RegData {
   vn: string; nn: string; em: string; tel: string
@@ -136,44 +193,61 @@ export default function AnbieterRegisterPage() {
             </div>
           )}
 
-          {/* Step 3: Stuhl */}
-          {step === 3 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--gold)', textTransform: 'uppercase' }}>
-                Stuhl / Kabine vermieten
-              </p>
-              <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6 }}>
-                Kerngeschäft: Freie Stühle vermieten. 0 % Provision.
-              </p>
-              <div
-                onClick={() => upd('chair', !f.chair)}
-                style={{
-                  display: 'flex', gap: 10, alignItems: 'center', padding: '13px 15px',
-                  background: f.chair ? 'rgba(176,144,96,0.06)' : 'var(--c2)', borderRadius: 12, cursor: 'pointer',
-                  border: `1.5px solid ${f.chair ? 'var(--gold)' : 'rgba(176,144,96,0.1)'}`,
-                }}
-              >
-                <div style={{
-                  width: 20, height: 20, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, flexShrink: 0,
-                  background: f.chair ? 'var(--gold)' : 'var(--c4)', border: `2px solid ${f.chair ? 'var(--gold)' : 'var(--c5)'}`,
-                  color: f.chair ? '#080706' : 'transparent',
-                }}>
-                  ✓
+          {/* Step 3: Vermietung — Labels dynamisch je nach Kategorie */}
+          {step === 3 && (() => {
+            const L = getRentalLabels(f.kat)
+            const isOpRaum = f.kat === 'OP-Raum'
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--gold)', textTransform: 'uppercase' }}>
+                  {L.title}
+                </p>
+                <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6 }}>
+                  {L.subtitle}
+                </p>
+                {isOpRaum && (
+                  <div style={{
+                    padding: '10px 12px',
+                    background: 'rgba(212,175,55,0.06)',
+                    border: '1px solid rgba(212,175,55,0.25)',
+                    borderRadius: 10,
+                    fontSize: 11,
+                    color: 'var(--gold2)',
+                    lineHeight: 1.5,
+                  }}>
+                    <strong style={{ color: 'var(--gold)' }}>Premium-Kategorie:</strong> ChairMatch ist die einzige Plattform in DACH, die OP-Räume vermittelt. Pflicht-Checks vor Live-Schaltung: Hygieneverordnung, MDR-Compliance, Anästhesie-Standards.
+                  </div>
+                )}
+                <div
+                  onClick={() => upd('chair', !f.chair)}
+                  style={{
+                    display: 'flex', gap: 10, alignItems: 'center', padding: '13px 15px',
+                    background: f.chair ? 'rgba(176,144,96,0.06)' : 'var(--c2)', borderRadius: 12, cursor: 'pointer',
+                    border: `1.5px solid ${f.chair ? 'var(--gold)' : 'rgba(176,144,96,0.1)'}`,
+                  }}
+                >
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10, flexShrink: 0,
+                    background: f.chair ? 'var(--gold)' : 'var(--c4)', border: `2px solid ${f.chair ? 'var(--gold)' : 'var(--c5)'}`,
+                    color: f.chair ? '#080706' : 'transparent',
+                  }}>
+                    ✓
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>{L.toggle}</p>
+                    <p style={{ fontSize: 11, color: 'var(--stone)' }}>{L.sub}</p>
+                  </div>
                 </div>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>Ja, ich vermiete Stühle</p>
-                  <p style={{ fontSize: 11, color: 'var(--stone)' }}>Zusatzeinnahmen durch Untervermietung</p>
-                </div>
+                {f.chair && (
+                  <div>
+                    <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{L.priceLabel}</label>
+                    <input className="inp" type="number" value={f.cpr} onChange={e => upd('cpr', e.target.value)} placeholder={L.placeholder} />
+                  </div>
+                )}
               </div>
-              {f.chair && (
-                <div>
-                  <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>Preis/Tag (€)</label>
-                  <input className="inp" type="number" value={f.cpr} onChange={e => upd('cpr', e.target.value)} placeholder="45" />
-                </div>
-              )}
-            </div>
-          )}
+            )
+          })()}
 
           {/* Step 4: Summary */}
           {step === 4 && (
@@ -182,7 +256,22 @@ export default function AnbieterRegisterPage() {
                 Zusammenfassung
               </p>
               <div className="card" style={{ padding: 14, marginBottom: 16 }}>
-                {([['Name', `${f.vn} ${f.nn}`], ['E-Mail', f.em], ['Geschäft', f.geschaeft], ['Stadt', f.city], ['Kategorie', f.kat], ['Stuhlmiete', f.chair ? `${f.cpr}€/Tag` : 'Nein']] as const).map(([k, v]) => (
+                {([
+                  ['Name', `${f.vn} ${f.nn}`],
+                  ['E-Mail', f.em],
+                  ['Geschäft', f.geschaeft],
+                  ['Stadt', f.city],
+                  ['Kategorie', f.kat],
+                  [
+                    // Label passt sich der Kategorie an: Stuhl/Liege/Raum/OP-Raum
+                    f.kat === 'OP-Raum' ? 'OP-Raum-Miete'
+                      : f.kat === 'Ästhetik' ? 'Raum-/Liegen-Miete'
+                      : f.kat === 'Massage' ? 'Liegen-Miete'
+                      : (f.kat === 'Kosmetik' || f.kat === 'Nail & Lash') ? 'Platz-Miete'
+                      : 'Stuhlmiete',
+                    f.chair ? `${f.cpr}€/Tag` : 'Nein',
+                  ],
+                ] as const).map(([k, v]) => (
                   <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgba(176,144,96,0.06)', fontSize: 13 }}>
                     <span style={{ color: 'var(--stone)' }}>{k}</span>
                     <span style={{ fontWeight: 600, color: 'var(--cream)' }}>{v || '—'}</span>
