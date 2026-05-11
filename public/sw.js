@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chairmatch-v12'; // v11 -> v12: bust alte Logo-Caches
+const CACHE_NAME = 'chairmatch-v13'; // v12 -> v13: zwingt SW-Update mit neuen Logos
 const PRECACHE_URLS = [
   '/',
   '/explore',
@@ -16,6 +16,13 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
   );
   self.skipWaiting();
+});
+
+// Message-Handler: Client kann sofortiges Aktivieren erzwingen
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
