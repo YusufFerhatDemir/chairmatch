@@ -5,7 +5,9 @@ import { Resend } from 'resend'
 // ---------------------------------------------------------------------------
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
-const FROM_ADDRESS = 'ChairMatch <noreply@chairmatch.de>'
+// Absender-Adresse: per Env-Var überschreibbar (z. B. in Preview-Umgebungen).
+// Fallback auf die verifizierte Prod-Adresse.
+const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL || 'ChairMatch <noreply@chairmatch.de>'
 
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null
 

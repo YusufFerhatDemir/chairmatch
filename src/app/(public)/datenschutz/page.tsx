@@ -37,9 +37,16 @@ export default function DatenschutzPage() {
             Web: chairmatch.de
           </p>
           <p style={{ marginTop: 8 }}>
-            {/* {{DATENSCHUTZBEAUFTRAGTER}} — falls kein gesetzlicher DSB benötigt wird, Abschnitt streichen */}
-            Datenschutzbeauftragter (freiwillig): <strong style={{ color: 'var(--cream)' }}>{'{{DATENSCHUTZBEAUFTRAGTER_NAME}}'}</strong>,{' '}
-            <a href="mailto:{{DSB_EMAIL}}" style={{ color: 'var(--gold2)' }}>{'{{DSB_EMAIL}}'}</a>
+            {/*
+              HINWEIS: Benennung eines Datenschutzbeauftragten (DSB) ist nach § 38 BDSG
+              i. d. R. erst ab 20 Personen Pflicht, die regelmäßig personenbezogene Daten
+              verarbeiten. Als Einzelunternehmen ohne Angestellte: nicht pflichtig.
+              Sobald Mitarbeiter dazukommen: DSB benennen und diesen Absatz aktualisieren.
+            */}
+            Ein gesetzlicher Datenschutzbeauftragter ist derzeit nicht benannt.
+            Alle Datenschutz-Anfragen richten Sie bitte direkt an den oben genannten
+            Verantwortlichen unter{' '}
+            <a href="mailto:legal@chairmatch.de" style={{ color: 'var(--gold2)' }}>legal@chairmatch.de</a>.
           </p>
 
           {/* ── 2. ART UND ZWECK ── */}

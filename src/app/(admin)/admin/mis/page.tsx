@@ -22,6 +22,20 @@ interface MISData {
   compliance: { rate: number; compliant: number; total: number }
   topSalonsByRevenue: { id: string; name: string; revenue: number }[]
   topSalonsByRating: { id: string; name: string; avgRating: number; reviewCount: number }[]
+  bookingFunnel?: {
+    visits: number
+    bookingsStarted: number
+    paid: number
+    completed: number
+    visitToBooking: number
+    bookingToPaid: number
+    paidToCompleted: number
+  }
+  providerHealthScores?: { id: string; name: string; score: number; breakdown: Record<string, number> }[]
+  atRiskProviders?: { id: string; name: string; score: number; breakdown: Record<string, number> }[]
+  recentErrors?: { id: string; message: string; level: string; created_at: string }[]
+  onboardingPipeline?: { registered: number; docsUploaded: number; verified: number; active: number }
+  generatedAt?: string
 }
 
 const GOLD = '#D4AF37'
@@ -150,14 +164,20 @@ export default function MISPage() {
   const [data, setData] = useState<MISData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+  const [autoRefresh, setAutoRefresh] = useState(true)
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 30000)
 
-    fetch('/api/admin/mis', { signal: controller.signal })
+    fetch('/api/admin/mis', { signal: controller.signal, cache: 'no-store' })
       .then(res => { if (!res.ok) throw new Error(res.status === 403 ? 'Keine Berechtigung' : 'Fehler'); return res.json() })
-      .then(setData)
+      .then(d => {
+        setData(d)
+        setLastRefresh(new Date())
+        setError(null)
+      })
       .catch(err => {
         if (err.name !== 'AbortError') setError(err.message)
       })
@@ -171,6 +191,18 @@ export default function MISPage() {
       clearTimeout(timeout)
     }
   }, [])
+
+  useEffect(() => {
+    const cleanup = fetchData()
+    return cleanup
+  }, [fetchData])
+
+  // Auto-Refresh alle 60 Sekunden
+  useEffect(() => {
+    if (!autoRefresh) return
+    const id = setInterval(() => { fetchData() }, 60_000)
+    return () => clearInterval(id)
+  }, [autoRefresh, fetchData])
 
   const handleExport = useCallback((type: string) => { window.open(`/api/admin/export?type=${type}`, '_blank') }, [])
 
@@ -275,8 +307,107 @@ export default function MISPage() {
       </div>
       <div style={cardStyle}><ComplianceGauge rate={data.compliance.rate} compliant={data.compliance.compliant} total={data.compliance.total} /></div>
 
-      <div style={{ marginTop: 40, textAlign: 'center', color: TEXT_DIM, fontSize: 11 }}>
-        Stand: {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+      {/* Booking Funnel (Conversion-Trichter) */}
+      {data.bookingFunnel && (
+        <>
+          <h3 style={sectionTitle}>Buchungs-Funnel (letzte 30 Tage)</h3>
+          <div style={cardStyle}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, alignItems: 'end' }}>
+              {[
+                { label: 'Besuche', value: data.bookingFunnel.visits, rate: null, color: TEXT },
+                { label: 'Buchung gestartet', value: data.bookingFunnel.bookingsStarted, rate: data.bookingFunnel.visitToBooking, color: GOLD },
+                { label: 'Bezahlt', value: data.bookingFunnel.paid, rate: data.bookingFunnel.bookingToPaid, color: GOLD },
+                { label: 'Abgeschlossen', value: data.bookingFunnel.completed, rate: data.bookingFunnel.paidToCompleted, color: '#4ade80' },
+              ].map((stage, idx) => (
+                <div key={stage.label} style={{ textAlign: 'center', position: 'relative' }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: stage.color }}>{stage.value.toLocaleString('de-DE')}</div>
+                  <div style={{ fontSize: 11, color: TEXT_DIM, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stage.label}</div>
+                  {stage.rate !== null && (
+                    <div style={{ fontSize: 10, color: stage.rate >= 30 ? '#4ade80' : stage.rate >= 10 ? GOLD : '#f87171', marginTop: 4 }}>
+                      → {stage.rate}% Conversion
+                    </div>
+                  )}
+                  {idx < 3 && <div style={{ position: 'absolute', right: -4, top: 18, color: TEXT_DIM, fontSize: 16 }}>→</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Onboarding Pipeline */}
+      {data.onboardingPipeline && (
+        <>
+          <h3 style={sectionTitle}>Anbieter-Onboarding-Pipeline</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            <div style={{ ...cardStyle, textAlign: 'center' }}><div style={{ fontSize: 22, fontWeight: 800, color: TEXT_DIM }}>{data.onboardingPipeline.registered}</div><div style={{ fontSize: 11, color: TEXT_DIM, marginTop: 4 }}>Registriert</div></div>
+            <div style={{ ...cardStyle, textAlign: 'center' }}><div style={{ fontSize: 22, fontWeight: 800, color: GOLD }}>{data.onboardingPipeline.docsUploaded}</div><div style={{ fontSize: 11, color: TEXT_DIM, marginTop: 4 }}>Docs hochgeladen</div></div>
+            <div style={{ ...cardStyle, textAlign: 'center' }}><div style={{ fontSize: 22, fontWeight: 800, color: GOLD }}>{data.onboardingPipeline.verified}</div><div style={{ fontSize: 11, color: TEXT_DIM, marginTop: 4 }}>Verifiziert</div></div>
+            <div style={{ ...cardStyle, textAlign: 'center' }}><div style={{ fontSize: 22, fontWeight: 800, color: '#4ade80' }}>{data.onboardingPipeline.active}</div><div style={{ fontSize: 11, color: TEXT_DIM, marginTop: 4 }}>Aktiv</div></div>
+          </div>
+        </>
+      )}
+
+      {/* At-Risk Providers */}
+      {data.atRiskProviders && data.atRiskProviders.length > 0 && (
+        <>
+          <h3 style={sectionTitle}>⚠️ Anbieter mit niedrigem Health-Score (&lt; 50)</h3>
+          <div style={cardStyle}>
+            <MISTable
+              headers={['Salon', 'Score', 'Rating', 'Volumen', 'Compliance', 'Aktivität']}
+              rows={data.atRiskProviders.map(p => [
+                p.name,
+                `${p.score}/100`,
+                `${p.breakdown.rating}/30`,
+                `${p.breakdown.volume}/25`,
+                `${p.breakdown.compliance}/25`,
+                `${p.breakdown.activity}/20`,
+              ])}
+            />
+            <div style={{ marginTop: 8, fontSize: 11, color: TEXT_DIM }}>
+              Score-Formel: Rating × 30% + Volumen × 25% + Compliance × 25% + Aktivität × 20%
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Recent Errors */}
+      {data.recentErrors && data.recentErrors.length > 0 && (
+        <>
+          <h3 style={sectionTitle}>🚨 Fehler-Log (letzte 24h)</h3>
+          <div style={cardStyle}>
+            <MISTable
+              headers={['Zeit', 'Level', 'Nachricht']}
+              rows={data.recentErrors.slice(0, 10).map(e => [
+                new Date(e.created_at).toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }),
+                e.level?.toUpperCase() || 'ERROR',
+                e.message.length > 120 ? e.message.slice(0, 120) + '…' : e.message,
+              ])}
+            />
+            <div style={{ marginTop: 8, fontSize: 11, color: TEXT_DIM }}>
+              Zeigt die letzten 10 von max. 20 Errors. Vollständige Logs in der Datenbank.
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Footer: Auto-Refresh-Toggle + Timestamp */}
+      <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, color: TEXT_DIM, fontSize: 11 }}>
+        <div>
+          Stand: {lastRefresh ? lastRefresh.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '–'}
+          {data.generatedAt && (
+            <span style={{ marginLeft: 8, fontSize: 10 }}>
+              (Daten generiert: {new Date(data.generatedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })})
+            </span>
+          )}
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+          <input type="checkbox" checked={autoRefresh} onChange={e => setAutoRefresh(e.target.checked)} />
+          Auto-Refresh (60s)
+          <button onClick={() => fetchData()} style={{ ...exportBtn, padding: '4px 10px', fontSize: 10, marginLeft: 8 }}>
+            🔄 Jetzt aktualisieren
+          </button>
+        </label>
       </div>
     </div>
   )

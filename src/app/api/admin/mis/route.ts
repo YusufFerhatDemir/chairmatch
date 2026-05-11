@@ -224,6 +224,135 @@ export async function GET() {
       ? Math.round((completedBookings / totalBookings) * 1000) / 10
       : 0
 
+    // --- Booking Funnel (letzte 30 Tage) ---
+    // Funnel-Stufen: Visit → Booking-Start → Bezahlt → Abgeschlossen
+    // Visits aus analytics (best-effort, falls Tabelle existiert)
+    let visitCount = 0
+    try {
+      const { count } = await supabase
+        .from('visit_logs')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', thirtyDaysAgo.toISOString())
+      visitCount = count ?? 0
+    } catch {
+      // visit_logs evtl. nicht vorhanden — best-effort
+    }
+
+    const recentTotalBookings = (recentBookings ?? []).length
+    const recentBookingsByStatus: Record<string, number> = {}
+    for (const b of recentBookings ?? []) {
+      // Wir haben hier nur created_at; status aus payments via Join wäre besser.
+      // Vereinfachung: alle gleich behandeln, status-spezifisches Aggregat aus bookingsByStatus
+      recentBookingsByStatus['total'] = (recentBookingsByStatus['total'] || 0) + 1
+    }
+    const paidCount = (payments ?? []).filter((b: { status?: string }) =>
+      ['confirmed', 'completed', 'paid'].includes(b.status || '')).length
+    const completedRecent = (payments ?? []).filter((b: { status?: string }) =>
+      b.status === 'completed').length
+
+    const bookingFunnel = {
+      visits: visitCount,
+      bookingsStarted: recentTotalBookings,
+      paid: paidCount,
+      completed: completedRecent,
+      // Conversion-Raten zwischen den Stufen
+      visitToBooking: visitCount > 0
+        ? Math.round((recentTotalBookings / visitCount) * 1000) / 10
+        : 0,
+      bookingToPaid: recentTotalBookings > 0
+        ? Math.round((paidCount / recentTotalBookings) * 1000) / 10
+        : 0,
+      paidToCompleted: paidCount > 0
+        ? Math.round((completedRecent / paidCount) * 1000) / 10
+        : 0,
+    }
+
+    // --- Provider Health Score ---
+    // Composite-Score 0-100 pro aktivem Anbieter:
+    //   30%  Rating (avg / 5 * 30)
+    //   25%  Booking-Volume (last 30d, capped bei 50 für 25 Punkte)
+    //   25%  Compliance (approved docs / required)
+    //   20%  Activity (booking updates in last 14d → bool)
+    const providerHealthScores: { id: string; name: string; score: number; breakdown: Record<string, number> }[] = []
+
+    if ((salons ?? []).length > 0) {
+      // Bookings pro Salon last 30d
+      const fourteenDaysAgo = new Date()
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+      const { data: recentBySalon } = await supabase
+        .from('bookings')
+        .select('salon_id, created_at')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+      const bookingsPerSalon30d: Record<string, number> = {}
+      const lastActivityPerSalon: Record<string, number> = {}
+      for (const b of recentBySalon ?? []) {
+        const sid = (b as { salon_id: string }).salon_id
+        bookingsPerSalon30d[sid] = (bookingsPerSalon30d[sid] || 0) + 1
+        const ts = new Date((b as { created_at: string }).created_at).getTime()
+        lastActivityPerSalon[sid] = Math.max(lastActivityPerSalon[sid] || 0, ts)
+      }
+
+      const salonNames = new Map((salons ?? []).map((s: { id: string; name?: string }) => [s.id, s.name || s.id.slice(0, 8)]))
+
+      for (const salon of (salons ?? []).filter((s: { is_active?: boolean }) => s.is_active)) {
+        const sid = (salon as { id: string }).id
+        const ratingData = ratingBySalon[sid]
+        const avgR = ratingData ? ratingData.sum / ratingData.count : 0
+        const ratingScore = Math.round((avgR / 5) * 30)
+
+        const recentB = bookingsPerSalon30d[sid] || 0
+        const volumeScore = Math.min(Math.round((recentB / 50) * 25), 25)
+
+        const docs = docsPerSalon[sid] || { submitted: 0, approved: 0 }
+        const complianceScore = Math.round((Math.min(docs.approved, REQUIRED_DOCS) / REQUIRED_DOCS) * 25)
+
+        const lastTs = lastActivityPerSalon[sid] || 0
+        const activeRecent = lastTs > fourteenDaysAgo.getTime()
+        const activityScore = activeRecent ? 20 : 0
+
+        const total = ratingScore + volumeScore + complianceScore + activityScore
+        providerHealthScores.push({
+          id: sid,
+          name: salonNames.get(sid) || sid.slice(0, 8),
+          score: total,
+          breakdown: {
+            rating: ratingScore,
+            volume: volumeScore,
+            compliance: complianceScore,
+            activity: activityScore,
+          },
+        })
+      }
+      providerHealthScores.sort((a, b) => a.score - b.score) // niedrigste zuerst (Risk-Liste)
+    }
+
+    const atRiskProviders = providerHealthScores.filter(p => p.score < 50).slice(0, 10)
+
+    // --- Recent Errors (last 24h) ---
+    let recentErrors: { id: string; message: string; level: string; created_at: string; count?: number }[] = []
+    try {
+      const twentyFourHoursAgo = new Date()
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
+      const { data: errors } = await supabase
+        .from('error_logs')
+        .select('id, message, level, created_at')
+        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(20)
+      recentErrors = (errors as { id: string; message: string; level: string; created_at: string }[]) ?? []
+    } catch {
+      // error_logs evtl. nicht vorhanden — best-effort
+    }
+
+    // --- Provider Onboarding Pipeline ---
+    // Status-Counts: registered (signup nur), docs_uploaded, verified, active
+    const onboardingPipeline = {
+      registered: totalProviders - verifiedProviders,
+      docsUploaded: Object.keys(docsPerSalon).length,
+      verified: verifiedProviders,
+      active: activeProviders,
+    }
+
     return NextResponse.json({
       kpis: {
         totalRevenue: Math.round(totalRevenue * 100) / 100,
@@ -252,6 +381,13 @@ export async function GET() {
       },
       topSalonsByRevenue,
       topSalonsByRating,
+      // Neu
+      bookingFunnel,
+      providerHealthScores: providerHealthScores.slice(0, 50), // Top 50 für UI
+      atRiskProviders,
+      recentErrors,
+      onboardingPipeline,
+      generatedAt: new Date().toISOString(),
     })
   } catch (err) {
     console.error('MIS API error:', err)
