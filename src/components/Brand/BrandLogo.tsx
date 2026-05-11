@@ -16,8 +16,10 @@ interface BrandLogoProps {
   priority?: boolean
 }
 
+// Ein Asset für alle: garantiert konsistentes Logo überall in der App.
+// (Beide Variants zeigen auf das gleiche transparente Gold-Pin-PNG)
 const ASSETS = {
-  dark: '/brand/chairmatch_logo_pin_symbol_dark_512.png',
+  dark: '/brand/chairmatch_logo_pin_symbol_gradient_512.png',
   glow: '/brand/chairmatch_logo_pin_symbol_gradient_512.png',
 } as const
 

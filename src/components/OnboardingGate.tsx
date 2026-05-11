@@ -735,13 +735,15 @@ export default function OnboardingGate({ slides, children }: Props) {
             boxShadow: '0 0 40px rgba(191,149,63,0.06), inset 0 1px 0 rgba(252,246,186,0.05)',
           }}>
             {(slide.imageUrl?.includes('termin') || slide.icon === 'booking') ? (
-              /* Kalender-Icon — premium SVG */
-              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" stroke="url(#caticon-gold)" strokeWidth="1.8" fill="rgba(191,149,63,0.06)"/>
-                <line x1="16" y1="2" x2="16" y2="6" stroke="url(#caticon-gold)" strokeWidth="2"/>
-                <line x1="8" y1="2" x2="8" y2="6" stroke="url(#caticon-gold)" strokeWidth="2"/>
-                <line x1="3" y1="10" x2="21" y2="10" stroke="url(#caticon-gold)" strokeWidth="1.5"/>
-                <path d="M9 16l2 2 4-4" stroke="url(#caticon-gold)" strokeWidth="2"/>
+              /* SOFORT BUCHEN — Premium-Kalender mit Highlight-Bar + großem Checkmark */
+              <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                <rect x="10" y="14" width="44" height="42" rx="6" stroke="url(#caticon-gold)" strokeWidth="2.2" fill="rgba(191,149,63,0.04)"/>
+                <rect x="10" y="14" width="44" height="10" rx="6" fill="url(#caticon-gold)" opacity="0.55"/>
+                <line x1="22" y1="8" x2="22" y2="20" stroke="url(#caticon-gold)" strokeWidth="2.8" strokeLinecap="round"/>
+                <line x1="42" y1="8" x2="42" y2="20" stroke="url(#caticon-gold)" strokeWidth="2.8" strokeLinecap="round"/>
+                <path d="M20 38L28 46L46 28" stroke="url(#caticon-gold)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <circle cx="16" cy="19" r="1" fill="rgba(252,246,186,0.85)"/>
+                <circle cx="48" cy="19" r="1" fill="rgba(252,246,186,0.85)"/>
               </svg>
             ) : (slide.imageUrl?.includes('stuhl') || slide.icon === 'chair') ? (
               /* Stuhl-Icon — premium SVG */
@@ -753,11 +755,14 @@ export default function OnboardingGate({ slides, children }: Props) {
                 <path d="M8 19h8" stroke="url(#caticon-gold)" strokeWidth="1.8"/>
               </svg>
             ) : (
-              /* Entdecken — Kompass-Icon premium */
-              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" stroke="url(#caticon-gold)" strokeWidth="1.8"/>
-                <circle cx="12" cy="12" r="3" stroke="url(#caticon-gold)" strokeWidth="1.5" fill="rgba(191,149,63,0.1)"/>
-                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="url(#caticon-gold)" opacity="0.2" stroke="url(#caticon-gold)" strokeWidth="1"/>
+              /* ENTDECKEN — Lupe mit goldenem 4-Punkte-Stern im Glas + Funkeln */
+              <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                <circle cx="28" cy="28" r="18" stroke="url(#caticon-gold)" strokeWidth="2.5" fill="rgba(191,149,63,0.06)"/>
+                <path d="M28 14L31 25L42 28L31 31L28 42L25 31L14 28L25 25Z" fill="url(#caticon-gold)" opacity="0.9"/>
+                <line x1="42" y1="42" x2="55" y2="55" stroke="url(#caticon-gold)" strokeWidth="4" strokeLinecap="round"/>
+                <circle cx="52" cy="14" r="1.5" fill="rgba(252,246,186,0.95)"/>
+                <circle cx="10" cy="48" r="1" fill="rgba(252,246,186,0.85)"/>
+                <circle cx="20" cy="10" r="1" fill="rgba(252,246,186,0.7)"/>
               </svg>
             )}
           </div>
