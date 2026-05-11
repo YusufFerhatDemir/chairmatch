@@ -15,26 +15,33 @@
   object-fit: contain;
   object-position: center;
   image-rendering: -webkit-optimize-contrast;
-  filter: drop-shadow(0 0 8px rgba(212,175,55,0.4)) drop-shadow(0 0 20px rgba(191,149,63,0.15));
-  mix-blend-mode: screen;
+  /* Stärkerer Gold-Glow + Helligkeit, damit das Logo klar abhebt */
+  filter:
+    drop-shadow(0 0 4px rgba(252,246,186,0.55))
+    drop-shadow(0 0 14px rgba(212,175,55,0.55))
+    drop-shadow(0 0 32px rgba(191,149,63,0.30))
+    brightness(1.15)
+    contrast(1.08);
+  /* mix-blend-mode entfernt — Logo bleibt voll opaque und sichtbar */
 }
 
 /* ── Metallic Gold Halo Ring ── */
 .root::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: -4px;
   border-radius: 50%;
   background: conic-gradient(
     from 0deg,
     rgba(212,175,55,0.0) 0%,
-    rgba(252,246,186,0.15) 25%,
-    rgba(212,175,55,0.0) 50%,
-    rgba(191,149,63,0.12) 75%,
+    rgba(252,246,186,0.35) 25%,
+    rgba(212,175,55,0.05) 50%,
+    rgba(191,149,63,0.28) 75%,
     rgba(212,175,55,0.0) 100%
   );
   pointer-events: none;
   animation: haloSpin 6s linear infinite;
+  filter: blur(2px);
 }
 
 @keyframes haloSpin {
