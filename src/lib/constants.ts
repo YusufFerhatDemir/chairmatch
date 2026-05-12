@@ -65,11 +65,26 @@ export const SVC_CATALOG: Record<string, { nm: string; dur: number; pr: number }
     { nm: 'Kinderschnitt', dur: 20, pr: 18 }, { nm: 'Kopfhaut-Treatment', dur: 30, pr: 35 },
   ],
   kosmetik: [
+    // Facials & Peelings
     { nm: 'Klassisches Facial', dur: 60, pr: 75 }, { nm: 'Anti-Aging Behandlung', dur: 75, pr: 120 },
-    { nm: 'Chemical Peeling', dur: 45, pr: 65 }, { nm: 'Microdermabrasion', dur: 45, pr: 80 },
-    { nm: 'Hautreinigung', dur: 60, pr: 55 }, { nm: 'Augenbrauen Waxing', dur: 15, pr: 12 },
-    { nm: 'Wimpern Lifting', dur: 60, pr: 55 }, { nm: 'Rückenbehandlung', dur: 50, pr: 70 },
-    { nm: 'Fruchtsäurepeeling', dur: 40, pr: 60 }, { nm: 'Ultraschall-Behandlung', dur: 45, pr: 85 },
+    { nm: 'Aquafacial / HydraFacial', dur: 60, pr: 90 }, { nm: 'Chemical Peeling', dur: 45, pr: 65 },
+    { nm: 'Fruchtsäurepeeling', dur: 40, pr: 60 }, { nm: 'Microdermabrasion', dur: 45, pr: 80 },
+    { nm: 'Hautreinigung', dur: 60, pr: 55 }, { nm: 'Ultraschall-Behandlung', dur: 45, pr: 85 },
+    // Mikronadel & Anti-Aging (Elif-Wünsche)
+    { nm: 'Microneedling', dur: 60, pr: 120 }, { nm: 'Lachs-DNA-Behandlung (PDRN)', dur: 45, pr: 250 },
+    // Augenbrauen & Wimpern
+    { nm: 'Browlift / Brow Lamination', dur: 45, pr: 65 },
+    { nm: 'Fadentechnik (Threading) Augenbrauen', dur: 15, pr: 18 },
+    { nm: 'Augenbrauen + Wimpern färben', dur: 25, pr: 25 },
+    { nm: 'Augenbrauen Waxing', dur: 15, pr: 12 },
+    { nm: 'Wimpern Lifting', dur: 60, pr: 55 },
+    { nm: 'Wimpernverlängerung (Classic)', dur: 90, pr: 95 },
+    { nm: 'Wimpernverlängerung (Volume)', dur: 120, pr: 130 },
+    // Waxing
+    { nm: 'Brazilian Wax', dur: 30, pr: 35 }, { nm: 'Ganzkörper Wax', dur: 90, pr: 95 },
+    { nm: 'Beine Wax (komplett)', dur: 45, pr: 45 }, { nm: 'Oberlippe / Kinn Wax', dur: 10, pr: 10 },
+    // Körper
+    { nm: 'Rückenbehandlung', dur: 50, pr: 70 },
   ],
   aesthetik: [
     { nm: 'Botox', dur: 30, pr: 280 }, { nm: 'Hyaluron Filler', dur: 45, pr: 380 },
