@@ -756,13 +756,12 @@ export default function OnboardingGate({ slides, children }: Props) {
             width: 110,
             height: 110,
             borderRadius: 30,
-            border: '1.5px solid rgba(176,144,96,0.2)',
-            background: 'linear-gradient(145deg, rgba(191,149,63,0.06) 0%, rgba(11,11,15,0.95) 50%, rgba(179,135,40,0.04) 100%)',
+            border: '1px solid rgba(176,144,96,0.25)',
+            background: 'transparent',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            filter: 'drop-shadow(0 0 20px rgba(212,175,55,0.12))',
-            boxShadow: '0 0 40px rgba(191,149,63,0.06), inset 0 1px 0 rgba(252,246,186,0.05)',
+            /* Kein Glow, kein Backdrop-Schein — clean Premium-Look */
           }}>
             {(slide.imageUrl?.includes('termin') || slide.icon === 'booking') ? (
               /* SOFORT BUCHEN — Premium-Kalender mit Highlight-Bar + großem Checkmark */
@@ -806,7 +805,7 @@ export default function OnboardingGate({ slides, children }: Props) {
         </p>
 
         {/* Dots */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 30 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
           {slides.map((_, i) => (
             <div key={i} style={{
               width: i === step ? 22 : 8, height: 8, borderRadius: 4,
@@ -814,6 +813,19 @@ export default function OnboardingGate({ slides, children }: Props) {
             }} />
           ))}
         </div>
+
+        {/* Sofort-Registrieren Shortcut — auf jeder Slide sichtbar */}
+        <Link
+          href="/auth?tab=register"
+          style={{
+            display: 'block', width: '100%', marginBottom: 14, textDecoration: 'none',
+            padding: '14px 24px', borderRadius: 'var(--btn-radius)',
+            background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
+            color: '#1a1000', textAlign: 'center', fontWeight: 800, fontSize: 14, letterSpacing: '0.05em',
+          }}
+        >
+          ✦ Jetzt registrieren
+        </Link>
 
         {/* Navigation buttons */}
         <div style={{ display: 'flex', gap: 12, width: '100%', justifyContent: 'center' }}>
