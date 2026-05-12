@@ -71,8 +71,9 @@ export default async function RentalsPage({ searchParams }: Props) {
     }
   })()
 
+  // "Alle"-Filter entfernt — Filter klar getrennt nach Typ.
+  // Klick auf den aktiven Filter erneut = Filter aus (toggle).
   const filters = [
-    { key: '', label: t('rentals.filterAll') },
     { key: 'stuhl', label: t('rentals.filterChair') },
     { key: 'liege', label: t('rentals.filterBed') },
     { key: 'raum', label: t('rentals.filterRoom') },
@@ -91,18 +92,21 @@ export default async function RentalsPage({ searchParams }: Props) {
             {t('rentals.description')}
           </p>
 
-          {/* Type Filter */}
+          {/* Type Filter — Klick auf aktiven Filter = Filter aus (toggle) */}
           <div style={{ display: 'flex', gap: 6, marginTop: 12, overflowX: 'auto', paddingBottom: 4 }}>
-            {filters.map(f => (
-              <a
-                key={f.key}
-                href={f.key ? `/rentals?type=${f.key}` : '/rentals'}
-                className={(!filterType && !f.key) || filterType === f.key ? 'bgold' : 'boutline'}
-                style={{ padding: '8px 16px', fontSize: 12, whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-block', borderRadius: 20 }}
-              >
-                {f.label}
-              </a>
-            ))}
+            {filters.map(f => {
+              const isActive = filterType === f.key
+              return (
+                <a
+                  key={f.key}
+                  href={isActive ? '/rentals' : `/rentals?type=${f.key}`}
+                  className={isActive ? 'bgold' : 'boutline'}
+                  style={{ padding: '8px 16px', fontSize: 12, whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-block', borderRadius: 20 }}
+                >
+                  {f.label}
+                </a>
+              )
+            })}
           </div>
 
           <p style={{ color: 'var(--stone)', fontSize: 'var(--font-xs)', marginTop: 8 }}>
