@@ -54,7 +54,7 @@ export default function LanguageSwitcher({ variant = 'inline', className }: Prop
     if (next !== locale) setLocale(next)
   }
 
-  // ─── Floating (unten rechts) ─────────────────────────────────────────
+  // ─── Floating (unten links — nicht im Konflikt mit Chat-Widget rechts) ─
   if (variant === 'floating') {
     return (
       <div
@@ -63,7 +63,7 @@ export default function LanguageSwitcher({ variant = 'inline', className }: Prop
         style={{
           position: 'fixed',
           bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-          right: 16,
+          left: 16,
           zIndex: 80,
         }}
       >
@@ -74,9 +74,9 @@ export default function LanguageSwitcher({ variant = 'inline', className }: Prop
             style={{
               position: 'absolute',
               bottom: 56,
-              right: 0,
+              left: 0,
               background: 'var(--c2)',
-              border: '1px solid var(--border)',
+              border: '1px solid rgba(176,144,96,0.35)',
               borderRadius: 14,
               padding: 6,
               boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
@@ -124,18 +124,20 @@ export default function LanguageSwitcher({ variant = 'inline', className }: Prop
           aria-label={t('label')}
           onClick={() => setOpen((v) => !v)}
           style={{
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             borderRadius: '50%',
-            background: 'var(--c2)',
-            border: '1px solid rgba(176,144,96,0.25)',
+            background: 'linear-gradient(135deg, rgba(176,144,96,0.18), rgba(11,11,15,0.95))',
+            border: '1.5px solid rgba(212,175,55,0.45)',
             color: 'var(--gold2)',
-            fontSize: 18,
+            fontSize: 22,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
+            boxShadow: '0 4px 18px rgba(0,0,0,0.5), 0 0 0 1px rgba(176,144,96,0.1)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
           }}
         >
           <span aria-hidden="true">{current.flag}</span>
