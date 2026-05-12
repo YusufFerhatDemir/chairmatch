@@ -1,15 +1,22 @@
 'use client'
 
 import { signIn } from 'next-auth/react'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { BrandLogo } from '@/components/BrandLogo'
 import { useTranslations } from '@/i18n/client'
 
 export default function AuthPage() {
   const t = useTranslations()
-  const [tab, setTab] = useState<'login' | 'register'>('login')
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get('tab') === 'register' ? 'register' : 'login'
+  const [tab, setTab] = useState<'login' | 'register'>(initialTab)
+  // Tab auch beim Param-Wechsel synchronisieren (z.B. wenn User Link mit ?tab=register oeffnet)
+  useEffect(() => {
+    const t = searchParams.get('tab')
+    if (t === 'register' || t === 'login') setTab(t)
+  }, [searchParams])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')

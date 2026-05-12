@@ -655,14 +655,36 @@ export default function OnboardingGate({ slides, children }: Props) {
     return shell(<>
       {backBtn(() => { setPhase('slides'); setStep(slides.length - 1) })}
       {logo()}
-      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: 'var(--gold)', textAlign: 'center', marginBottom: 6, textTransform: 'uppercase' }}>
-        Jetzt registrieren
+
+      {/* GROSSE GOLDENE REGISTRIEREN-BUTTON — direkt zu /auth */}
+      <Link
+        href="/auth?tab=register"
+        style={{
+          display: 'block', width: '100%', marginBottom: 12, textDecoration: 'none',
+          padding: '18px 24px', borderRadius: 'var(--btn-radius)',
+          background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
+          color: '#1a1000', textAlign: 'center', fontWeight: 800, fontSize: 16, letterSpacing: '0.05em',
+        }}
+      >
+        ✦ Jetzt registrieren →
+      </Link>
+      <Link
+        href="/auth?tab=login"
+        style={{
+          display: 'block', width: '100%', marginBottom: 24, textDecoration: 'none',
+          padding: '14px 24px', borderRadius: 'var(--btn-radius)',
+          background: 'transparent', border: '1.5px solid var(--gold)',
+          color: 'var(--gold2)', textAlign: 'center', fontWeight: 600, fontSize: 14,
+        }}
+      >
+        Bereits Konto? Anmelden
+      </Link>
+
+      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'var(--stone)', textAlign: 'center', marginBottom: 12, textTransform: 'uppercase' }}>
+        ── ODER DIREKT DURCHSTARTEN ──
       </p>
-      <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, textAlign: 'center', marginBottom: 8, color: 'var(--gold2)' }}>
+      <p className="cinzel" style={{ fontSize: 18, fontWeight: 600, textAlign: 'center', marginBottom: 16, color: 'var(--gold2)' }}>
         {t('onboarding.iAm')}
-      </p>
-      <p style={{ fontSize: 12, color: 'var(--stone)', textAlign: 'center', marginBottom: 20, lineHeight: 1.5 }}>
-        Wähle deine Rolle — dauert 1 Minute
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
         {([
