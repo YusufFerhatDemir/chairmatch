@@ -655,8 +655,14 @@ export default function OnboardingGate({ slides, children }: Props) {
     return shell(<>
       {backBtn(() => { setPhase('slides'); setStep(slides.length - 1) })}
       {logo()}
-      <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, textAlign: 'center', marginBottom: 20, color: 'var(--gold2)' }}>
+      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: 'var(--gold)', textAlign: 'center', marginBottom: 6, textTransform: 'uppercase' }}>
+        Jetzt registrieren
+      </p>
+      <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, textAlign: 'center', marginBottom: 8, color: 'var(--gold2)' }}>
         {t('onboarding.iAm')}
+      </p>
+      <p style={{ fontSize: 12, color: 'var(--stone)', textAlign: 'center', marginBottom: 20, lineHeight: 1.5 }}>
+        Wähle deine Rolle — dauert 1 Minute
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
         {([
