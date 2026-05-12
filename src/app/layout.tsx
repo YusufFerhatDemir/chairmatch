@@ -6,7 +6,10 @@ import BottomNav from '@/components/BottomNav'
 import ConsentBanner from '@/components/ConsentBanner'
 import VisitTracker from '@/components/VisitTracker'
 import ChatWidget from '@/components/ChatWidget'
+import FloatingLanguageSwitcher from '@/components/FloatingLanguageSwitcher'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { getLocale } from '@/i18n/server'
+import { isRTL, LOCALE_META } from '@/i18n/config'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -88,13 +91,16 @@ export const viewport: Viewport = {
   themeColor: '#080706',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = await getLocale()
+  const dir = isRTL(locale) ? 'rtl' : 'ltr'
+  const htmlLang = LOCALE_META[locale].htmlLang
   return (
-    <html lang="de" className={`${dmSans.variable} ${cinzel.variable}`}>
+    <html lang={htmlLang} dir={dir} className={`${dmSans.variable} ${cinzel.variable}`}>
       <body className={dmSans.className}>
         <script
           type="application/ld+json"
@@ -131,12 +137,13 @@ export default function RootLayout({
           }) }}
         />
         <DynamicTheme />
-        <Providers>
+        <Providers initialLocale={locale}>
           <ErrorBoundary>
             <VisitTracker />
             {children}
             <BottomNav />
             <ChatWidget />
+            <FloatingLanguageSwitcher />
             <ConsentBanner />
           </ErrorBoundary>
         </Providers>

@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getCachedOnboardingSlides } from '@/lib/settings'
 import OnboardingGate from '@/components/OnboardingGate'
 import HomeClient from '@/components/HomeClient'
+import { getTranslations } from '@/i18n/server'
 
 export default async function HomePage() {
   let categories: { id: string; slug: string; label: string; description: string | null; icon_url: string | null; sort_order: number; is_active: boolean }[] = []
@@ -43,7 +44,8 @@ export default async function HomePage() {
   }
 
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Guten Morgen' : hour < 17 ? 'Guten Tag' : 'Guten Abend'
+  const tGreeting = await getTranslations('greeting')
+  const greeting = hour < 12 ? tGreeting('morning') : hour < 17 ? tGreeting('day') : tGreeting('evening')
 
   const onboardingSlides = slides.map(s => ({
     id: s.id,

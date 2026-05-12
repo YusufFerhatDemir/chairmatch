@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations } from '@/i18n/client'
 
 const STORAGE_KEY = 'cm_cookie_consent'
 const SESSION_KEY = 'cm_session_id'
@@ -23,6 +24,7 @@ function getSessionId(): string {
 }
 
 export default function ConsentBanner() {
+  const t = useTranslations('consent')
   const [visible, setVisible] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [choices, setChoices] = useState<ConsentChoices>({
@@ -95,9 +97,9 @@ export default function ConsentBanner() {
       }}
     >
       <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6, margin: 0 }}>
-        Wir verwenden Cookies für den Betrieb der Plattform. Sie können Ihre Auswahl anpassen.{' '}
+        {t('text')}{' '}
         <Link href="/datenschutz" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>
-          Mehr erfahren
+          {t('learnMore')}
         </Link>
       </p>
 
@@ -110,7 +112,7 @@ export default function ConsentBanner() {
               disabled
               readOnly
             />
-            Notwendig (immer aktiv)
+            {t('necessary')}
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--stone)' }}>
             <input
@@ -118,7 +120,7 @@ export default function ConsentBanner() {
               checked={choices.statistics}
               onChange={(e) => setChoices((c) => ({ ...c, statistics: e.target.checked }))}
             />
-            Statistik / Performance
+            {t('statistics')}
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--stone)' }}>
             <input
@@ -126,14 +128,14 @@ export default function ConsentBanner() {
               checked={choices.marketing}
               onChange={(e) => setChoices((c) => ({ ...c, marketing: e.target.checked }))}
             />
-            Marketing
+            {t('marketing')}
           </label>
         </div>
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
         <button className="bgold" onClick={acceptAll} style={{ padding: '10px 16px', fontSize: 13 }}>
-          Alle akzeptieren
+          {t('acceptAll')}
         </button>
         <button
           style={{
@@ -146,7 +148,7 @@ export default function ConsentBanner() {
           }}
           onClick={acceptNecessaryOnly}
         >
-          Nur notwendige
+          {t('acceptNecessary')}
         </button>
         {!expanded ? (
           <button
@@ -160,7 +162,7 @@ export default function ConsentBanner() {
             }}
             onClick={() => setExpanded(true)}
           >
-            Einstellungen
+            {t('settings')}
           </button>
         ) : (
           <button
@@ -168,7 +170,7 @@ export default function ConsentBanner() {
             onClick={saveCustom}
             style={{ padding: '10px 16px', fontSize: 13 }}
           >
-            Auswahl speichern
+            {t('saveSelection')}
           </button>
         )}
       </div>

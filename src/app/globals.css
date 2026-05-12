@@ -601,3 +601,36 @@ body {
   body { background: #fff; color: #000; }
   .card { border: 1px solid #ddd; background: #fff; }
 }
+
+/* ═══ I18N — RTL (Arabic) ═══
+   Wenn <html dir="rtl"> gesetzt ist, spiegelt der Browser bereits viele
+   Layouts (flex, grid, text-align). Wir korrigieren nur die expliziten
+   Inline-Styles, die symmetrische Achsen brechen würden.
+*/
+html[dir='rtl'] {
+  /* Pfeil-Glyphen in Tooltips/Buttons sind sprachlich invariant ("→"),
+     wirken in RTL-Kontexten aber falsch ausgerichtet — keine globale
+     Umkehr, einzelne Komponenten regeln das über logical chars. */
+}
+
+/* In RTL: Links/Rechts-Pfeile in Buttons werden durch logische Properties
+   schon korrekt platziert, da Text natürlich gespiegelt fließt. Speziell:
+   die BottomNav, Searchbar und Cards nutzen `flex` mit `gap` — das ist
+   schon Direction-agnostisch und benötigt keine zusätzliche Regel. */
+
+html[dir='rtl'] .bottom-nav {
+  /* Sicherstellen, dass auch in RTL die Reihenfolge der Tabs visuell
+     gespiegelt wird (Konto links, Start rechts), wie in nativen
+     arabischen Apps üblich. */
+  flex-direction: row-reverse;
+}
+
+/* Vor allem Search-Inputs sollten LTR-Eingabe ermöglichen, wenn z.B. eine
+   E-Mail oder URL eingegeben wird — aber Placeholder bleiben RTL. */
+html[dir='rtl'] input[type='email'],
+html[dir='rtl'] input[type='url'],
+html[dir='rtl'] input[type='tel'] {
+  direction: ltr;
+  text-align: right;
+}
+

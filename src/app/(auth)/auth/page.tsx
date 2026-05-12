@@ -5,8 +5,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { BrandLogo } from '@/components/BrandLogo'
+import { useTranslations } from '@/i18n/client'
 
 export default function AuthPage() {
+  const t = useTranslations()
   const [tab, setTab] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -32,7 +34,7 @@ export default function AuthPage() {
     setLoading(false)
 
     if (result?.error) {
-      setError(result.error || 'E-Mail oder Passwort falsch.')
+      setError(result.error || t('auth.wrongEmailPw'))
     } else {
       // Role-based redirect
       const res = await fetch('/api/auth/session')
@@ -66,7 +68,7 @@ export default function AuthPage() {
 
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error || 'Registrierung fehlgeschlagen.')
+      setError(data.error || t('auth.registerFailed'))
       setLoading(false)
       return
     }
@@ -80,7 +82,7 @@ export default function AuthPage() {
 
     setLoading(false)
     if (result?.error) {
-      setError('Registrierung erfolgreich. Bitte anmelden.')
+      setError(t('auth.registerSuccess'))
       setTab('login')
     } else {
       router.push('/')
@@ -91,7 +93,7 @@ export default function AuthPage() {
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80vh' }}>
         <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none', marginBottom: 24 }}>
-          ← Zurück
+          ← {t('common.back')}
         </Link>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
@@ -99,7 +101,7 @@ export default function AuthPage() {
             <BrandLogo size={96} variant="glow" priority={true} />
           </div>
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', textAlign: 'center', marginTop: 12 }}>
-            {tab === 'login' ? 'Anmelden' : 'Registrieren'}
+            {tab === 'login' ? t('auth.loginTitle') : t('auth.registerTitle')}
           </h1>
         </div>
 
@@ -112,7 +114,7 @@ export default function AuthPage() {
             role="tab"
             aria-selected={tab === 'login'}
           >
-            Anmelden
+            {t('auth.login')}
           </button>
           <button
             onClick={() => setTab('register')}
@@ -121,7 +123,7 @@ export default function AuthPage() {
             role="tab"
             aria-selected={tab === 'register'}
           >
-            Registrieren
+            {t('auth.register')}
           </button>
         </div>
 
@@ -137,11 +139,11 @@ export default function AuthPage() {
         <form onSubmit={tab === 'login' ? handleLogin : handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {tab === 'register' && (
             <label>
-              <span className="sr-only">Vollständiger Name</span>
+              <span className="sr-only">{t('auth.fullName')}</span>
               <input
                 className="inp"
                 type="text"
-                placeholder="Vollständiger Name"
+                placeholder={t('auth.fullName')}
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 required
@@ -150,11 +152,11 @@ export default function AuthPage() {
             </label>
           )}
           <label>
-            <span className="sr-only">E-Mail</span>
+            <span className="sr-only">{t('auth.email')}</span>
             <input
               className="inp"
               type="email"
-              placeholder="E-Mail"
+              placeholder={t('auth.email')}
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -162,11 +164,11 @@ export default function AuthPage() {
             />
           </label>
           <label>
-            <span className="sr-only">Passwort</span>
+            <span className="sr-only">{t('auth.password')}</span>
             <input
               className="inp"
               type="password"
-              placeholder={tab === 'register' ? 'Passwort (min. 10 Zeichen)' : 'Passwort'}
+              placeholder={tab === 'register' ? t('auth.passwordMin') : t('auth.password')}
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
@@ -202,7 +204,7 @@ export default function AuthPage() {
           })()}
           {tab === 'login' && (
             <Link href="/auth/forgot-password" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline', alignSelf: 'flex-end' }}>
-              Passwort vergessen?
+              {t('auth.forgotPassword')}
             </Link>
           )}
           {tab === 'register' && (
@@ -222,7 +224,7 @@ export default function AuthPage() {
             </div>
           )}
           <button type="submit" className="bgold" disabled={loading} style={{ marginTop: 8 }}>
-            {loading ? 'Laden...' : tab === 'login' ? 'Anmelden' : 'Registrieren'}
+            {loading ? t('common.loading') : tab === 'login' ? t('auth.login') : t('auth.register')}
           </button>
         </form>
       </div>

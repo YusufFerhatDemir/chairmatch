@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 function NotificationBell() {
   const [count, setCount] = useState(0)
@@ -220,6 +221,8 @@ export default function AccountPage() {
           <NotificationBell />
 
           <TwoFactorToggle />
+
+          <LanguageSwitcher variant="inline" />
 
           {(role === 'anbieter' || role === 'provider' || role === 'b2b' || role === 'admin' || role === 'super_admin') && (
             <>

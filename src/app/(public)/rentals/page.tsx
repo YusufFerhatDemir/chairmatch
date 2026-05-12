@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { getTranslations } from '@/i18n/server'
 
 export const metadata: Metadata = {
   title: 'Stuhlvermietung & OP-Raum mieten — ChairMatch',
@@ -30,6 +31,7 @@ interface Props {
 
 export default async function RentalsPage({ searchParams }: Props) {
   const { type: filterType } = await searchParams
+  const t = await getTranslations()
   let rentals: Rental[] = []
 
   try {
@@ -52,29 +54,29 @@ export default async function RentalsPage({ searchParams }: Props) {
   }
 
   const typeLabels: Record<string, string> = {
-    stuhl: 'Stuhl',
-    liege: 'Liege',
-    raum: 'Raum',
-    opraum: 'OP-Raum',
+    stuhl: t('rentals.filterChair'),
+    liege: t('rentals.filterBed'),
+    raum: t('rentals.filterRoom'),
+    opraum: t('rentals.filterOR'),
   }
 
   // Dynamischer Call-To-Action je nach aktivem Filter
   const ctaLabel = (() => {
     switch (filterType) {
-      case 'stuhl': return 'Stuhl vermieten'
-      case 'liege': return 'Liege vermieten'
-      case 'raum': return 'Raum vermieten'
-      case 'opraum': return 'OP-Raum vermieten'
-      default: return 'Stuhl, Liege oder OP-Raum anbieten'
+      case 'stuhl': return t('rentals.rentChair')
+      case 'liege': return t('rentals.rentBed')
+      case 'raum': return t('rentals.rentRoom')
+      case 'opraum': return t('rentals.rentOR')
+      default: return t('rentals.rentAny')
     }
   })()
 
   const filters = [
-    { key: '', label: 'Alle' },
-    { key: 'stuhl', label: 'Stuhl' },
-    { key: 'liege', label: 'Liege' },
-    { key: 'raum', label: 'Raum' },
-    { key: 'opraum', label: 'OP-Raum' },
+    { key: '', label: t('rentals.filterAll') },
+    { key: 'stuhl', label: t('rentals.filterChair') },
+    { key: 'liege', label: t('rentals.filterBed') },
+    { key: 'raum', label: t('rentals.filterRoom') },
+    { key: 'opraum', label: t('rentals.filterOR') },
   ]
 
   return (
@@ -82,11 +84,11 @@ export default async function RentalsPage({ searchParams }: Props) {
       <div className="screen">
         <div className="sticky" style={{ padding: '0 var(--pad)' }}>
           <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
-            &larr; Zur&uuml;ck
+            &larr; {t('common.back')}
           </Link>
-          <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginTop: 8 }}>Stuhl · Kabine · OP-Raum</h1>
+          <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginTop: 8 }}>{t('rentals.title')}</h1>
           <p style={{ color: 'var(--cream)', fontSize: 'var(--font-sm)', marginTop: 8, lineHeight: 1.45 }}>
-            Als Friseur, Barber, Masseur oder Praxis: Hier Stuhl, Liege oder OP-Raum tageweise mieten.
+            {t('rentals.description')}
           </p>
 
           {/* Type Filter */}
@@ -104,7 +106,7 @@ export default async function RentalsPage({ searchParams }: Props) {
           </div>
 
           <p style={{ color: 'var(--stone)', fontSize: 'var(--font-xs)', marginTop: 8 }}>
-            {rentals.length} Angebote verf&uuml;gbar
+            {t('rentals.available', { count: rentals.length })}
           </p>
         </div>
 
@@ -112,7 +114,7 @@ export default async function RentalsPage({ searchParams }: Props) {
           {rentals.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <p style={{ color: 'var(--stone)', fontSize: 14, marginBottom: 16 }}>
-                Noch keine Mietangebote in dieser Kategorie.
+                {t('rentals.empty')}
               </p>
               <a href="/register/anbieter" className="bgold" style={{ display: 'inline-block', padding: '12px 24px', textDecoration: 'none', fontSize: 13 }}>
                 {ctaLabel}
@@ -145,10 +147,10 @@ export default async function RentalsPage({ searchParams }: Props) {
                       <div style={{ fontWeight: 700, color: 'var(--gold)', fontSize: 18 }}>
                         {(r.price_per_day_cents / 100).toFixed(0)} &euro;
                       </div>
-                      <div style={{ fontSize: 10, color: 'var(--stone)' }}>pro Tag</div>
+                      <div style={{ fontSize: 10, color: 'var(--stone)' }}>{t('common.perDay')}</div>
                       {r.price_per_month_cents && (
                         <div style={{ fontSize: 12, color: 'var(--stone)', marginTop: 2 }}>
-                          {(r.price_per_month_cents / 100).toFixed(0)} &euro;/Monat
+                          {(r.price_per_month_cents / 100).toFixed(0)} &euro;/{t('common.perMonth')}
                         </div>
                       )}
                     </div>
@@ -159,14 +161,14 @@ export default async function RentalsPage({ searchParams }: Props) {
                       className="bgold"
                       style={{ flex: 1, textAlign: 'center', padding: '10px 0', fontSize: 12, textDecoration: 'none' }}
                     >
-                      Salon ansehen
+                      {t('rentals.viewSalon')}
                     </Link>
                     <Link
                       href={`/booking/${r.salon.id}?rental=${r.id}`}
                       className="boutline"
                       style={{ flex: 1, textAlign: 'center', padding: '10px 0', fontSize: 12, textDecoration: 'none' }}
                     >
-                      Anfrage senden
+                      {t('rentals.sendRequest')}
                     </Link>
                   </div>
                 </div>
@@ -177,7 +179,7 @@ export default async function RentalsPage({ searchParams }: Props) {
 
         <div style={{ padding: '24px var(--pad)', textAlign: 'center' }}>
           <a href="/register/anbieter" style={{ fontSize: 'var(--font-sm)', color: 'var(--gold)', textDecoration: 'none', fontWeight: 600 }}>
-            Stuhl oder Raum anbieten →
+            {t('rentals.offerOwn')}
           </a>
         </div>
         <div style={{ height: 80 }} />

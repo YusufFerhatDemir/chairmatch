@@ -9,6 +9,7 @@ import { haversine, formatDistance, requestUserLocation } from '@/lib/geo'
 import { RecommendationBanner } from '@/components/recommendations/RecommendationBanner'
 import Footer from '@/components/Footer'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, type LucideIcon } from 'lucide-react'
+import { useTranslations } from '@/i18n/client'
 
 interface Category {
   id: string
@@ -105,6 +106,7 @@ function CategoryIcon({ slug, label }: { slug: string; label: string }) {
 }
 
 export default function HomeClient({ categories, dbSalons, greeting, topOfferPercent }: Props) {
+  const t = useTranslations()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
   const [favorites, setFavorites] = useState<string[]>([])
@@ -235,7 +237,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         </div>
         <div style={{ textAlign: 'right' }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--cream)' }}>{greeting}</p>
-          <p style={{ fontSize: 11, color: 'var(--stone)' }}>Deutschlandweit buchen</p>
+          <p style={{ fontSize: 11, color: 'var(--stone)' }}>{t('home.germanyWide')}</p>
         </div>
       </div>
 
@@ -243,13 +245,13 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {topOfferPercent && (
         <div style={{ margin: '14px var(--pad)' }}>
           <div className="card" style={{ padding: 18, background: 'linear-gradient(135deg, #1E1A08, #141008)' }}>
-            <span style={{ marginBottom: 10, display: 'inline-flex', fontSize: 10, padding: '4px 10px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#BF953F,#FCF6BA,#B38728)', color: '#1a1000' }}>SONDERANGEBOT</span>
+            <span style={{ marginBottom: 10, display: 'inline-flex', fontSize: 10, padding: '4px 10px', borderRadius: 20, fontWeight: 700, background: 'linear-gradient(135deg,#BF953F,#FCF6BA,#B38728)', color: '#1a1000' }}>{t('home.specialOffer')}</span>
             <p className="cinzel text-gold-metallic" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3, marginBottom: 4 }}>
-              Spare bis zu {topOfferPercent}%<br />auf erste Buchung
+              {t('home.saveUpTo', { percent: topOfferPercent })}<br />{t('home.onFirstBooking')}
             </p>
             <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 12 }}>Code: CHAIR2026</p>
             <Link href="/offers" className="bgold" style={{ width: 'auto', padding: '11px 22px', fontSize: 13, display: 'inline-block', textDecoration: 'none' }}>
-              Jetzt buchen
+              {t('home.bookNow')}
             </Link>
           </div>
         </div>
@@ -270,8 +272,8 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           >
             <span style={{ fontSize: 20 }}>📍</span>
             <div style={{ textAlign: 'left' }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>Salons in deiner Nähe</p>
-              <p style={{ fontSize: 11, color: 'var(--stone)' }}>Standort freigeben für Entfernungsanzeige</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>{t('home.salonsNearby')}</p>
+              <p style={{ fontSize: 11, color: 'var(--stone)' }}>{t('home.shareLocation')}</p>
             </div>
           </button>
         </div>
@@ -288,7 +290,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           <section style={{ padding: '0 var(--pad) 10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                📍 In deiner Nähe
+                {t('home.inYourArea')}
               </p>
             </div>
             <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
@@ -317,7 +319,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           <span>🔍</span>
           <input
             type="text"
-            placeholder="Stadt, Name, Service..."
+            placeholder={t('home.searchPlaceholder')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             onFocus={() => setSearchFocused(true)}
@@ -325,9 +327,9 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--cream)', fontSize: 14 }}
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} aria-label="Suche löschen" style={{ background: 'none', border: 'none', color: 'var(--stone)', fontSize: 16, cursor: 'pointer', padding: 0 }}>✕</button>
+            <button onClick={() => setSearchQuery('')} aria-label={t('common.clearSearch')} style={{ background: 'none', border: 'none', color: 'var(--stone)', fontSize: 16, cursor: 'pointer', padding: 0 }}>✕</button>
           )}
-          <button onClick={() => setShowFilter(!showFilter)} aria-label="Filter anzeigen" aria-expanded={showFilter} style={{ background: 'none', border: 'none', color: showFilter ? 'var(--gold)' : 'var(--stone)', fontSize: 18, cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => setShowFilter(!showFilter)} aria-label={t('common.showFilter')} aria-expanded={showFilter} style={{ background: 'none', border: 'none', color: showFilter ? 'var(--gold)' : 'var(--stone)', fontSize: 18, cursor: 'pointer', padding: 0 }}>
             ☰
           </button>
         </div>
@@ -347,42 +349,42 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {showFilter && (
         <div style={{ margin: '0 var(--pad) 14px', padding: 16, background: 'var(--c2)', borderRadius: 16, border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <p style={{ fontSize: 16, fontWeight: 800 }}>Filter</p>
-            <button onClick={resetFilters} style={{ fontSize: 13, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>Zurücksetzen</button>
+            <p style={{ fontSize: 16, fontWeight: 800 }}>{t('common.filter')}</p>
+            <button onClick={resetFilters} style={{ fontSize: 13, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>{t('common.reset')}</button>
           </div>
           {/* City */}
-          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Stadt</p>
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>{t('common.city')}</p>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-            <button onClick={() => setFilterCity('all')} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: filterCity === 'all' ? 'var(--gold)' : 'var(--c3)', color: filterCity === 'all' ? '#080706' : 'var(--stone)', border: 'none' }}>Alle</button>
+            <button onClick={() => setFilterCity('all')} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: filterCity === 'all' ? 'var(--gold)' : 'var(--c3)', color: filterCity === 'all' ? '#080706' : 'var(--stone)', border: 'none' }}>{t('common.all')}</button>
             {CITIES.map(c => (
               <button key={c} onClick={() => setFilterCity(c)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: filterCity === c ? 'var(--gold)' : 'var(--c3)', color: filterCity === c ? '#080706' : 'var(--stone)', border: 'none' }}>{c}</button>
             ))}
           </div>
           {/* Rating */}
-          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Mindestbewertung</p>
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>{t('common.minRating')}</p>
           <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
             {[0, 4, 4.5, 4.8, 5].map(r => (
               <button key={r} onClick={() => setFilterMinRating(r)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: filterMinRating === r ? 'var(--gold)' : 'var(--c3)', color: filterMinRating === r ? '#080706' : 'var(--stone)', border: 'none' }}>
-                {r === 0 ? 'Alle' : `★ ${r}+`}
+                {r === 0 ? t('common.all') : `★ ${r}+`}
               </button>
             ))}
           </div>
           {/* Price */}
-          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Maximalpreis: {filterMaxPrice}€</p>
+          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>{t('common.maxPrice')}: {filterMaxPrice}€</p>
           <input type="range" min={20} max={500} step={10} value={filterMaxPrice} onChange={e => setFilterMaxPrice(Number(e.target.value))} style={{ width: '100%', marginBottom: 14, accentColor: 'var(--gold)' }} />
           {/* Toggles */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
             <button onClick={() => setFilterOnlyAvail(!filterOnlyAvail)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyAvail ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
               <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyAvail ? 'rgba(176,144,96,.15)' : 'transparent' }}>{filterOnlyAvail ? '✓' : ''}</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Verfügbare</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>{t('common.onlyAvailable')}</span>
             </button>
             <button onClick={() => setFilterOnlyDisc(!filterOnlyDisc)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyDisc ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
               <span style={{ width: 18, height: 18, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: filterOnlyDisc ? 'rgba(176,144,96,.15)' : 'transparent' }}>{filterOnlyDisc ? '✓' : ''}</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>Nur Rabatte</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--cream)' }}>{t('common.onlyDiscounts')}</span>
             </button>
           </div>
           <button onClick={() => setShowFilter(false)} className="bgold" style={{ width: '100%' }}>
-            Anwenden ({filtered.length})
+            {t('common.apply')} ({filtered.length})
           </button>
         </div>
       )}
@@ -390,8 +392,8 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Categories Grid */}
       <section style={{ padding: '0 var(--pad)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Kategorien</p>
-          <Link href="/explore" className="text-gold-accent" style={{ fontSize: 12, textDecoration: 'none' }}>Alle</Link>
+          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t('home.categories')}</p>
+          <Link href="/explore" className="text-gold-accent" style={{ fontSize: 12, textDecoration: 'none' }}>{t('common.all')}</Link>
         </div>
         <div className="cat-grid">
           {categories.map((cat) => (
@@ -411,16 +413,16 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Vermietung CTA: Stuhl / Kabine / OP-Raum für Anbieter */}
       <section style={{ padding: '16px var(--pad) 0' }}>
         <div className="card" style={{ padding: 16 }}>
-          <p className="text-gold-metallic" style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', marginBottom: 6 }}>STUHL · KABINE · OP-RAUM</p>
+          <p className="text-gold-metallic" style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', marginBottom: 6 }}>{t('home.rentalCta')}</p>
           <p style={{ fontSize: 13, color: 'var(--cream)', lineHeight: 1.45, marginBottom: 12 }}>
-            Als Barber, Friseur, Masseur oder Praxis: Stuhl, Liege oder OP-Raum tageweise mieten – oder selbst vermieten.
+            {t('home.rentalDescription')}
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <Link href="/rentals" className="bgold" style={{ padding: '10px 16px', fontSize: 12, textDecoration: 'none', borderRadius: 'var(--btn-radius)' }}>
-              Angebote finden
+              {t('home.findOffers')}
             </Link>
             <Link href="/register/anbieter" className="boutline" style={{ padding: '10px 16px', fontSize: 12, textDecoration: 'none', borderRadius: 'var(--btn-radius)' }}>
-              Anbieter werden
+              {t('home.becomeProvider')}
             </Link>
           </div>
         </div>
@@ -429,8 +431,8 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Top Specialists Scroll */}
       <section style={{ marginTop: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 var(--pad) 12px' }}>
-          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Top Spezialisten</p>
-          <span className="badge badge-green" style={{ fontSize: 9 }}>Heute verfügbar</span>
+          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t('home.topSpecialists')}</p>
+          <span className="badge badge-green" style={{ fontSize: 9 }}>{t('home.availableToday')}</span>
         </div>
         <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 var(--pad) 4px', WebkitOverflowScrolling: 'touch' }}>
           {SPECS.map(s => (
@@ -448,8 +450,8 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Provider Cards */}
       <section style={{ padding: '20px var(--pad) 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Alle Anbieter</p>
-          <span style={{ fontSize: 12, color: 'var(--stone)' }}>{filtered.length} gefunden</span>
+          <p className="text-gold-accent" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t('home.allProviders')}</p>
+          <span style={{ fontSize: 12, color: 'var(--stone)' }}>{filtered.length} {t('common.found')}</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {filtered.map(p => (
@@ -461,13 +463,13 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Newsletter */}
       <section style={{ padding: '24px var(--pad)' }}>
         <div className="card" style={{ padding: 18, textAlign: 'center' }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--gold2)', marginBottom: 6 }}>Newsletter</p>
-          <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 12 }}>Exklusive Angebote & neue Salons direkt in dein Postfach</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--gold2)', marginBottom: 6 }}>{t('home.newsletter')}</p>
+          <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 12 }}>{t('home.newsletterTagline')}</p>
           {nlStatus === 'ok' ? (
-            <p style={{ fontSize: 13, color: 'var(--gold2)', fontWeight: 700 }}>Erfolgreich angemeldet!</p>
+            <p style={{ fontSize: 13, color: 'var(--gold2)', fontWeight: 700 }}>{t('home.subscribeSuccess')}</p>
           ) : (
             <div style={{ display: 'flex', gap: 8 }}>
-              <input type="email" placeholder="E-Mail Adresse" className="inp" aria-label="Newsletter E-Mail" style={{ flex: 1 }} value={nlEmail} onChange={e => setNlEmail(e.target.value)} />
+              <input type="email" placeholder={t('home.emailPlaceholder')} className="inp" aria-label={t('home.newsletter')} style={{ flex: 1 }} value={nlEmail} onChange={e => setNlEmail(e.target.value)} />
               <button className="bgold" disabled={nlStatus === 'loading'} style={{ padding: '10px 16px', fontSize: 12, whiteSpace: 'nowrap' }} onClick={async () => {
                 if (!nlEmail || nlStatus === 'loading') return
                 setNlStatus('loading')
@@ -475,10 +477,10 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
                   const res = await fetch('/api/newsletter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: nlEmail }) })
                   setNlStatus(res.ok ? 'ok' : 'err')
                 } catch { setNlStatus('err') }
-              }}>{nlStatus === 'loading' ? '...' : 'Anmelden'}</button>
+              }}>{nlStatus === 'loading' ? '...' : t('home.subscribe')}</button>
             </div>
           )}
-          {nlStatus === 'err' && <p style={{ fontSize: 11, color: 'var(--red)', marginTop: 6 }}>Fehler — bitte erneut versuchen.</p>}
+          {nlStatus === 'err' && <p style={{ fontSize: 11, color: 'var(--red)', marginTop: 6 }}>{t('home.subscribeError')}</p>}
         </div>
       </section>
 
@@ -490,6 +492,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
 }
 
 function ProviderCard({ p, favorites, toggleFav, userLocation }: { p: DemoProvider; favorites: string[]; toggleFav: (id: string, e: React.MouseEvent) => void; userLocation: { lat: number; lng: number } | null }) {
+  const t = useTranslations()
   const minPrice = p.svs.length > 0 ? Math.min(...p.svs.map(s => s.pr)) : 0
   const distance = userLocation && p.lat ? haversine(userLocation.lat, userLocation.lng, p.lat, p.lng) : null
 
@@ -526,7 +529,7 @@ function ProviderCard({ p, favorites, toggleFav, userLocation }: { p: DemoProvid
                     aria-label="Verifizierter Salon — Identität vom Betreiber bestätigt"
                     role="img"
                   >
-                    ✓ Verifiziert
+                    ✓ {t('home.verified')}
                   </span>
                 )}
                 {p.disc > 0 && <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 6, background: 'rgba(232,80,64,.12)', color: 'var(--red)', fontWeight: 700 }}>−{p.disc}%</span>}
@@ -575,14 +578,14 @@ function ProviderCard({ p, favorites, toggleFav, userLocation }: { p: DemoProvid
               {p.frei > 0 && (
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                   <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4A8A5A' }} />
-                  <span style={{ fontSize: 11, color: '#6ABF80' }}>{p.frei} frei</span>
+                  <span style={{ fontSize: 11, color: '#6ABF80' }}>{t('home.freeSlots', { count: p.frei })}</span>
                 </div>
               )}
-              <span style={{ fontSize: 10, color: '#6ABF80', fontWeight: 600 }}>● Offen</span>
+              <span style={{ fontSize: 10, color: '#6ABF80', fontWeight: 600 }}>● {t('common.open')}</span>
             </div>
             {minPrice > 0 && (
               <span className="text-gold-metallic" style={{ fontSize: 15, fontWeight: 800 }}>
-                ab {minPrice} €
+                {t('common.from')} {minPrice} €
               </span>
             )}
           </div>

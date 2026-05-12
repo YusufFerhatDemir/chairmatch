@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { CATEGORIES, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, type LucideIcon } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
+import { useTranslations } from '@/i18n/client'
 
 const CAT_LUCIDE: Record<string, LucideIcon> = {
   barber: Scissors,
@@ -44,6 +45,7 @@ const emptyProfile: ProfileData = { vn: '', nn: '', email: '', phone: '', city: 
 function isValidEmail(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
 
 export default function OnboardingGate({ slides, children }: Props) {
+  const t = useTranslations()
   const { data: session } = useSession()
   const [done, setDone] = useState<boolean | null>(null)
 
@@ -267,7 +269,7 @@ export default function OnboardingGate({ slides, children }: Props) {
 
   const backBtn = (onClick: () => void) => (
     <button onClick={onClick} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: 'var(--stone)', fontSize: 14, cursor: 'pointer', marginBottom: 16, padding: 0 }}>
-      ← Zurück
+      {t('onboarding.back')}
     </button>
   )
 
@@ -277,19 +279,19 @@ export default function OnboardingGate({ slides, children }: Props) {
       {backBtn(() => setPhase('roleSelect'))}
       {logo()}
       <div className="card" style={{ width: '100%', padding: 20 }}>
-        <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--gold2)', marginBottom: 16, textAlign: 'center' }}>Willkommen zurück</p>
-        <input className="inp" type="email" placeholder="E-Mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{ marginBottom: 10 }} />
-        <input className="inp" type="password" placeholder="Passwort (min. 6 Zeichen)" value={loginPw} onChange={e => setLoginPw(e.target.value)}
+        <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--gold2)', marginBottom: 16, textAlign: 'center' }}>{t('auth.welcomeBack')}</p>
+        <input className="inp" type="email" placeholder={t('auth.email')} value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{ marginBottom: 10 }} />
+        <input className="inp" type="password" placeholder={t('auth.passwordShort')} value={loginPw} onChange={e => setLoginPw(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleLogin() }}
           style={{ marginBottom: 16 }} />
         {loginError && <p style={{ fontSize: 12, color: 'var(--red)', marginBottom: 12 }}>{loginError}</p>}
-        <button className="bgold" style={{ fontSize: 15, fontWeight: 800 }} onClick={handleLogin}>Anmelden →</button>
+        <button className="bgold" style={{ fontSize: 15, fontWeight: 800 }} onClick={handleLogin}>{t('auth.login')} →</button>
       </div>
     </>)
   }
 
   async function handleLogin() {
-    if (!loginEmail || !loginPw) { setLoginError('Bitte alle Felder ausfüllen.'); return }
+    if (!loginEmail || !loginPw) { setLoginError(t('auth.fillAllFields')); return }
     setLoginError('')
     try {
       const res = await fetch('/api/auth/callback/credentials', {
@@ -300,10 +302,10 @@ export default function OnboardingGate({ slides, children }: Props) {
       if (res.ok) {
         finish('CUSTOMER')
       } else {
-        setLoginError('Ungültige Anmeldedaten.')
+        setLoginError(t('auth.invalidCredentials'))
       }
     } catch {
-      setLoginError('Verbindungsfehler.')
+      setLoginError(t('auth.connectionError'))
     }
   }
 
@@ -313,27 +315,27 @@ export default function OnboardingGate({ slides, children }: Props) {
     return shell(<>
       {backBtn(() => setPhase('roleSelect'))}
       {logo()}
-      <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gold2)', marginBottom: 6 }}>Dein Profil</p>
-      <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20, textAlign: 'center' }}>Damit wir dir passende Anbieter zeigen können.</p>
+      <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gold2)', marginBottom: 6 }}>{t('onboarding.yourProfile')}</p>
+      <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20, textAlign: 'center' }}>{t('onboarding.profileSubtitle')}</p>
 
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', gap: 10 }}>
-          <input className="inp" placeholder="Vorname *" value={profile.vn} onChange={e => updateProfile('vn', e.target.value)} style={{ flex: 1 }} />
-          <input className="inp" placeholder="Nachname *" value={profile.nn} onChange={e => updateProfile('nn', e.target.value)} style={{ flex: 1 }} />
+          <input className="inp" placeholder={`${t('onboarding.firstName')} *`} value={profile.vn} onChange={e => updateProfile('vn', e.target.value)} style={{ flex: 1 }} />
+          <input className="inp" placeholder={`${t('onboarding.lastName')} *`} value={profile.nn} onChange={e => updateProfile('nn', e.target.value)} style={{ flex: 1 }} />
         </div>
-        <input className="inp" type="email" placeholder="E-Mail *" value={profile.email} onChange={e => updateProfile('email', e.target.value)} />
-        <input className="inp" type="tel" placeholder="Telefon" value={profile.phone} onChange={e => updateProfile('phone', e.target.value)} />
-        <input className="inp" placeholder="Stadt" value={profile.city} onChange={e => updateProfile('city', e.target.value)} />
+        <input className="inp" type="email" placeholder={`${t('auth.email')} *`} value={profile.email} onChange={e => updateProfile('email', e.target.value)} />
+        <input className="inp" type="tel" placeholder={t('onboarding.phone')} value={profile.phone} onChange={e => updateProfile('phone', e.target.value)} />
+        <input className="inp" placeholder={t('onboarding.city')} value={profile.city} onChange={e => updateProfile('city', e.target.value)} />
       </div>
 
       <button className="bgold" disabled={!canSubmit} style={{ marginTop: 20 }} onClick={() => {
         showToast(profile.vn ? `Willkommen, ${profile.vn}! ✉️ Bestätigung an ${profile.email}` : 'Willkommen bei ChairMatch!')
         setTimeout(() => finish('CUSTOMER'), 800)
       }}>
-        Los geht&apos;s!
+        {t('onboarding.letsBegin')}
       </button>
       <button onClick={() => finish('CUSTOMER')} style={{ marginTop: 10, background: 'none', border: 'none', color: 'var(--stone)', fontSize: 13, cursor: 'pointer' }}>
-        Später ausfüllen
+        {t('onboarding.fillLater')}
       </button>
     </>)
   }
@@ -393,7 +395,7 @@ export default function OnboardingGate({ slides, children }: Props) {
           setProvServices(catSvcs.slice(0, 3).map(s => s.nm))
           setProvStep(2)
         }}>
-          Weiter →
+          {t('onboarding.next')}
         </button>
       </>)
     }
@@ -467,7 +469,7 @@ export default function OnboardingGate({ slides, children }: Props) {
           setProvEquip(catEq.filter(e => e.pr === 0).map(e => e.nm))
           setProvStep(3)
         }}>
-          Weiter →
+          {t('onboarding.next')}
         </button>
       </>)
     }
@@ -550,7 +552,7 @@ export default function OnboardingGate({ slides, children }: Props) {
         </div>
 
         <button className="bgold" style={{ marginTop: 20 }} onClick={() => setProvStep(4)}>
-          Weiter →
+          {t('onboarding.next')}
         </button>
       </>)
     }
@@ -587,7 +589,7 @@ export default function OnboardingGate({ slides, children }: Props) {
         </div>
 
         <button className="bgold" disabled={!isProfileValid} style={{ marginTop: 20 }} onClick={() => setProvStep(5)}>
-          Weiter →
+          {t('onboarding.next')}
         </button>
       </>)
     }
@@ -654,13 +656,13 @@ export default function OnboardingGate({ slides, children }: Props) {
       {backBtn(() => { setPhase('slides'); setStep(slides.length - 1) })}
       {logo()}
       <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, textAlign: 'center', marginBottom: 20, color: 'var(--gold2)' }}>
-        Ich bin...
+        {t('onboarding.iAm')}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
         {([
-          ['Kunde — ich suche Termine', 'CUSTOMER'],
-          ['Anbieter — ich biete Services', 'PROVIDER'],
-          ['B2B — Stuhl / Kabine mieten', 'B2B'],
+          [t('onboarding.roleCustomer'), 'CUSTOMER'],
+          [t('onboarding.roleProvider'), 'PROVIDER'],
+          [t('onboarding.roleB2B'), 'B2B'],
         ] as const).map(([label, r]) => (
           <button key={r} className="boutline" style={{ padding: 17, fontSize: 14, fontWeight: 700, textAlign: 'left' }}
             onClick={() => selectRole(r)}>
@@ -674,13 +676,13 @@ export default function OnboardingGate({ slides, children }: Props) {
         className="bgold"
         style={{ marginTop: 20, width: '100%', background: 'transparent', border: '1.5px solid var(--gold)', color: 'var(--gold2)', fontSize: 14, fontWeight: 700 }}
       >
-        Ohne Anmeldung entdecken →
+        {t('onboarding.discoverNoAccount')}
       </button>
       {/* Login link */}
       <div style={{ width: '100%', borderTop: '1px solid var(--border)', marginTop: 20, paddingTop: 20, textAlign: 'center' }}>
-        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 10 }}>Bereits registriert?</p>
+        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 10 }}>{t('onboarding.alreadyRegistered')}</p>
         <button onClick={() => setPhase('login')} className="boutline" style={{ padding: '12px 24px', fontSize: 13 }}>
-          Anmelden →
+          {t('auth.login')} →
         </button>
       </div>
     </>)
@@ -789,7 +791,7 @@ export default function OnboardingGate({ slides, children }: Props) {
         <div style={{ display: 'flex', gap: 12, width: '100%', justifyContent: 'center' }}>
           {!isFirst && (
             <button onClick={() => setStep(step - 1)} className="boutline" style={{ padding: '15px 24px', fontSize: 14 }}>
-              ← Zurück
+              {t('onboarding.back')}
             </button>
           )}
           <button className="bgold" style={{ width: 'auto', padding: '15px 36px', fontSize: 14 }}
@@ -797,7 +799,7 @@ export default function OnboardingGate({ slides, children }: Props) {
               if (isLast) setPhase('roleSelect')
               else setStep(step + 1)
             }}>
-            {isLast ? "Los geht's" : 'Weiter →'}
+            {isLast ? t('onboarding.letsGo') : t('onboarding.next')}
           </button>
         </div>
         {/* Skip — direkt zur Plattform */}
@@ -805,7 +807,7 @@ export default function OnboardingGate({ slides, children }: Props) {
           onClick={() => finish('CUSTOMER')}
           style={{ marginTop: 18, background: 'none', border: 'none', color: 'var(--stone)', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3 }}
         >
-          Überspringen — direkt entdecken
+          {t('onboarding.skipDiscover')}
         </button>
         {/* Bottom spacer for iOS safe area */}
         <div style={{ flexShrink: 0, height: 30 }} />
