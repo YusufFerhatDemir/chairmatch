@@ -74,7 +74,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return { id: demo.id, email, name: demo.name, role: demo.role }
           }
 
-          // Authenticate via Supabase Auth
+          // Authenticate via Supabase Auth (mit Anon-Key — nur für Auth)
           const supabase = createClient(supabaseUrl, supabaseAnonKey)
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -88,8 +88,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           await logLoginAttempt(ip, email, true)
 
-          // Load profile via Supabase REST API (works with IPv4, no direct DB needed)
-          const { data: profile } = await supabase
+          // Profile-Load mit SERVICE-ROLE-CLIENT (bypassed RLS — server-side trusted)
+          // Anon-Client würde an RLS scheitern weil auth.uid() in Cross-Request-Context nicht gesetzt ist
+          const supabaseAdmin = getSupabaseAdmin()
+          const { data: profile } = await supabaseAdmin
             .from('profiles')
             .select('id, email, full_name, role, is_active')
             .eq('id', data.user.id)

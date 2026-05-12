@@ -138,6 +138,8 @@ const publicPrefixes = [
   '/api/products',
   '/api/public-stats',
   '/api/setup/',
+  '/api/register-provider', // B2-Fix: Public Provider-Signup
+  '/unsubscribe',           // DSGVO: Newsletter ohne Login abmeldbar
   '/shop/',
   '/register/',
   '/_next/',
@@ -167,11 +169,19 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
 
   // ------ Rate Limiting (nur für API-Routen) ------
-  if (pathname.startsWith('/api/')) {
-    const ip = getClientIp(req)
-    const isAuthRoute = pathname.startsWith('/api/auth/')
+  // H1-Fix: NextAuth-Polling-Routen (/session, /csrf, /providers, /callback) bekommen KEIN Rate-Limit
+  // Sonst läuft jeder Tab-Wechsel oder Page-Reload in 429-Fehler.
+  const NEXTAUTH_INTERNAL = ['/api/auth/session', '/api/auth/csrf', '/api/auth/providers', '/api/auth/callback', '/api/auth/_log']
+  const isNextAuthInternal = NEXTAUTH_INTERNAL.some(p => pathname.startsWith(p))
 
-    if (isAuthRoute) {
+  if (pathname.startsWith('/api/') && !isNextAuthInternal) {
+    const ip = getClientIp(req)
+    // Rate-Limit nur für sensitive Auth-Routen (register, signin, reset-password)
+    const isSensitiveAuth = pathname === '/api/auth/register' ||
+      pathname === '/api/auth/forgot-password' ||
+      pathname.startsWith('/api/auth/2fa/')
+
+    if (isSensitiveAuth) {
       if (isRateLimited(ip, 'auth', RATE_LIMIT_AUTH)) {
         return rateLimitResponse()
       }
