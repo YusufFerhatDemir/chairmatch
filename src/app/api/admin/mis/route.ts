@@ -353,6 +353,103 @@ export async function GET() {
       active: activeProviders,
     }
 
+    // --- Platform Revenue (platform_transactions) ---
+    interface PlatformTx {
+      id: string
+      type: 'booking' | 'chair_rental' | 'opraum_rental' | 'subscription' | 'affiliate' | 'refund'
+      platform_fee_cents: number
+      amount_cents: number
+      status: 'pending' | 'succeeded' | 'failed' | 'refunded'
+      created_at: string
+      provider_user_id: string | null
+      customer_user_id: string | null
+    }
+
+    let platformRevenue = {
+      totalCommissionEur: 0,
+      thisMonthEur: 0,
+      todayEur: 0,
+      bySource: {
+        booking: 0,
+        chairRental: 0,
+        opraumRental: 0,
+        subscription: 0,
+        affiliate: 0,
+      },
+    }
+    let recentRefunds: PlatformTx[] = []
+    let platformTransactions: PlatformTx[] = []
+
+    try {
+      const { data: txs } = await supabase
+        .from('platform_transactions')
+        .select('id, type, platform_fee_cents, amount_cents, status, created_at, provider_user_id, customer_user_id')
+        .order('created_at', { ascending: false })
+        .limit(500)
+
+      platformTransactions = (txs as PlatformTx[]) ?? []
+
+      const now = new Date()
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+      const sourceMap: Record<string, keyof typeof platformRevenue.bySource> = {
+        booking: 'booking',
+        chair_rental: 'chairRental',
+        opraum_rental: 'opraumRental',
+        subscription: 'subscription',
+        affiliate: 'affiliate',
+      }
+
+      for (const tx of platformTransactions) {
+        if (tx.status !== 'succeeded') continue
+        const feeEur = (Number(tx.platform_fee_cents) || 0) / 100
+        platformRevenue.totalCommissionEur += feeEur
+
+        const created = new Date(tx.created_at)
+        if (created >= startOfMonth) platformRevenue.thisMonthEur += feeEur
+        if (created >= startOfToday) platformRevenue.todayEur += feeEur
+
+        const sourceKey = sourceMap[tx.type]
+        if (sourceKey) {
+          platformRevenue.bySource[sourceKey] += feeEur
+        }
+      }
+
+      // Runden
+      platformRevenue = {
+        totalCommissionEur: Math.round(platformRevenue.totalCommissionEur * 100) / 100,
+        thisMonthEur: Math.round(platformRevenue.thisMonthEur * 100) / 100,
+        todayEur: Math.round(platformRevenue.todayEur * 100) / 100,
+        bySource: {
+          booking: Math.round(platformRevenue.bySource.booking * 100) / 100,
+          chairRental: Math.round(platformRevenue.bySource.chairRental * 100) / 100,
+          opraumRental: Math.round(platformRevenue.bySource.opraumRental * 100) / 100,
+          subscription: Math.round(platformRevenue.bySource.subscription * 100) / 100,
+          affiliate: Math.round(platformRevenue.bySource.affiliate * 100) / 100,
+        },
+      }
+
+      recentRefunds = platformTransactions
+        .filter(tx => tx.status === 'refunded')
+        .slice(0, 10)
+    } catch (err) {
+      console.warn('platform_transactions noch nicht verfügbar:', err)
+    }
+
+    // Recent transactions für UI (Top 25 succeeded/pending)
+    const recentTransactions = platformTransactions
+      .filter(tx => tx.status !== 'failed')
+      .slice(0, 25)
+      .map(tx => ({
+        id: tx.id,
+        type: tx.type,
+        amountEur: Math.round((Number(tx.amount_cents) || 0) / 100 * 100) / 100,
+        platformFeeEur: Math.round((Number(tx.platform_fee_cents) || 0) / 100 * 100) / 100,
+        status: tx.status,
+        createdAt: tx.created_at,
+      }))
+
     return NextResponse.json({
       kpis: {
         totalRevenue: Math.round(totalRevenue * 100) / 100,
@@ -387,6 +484,15 @@ export async function GET() {
       atRiskProviders,
       recentErrors,
       onboardingPipeline,
+      platformRevenue,
+      recentRefunds: recentRefunds.map(r => ({
+        id: r.id,
+        type: r.type,
+        amountEur: Math.round((Number(r.amount_cents) || 0) / 100 * 100) / 100,
+        platformFeeEur: Math.round((Number(r.platform_fee_cents) || 0) / 100 * 100) / 100,
+        createdAt: r.created_at,
+      })),
+      recentTransactions,
       generatedAt: new Date().toISOString(),
     })
   } catch (err) {

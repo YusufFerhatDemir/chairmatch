@@ -35,6 +35,20 @@ interface MISData {
   atRiskProviders?: { id: string; name: string; score: number; breakdown: Record<string, number> }[]
   recentErrors?: { id: string; message: string; level: string; created_at: string }[]
   onboardingPipeline?: { registered: number; docsUploaded: number; verified: number; active: number }
+  platformRevenue?: {
+    totalCommissionEur: number
+    thisMonthEur: number
+    todayEur: number
+    bySource: {
+      booking: number
+      chairRental: number
+      opraumRental: number
+      subscription: number
+      affiliate: number
+    }
+  }
+  recentRefunds?: { id: string; type: string; amountEur: number; platformFeeEur: number; createdAt: string }[]
+  recentTransactions?: { id: string; type: string; amountEur: number; platformFeeEur: number; status: string; createdAt: string }[]
   generatedAt?: string
 }
 
@@ -159,6 +173,112 @@ function ComplianceGauge({ rate, compliant, total }: { rate: number; compliant: 
 
 const sectionTitle: React.CSSProperties = { fontSize: 16, fontWeight: 700, color: TEXT, marginBottom: 16, marginTop: 32 }
 const exportBtn: React.CSSProperties = { background: 'transparent', border: `1px solid ${GOLD_DIM}`, color: GOLD, padding: '6px 14px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }
+
+function RefundableTransactionsTable({
+  transactions,
+  onRefunded,
+}: {
+  transactions: { id: string; type: string; amountEur: number; platformFeeEur: number; status: string; createdAt: string }[]
+  onRefunded: () => void
+}) {
+  const [refunding, setRefunding] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleRefund = useCallback(async (txId: string) => {
+    if (!window.confirm('Wirklich refunden? Diese Aktion markiert die Transaktion als refunded.')) return
+    setRefunding(txId)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transaction_id: txId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Refund fehlgeschlagen.')
+        setRefunding(null)
+        return
+      }
+      onRefunded()
+    } catch (e) {
+      setError((e as Error).message || 'Netzwerkfehler.')
+    } finally {
+      setRefunding(null)
+    }
+  }, [onRefunded])
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      {error && (
+        <div style={{ padding: 8, marginBottom: 8, background: 'rgba(192,64,64,0.1)', border: '1px solid rgba(192,64,64,0.3)', borderRadius: 6, fontSize: 12, color: '#f87171' }}>
+          ⚠ {error}
+        </div>
+      )}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <thead>
+          <tr>
+            {['Zeit', 'Typ', 'Betrag', 'Fee', 'Status', 'Aktion'].map(h => (
+              <th key={h} style={{ textAlign: 'left', padding: '10px 12px', borderBottom: `1px solid ${BORDER}`, color: GOLD, fontSize: 11, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {transactions.map((tx, i) => {
+            const isRefunded = tx.status === 'refunded'
+            const isPending = tx.status === 'pending'
+            const statusColor = isRefunded ? '#f87171' : isPending ? GOLD : '#4ade80'
+            return (
+              <tr key={tx.id} style={{ background: i % 2 === 0 ? 'transparent' : GOLD_GLOW }}>
+                <td style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}`, color: TEXT_DIM, fontSize: 12 }}>
+                  {new Date(tx.createdAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                </td>
+                <td style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}`, color: TEXT, fontWeight: 600 }}>
+                  {tx.type}
+                </td>
+                <td style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}`, color: TEXT }}>
+                  {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(tx.amountEur)}
+                </td>
+                <td style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}`, color: GOLD, fontWeight: 600 }}>
+                  {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(tx.platformFeeEur)}
+                </td>
+                <td style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}`, color: statusColor, fontWeight: 600, fontSize: 11, textTransform: 'uppercase' }}>
+                  {tx.status}
+                </td>
+                <td style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+                  {isRefunded ? (
+                    <span style={{ fontSize: 11, color: TEXT_DIM }}>—</span>
+                  ) : (
+                    <button
+                      onClick={() => handleRefund(tx.id)}
+                      disabled={refunding === tx.id}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid rgba(192,64,64,0.4)',
+                        color: '#f87171',
+                        padding: '4px 10px',
+                        borderRadius: 5,
+                        fontSize: 11,
+                        cursor: refunding === tx.id ? 'wait' : 'pointer',
+                        fontWeight: 600,
+                        opacity: refunding === tx.id ? 0.5 : 1,
+                      }}
+                    >
+                      {refunding === tx.id ? '...' : '↺ Refund'}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
+          {transactions.length === 0 && (
+            <tr><td colSpan={6} style={{ padding: 20, color: TEXT_DIM, textAlign: 'center' }}>Keine Transaktionen</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
 
 export default function MISPage() {
   const [data, setData] = useState<MISData | null>(null)
@@ -388,6 +508,82 @@ export default function MISPage() {
               Zeigt die letzten 10 von max. 20 Errors. Vollständige Logs in der Datenbank.
             </div>
           </div>
+        </>
+      )}
+
+      {/* === PLATTFORM-UMSATZ === */}
+      {data.platformRevenue && (
+        <>
+          <h3 style={{ ...sectionTitle, color: GOLD, borderBottom: `1px solid ${BORDER}`, paddingBottom: 8, marginTop: 40 }}>
+            PLATTFORM-UMSATZ
+          </h3>
+
+          {/* KPI-Cards für Plattform-Gewinn */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 16 }}>
+            <KPICard
+              label="Plattform-Gewinn (Total)"
+              value={formatCurrency(data.platformRevenue.totalCommissionEur)}
+              sub="Kommission gesamt"
+            />
+            <KPICard
+              label="Diesen Monat"
+              value={formatCurrency(data.platformRevenue.thisMonthEur)}
+            />
+            <KPICard
+              label="Heute"
+              value={formatCurrency(data.platformRevenue.todayEur)}
+            />
+          </div>
+
+          {/* Bar-Chart by Source */}
+          <h4 style={{ ...sectionTitle, fontSize: 14, marginTop: 20 }}>Umsatz nach Quelle</h4>
+          <div style={cardStyle}>
+            <BarChart
+              data={{
+                'Buchung': data.platformRevenue.bySource.booking,
+                'Stuhl-Miete': data.platformRevenue.bySource.chairRental,
+                'OP-Raum': data.platformRevenue.bySource.opraumRental,
+                'Abo': data.platformRevenue.bySource.subscription,
+                'Affiliate': data.platformRevenue.bySource.affiliate,
+              }}
+              label={(k) => k}
+              formatValue={(n) => n > 0 ? `€${Math.round(n)}` : ''}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BORDER}`, fontSize: 12, color: TEXT_DIM }}>
+              <span>Quelle: <code>platform_transactions</code> (status = succeeded)</span>
+              <span style={{ color: GOLD, fontWeight: 700 }}>
+                Total: {formatCurrency(data.platformRevenue.totalCommissionEur)}
+              </span>
+            </div>
+          </div>
+
+          {/* Recent Transactions mit Refund-Button */}
+          {data.recentTransactions && data.recentTransactions.length > 0 && (
+            <>
+              <h4 style={{ ...sectionTitle, fontSize: 14, marginTop: 20 }}>Letzte Transaktionen</h4>
+              <div style={cardStyle}>
+                <RefundableTransactionsTable transactions={data.recentTransactions} onRefunded={fetchData} />
+              </div>
+            </>
+          )}
+
+          {/* Recent Refunds */}
+          {data.recentRefunds && data.recentRefunds.length > 0 && (
+            <>
+              <h4 style={{ ...sectionTitle, fontSize: 14, marginTop: 20 }}>Letzte Refunds</h4>
+              <div style={cardStyle}>
+                <MISTable
+                  headers={['Zeit', 'Typ', 'Betrag', 'Plattform-Fee']}
+                  rows={data.recentRefunds.map(r => [
+                    new Date(r.createdAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                    r.type,
+                    formatCurrency(r.amountEur),
+                    `-${formatCurrency(r.platformFeeEur)}`,
+                  ])}
+                />
+              </div>
+            </>
+          )}
         </>
       )}
 

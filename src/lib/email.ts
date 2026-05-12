@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 // ---------------------------------------------------------------------------
 // Resend client — gracefully falls back to console.log if API key is not set
@@ -354,6 +355,165 @@ export async function sendComplianceAlert(
     <p>${info.description}</p>
     ${goldButton('Compliance-Dashboard öffnen', 'https://chairmatch.de/owner/compliance')}
     <p style="font-size:13px;color:#777;margin-top:24px">Die Einhaltung der Vorschriften ist wichtig, um deinen Salon auf ChairMatch aktiv zu halten.</p>
+  `)
+
+  return send(to, subject, html)
+}
+
+// ---------------------------------------------------------------------------
+// Affiliate post-booking recommendations
+// ---------------------------------------------------------------------------
+
+/**
+ * Map einer Service-Kategorie auf passende Affiliate-Produktkategorien.
+ * Reihenfolge entspricht der Priorität bei der Auswahl.
+ */
+const SERVICE_TO_AFFILIATE_CATEGORIES: Record<string, string[]> = {
+  friseur:   ['Haarpflege', 'Tools'],
+  barber:    ['Haarpflege', 'Tools'],
+  kosmetik:  ['Gesichtspflege', 'Make-up'],
+  aesthetik: ['Gesichtspflege'],
+  nail:      ['Tools', 'Make-up'],
+  massage:   ['Gesichtspflege'],
+  lash:      ['Make-up'],
+  arzt:      ['Gesichtspflege'],
+}
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://chairmatch.de'
+
+interface AffiliateProductRow {
+  id: string
+  product_name: string
+  product_url: string
+  image_url: string | null
+  price_cents: number | null
+  category: string | null
+  partner: string
+}
+
+function affiliateProductBlock(product: AffiliateProductRow, trackingUrl: string): string {
+  const price = product.price_cents != null ? formatPrice(product.price_cents) : ''
+  const image = product.image_url
+    ? `<img src="${esc(product.image_url)}" alt="${esc(product.product_name)}" width="120" height="120" style="display:block;width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid #333" />`
+    : `<div style="width:120px;height:120px;background:#2a2a2a;border-radius:8px;border:1px solid #333;display:flex;align-items:center;justify-content:center;color:#777">🛍️</div>`
+
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:12px 0;background:#1a1a1a;border-radius:10px;border:1px solid #333">
+      <tr>
+        <td style="padding:14px;width:136px;vertical-align:top">${image}</td>
+        <td style="padding:14px 14px 14px 0;vertical-align:top">
+          <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37">${esc(product.partner)}</p>
+          <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#e0e0e0;line-height:1.3">${esc(product.product_name)}</p>
+          ${price ? `<p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#D4AF37">${price}</p>` : ''}
+          <a href="${trackingUrl}" style="display:inline-block;background:linear-gradient(135deg,#D4AF37,#E8D06A);color:#1a1a1a;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none">Jetzt ansehen →</a>
+        </td>
+      </tr>
+    </table>
+  `
+}
+
+function categoryLabel(slug: string): string {
+  const map: Record<string, string> = {
+    friseur: 'Friseur-Behandlung',
+    barber: 'Barber-Behandlung',
+    kosmetik: 'Kosmetik-Behandlung',
+    aesthetik: 'Ästhetik-Behandlung',
+    nail: 'Nagel-Behandlung',
+    massage: 'Massage',
+    lash: 'Wimpern-Behandlung',
+    arzt: 'medizinische Behandlung',
+  }
+  return map[slug.toLowerCase()] || 'Behandlung'
+}
+
+/**
+ * Schicke nach einer abgeschlossenen Buchung eine E-Mail mit
+ * 3–5 passenden Affiliate-Produkten zur Service-Kategorie.
+ *
+ * @param userId    Profil-ID des Kunden (für Empfänger-Lookup)
+ * @param bookingId Buchungs-ID (für Email-Subject + Logging)
+ * @param category  Service-Kategorie-Slug (z. B. 'friseur', 'kosmetik')
+ */
+export async function sendPostBookingAffiliateRecommendations(
+  userId: string,
+  bookingId: string,
+  category: string,
+) {
+  const supabase = getSupabaseAdmin()
+
+  // Empfänger holen
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('email, full_name, first_name')
+    .eq('id', userId)
+    .maybeSingle()
+
+  const to = profile?.email
+  if (!to) {
+    console.warn(`[Email] sendPostBookingAffiliateRecommendations: kein E-Mail für user ${userId}`)
+    return { success: false, error: 'Kein E-Mail-Empfänger' }
+  }
+
+  // passende Affiliate-Kategorien ermitteln
+  const slug = (category || '').toLowerCase()
+  const affiliateCategories = SERVICE_TO_AFFILIATE_CATEGORIES[slug] || ['Haarpflege', 'Gesichtspflege']
+
+  // 3–5 Produkte aus den passenden Kategorien holen
+  const { data: products } = await supabase
+    .from('affiliate_products')
+    .select('id, product_name, product_url, image_url, price_cents, category, partner')
+    .in('category', affiliateCategories)
+    .eq('is_active', true)
+    .order('commission_rate', { ascending: false })
+    .limit(5)
+
+  const productList: AffiliateProductRow[] = (products ?? []) as AffiliateProductRow[]
+
+  if (productList.length < 3) {
+    // Fallback: irgendwelche aktiven Produkte
+    const { data: fallback } = await supabase
+      .from('affiliate_products')
+      .select('id, product_name, product_url, image_url, price_cents, category, partner')
+      .eq('is_active', true)
+      .order('commission_rate', { ascending: false })
+      .limit(5 - productList.length)
+    for (const p of (fallback ?? []) as AffiliateProductRow[]) {
+      if (!productList.find(x => x.id === p.id)) productList.push(p)
+    }
+  }
+
+  if (productList.length === 0) {
+    console.log('[Email] sendPostBookingAffiliateRecommendations: keine Produkte vorhanden')
+    return { success: false, error: 'Keine Affiliate-Produkte verfügbar' }
+  }
+
+  const serviceLabel = categoryLabel(slug)
+  const subject = `Mach das Beste aus deiner ${serviceLabel}`
+  const greetingName = profile?.first_name || profile?.full_name || ''
+
+  const productBlocks = productList
+    .map(p => {
+      const trackingUrl = `${APP_URL}/api/affiliate/track/${p.id}?source=email_post_booking_${encodeURIComponent(bookingId)}`
+      return affiliateProductBlock(p, trackingUrl)
+    })
+    .join('')
+
+  const html = baseLayout(subject, `
+    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:20px;font-family:Georgia,'Times New Roman',serif">Pflegeset für deine neue ${esc(serviceLabel)}</h2>
+    <p>Hallo${greetingName ? ` ${esc(greetingName)}` : ''},</p>
+    <p>danke, dass du über ChairMatch gebucht hast! Damit das Ergebnis deiner ${esc(serviceLabel)} möglichst lange schön bleibt, haben wir ein paar Pflege-Empfehlungen für dich kuratiert:</p>
+
+    <div style="margin:20px 0">
+      ${productBlocks}
+    </div>
+
+    ${goldButton('Alle Empfehlungen ansehen', `${APP_URL}/empfehlungen`)}
+
+    <p style="font-size:12px;color:#777;margin-top:24px;line-height:1.5">
+      Diese E-Mail enthält Affiliate-Links. Beim Kauf über einen dieser Links erhält ChairMatch
+      eine kleine Provision — dich kostet das nichts extra.
+    </p>
+    <p style="font-size:12px;color:#555;margin-top:6px">Buchungs-ID: ${esc(bookingId)}</p>
   `)
 
   return send(to, subject, html)

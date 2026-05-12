@@ -237,13 +237,89 @@ export default function AccountPage() {
 
           {['admin', 'super_admin'].includes(role) && (
             <>
-              <Link href="/admin" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
-                <span style={{ color: 'var(--cream)', fontSize: 13 }}>⚙️ Admin Panel</span>
+              {/* Prominenter Admin-Hero-Button */}
+              <Link
+                href="/admin/mis"
+                style={{
+                  textDecoration: 'none',
+                  display: 'block',
+                  marginTop: 6,
+                  marginBottom: 4,
+                  padding: '18px 18px',
+                  borderRadius: 14,
+                  background: 'linear-gradient(135deg, #2A1F08 0%, #1A1408 50%, #0E0A04 100%)',
+                  border: '1px solid rgba(212,175,55,0.35)',
+                  boxShadow: '0 4px 18px rgba(212,175,55,0.12), inset 0 1px 0 rgba(212,175,55,0.08)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{
+                    flexShrink: 0,
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg, #D4AF37 0%, #B89030 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 24,
+                    boxShadow: '0 2px 8px rgba(212,175,55,0.4)',
+                  }}>
+                    ⚙️
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p className="cinzel" style={{
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: 'var(--gold2)',
+                      letterSpacing: '0.05em',
+                      marginBottom: 3,
+                      lineHeight: 1.2,
+                    }}>
+                      MIS-Portal & Admin
+                    </p>
+                    <p style={{
+                      fontSize: 11,
+                      color: 'var(--stone)',
+                      lineHeight: 1.35,
+                    }}>
+                      Umsatz · Buchungen · Anbieter · Health-Scores
+                    </p>
+                  </div>
+                  <span style={{
+                    color: 'var(--gold)',
+                    fontSize: 20,
+                    fontWeight: 800,
+                    flexShrink: 0,
+                  }}>›</span>
+                </div>
               </Link>
-              <Link href="/admin/mis" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px' }}>
-                <span style={{ color: 'var(--cream)', fontSize: 13 }}>📈 MIS Dashboard</span>
-              </Link>
+
+              {/* Admin Sub-Links */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
+                <Link href="/admin/anbieter" className="card" style={{ textDecoration: 'none', display: 'block', padding: '10px 12px', textAlign: 'center' }}>
+                  <span style={{ color: 'var(--cream)', fontSize: 11, fontWeight: 600 }}>🏢 Anbieter</span>
+                </Link>
+                <Link href="/admin/affiliate" className="card" style={{ textDecoration: 'none', display: 'block', padding: '10px 12px', textAlign: 'center' }}>
+                  <span style={{ color: 'var(--cream)', fontSize: 11, fontWeight: 600 }}>🛒 Affiliate</span>
+                </Link>
+                <Link href="/admin/pricing" className="card" style={{ textDecoration: 'none', display: 'block', padding: '10px 12px', textAlign: 'center' }}>
+                  <span style={{ color: 'var(--cream)', fontSize: 11, fontWeight: 600 }}>💰 Pricing</span>
+                </Link>
+                <Link href="/admin/audit-logs" className="card" style={{ textDecoration: 'none', display: 'block', padding: '10px 12px', textAlign: 'center' }}>
+                  <span style={{ color: 'var(--cream)', fontSize: 11, fontWeight: 600 }}>📜 Audit-Logs</span>
+                </Link>
+              </div>
             </>
+          )}
+
+          {/* Super-Admin Promote-Link (sichtbar für alle, da Setup-Key-geschützt) */}
+          {!['admin', 'super_admin'].includes(role) && (
+            <Link href="/account/promote-admin" className="card" style={{ textDecoration: 'none', display: 'block', padding: '13px 15px', opacity: 0.6 }}>
+              <span style={{ color: 'var(--stone)', fontSize: 12 }}>🔑 Super-Admin Setup</span>
+            </Link>
           )}
         </div>
 

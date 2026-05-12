@@ -16,6 +16,7 @@ const adminNav: NavItem[] = [
   { href: '/admin/audit-logs', label: 'Audit Logs', icon: '🔒' },
   { href: '/admin/besucher', label: 'Besucher', icon: '👁' },
   { href: '/admin/pricing', label: 'Pricing', icon: '💰' },
+  { href: '/admin/affiliate', label: 'Affiliate', icon: '🛍️' },
   { href: '/admin/risk-settings', label: 'Risk Settings', icon: '⚠️' },
 ]
 
