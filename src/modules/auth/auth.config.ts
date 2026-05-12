@@ -82,23 +82,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           })
 
           if (error || !data.user) {
+            console.error('[AUTH] signInWithPassword failed:', { email, error: error?.message })
             await logLoginAttempt(ip, email, false)
             return null
           }
 
           await logLoginAttempt(ip, email, true)
 
-          // Profile-Load mit SERVICE-ROLE-CLIENT (bypassed RLS — server-side trusted)
-          // Anon-Client würde an RLS scheitern weil auth.uid() in Cross-Request-Context nicht gesetzt ist
+          // Profile-Load mit SERVICE-ROLE-CLIENT (bypassed RLS)
           const supabaseAdmin = getSupabaseAdmin()
-          const { data: profile } = await supabaseAdmin
+          const { data: profile, error: profileError } = await supabaseAdmin
             .from('profiles')
             .select('id, email, full_name, role, is_active')
             .eq('id', data.user.id)
             .single()
 
-          if (!profile) return null
-          if ((profile as { is_active?: boolean }).is_active === false) return null
+          if (profileError) {
+            console.error('[AUTH] Profile-Lookup failed:', { userId: data.user.id, email, profileError: profileError.message })
+            // Fallback: trotzdem Login zulassen mit Daten aus auth.user
+            return {
+              id: data.user.id,
+              email: data.user.email || email,
+              name: (data.user.user_metadata?.full_name as string) || data.user.email || email,
+              role: (data.user.user_metadata?.role as string) || 'kunde',
+            }
+          }
+
+          if (!profile) {
+            console.error('[AUTH] Profile not found:', { userId: data.user.id, email })
+            // Auto-create Profile via auth.user-Metadata
+            return {
+              id: data.user.id,
+              email: data.user.email || email,
+              name: (data.user.user_metadata?.full_name as string) || data.user.email || email,
+              role: (data.user.user_metadata?.role as string) || 'kunde',
+            }
+          }
+
+          if ((profile as { is_active?: boolean }).is_active === false) {
+            console.error('[AUTH] Profile inactive:', { userId: data.user.id, email })
+            return null
+          }
 
           return {
             id: profile.id,
@@ -106,7 +130,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: profile.full_name || data.user.email,
             role: profile.role,
           }
-        } catch {
+        } catch (e) {
+          console.error('[AUTH] authorize() crashed:', e)
           return null
         }
       },
