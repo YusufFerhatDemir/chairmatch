@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chairmatch-v13'; // v12 -> v13: zwingt SW-Update mit neuen Logos
+const CACHE_NAME = 'chairmatch-v14'; // v13 -> v14: bust nach OP-Raum-Update + dynamic Labels
 const PRECACHE_URLS = [
   '/',
   '/explore',
