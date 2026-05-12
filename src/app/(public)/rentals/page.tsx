@@ -58,6 +58,17 @@ export default async function RentalsPage({ searchParams }: Props) {
     opraum: 'OP-Raum',
   }
 
+  // Dynamischer Call-To-Action je nach aktivem Filter
+  const ctaLabel = (() => {
+    switch (filterType) {
+      case 'stuhl': return 'Stuhl vermieten'
+      case 'liege': return 'Liege vermieten'
+      case 'raum': return 'Raum vermieten'
+      case 'opraum': return 'OP-Raum vermieten'
+      default: return 'Stuhl, Liege oder OP-Raum anbieten'
+    }
+  })()
+
   const filters = [
     { key: '', label: 'Alle' },
     { key: 'stuhl', label: 'Stuhl' },
@@ -104,7 +115,7 @@ export default async function RentalsPage({ searchParams }: Props) {
                 Noch keine Mietangebote in dieser Kategorie.
               </p>
               <a href="/register/anbieter" className="bgold" style={{ display: 'inline-block', padding: '12px 24px', textDecoration: 'none', fontSize: 13 }}>
-                Stuhl oder Raum anbieten
+                {ctaLabel}
               </a>
             </div>
           ) : (
