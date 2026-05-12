@@ -139,6 +139,7 @@ const publicPrefixes = [
   '/api/public-stats',
   '/api/setup/',
   '/api/register-provider', // B2-Fix: Public Provider-Signup
+  '/api/_debug/',           // TEMP: Debug-Endpoint, bald wieder weg
   '/unsubscribe',           // DSGVO: Newsletter ohne Login abmeldbar
   '/shop/',
   '/register/',
