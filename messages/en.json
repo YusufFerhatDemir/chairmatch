@@ -140,7 +140,7 @@
     "empty": "No rental listings in this category yet.",
     "rentChair": "Rent out a chair",
     "rentBed": "Rent out a bed",
-    "rentRoom": "Rent out a room",
+    "rentRoom": "Rent out a cabin",
     "rentOR": "Rent out an OR",
     "rentAny": "Offer a chair, bed or OR",
     "offerOwn": "Offer your own chair or room →",
@@ -149,7 +149,7 @@
     "filterAll": "All",
     "filterChair": "Chair",
     "filterBed": "Bed",
-    "filterRoom": "Room",
+    "filterRoom": "Cabin",
     "filterOR": "OR Room"
   },
   "consent": {

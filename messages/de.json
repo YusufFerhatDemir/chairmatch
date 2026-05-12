@@ -140,7 +140,7 @@
     "empty": "Noch keine Mietangebote in dieser Kategorie.",
     "rentChair": "Stuhl vermieten",
     "rentBed": "Liege vermieten",
-    "rentRoom": "Raum vermieten",
+    "rentRoom": "Kabine vermieten",
     "rentOR": "OP-Raum vermieten",
     "rentAny": "Stuhl, Liege oder OP-Raum anbieten",
     "offerOwn": "Stuhl oder Raum anbieten →",
@@ -149,7 +149,7 @@
     "filterAll": "Alle",
     "filterChair": "Stuhl",
     "filterBed": "Liege",
-    "filterRoom": "Raum",
+    "filterRoom": "Kabine",
     "filterOR": "OP-Raum"
   },
   "consent": {

@@ -140,7 +140,7 @@
     "empty": "Bu kategoride henüz teklif yok.",
     "rentChair": "Koltuk kiraya ver",
     "rentBed": "Sedye kiraya ver",
-    "rentRoom": "Oda kiraya ver",
+    "rentRoom": "Kabin kiraya ver",
     "rentOR": "Ameliyathane kiraya ver",
     "rentAny": "Koltuk, sedye veya ameliyathane sun",
     "offerOwn": "Kendi koltuk veya odanı sun →",
@@ -149,7 +149,7 @@
     "filterAll": "Tümü",
     "filterChair": "Koltuk",
     "filterBed": "Sedye",
-    "filterRoom": "Oda",
+    "filterRoom": "Kabin",
     "filterOR": "Ameliyathane"
   },
   "consent": {
