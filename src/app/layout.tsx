@@ -148,35 +148,19 @@ export default async function RootLayout({
           </ErrorBoundary>
         </Providers>
         <script dangerouslySetInnerHTML={{ __html: `
+          /* SERVICE WORKER KILL-SWITCH
+             Ehemals registrierte SWs werden deinstalliert + alle Caches geleert.
+             So lange der Cache-Stress eingependelt ist, KEIN SW. Bei Bedarf
+             später wieder aktivieren (Offline-Modus etc.). */
           if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-              try {
-                const reg = await navigator.serviceWorker.register('/sw.js');
-                // Periodisch nach Updates suchen (alle 60s)
-                setInterval(() => reg.update().catch(() => {}), 60000);
-                // Sofort prüfen bei Page-Visibility-Change
-                document.addEventListener('visibilitychange', () => {
-                  if (document.visibilityState === 'visible') reg.update().catch(() => {});
-                });
-                // Wenn neuer SW installiert ist: nahtloser Auto-Reload (max 1x pro Session)
-                let reloaded = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                  if (reloaded) return;
-                  reloaded = true;
-                  window.location.reload();
-                });
-                reg.addEventListener('updatefound', () => {
-                  const newSW = reg.installing;
-                  if (!newSW) return;
-                  newSW.addEventListener('statechange', () => {
-                    if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-                      // Neuer SW ist bereit — sofort aktivieren
-                      newSW.postMessage({ type: 'SKIP_WAITING' });
-                    }
-                  });
-                });
-              } catch (e) { /* SW-Registrierung fehlgeschlagen — silently */ }
-            });
+            navigator.serviceWorker.getRegistrations().then(regs => {
+              regs.forEach(r => r.unregister().catch(() => {}));
+            }).catch(() => {});
+            if (typeof caches !== 'undefined') {
+              caches.keys().then(keys => {
+                keys.forEach(k => caches.delete(k).catch(() => {}));
+              }).catch(() => {});
+            }
           }
         ` }} />
       </body>
