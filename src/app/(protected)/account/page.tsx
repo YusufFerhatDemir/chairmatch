@@ -6,13 +6,18 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { safeFetch, safeFetchJson } from '@/lib/safe-fetch'
 
 function NotificationBell() {
   const [count, setCount] = useState(0)
   useEffect(() => {
-    fetch('/api/notifications').then(r => r.json()).then(d => {
-      if (d.unreadCount) setCount(d.unreadCount)
-    }).catch(() => {})
+    let cancelled = false
+    safeFetchJson<{ unreadCount?: number }>('/api/notifications', { timeoutMs: 6000, retries: 1 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.ok && res.data?.unreadCount) setCount(res.data.unreadCount)
+      })
+    return () => { cancelled = true }
   }, [])
   return (
     <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -30,9 +35,14 @@ function TwoFactorToggle() {
   const [enabled, setEnabled] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(false)
   useEffect(() => {
-    fetch('/api/auth/2fa/setup').then(r => r.json()).then(d => {
-      setEnabled(d.enabled === true)
-    }).catch(() => {})
+    let cancelled = false
+    safeFetchJson<{ enabled?: boolean }>('/api/auth/2fa/setup', { timeoutMs: 6000, retries: 1 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.ok) setEnabled(res.data?.enabled === true)
+        else setEnabled(false)
+      })
+    return () => { cancelled = true }
   }, [])
   return (
     <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -47,15 +57,24 @@ function TwoFactorToggle() {
           disabled={loading}
           onClick={async () => {
             setLoading(true)
-            const r = await fetch('/api/auth/2fa/setup', { method: 'POST' })
-            if (r.ok) {
-              const d = await r.json()
-              if (d.qrUrl) {
-                window.open(d.qrUrl, '_blank')
+            try {
+              const r = await safeFetch('/api/auth/2fa/setup', {
+                method: 'POST',
+                timeoutMs: 8000,
+                retries: 1,
+              })
+              if (r.ok) {
+                const d = await r.json().catch(() => ({}))
+                if (d?.qrUrl) {
+                  window.open(d.qrUrl, '_blank')
+                }
+                setEnabled(true)
               }
-              setEnabled(true)
+            } catch {
+              /* show error silently — UI stays usable */
+            } finally {
+              setLoading(false)
             }
-            setLoading(false)
           }}
           style={{ fontSize: 11, padding: '4px 12px' }}
         >
@@ -84,10 +103,13 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (!session?.user) return
-    fetch('/api/bookings')
-      .then(r => r.json())
-      .then(d => { if (Array.isArray(d)) setBookings(d.slice(0, 5)) })
-      .catch(() => {})
+    let cancelled = false
+    safeFetchJson<Booking[]>('/api/bookings', { timeoutMs: 8000, retries: 1 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.ok && Array.isArray(res.data)) setBookings(res.data.slice(0, 5))
+      })
+    return () => { cancelled = true }
   }, [session])
 
   if (!session?.user) {
@@ -330,13 +352,20 @@ export default function AccountPage() {
           </p>
           <button
             onClick={async () => {
-              const r = await fetch('/api/account/export')
-              if (!r.ok) return
-              const blob = await r.blob()
-              const a = document.createElement('a')
-              a.href = URL.createObjectURL(blob)
-              a.download = `chairmatch-export-${new Date().toISOString().slice(0, 10)}.json`
-              a.click()
+              try {
+                const r = await safeFetch('/api/account/export', {
+                  timeoutMs: 15000,
+                  retries: 0,
+                })
+                if (!r.ok) return
+                const blob = await r.blob()
+                const a = document.createElement('a')
+                a.href = URL.createObjectURL(blob)
+                a.download = `chairmatch-export-${new Date().toISOString().slice(0, 10)}.json`
+                a.click()
+              } catch {
+                /* swallow — UI stays usable */
+              }
             }}
             className="boutline"
             style={{ width: '100%', marginBottom: 8, textAlign: 'left', padding: '12px 14px' }}
@@ -366,10 +395,18 @@ export default function AccountPage() {
           <button
             onClick={async () => {
               if (!confirm('Konto wirklich löschen? Nach 30 Tagen erfolgt die endgültige Löschung.')) return
-              const r = await fetch('/api/account/delete', { method: 'POST' })
-              if (r.ok) {
-                await signOut({ callbackUrl: '/' })
-                router.push('/')
+              try {
+                const r = await safeFetch('/api/account/delete', {
+                  method: 'POST',
+                  timeoutMs: 10000,
+                  retries: 0,
+                })
+                if (r.ok) {
+                  await signOut({ callbackUrl: '/' })
+                  router.push('/')
+                }
+              } catch {
+                /* keep user on page — they can retry */
               }
             }}
             className="boutline"

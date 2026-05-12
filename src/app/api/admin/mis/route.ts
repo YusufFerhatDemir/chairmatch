@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/modules/auth/auth.config'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { withApi, apiError } from '@/lib/api-wrapper'
 
 async function requireAdmin() {
   const session = await auth()
@@ -11,9 +12,9 @@ async function requireAdmin() {
   return session
 }
 
-export async function GET() {
+export const GET = withApi(async () => {
   if (!await requireAdmin()) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return apiError('Forbidden', 403)
   }
 
   const supabase = getSupabaseAdmin()
@@ -499,4 +500,4 @@ export async function GET() {
     console.error('MIS API error:', err)
     return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
   }
-}
+}, { timeoutMs: 15000 })

@@ -8,6 +8,8 @@ import VisitTracker from '@/components/VisitTracker'
 import ChatWidget from '@/components/ChatWidget'
 import FloatingLanguageSwitcher from '@/components/FloatingLanguageSwitcher'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import NetworkBanner from '@/components/NetworkBanner'
+import PageReadyWatcher from '@/components/PageReadyWatcher'
 import { getLocale } from '@/i18n/server'
 import { isRTL, LOCALE_META } from '@/i18n/config'
 import './globals.css'
@@ -137,6 +139,8 @@ export default async function RootLayout({
           }) }}
         />
         <DynamicTheme />
+        <NetworkBanner />
+        <PageReadyWatcher />
         <Providers initialLocale={locale}>
           <ErrorBoundary>
             <VisitTracker />

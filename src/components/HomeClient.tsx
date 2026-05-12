@@ -10,6 +10,7 @@ import { RecommendationBanner } from '@/components/recommendations/Recommendatio
 import Footer from '@/components/Footer'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, type LucideIcon } from 'lucide-react'
 import { useTranslations } from '@/i18n/client'
+import { safeFetch, safeFetchJson } from '@/lib/safe-fetch'
 
 interface Category {
   id: string
@@ -139,19 +140,23 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
   }
 
   useEffect(() => {
-    // Load favorites: try DB first, fallback to localStorage
-    fetch('/api/favorites').then(r => r.json()).then(data => {
-      if (data.favorites?.length > 0) {
-        setFavorites(data.favorites)
-        localStorage.setItem('cm_favorites', JSON.stringify(data.favorites))
-      } else {
-        const saved = localStorage.getItem('cm_favorites')
-        if (saved) setFavorites(JSON.parse(saved))
-      }
-    }).catch(() => {
-      const saved = localStorage.getItem('cm_favorites')
-      if (saved) setFavorites(JSON.parse(saved))
-    })
+    // Load favorites: try DB first, fallback to localStorage.
+    // safeFetchJson guarantees no hang and never throws.
+    let cancelled = false
+    safeFetchJson<{ favorites?: string[] }>('/api/favorites', { timeoutMs: 6000, retries: 1 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.ok && res.data?.favorites && res.data.favorites.length > 0) {
+          setFavorites(res.data.favorites)
+          try { localStorage.setItem('cm_favorites', JSON.stringify(res.data.favorites)) } catch {}
+        } else {
+          try {
+            const saved = localStorage.getItem('cm_favorites')
+            if (saved) setFavorites(JSON.parse(saved))
+          } catch {}
+        }
+      })
+    return () => { cancelled = true }
   }, [])
 
   function toggleFav(id: string, e: React.MouseEvent) {
@@ -160,12 +165,14 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
     setFavorites(prev => {
       const isAdding = !prev.includes(id)
       const next = isAdding ? [...prev, id] : prev.filter(f => f !== id)
-      localStorage.setItem('cm_favorites', JSON.stringify(next))
-      // Sync to DB (fire-and-forget)
-      fetch('/api/favorites', {
+      try { localStorage.setItem('cm_favorites', JSON.stringify(next)) } catch {}
+      // Sync to DB (fire-and-forget, hardened against hangs)
+      safeFetch('/api/favorites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ salonId: id, action: isAdding ? 'add' : 'remove' }),
+        timeoutMs: 5000,
+        retries: 1,
       }).catch(() => {})
       return next
     })
@@ -474,7 +481,13 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
                 if (!nlEmail || nlStatus === 'loading') return
                 setNlStatus('loading')
                 try {
-                  const res = await fetch('/api/newsletter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: nlEmail }) })
+                  const res = await safeFetch('/api/newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: nlEmail }),
+                    timeoutMs: 8000,
+                    retries: 1,
+                  })
                   setNlStatus(res.ok ? 'ok' : 'err')
                 } catch { setNlStatus('err') }
               }}>{nlStatus === 'loading' ? '...' : t('home.subscribe')}</button>
