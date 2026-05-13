@@ -171,5 +171,19 @@
     "english": "English",
     "turkish": "Türkçe",
     "arabic": "العربية"
+  },
+  "phoneAuth": {
+    "invalidNumber": "Lütfen geçerli bir telefon numarası girin.",
+    "sendFailed": "SMS gönderilemedi.",
+    "codeSent": "Kod gönderildi — lütfen SMS'lerini kontrol et.",
+    "codeSentTo": "Kod gönderildi",
+    "codeFormat": "Kod 6 haneli olmalı.",
+    "wrongCode": "Yanlış veya süresi dolmuş kod.",
+    "connectionError": "Bağlantı hatası.",
+    "verified": "Telefon doğrulandı ✓",
+    "sendCode": "SMS ile kod gönder",
+    "verify": "Kodu onayla",
+    "resend": "Yeni kod iste",
+    "resendIn": "Yeni kod"
   }
 }

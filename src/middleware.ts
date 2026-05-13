@@ -185,7 +185,8 @@ export default auth((req) => {
     const isSensitiveAuth = isWriteMethod && (
       pathname === '/api/auth/register' ||
       pathname === '/api/auth/forgot-password' ||
-      pathname.startsWith('/api/auth/2fa/')
+      pathname.startsWith('/api/auth/2fa/') ||
+      pathname.startsWith('/api/auth/phone/')
     )
 
     if (isSensitiveAuth) {

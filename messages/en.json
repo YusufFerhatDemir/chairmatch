@@ -171,5 +171,19 @@
     "english": "English",
     "turkish": "Türkçe",
     "arabic": "العربية"
+  },
+  "phoneAuth": {
+    "invalidNumber": "Please enter a valid phone number.",
+    "sendFailed": "Could not send SMS.",
+    "codeSent": "Code sent — please check your SMS.",
+    "codeSentTo": "Code sent to",
+    "codeFormat": "Code must be 6 digits.",
+    "wrongCode": "Wrong or expired code.",
+    "connectionError": "Connection error.",
+    "verified": "Phone verified ✓",
+    "sendCode": "Send code via SMS",
+    "verify": "Confirm code",
+    "resend": "Request new code",
+    "resendIn": "New code in"
   }
 }

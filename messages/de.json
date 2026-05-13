@@ -171,5 +171,19 @@
     "english": "English",
     "turkish": "Türkçe",
     "arabic": "العربية"
+  },
+  "phoneAuth": {
+    "invalidNumber": "Bitte eine gültige Nummer eingeben.",
+    "sendFailed": "SMS konnte nicht gesendet werden.",
+    "codeSent": "Code gesendet — bitte SMS checken.",
+    "codeSentTo": "Code an",
+    "codeFormat": "Code besteht aus 6 Ziffern.",
+    "wrongCode": "Falscher oder abgelaufener Code.",
+    "connectionError": "Verbindungsfehler.",
+    "verified": "Nummer verifiziert ✓",
+    "sendCode": "Code per SMS senden",
+    "verify": "Code bestätigen",
+    "resend": "Neuen Code anfordern",
+    "resendIn": "Neuer Code in"
   }
 }

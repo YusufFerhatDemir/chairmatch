@@ -171,5 +171,19 @@
     "english": "English",
     "turkish": "Türkçe",
     "arabic": "العربية"
+  },
+  "phoneAuth": {
+    "invalidNumber": "يرجى إدخال رقم هاتف صالح.",
+    "sendFailed": "تعذر إرسال الرسالة.",
+    "codeSent": "تم إرسال الرمز — يرجى مراجعة الرسائل.",
+    "codeSentTo": "تم إرسال الرمز إلى",
+    "codeFormat": "الرمز يجب أن يتكون من 6 أرقام.",
+    "wrongCode": "رمز خاطئ أو منتهي الصلاحية.",
+    "connectionError": "خطأ في الاتصال.",
+    "verified": "تم التحقق من الرقم ✓",
+    "sendCode": "إرسال الرمز عبر رسالة",
+    "verify": "تأكيد الرمز",
+    "resend": "طلب رمز جديد",
+    "resendIn": "رمز جديد في"
   }
 }
