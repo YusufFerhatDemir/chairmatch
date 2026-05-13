@@ -131,7 +131,9 @@
     "extraPerDay": "Günlük ek ücret (€)",
     "allReady": "Her şey hazır!",
     "checkData": "Bilgilerini kontrol et ve onayla.",
-    "createProfile": "Profili oluştur ve onay e-postası al"
+    "createProfile": "Profili oluştur ve onay e-postası al",
+    "welcome": "Hoş geldin",
+    "confirmationTo": "Onay e-postası"
   },
   "rentals": {
     "title": "Koltuk · Kabin · Ameliyathane",

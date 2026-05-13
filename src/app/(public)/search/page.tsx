@@ -41,14 +41,25 @@ export default async function SearchPage({ searchParams }: Props) {
       .limit(50)
 
     if (q) {
-      const safeQ = q.replace(/[%_(),.]/g, '')
-      if (safeQ) {
+      // H5-Fix: PostgREST .or() interpretiert Komma als Operator-Trenner, Backtick
+      // als Identifier-Quote, Klammern als Gruppen — alle müssen raus, sonst
+      // kann ein User die Query brechen oder andere Felder ansprechen.
+      const safeQ = q
+        .replace(/[%_(),.`'"\\;]/g, '') // PostgREST + SQL-relevant chars raus
+        .replace(/\s+/g, ' ')            // collapse whitespace
+        .trim()
+        .slice(0, 80)                     // hard length cap
+      if (safeQ.length >= 2) {
         query = query.or(`name.ilike.%${safeQ}%,description.ilike.%${safeQ}%`)
       }
     }
 
     if (city) {
-      query = query.ilike('city', city)
+      // Whitelist: nur Buchstaben, Leerzeichen, Bindestriche, Umlaute
+      const safeCity = city.replace(/[^a-zA-ZäöüÄÖÜß\s-]/g, '').slice(0, 60).trim()
+      if (safeCity) {
+        query = query.ilike('city', safeCity)
+      }
     }
 
     const { data } = await query

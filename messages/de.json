@@ -131,7 +131,9 @@
     "extraPerDay": "Aufpreis pro Tag (€)",
     "allReady": "Alles bereit!",
     "checkData": "Prüfe deine Angaben und bestätige.",
-    "createProfile": "Profil erstellen & Bestätigungsmail erhalten"
+    "createProfile": "Profil erstellen & Bestätigungsmail erhalten",
+    "welcome": "Willkommen",
+    "confirmationTo": "Bestätigung an"
   },
   "rentals": {
     "title": "Stuhl · Kabine · OP-Raum",

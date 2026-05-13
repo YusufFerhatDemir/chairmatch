@@ -400,7 +400,10 @@ export default function OnboardingGate({ slides, children }: Props) {
       </div>
 
       <button className="bgold" disabled={!canSubmit} style={{ marginTop: 20 }} onClick={() => {
-        showToast(profile.vn ? `Willkommen, ${profile.vn}! ✉️ Bestätigung an ${profile.email}` : 'Willkommen bei ChairMatch!')
+        // LOW-Fix: i18n-Toast statt hardcoded Deutsch
+        showToast(profile.vn
+          ? `${t('onboarding.welcome')}, ${profile.vn}! ✉️ ${t('onboarding.confirmationTo')} ${profile.email}`
+          : `${t('onboarding.welcome')}!`)
         setTimeout(() => finish('CUSTOMER'), 800)
       }}>
         {t('onboarding.letsBegin')}

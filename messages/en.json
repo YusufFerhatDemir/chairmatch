@@ -131,7 +131,9 @@
     "extraPerDay": "Surcharge per day (€)",
     "allReady": "All set!",
     "checkData": "Check your details and confirm.",
-    "createProfile": "Create profile & receive confirmation email"
+    "createProfile": "Create profile & receive confirmation email",
+    "welcome": "Welcome",
+    "confirmationTo": "Confirmation to"
   },
   "rentals": {
     "title": "Chair · Cabin · OR Room",

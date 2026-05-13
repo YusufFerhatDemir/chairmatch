@@ -17,6 +17,7 @@ const rateLimitMap = new Map<string, RateLimitEntry>()
 
 const RATE_LIMIT_API = 60        // max Requests pro Minute für /api/*
 const RATE_LIMIT_AUTH = 10       // max Requests pro Minute für /api/auth/*
+const RATE_LIMIT_AVAILABILITY = 30  // /api/availability ist public → anti-Scraping
 const RATE_WINDOW_MS = 60_000    // 1 Minute
 const CLEANUP_INTERVAL_MS = 5 * 60_000  // 5 Minuten
 
@@ -189,6 +190,12 @@ export default auth((req) => {
 
     if (isSensitiveAuth) {
       if (isRateLimited(ip, 'auth', RATE_LIMIT_AUTH)) {
+        return rateLimitResponse()
+      }
+    } else if (pathname.startsWith('/api/availability')) {
+      // M4-Fix: Public Availability-Endpoint hat eigenen, kleineren Bucket —
+      // verhindert Bot-Scraping aller Salon-Slots.
+      if (isRateLimited(ip, 'availability', RATE_LIMIT_AVAILABILITY)) {
         return rateLimitResponse()
       }
     } else {

@@ -87,8 +87,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // A11y-Fix: Pinch-Zoom ERLAUBT — Apple/Google Store-Review verlangt das,
+  // sonst werden Apps mit "Accessibility Concern" abgelehnt.
+  // Max 5x reicht für sehbeeinträchtigte User.
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: 'cover',
   themeColor: '#080706',
 }
@@ -152,19 +155,50 @@ export default async function RootLayout({
           </ErrorBoundary>
         </Providers>
         <script dangerouslySetInnerHTML={{ __html: `
-          /* SERVICE WORKER KILL-SWITCH
-             Ehemals registrierte SWs werden deinstalliert + alle Caches geleert.
-             So lange der Cache-Stress eingependelt ist, KEIN SW. Bei Bedarf
-             später wieder aktivieren (Offline-Modus etc.). */
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(regs => {
-              regs.forEach(r => r.unregister().catch(() => {}));
-            }).catch(() => {});
-            if (typeof caches !== 'undefined') {
-              caches.keys().then(keys => {
-                keys.forEach(k => caches.delete(k).catch(() => {}));
-              }).catch(() => {});
-            }
+          /* Service Worker v2 — Production-Ready.
+             - Registriert sw.js
+             - Erkennt neue Versionen und reloaded sanft beim nächsten Visit
+             - Falls eine alte v1-Registrierung mit anderem scope/url existiert,
+               wird sie unregistered (keine Konflikte)
+             - Bei window.__CM_SW_DISABLE__ (Debug) keine Registrierung */
+          if ('serviceWorker' in navigator && !window.__CM_SW_DISABLE__) {
+            window.addEventListener('load', function() {
+              // Alte Self-Destruct- oder Pre-v2-Worker raus
+              navigator.serviceWorker.getRegistrations().then(function(regs) {
+                regs.forEach(function(r) {
+                  if (r.active && r.active.scriptURL && !r.active.scriptURL.endsWith('/sw.js')) {
+                    r.unregister().catch(function() {});
+                  }
+                });
+              }).catch(function() {});
+
+              navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                .then(function(reg) {
+                  // Auto-Update Check alle 30 Min wenn Tab offen
+                  setInterval(function() { reg.update().catch(function() {}); }, 30 * 60 * 1000);
+
+                  // Wenn ein neuer SW installiert ist, beim nächsten Reload aktivieren
+                  reg.addEventListener('updatefound', function() {
+                    var nw = reg.installing;
+                    if (!nw) return;
+                    nw.addEventListener('statechange', function() {
+                      if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                        // Neue Version verfügbar — sanft beim nächsten Navigieren übernehmen
+                        nw.postMessage({ type: 'SKIP_WAITING' });
+                      }
+                    });
+                  });
+                })
+                .catch(function(e) { console.warn('[sw] register failed:', e); });
+
+              // Wenn der neue SW die Kontrolle übernimmt, einmalig refreshen
+              var refreshing = false;
+              navigator.serviceWorker.addEventListener('controllerchange', function() {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+              });
+            });
           }
         ` }} />
       </body>

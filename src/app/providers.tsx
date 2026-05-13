@@ -11,7 +11,16 @@ import type { Locale } from '@/i18n/config'
 export function Providers({ children, initialLocale }: { children: ReactNode; initialLocale?: Locale }) {
   return (
     <I18nProvider initialLocale={initialLocale}>
-      <SessionProvider>
+      {/*
+        M3-Fix: Session-Polling drosseln.
+        - refetchInterval=0: kein periodisches Polling (das war alle 60s default).
+        - refetchOnWindowFocus=false: Mobile-Tab-Wechsel löst KEIN Session-Refetch aus,
+          das sonst auf langsamem Netz wie "App hängt" wirkt.
+        - refetchWhenOffline=false: keine sinnlosen Requests wenn offline.
+        Session-Cookie wird vom Server bei jeder Seitennavigation eh validiert,
+        also kein Sicherheitsverlust.
+      */}
+      <SessionProvider refetchInterval={0} refetchOnWindowFocus={false} refetchWhenOffline={false}>
         <CartProvider>
           {children}
           <CartDrawer />

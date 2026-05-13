@@ -61,19 +61,29 @@ export async function safeFetch(
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
 
-    // If the caller already passed a signal, link them so either can cancel.
+    // M7-Fix: Listener-Leak verhindern. Vorher wurde bei jedem Retry ein
+    // weiterer abort-Listener am externalSignal angehängt — harmlos, aber
+    // unschön und Speicher-Drift bei sehr vielen Retries.
+    let externalAbortHandler: (() => void) | null = null
     if (externalSignal) {
       if (externalSignal.aborted) {
         clearTimeout(timer)
         controller.abort()
       } else {
-        externalSignal.addEventListener('abort', () => controller.abort(), { once: true })
+        externalAbortHandler = () => controller.abort()
+        externalSignal.addEventListener('abort', externalAbortHandler, { once: true })
+      }
+    }
+    const cleanup = () => {
+      clearTimeout(timer)
+      if (externalAbortHandler && externalSignal) {
+        externalSignal.removeEventListener('abort', externalAbortHandler)
       }
     }
 
     try {
       const res = await fetch(url, { ...init, signal: controller.signal })
-      clearTimeout(timer)
+      cleanup()
 
       // 5xx → retry if allowed (but don't retry 4xx, those are client errors)
       if (retryOn5xx && res.status >= 500 && attempt < retries) {
@@ -84,7 +94,7 @@ export async function safeFetch(
 
       return res
     } catch (err) {
-      clearTimeout(timer)
+      cleanup()
       lastError = err
       // No retry on the last attempt — throw below.
       if (attempt < retries) {
