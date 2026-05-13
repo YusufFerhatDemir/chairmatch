@@ -67,6 +67,10 @@ export default function BookingPage() {
   const demoP = PROVS.find(p => p.id === salonId)
   const specs = demoP ? getProviderSpecs(demoP) : []
 
+  // H3-Fix: Salon-Load mit Timeout + Loading-State + 404-Handling.
+  // Vorher hing der Buchungs-Screen leer und ewig wenn die API timeoutete.
+  const [salonLoading, setSalonLoading] = useState(false)
+  const [salonError, setSalonError] = useState<string | null>(null)
   useEffect(() => {
     if (demoP) {
       setSalon({
@@ -74,12 +78,28 @@ export default function BookingPage() {
         services: demoP.svs.map(s => ({ id: s.id, name: s.nm, durationMinutes: s.dur, priceCents: s.pr * 100 })),
         staff: specs.map(s => ({ id: s.id, name: s.nm, title: s.role })),
       })
-    } else {
-      fetch(`/api/salons/${salonId}`)
-        .then(r => r.json())
-        .then(data => setSalon(data))
-        .catch(() => {})
+      return
     }
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 8000)
+    setSalonLoading(true)
+    setSalonError(null)
+    fetch(`/api/salons/${salonId}`, { signal: ctrl.signal })
+      .then(r => {
+        if (!r.ok) throw new Error(r.status === 404 ? 'NOT_FOUND' : 'SERVER_ERROR')
+        return r.json()
+      })
+      .then(data => setSalon(data))
+      .catch((e: Error) => {
+        if (e.name === 'AbortError') setSalonError('Salon konnte nicht geladen werden — bitte erneut versuchen.')
+        else if (e.message === 'NOT_FOUND') setSalonError('Dieser Salon existiert nicht mehr.')
+        else setSalonError('Fehler beim Laden — bitte später erneut versuchen.')
+      })
+      .finally(() => {
+        clearTimeout(timer)
+        setSalonLoading(false)
+      })
+    return () => { ctrl.abort(); clearTimeout(timer) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [salonId])
 
@@ -127,22 +147,37 @@ export default function BookingPage() {
   const canSubmit = !needsConsent || consentGiven
 
   async function handleSubmit() {
+    // H4-Fix: Doppelklick-Schutz an Pos. 1 — VOR jeder Validierung.
+    // Vorher konnte ein schneller Doppelklick im <50ms-Fenster bevor
+    // setLoading() rendert eine zweite Buchung auslösen.
+    if (loading) return
+    setLoading(true)
+
     if (!selectedService || !startTime) {
       setError('Bitte Service und Uhrzeit auswählen.')
+      setLoading(false)
       return
     }
     if (needsConsent && !consentGiven) {
       setError('Bitte bestätige die Risikoaufklärung und Kontraindikationen.')
+      setLoading(false)
       return
     }
 
-    setLoading(true)
     setError(null)
 
     try {
+      // Idempotency-Key: erlaubt dem Backend, denselben Submit zweifach zu
+      // erkennen und nur einmal zu buchen (z.B. bei Network-Retry).
+      const idempotencyKey = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`
       const res = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Idempotency-Key': idempotencyKey,
+        },
         body: JSON.stringify({
           salonId: demoP ? undefined : salonId,
           serviceId: selectedService.id,

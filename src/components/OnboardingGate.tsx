@@ -46,7 +46,7 @@ function isValidEmail(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
 
 export default function OnboardingGate({ slides, children }: Props) {
   const t = useTranslations()
-  const { data: session } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
   const [done, setDone] = useState<boolean | null>(null)
 
   // Onboarding state
@@ -82,10 +82,13 @@ export default function OnboardingGate({ slides, children }: Props) {
   const [toast, setToast] = useState('')
 
   useEffect(() => {
-    if (session) { setDone(true); return }
+    // M2-Fix: Auf authentifizierten Status warten (nicht nur auf session-Objekt).
+    // Wenn die Session-Abfrage noch läuft, KEINE Slides anzeigen.
+    if (sessionStatus === 'loading') return
+    if (sessionStatus === 'authenticated' && session) { setDone(true); return }
     const v = sessionStorage.getItem('cm_onboarded')
     setDone(v === '1')
-  }, [session])
+  }, [session, sessionStatus])
 
   // Scroll to top on phase/step change (must be before early returns — Rules of Hooks)
   useEffect(() => {
@@ -93,14 +96,18 @@ export default function OnboardingGate({ slides, children }: Props) {
     if (el) el.scrollTop = 0
   }, [phase, provStep, step])
 
-  // Timeout: if session check takes >3s, assume not logged in
+  // Timeout-Safety: Wenn Session-Check >3s hängt, nehmen wir 'nicht eingeloggt'
+  // an — aber nur wenn sessionStatus immer noch 'loading' ist (nicht wenn er
+  // schon 'authenticated' wurde aber session-Objekt gerade ein Race-Condition hat).
   useEffect(() => {
     if (done !== null) return
     const t = setTimeout(() => {
-      setDone(sessionStorage.getItem('cm_onboarded') === '1')
+      if (sessionStatus !== 'authenticated') {
+        setDone(sessionStorage.getItem('cm_onboarded') === '1')
+      }
     }, 3000)
     return () => clearTimeout(t)
-  }, [done])
+  }, [done, sessionStatus])
 
   // BROWSER-BACK-FIX: Browser-/App-Zurück-Button fängt unsere Slide-Navigation
   // ab, statt die ganze Seite zu verlassen. Verhindert App-Hänger nach
@@ -168,6 +175,51 @@ export default function OnboardingGate({ slides, children }: Props) {
   }
 
   async function finish(r: string) {
+    // H7-Fix: Provider-Registrierung VOR dem Setzen des onboarded-Flags prüfen.
+    // Vorher konnte ein 500er die Anmeldung verschlucken und der User landete
+    // ohne Account auf der Startseite (denkt, alles ist gut → erste Buchung
+    // schlägt fehl mit kryptischem Fehler).
+    if ((r === 'PROVIDER' || r === 'B2B') && profile.email && profile.vn && profile.nn) {
+      try {
+        const ctrl = new AbortController()
+        const timer = setTimeout(() => ctrl.abort(), 10_000)
+        const res = await fetch('/api/register-provider', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: ctrl.signal,
+          body: JSON.stringify({
+            vn: profile.vn, nn: profile.nn, em: profile.email, tel: profile.phone || '',
+            geschaeft: profile.biz || `${profile.vn} ${profile.nn}`,
+            st: profile.street || '', plz: profile.plz || '', city: profile.city || '',
+            kat: provCat || 'friseur', iban: profile.iban || '', gb: true,
+            chair: false, agb: true, dsgvo: true,
+          }),
+        })
+        clearTimeout(timer)
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}))
+          setToast(errData.error || 'Anmeldung fehlgeschlagen — bitte später erneut versuchen.')
+          return // Phase NICHT auf "done" setzen — User soll's nochmal probieren können
+        }
+
+        const data = await res.json().catch(() => ({}))
+        if (data.fallbackPassword) {
+          // Mail-Versand schlug fehl — wir zeigen das Passwort einmalig direkt
+          setToast(`Account erstellt. Initial-Passwort: ${data.fallbackPassword} — bitte sicher notieren!`)
+        } else {
+          setToast('Account erstellt — schau in dein Postfach für die Login-Daten.')
+        }
+      } catch (e) {
+        const msg = (e as Error).name === 'AbortError'
+          ? 'Timeout — bitte erneut versuchen.'
+          : 'Verbindungsfehler — bitte erneut versuchen.'
+        setToast(msg)
+        return
+      }
+    }
+
+    // Erst NACH erfolgreicher API-Antwort: State persistieren
     sessionStorage.setItem('cm_onboarded', '1')
     sessionStorage.setItem('cm_role', r)
     if (profile.vn || profile.email) {
@@ -178,23 +230,6 @@ export default function OnboardingGate({ slides, children }: Props) {
     if (provEquip.length) localStorage.setItem('cm_prov_equip', JSON.stringify(provEquip))
     if (customServices.length) localStorage.setItem('cm_custom_svcs', JSON.stringify(customServices))
     if (customEquip.length) localStorage.setItem('cm_custom_equip', JSON.stringify(customEquip))
-
-    // Persist provider/B2B data to DB
-    if ((r === 'PROVIDER' || r === 'B2B') && profile.email && profile.vn && profile.nn) {
-      try {
-        await fetch('/api/register-provider', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            vn: profile.vn, nn: profile.nn, em: profile.email, tel: profile.phone || '',
-            geschaeft: profile.biz || `${profile.vn} ${profile.nn}`,
-            st: profile.street || '', plz: profile.plz || '', city: profile.city || '',
-            kat: provCat || 'friseur', iban: profile.iban || '', gb: true,
-            chair: false, agb: true, dsgvo: true,
-          }),
-        })
-      } catch { /* best effort */ }
-    }
 
     setDone(true)
   }

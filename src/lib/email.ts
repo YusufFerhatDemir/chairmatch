@@ -240,6 +240,31 @@ export async function sendWelcomeEmail(to: string, name: string) {
 }
 
 /**
+ * Provider-spezifische Willkommens-Mail mit Initial-Passwort.
+ *
+ * Wird beim Provider-Onboarding aufgerufen, damit der frische Provider sich
+ * sofort einloggen kann. Initial-Passwort sollte vom User beim ersten Login
+ * geändert werden (TODO: Force-Change-Screen).
+ */
+export async function sendProviderWelcomeEmail(to: string, name: string, password: string) {
+  const subject = 'Willkommen bei ChairMatch — dein Provider-Zugang'
+  const html = baseLayout(subject, `
+    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Willkommen, ${esc(name)}!</h2>
+    <p>Dein Provider-Account ist angelegt. Logge dich mit folgenden Daten ein:</p>
+    <div style="margin:20px 0;padding:16px;background:#1a1a1a;border-radius:8px;border-left:3px solid #D4AF37">
+      <p style="margin:0 0 8px;color:#aaa;font-size:12px">EMAIL</p>
+      <p style="margin:0 0 16px;color:#fff;font-size:14px;font-family:monospace">${esc(to)}</p>
+      <p style="margin:0 0 8px;color:#aaa;font-size:12px">INITIAL-PASSWORT</p>
+      <p style="margin:0;color:#D4AF37;font-size:16px;font-family:monospace;font-weight:bold">${esc(password)}</p>
+    </div>
+    <p style="font-size:13px;color:#aaa">Bitte ändere das Passwort sofort nach dem ersten Login in deinem Account.</p>
+    ${goldButton('Jetzt einloggen', 'https://chairmatch.de/auth')}
+    <p style="font-size:13px;color:#777;margin-top:24px">Hilfe? Antworte einfach auf diese E-Mail.</p>
+  `)
+  return send(to, subject, html)
+}
+
+/**
  * Send a password reset email with a secure link.
  */
 export async function sendPasswordReset(to: string, resetUrl: string) {
