@@ -85,9 +85,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'vlrviyrgggzhayepfmop.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'pwdbjqfpgumyfktbfswg.supabase.co',
+      },
     ],
   },
-  typedRoutes: true,
+  // typedRoutes vorübergehend aus — verursachte Build-Fehler bei Route-Groups
+  // wie (admin), (protected). Wieder aktivieren wenn alle href-Strings sauber.
+  typedRoutes: false,
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',

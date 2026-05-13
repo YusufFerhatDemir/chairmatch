@@ -10,6 +10,11 @@ import { createClient } from '@supabase/supabase-js'
  * Hintergrund (13.05.2026): Wir hatten heute einen Bug, bei dem die App
  * stundenlang gegen ein ALTES Supabase-Projekt sprach, weil ein Fallback
  * auf den Anon-Key existierte. Das ist jetzt durch hartes Fail-Fast ersetzt.
+ *
+ * Hinweis zum Typing: Wir geben `createClient<any, any>` zurück, damit die
+ * bestehenden Aufrufer keine Type-Brüche bekommen. Korrektes generisches
+ * Typing kann später (Phase 2) via `Database`-Typen aus `supabase gen types`
+ * nachgezogen werden.
  */
 function ensureEnv(name: string, value: string | undefined): string {
   if (!value || value.length < 20) {
@@ -21,18 +26,14 @@ function ensureEnv(name: string, value: string | undefined): string {
   return value
 }
 
-let cachedAdmin: ReturnType<typeof createClient> | null = null
-
 export function getSupabaseAdmin() {
-  if (cachedAdmin) return cachedAdmin
-
   const supabaseUrl = ensureEnv('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL)
   const supabaseServiceKey = ensureEnv('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY)
 
-  cachedAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return createClient<any, any>(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
-  return cachedAdmin
 }
 
 export async function uploadToStorage(

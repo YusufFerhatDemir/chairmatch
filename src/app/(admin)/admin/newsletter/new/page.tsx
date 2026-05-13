@@ -31,7 +31,7 @@ export default async function NewCampaignPage({ searchParams }: PageProps) {
       .select('id, subject, preview_text, html_content, audience_filter, status')
       .eq('id', id)
       .maybeSingle()
-    initial = (data as CampaignData) || null
+    initial = (data as unknown as CampaignData | null) ?? null
   }
 
   // verfügbare Tags ermitteln (aus existierenden Subscribers)
