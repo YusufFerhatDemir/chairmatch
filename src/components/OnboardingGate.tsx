@@ -102,6 +102,40 @@ export default function OnboardingGate({ slides, children }: Props) {
     return () => clearTimeout(t)
   }, [done])
 
+  // BROWSER-BACK-FIX: Browser-/App-Zurück-Button fängt unsere Slide-Navigation
+  // ab, statt die ganze Seite zu verlassen. Verhindert App-Hänger nach
+  // "Weiter Weiter Zurück". Push history state at mount + on phase change.
+  useEffect(() => {
+    if (typeof window === 'undefined' || done) return
+    // Push initial state so the FIRST back-press doesn't leave the site
+    try {
+      if (!window.history.state || window.history.state.cm_onb !== phase + ':' + step) {
+        window.history.pushState({ cm_onb: phase + ':' + step }, '', window.location.href)
+      }
+    } catch { /* iOS safari can throw under restricted contexts */ }
+
+    const handlePop = (e: PopStateEvent) => {
+      // Slides: nur Slide-Schritt zurück, nicht die Seite verlassen
+      if (phase === 'slides' && step > 0) {
+        e.preventDefault?.()
+        setStep(s => Math.max(0, s - 1))
+        // Push neuen State damit Folge-Back den gleichen Mechanismus nutzt
+        try { window.history.pushState({ cm_onb: 'slides:' + (step - 1) }, '', window.location.href) } catch {}
+        return
+      }
+      // Role-Select / Login / Setup → zurück zu Slides
+      if (phase === 'roleSelect' || phase === 'login' || phase === 'customerSetup' || phase === 'provSetup') {
+        e.preventDefault?.()
+        setPhase('slides')
+        try { window.history.pushState({ cm_onb: 'slides:' + step }, '', window.location.href) } catch {}
+        return
+      }
+      // Slide 0: einmaliges Bestätigen — der nächste Back-Press lässt die App raus
+    }
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  }, [phase, step, done])
+
   if (done === null) return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
