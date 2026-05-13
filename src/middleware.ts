@@ -177,10 +177,15 @@ export default auth((req) => {
 
   if (pathname.startsWith('/api/') && !isNextAuthInternal) {
     const ip = getClientIp(req)
-    // Rate-Limit nur für sensitive Auth-Routen (register, signin, reset-password)
-    const isSensitiveAuth = pathname === '/api/auth/register' ||
+    // B5-Fix: Sensitive Auth-Routes nur bei POST/PUT/PATCH/DELETE rate-limiten.
+    // Sonst können bereits GETs (z.B. /api/auth/2fa/setup für Account-Render)
+    // den User in 429 sperren.
+    const isWriteMethod = req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS'
+    const isSensitiveAuth = isWriteMethod && (
+      pathname === '/api/auth/register' ||
       pathname === '/api/auth/forgot-password' ||
       pathname.startsWith('/api/auth/2fa/')
+    )
 
     if (isSensitiveAuth) {
       if (isRateLimited(ip, 'auth', RATE_LIMIT_AUTH)) {
@@ -241,7 +246,11 @@ export default auth((req) => {
 })
 
 export const config = {
+  // B4-Fix: Statische Assets KOMPLETT vom Middleware-JWT-Check ausschließen.
+  // Vorher lief die Auth-Logik für jeden Icon-, Font-, Manifest-Request mit
+  // 200-500ms Latenz auf langsamen Mobilnetzen. Das fühlte sich an wie "App
+  // hängt sofort beim Start".
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/|icons/|brand/|screenshots/|favicon|apple-touch-icon|manifest|sw\\.js|robots|sitemap|og-image|icon-).*)',
   ],
 }

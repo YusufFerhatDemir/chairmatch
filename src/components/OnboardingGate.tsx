@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 import { CATEGORIES, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, type LucideIcon } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
@@ -328,12 +328,14 @@ export default function OnboardingGate({ slides, children }: Props) {
     if (!loginEmail || !loginPw) { setLoginError(t('auth.fillAllFields')); return }
     setLoginError('')
     try {
-      const res = await fetch('/api/auth/callback/credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPw }),
+      // B3-Fix: NextAuth-Callback erwartet form-data + CSRF-Token, kein JSON.
+      // Wir nutzen signIn() aus next-auth/react — der kümmert sich um beides.
+      const result = await signIn('credentials', {
+        email: loginEmail,
+        password: loginPw,
+        redirect: false,
       })
-      if (res.ok) {
+      if (result?.ok && !result.error) {
         finish('CUSTOMER')
       } else {
         setLoginError(t('auth.invalidCredentials'))

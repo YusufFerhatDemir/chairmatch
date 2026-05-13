@@ -97,7 +97,7 @@ interface Booking {
 }
 
 export default function AccountPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [bookings, setBookings] = useState<Booking[]>([])
 
@@ -112,10 +112,22 @@ export default function AccountPage() {
     return () => { cancelled = true }
   }, [session])
 
-  if (!session?.user) {
-    router.push('/auth')
-    return null
+  // B2-Fix: router.push DARF NICHT im Render-Pfad stehen — sonst React-Crash
+  // "Cannot update during render" + ggf. Endlos-Redirect-Loop.
+  useEffect(() => {
+    if (status === 'unauthenticated') router.push('/auth?callbackUrl=/account')
+  }, [status, router])
+
+  if (status === 'loading') {
+    return (
+      <div className="shell">
+        <div className="screen" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div style={{ width: 40, height: 40, border: '3px solid rgba(176,144,96,0.2)', borderTopColor: '#B09060', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        </div>
+      </div>
+    )
   }
+  if (!session?.user) return null
 
   const user = session.user
   const role = (user as { role?: string }).role || 'kunde'

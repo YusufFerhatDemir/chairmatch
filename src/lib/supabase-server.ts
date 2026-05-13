@@ -1,15 +1,38 @@
 import { createClient } from '@supabase/supabase-js'
 
-const FALLBACK_URL = 'https://vlrviyrgggzhayepfmop.supabase.co'
-const FALLBACK_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZscnZpeXJnZ2d6aGF5ZXBmbW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODIyNzYsImV4cCI6MjA4ODE1ODI3Nn0.pvcZqzAm-ARWVsSv6hKUnTwZeggVJcwYN---4jUfyA0'
+/**
+ * Server-only Supabase Admin Client.
+ *
+ * SICHERHEITS-KRITISCH: Fällt NICHT mehr stillschweigend auf den Anon-Key oder
+ * ein fremdes Supabase-Projekt zurück. Wenn SUPABASE_SERVICE_ROLE_KEY oder
+ * NEXT_PUBLIC_SUPABASE_URL fehlt → loud error.
+ *
+ * Hintergrund (13.05.2026): Wir hatten heute einen Bug, bei dem die App
+ * stundenlang gegen ein ALTES Supabase-Projekt sprach, weil ein Fallback
+ * auf den Anon-Key existierte. Das ist jetzt durch hartes Fail-Fast ersetzt.
+ */
+function ensureEnv(name: string, value: string | undefined): string {
+  if (!value || value.length < 20) {
+    throw new Error(
+      `[supabase-server] Required environment variable "${name}" is missing or invalid. ` +
+      `Set it in Vercel → Settings → Environment Variables.`
+    )
+  }
+  return value
+}
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON
+let cachedAdmin: ReturnType<typeof createClient> | null = null
 
 export function getSupabaseAdmin() {
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
+  if (cachedAdmin) return cachedAdmin
+
+  const supabaseUrl = ensureEnv('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL)
+  const supabaseServiceKey = ensureEnv('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY)
+
+  cachedAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
   })
+  return cachedAdmin
 }
 
 export async function uploadToStorage(
