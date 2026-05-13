@@ -267,6 +267,22 @@ export default function BookingPage() {
           </div>
         )}
 
+        {/* H3-Fix: Loading-/Error-States explizit anzeigen statt leerer Seite */}
+        {salonLoading && !salon && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '40px 20px' }}>
+            <div style={{ width: 36, height: 36, border: '3px solid rgba(176,144,96,0.2)', borderTopColor: '#B09060', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <p style={{ color: 'var(--stone)', fontSize: 14, margin: 0 }}>Salon wird geladen …</p>
+          </div>
+        )}
+        {salonError && !salon && (
+          <div style={{ background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.3)', borderRadius: 12, padding: 16, marginBottom: 16, color: 'var(--cream)', fontSize: 'var(--font-sm)', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 12px', color: 'var(--red)' }}>{salonError}</p>
+            <button className="boutline" onClick={() => location.reload()} style={{ padding: '8px 20px', fontSize: 13 }}>
+              Erneut versuchen
+            </button>
+          </div>
+        )}
+
         {/* STEP 1: Service + Day + Time */}
         {step === 1 && (
           <div>
