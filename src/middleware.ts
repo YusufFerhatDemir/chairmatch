@@ -226,6 +226,23 @@ export default auth((req) => {
   }
 
   const role = (session.user as { role?: string })?.role || ''
+  const mustChangePw = !!(session.user as { passwordMustChange?: boolean })?.passwordMustChange
+
+  // ------ Force Password Change ------
+  // Wenn das Flag gesetzt ist (z.B. Provider mit Initial-Passwort), darf der User
+  // NUR auf /auth/change-password und einige whitelist-Routen. Alles andere → Redirect.
+  if (mustChangePw && !pathname.startsWith('/auth/change-password') && !pathname.startsWith('/api/auth/')) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: 'Passwort muss geändert werden', code: 'PW_MUST_CHANGE' },
+        { status: 403 }
+      )
+    }
+    const url = new URL('/auth/change-password', req.url)
+    url.searchParams.set('forced', '1')
+    url.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(url)
+  }
 
   // ------ RBAC ------
   const forbidden = () => pathname.startsWith('/api/')

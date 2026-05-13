@@ -90,7 +90,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const supabaseAdmin = getSupabaseAdmin()
           const { data: profile, error: profileError } = await supabaseAdmin
             .from('profiles')
-            .select('id, email, full_name, role, is_active')
+            .select('id, email, full_name, role, is_active, password_must_change')
             .eq('id', data.user.id)
             .single()
 
@@ -126,6 +126,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: profile.email || data.user.email,
             name: profile.full_name || data.user.email,
             role: profile.role,
+            passwordMustChange: !!(profile as { password_must_change?: boolean }).password_must_change,
           }
         } catch (e) {
           console.error('[AUTH] authorize() crashed:', e)
@@ -135,10 +136,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
         token.role = (user as { role?: string }).role || 'kunde'
+        token.passwordMustChange = !!(user as { passwordMustChange?: boolean }).passwordMustChange
+      }
+      // Wenn Session aktualisiert wird (z.B. nach Password-Change), Flag refreshen
+      if (trigger === 'update') {
+        try {
+          const supabaseAdmin = getSupabaseAdmin()
+          const { data: p } = await supabaseAdmin
+            .from('profiles')
+            .select('password_must_change')
+            .eq('id', token.id as string)
+            .single()
+          token.passwordMustChange = !!(p as { password_must_change?: boolean } | null)?.password_must_change
+        } catch { /* swallow */ }
       }
       return token
     },
@@ -146,6 +160,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string
         ;(session.user as { role?: string }).role = token.role as string
+        ;(session.user as { passwordMustChange?: boolean }).passwordMustChange = !!token.passwordMustChange
       }
       return session
     },

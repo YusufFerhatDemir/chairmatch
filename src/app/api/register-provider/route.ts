@@ -84,6 +84,9 @@ export async function POST(req: NextRequest) {
 
     try {
       // 2. Profile aktualisieren (Trigger hat evtl. schon ein leeres erzeugt)
+      // password_must_change=true → User muss beim ersten Login ein neues PW setzen.
+      // Sicherheits-Maßnahme: Selbst wenn jemand die Welcome-Mail abfängt, hat er
+      // nur den ersten Login-Versuch — danach ist das Initial-Passwort weg.
       const { error: profileError } = await admin
         .from('profiles')
         .upsert({
@@ -93,6 +96,7 @@ export async function POST(req: NextRequest) {
           role: 'anbieter',
           phone: d.tel,
           is_active: true,
+          password_must_change: true,
         })
       if (profileError) throw new Error('Profil: ' + profileError.message)
 
