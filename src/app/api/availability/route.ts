@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { withApi, apiError } from '@/lib/api-wrapper'
 
 const DAYS: Record<string, number> = { Mo: 1, Di: 2, Mi: 3, Do: 4, Fr: 5, Sa: 6, So: 0 }
 const SLOT_STEP = 15 // minutes
@@ -38,17 +39,17 @@ function generateSlots(
 }
 
 /** APPOINTMENT: GET /api/availability?salonId=&date=&serviceId= */
-export async function GET(req: NextRequest) {
+export const GET = withApi(async (req: Request) => {
   const supabase = getSupabaseAdmin()
-  const { searchParams } = new URL(req.url)
+  const { searchParams } = new URL((req as NextRequest).url)
   const salonId = searchParams.get('salonId')
   const resourceId = searchParams.get('resourceId') // for RENTAL (equipment_id)
   const date = searchParams.get('date') // YYYY-MM-DD
   const serviceId = searchParams.get('serviceId')
-  const duration = parseInt(searchParams.get('duration') ?? '60', 10)
+  const duration = Math.min(480, Math.max(15, parseInt(searchParams.get('duration') ?? '60', 10) || 60))
 
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return NextResponse.json({ error: 'date required (YYYY-MM-DD)' }, { status: 400 })
+    return apiError('date required (YYYY-MM-DD)', 400)
   }
 
   // APPOINTMENT flow
@@ -148,5 +149,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ slots: allSlots, durationMinutes: durationMin })
   }
 
-  return NextResponse.json({ error: 'salonId+serviceId or resourceId required' }, { status: 400 })
-}
+  return apiError('salonId+serviceId or resourceId required', 400)
+})

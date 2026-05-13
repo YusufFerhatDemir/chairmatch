@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { getSupabaseAdmin, getSupabaseAnon } from '@/lib/supabase-server'
 import { registerSchema } from '@/modules/auth/auth.schemas'
-
-const FALLBACK_URL = 'https://vlrviyrgggzhayepfmop.supabase.co'
-const FALLBACK_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZscnZpeXJnZ2d6aGF5ZXBmbW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODIyNzYsImV4cCI6MjA4ODE1ODI3Nn0.pvcZqzAm-ARWVsSv6hKUnTwZeggVJcwYN---4jUfyA0'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +16,8 @@ export async function POST(req: NextRequest) {
 
     const { email, password, fullName, agbAccepted, datenschutzAccepted, marketingAccepted } = parsed.data
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    // Fail-fast: kein Fallback auf altes Supabase-Projekt
+    const supabase = getSupabaseAnon()
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

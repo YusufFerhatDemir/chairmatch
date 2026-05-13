@@ -1,15 +1,12 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
-import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { getSupabaseAdmin, getSupabaseAnon } from '@/lib/supabase-server'
 import { loginSchema } from './auth.schemas'
 
-const FALLBACK_URL = 'https://vlrviyrgggzhayepfmop.supabase.co'
-const FALLBACK_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZscnZpeXJnZ2d6aGF5ZXBmbW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODIyNzYsImV4cCI6MjA4ODE1ODI3Nn0.pvcZqzAm-ARWVsSv6hKUnTwZeggVJcwYN---4jUfyA0'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON
+// Fail-fast: kein stiller Fallback auf altes Supabase-Projekt mehr.
+// Supabase-Clients holen wir aus '@/lib/supabase-server' — die werfen
+// laut, wenn die ENV-Variablen fehlen.
 
 const RATE_LIMIT = 10
 const RATE_WINDOW_MIN = 15
@@ -75,7 +72,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           // Authenticate via Supabase Auth (mit Anon-Key — nur für Auth)
-          const supabase = createClient(supabaseUrl, supabaseAnonKey)
+          const supabase = getSupabaseAnon()
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,

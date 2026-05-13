@@ -1,68 +1,61 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { withApi, apiError } from '@/lib/api-wrapper'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params
-    const supabase = getSupabaseAdmin()
+type Ctx = { params: Promise<{ id: string }> }
 
-    // Find salon by slug first, fallback to id
-    let salon = null
-    const { data: bySlug } = await supabase
+export const GET = withApi<Ctx>(async (_request, { params }) => {
+  const { id } = await params
+  if (!id || typeof id !== 'string') return apiError('Ungültige ID', 400)
+
+  const supabase = getSupabaseAdmin()
+
+  // Find salon by slug first, fallback to id
+  let salon: { id: string } & Record<string, unknown> | null = null
+  const { data: bySlug } = await supabase
+    .from('salons')
+    .select('*')
+    .eq('slug', id)
+    .limit(1)
+    .maybeSingle()
+  if (bySlug) {
+    salon = bySlug
+  } else {
+    const { data: byId } = await supabase
       .from('salons')
       .select('*')
-      .eq('slug', id)
+      .eq('id', id)
       .limit(1)
       .maybeSingle()
-    if (bySlug) {
-      salon = bySlug
-    } else {
-      const { data: byId } = await supabase
-        .from('salons')
-        .select('*')
-        .eq('id', id)
-        .limit(1)
-        .maybeSingle()
-      salon = byId
-    }
-    const error = !salon
-
-    if (error || !salon) {
-      return NextResponse.json({ error: 'Nicht gefunden' }, { status: 404 })
-    }
-
-    // Fetch related data in parallel
-    const [servicesResult, staffResult, rentalEquipmentResult] = await Promise.all([
-      supabase
-        .from('services')
-        .select('*')
-        .eq('salon_id', salon.id)
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true }),
-      supabase
-        .from('staff')
-        .select('*')
-        .eq('salon_id', salon.id)
-        .eq('is_active', true),
-      supabase
-        .from('rental_equipment')
-        .select('*')
-        .eq('salon_id', salon.id)
-        .eq('is_available', true),
-    ])
-
-    const result = {
-      ...salon,
-      services: servicesResult.data || [],
-      staff: staffResult.data || [],
-      rentalEquipment: rentalEquipmentResult.data || [],
-    }
-
-    return NextResponse.json(result)
-  } catch {
-    return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
+    salon = byId
   }
-}
+
+  if (!salon) return apiError('Nicht gefunden', 404)
+
+  // Fetch related data in parallel
+  const [servicesResult, staffResult, rentalEquipmentResult] = await Promise.all([
+    supabase
+      .from('services')
+      .select('*')
+      .eq('salon_id', salon.id)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true }),
+    supabase
+      .from('staff')
+      .select('*')
+      .eq('salon_id', salon.id)
+      .eq('is_active', true),
+    supabase
+      .from('rental_equipment')
+      .select('*')
+      .eq('salon_id', salon.id)
+      .eq('is_available', true),
+  ])
+
+  return NextResponse.json({
+    ...salon,
+    services: servicesResult.data || [],
+    staff: staffResult.data || [],
+    rentalEquipment: rentalEquipmentResult.data || [],
+  })
+})
