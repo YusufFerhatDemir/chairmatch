@@ -9,7 +9,7 @@
 // - KEIN Caching von Auth/Session-Endpoints (Sicherheit)
 // ============================================================
 
-const SW_VERSION = 'v2.0.0-2026-05-13'
+const SW_VERSION = 'v3.0.0-2026-05-14-welcome-splitter'
 const STATIC_CACHE = `cm-static-${SW_VERSION}`
 const RUNTIME_CACHE = `cm-runtime-${SW_VERSION}`
 

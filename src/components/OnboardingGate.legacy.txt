@@ -1,0 +1,531 @@
+'use client'
+
+/**
+ * OnboardingGate — First-Visit-Overlay für unauthentifizierte User.
+ *
+ * EINER VON DREI Provider-Registrierungs-UIs (siehe docs/adr/0001).
+ * Backend (identisch): /api/register-provider
+ * Schwesternfiles:
+ *   - src/app/(public)/register/anbieter/page.tsx (SEO-Deep-Link)
+ *   - src/components/onboarding/ProviderSetupWizard.tsx (Reusable, hier intern genutzt)
+ *
+ * Trigger: erste Session ohne abgeschlossenes Onboarding (slides-state-check).
+ * Phasen: slides → roleSelect → login/customerSetup/provSetup.
+ */
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useSession, signIn } from 'next-auth/react'
+import { CATEGORIES, SVC_CATALOG, EQUIP_CATALOG } from '@/lib/constants'
+import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, type LucideIcon } from 'lucide-react'
+import { BrandLogo } from '@/components/BrandLogo'
+import { useTranslations } from '@/i18n/client'
+import { SlidesPanel } from './onboarding/SlidesPanel'
+import { ProviderSetupWizard } from './onboarding/ProviderSetupWizard'
+
+const CAT_LUCIDE: Record<string, LucideIcon> = {
+  barber: Scissors,
+  friseur: Paintbrush,
+  kosmetik: Sparkles,
+  aesthetik: Syringe,
+  nail: Hand,
+  massage: Heart,
+  lash: Eye,
+  arzt: Stethoscope,
+  opraum: Cross,
+}
+
+interface Slide {
+  id: string
+  title: string
+  subtitle: string
+  icon: string | null
+  imageUrl: string | null
+}
+
+interface Props {
+  slides: Slide[]
+  children: React.ReactNode
+}
+
+type Phase = 'slides' | 'roleSelect' | 'login' | 'customerSetup' | 'provSetup'
+
+interface ProfileData {
+  vn: string; nn: string; email: string; phone: string; city: string
+  biz: string; street: string; plz: string; iban: string; ustid: string
+}
+
+const emptyProfile: ProfileData = { vn: '', nn: '', email: '', phone: '', city: '', biz: '', street: '', plz: '', iban: '', ustid: '' }
+
+function isValidEmail(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
+
+export default function OnboardingGate({ children }: Props) {
+  // HART DEAKTIVIERT seit Welcome-Splitter (2026-05-14). Falls jemand den
+  // OnboardingGate noch importiert, soll er einfach durchreichen.
+  // Der alte Code wurde in OnboardingGate.legacy.txt archiviert.
+  return <>{children}</>
+}
+
+// Stub-Function um den unreachable alten Code zu kapseln (TS lints sonst)
+function _OnboardingGateLegacy_UNUSED({ slides, children }: Props) {
+  void slides; void children
+  const t = useTranslations()
+  const { data: session, status: sessionStatus } = useSession()
+  const [done, setDone] = useState<boolean | null>(null)
+
+  // Onboarding state
+  const [step, setStep] = useState(0)
+  const [phase, setPhase] = useState<Phase>('slides')
+  const [role, setRole] = useState<'CUSTOMER' | 'PROVIDER' | 'B2B'>('CUSTOMER')
+
+  // Login state
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPw, setLoginPw] = useState('')
+  const [loginError, setLoginError] = useState('')
+
+  // Customer setup (von ProviderSetupWizard mitbenutzt für Profil-Daten)
+  const [profile, setProfile] = useState<ProfileData>({ ...emptyProfile })
+
+  // Provider setup state lebt jetzt ausschließlich im ProviderSetupWizard.
+
+  // Toast
+  const [toast, setToast] = useState('')
+
+  useEffect(() => {
+    // M2-Fix: Auf authentifizierten Status warten (nicht nur auf session-Objekt).
+    // Wenn die Session-Abfrage noch läuft, KEINE Slides anzeigen.
+    if (sessionStatus === 'loading') return
+    if (sessionStatus === 'authenticated' && session) { setDone(true); return }
+    const v = sessionStorage.getItem('cm_onboarded')
+    setDone(v === '1')
+  }, [session, sessionStatus])
+
+  // Scroll to top on phase/step change (must be before early returns — Rules of Hooks)
+  useEffect(() => {
+    const el = document.getElementById('ob-scroll')
+    if (el) el.scrollTop = 0
+  }, [phase, step])
+
+  // Timeout-Safety: Wenn Session-Check >3s hängt, nehmen wir 'nicht eingeloggt'
+  // an — aber nur wenn sessionStatus immer noch 'loading' ist (nicht wenn er
+  // schon 'authenticated' wurde aber session-Objekt gerade ein Race-Condition hat).
+  useEffect(() => {
+    if (done !== null) return
+    const t = setTimeout(() => {
+      if (sessionStatus !== 'authenticated') {
+        setDone(sessionStorage.getItem('cm_onboarded') === '1')
+      }
+    }, 3000)
+    return () => clearTimeout(t)
+  }, [done, sessionStatus])
+
+  // BROWSER-BACK-FIX: Browser-/App-Zurück-Button fängt unsere Slide-Navigation
+  // ab, statt die ganze Seite zu verlassen. Verhindert App-Hänger nach
+  // "Weiter Weiter Zurück". Push history state at mount + on phase change.
+  useEffect(() => {
+    if (typeof window === 'undefined' || done) return
+    // Push initial state so the FIRST back-press doesn't leave the site
+    try {
+      if (!window.history.state || window.history.state.cm_onb !== phase + ':' + step) {
+        window.history.pushState({ cm_onb: phase + ':' + step }, '', window.location.href)
+      }
+    } catch { /* iOS safari can throw under restricted contexts */ }
+
+    const handlePop = (e: PopStateEvent) => {
+      // Slides: nur Slide-Schritt zurück, nicht die Seite verlassen
+      if (phase === 'slides' && step > 0) {
+        e.preventDefault?.()
+        setStep(s => Math.max(0, s - 1))
+        // Push neuen State damit Folge-Back den gleichen Mechanismus nutzt
+        try { window.history.pushState({ cm_onb: 'slides:' + (step - 1) }, '', window.location.href) } catch {}
+        return
+      }
+      // Role-Select / Login / Setup → zurück zu Slides
+      if (phase === 'roleSelect' || phase === 'login' || phase === 'customerSetup' || phase === 'provSetup') {
+        e.preventDefault?.()
+        setPhase('slides')
+        try { window.history.pushState({ cm_onb: 'slides:' + step }, '', window.location.href) } catch {}
+        return
+      }
+      // Slide 0: einmaliges Bestätigen — der nächste Back-Press lässt die App raus
+    }
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  }, [phase, step, done])
+
+  if (done === null) return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200,
+      background: 'var(--bg)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      width: '100%', maxWidth: 'var(--shell-max)', margin: '0 auto',
+    }}>
+      <div style={{
+        animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
+        marginBottom: 24,
+      }}>
+        <BrandLogo size={96} variant="glow" priority={true} />
+      </div>
+      <p className="cinzel" style={{ fontSize: 18, fontWeight: 700, letterSpacing: 3, color: 'var(--gold2)' }}>
+        CHAIRMATCH
+      </p>
+      <div style={{
+        marginTop: 20, width: 32, height: 3, borderRadius: 2,
+        background: 'var(--gold)', opacity: 0.4,
+        animation: 'pulse 1.5s ease-in-out infinite',
+      }} />
+    </div>
+  )
+  if (done) return <>{children}</>
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(''), 3000)
+  }
+
+  // Letzte Wizard-Auswahl (kommt vom ProviderSetupWizard via onComplete).
+  // Wir brauchen sie für die finale API-Anfrage und für localStorage-Backup.
+  interface ProvWizardResult {
+    cat: string
+    services: string[]
+    customServices: { nm: string; dur: number; pr: number }[]
+    equipment: string[]
+    customEquipment: { nm: string; pr: number; icon: string }[]
+  }
+
+  async function finish(r: string, wizardData?: ProvWizardResult) {
+    // H7-Fix: Provider-Registrierung VOR dem Setzen des onboarded-Flags prüfen.
+    if ((r === 'PROVIDER' || r === 'B2B') && profile.email && profile.vn && profile.nn) {
+      try {
+        const ctrl = new AbortController()
+        const timer = setTimeout(() => ctrl.abort(), 10_000)
+        const res = await fetch('/api/register-provider', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: ctrl.signal,
+          body: JSON.stringify({
+            vn: profile.vn, nn: profile.nn, em: profile.email, tel: profile.phone || '',
+            geschaeft: profile.biz || `${profile.vn} ${profile.nn}`,
+            st: profile.street || '', plz: profile.plz || '', city: profile.city || '',
+            kat: wizardData?.cat || 'friseur', iban: profile.iban || '', gb: true,
+            chair: false, agb: true, dsgvo: true,
+          }),
+        })
+        clearTimeout(timer)
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}))
+          setToast(errData.error || 'Anmeldung fehlgeschlagen — bitte später erneut versuchen.')
+          return
+        }
+
+        const data = await res.json().catch(() => ({}))
+        if (data.fallbackPassword) {
+          setToast(`Account erstellt. Initial-Passwort: ${data.fallbackPassword} — bitte sicher notieren!`)
+        } else {
+          setToast('Account erstellt — schau in dein Postfach für die Login-Daten.')
+        }
+      } catch (e) {
+        const msg = (e as Error).name === 'AbortError'
+          ? 'Timeout — bitte erneut versuchen.'
+          : 'Verbindungsfehler — bitte erneut versuchen.'
+        setToast(msg)
+        return
+      }
+    }
+
+    // Erst NACH erfolgreicher API-Antwort: State persistieren
+    sessionStorage.setItem('cm_onboarded', '1')
+    sessionStorage.setItem('cm_role', r)
+    if (profile.vn || profile.email) {
+      localStorage.setItem('cm_setup_profile', JSON.stringify(profile))
+    }
+    if (wizardData) {
+      if (wizardData.cat) localStorage.setItem('cm_prov_cat', wizardData.cat)
+      if (wizardData.services.length) localStorage.setItem('cm_prov_svcs', JSON.stringify(wizardData.services))
+      if (wizardData.equipment.length) localStorage.setItem('cm_prov_equip', JSON.stringify(wizardData.equipment))
+      if (wizardData.customServices.length) localStorage.setItem('cm_custom_svcs', JSON.stringify(wizardData.customServices))
+      if (wizardData.customEquipment.length) localStorage.setItem('cm_custom_equip', JSON.stringify(wizardData.customEquipment))
+    }
+
+    setDone(true)
+  }
+
+  function selectRole(r: 'CUSTOMER' | 'PROVIDER' | 'B2B') {
+    setRole(r)
+    if (r === 'CUSTOMER') {
+      setPhase('customerSetup')
+    } else {
+      setPhase('provSetup')
+    }
+  }
+
+  function updateProfile(key: keyof ProfileData, val: string) {
+    setProfile(prev => ({ ...prev, [key]: val }))
+  }
+
+  // Service-, Equipment- und Kategorien-Datenstrukturen werden komplett im
+  // ProviderSetupWizard verwaltet — kein lokales State-Mirroring mehr nötig.
+
+  const isProfileValid = profile.vn && profile.nn && profile.email && isValidEmail(profile.email) && profile.phone && profile.biz && profile.street && profile.plz && profile.city
+
+  // ═══ RENDER ═══
+
+  const goldGradientDefs = (
+    <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
+      <defs>
+        <linearGradient id="caticon-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#BF953F" />
+          <stop offset="22%" stopColor="#FCF6BA" />
+          <stop offset="45%" stopColor="#B38728" />
+          <stop offset="67%" stopColor="#FBF5B7" />
+          <stop offset="100%" stopColor="#AA771C" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+
+  const shell = (content: React.ReactNode) => (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--bg)', width: '100%', maxWidth: 'var(--shell-max)', margin: '0 auto' }}>
+      {goldGradientDefs}
+      <div id="ob-scroll" style={{
+        height: '100%',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: 'max(env(safe-area-inset-top, 20px), 20px) 22px max(env(safe-area-inset-bottom, 40px), 40px)',
+      }}>
+        {content}
+        {/* Bottom spacer for iOS safe area */}
+        <div style={{ flexShrink: 0, height: 30 }} />
+      </div>
+      {toast && (
+        <div className="toast-enter" style={{ position: 'fixed', bottom: 'max(env(safe-area-inset-bottom, 20px), 20px)', left: '50%', transform: 'translateX(-50%)', background: 'var(--c3)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 20px', fontSize: 13, color: 'var(--cream)', zIndex: 300, maxWidth: 360, textAlign: 'center' }}>
+          {toast}
+        </div>
+      )}
+    </div>
+  )
+
+  const logo = () => (
+    <div style={{
+      marginBottom: 24,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 16,
+    }}>
+      {/* Premium Gold-Pin Logo — gleiches Asset wie auf Hauptseite */}
+      <BrandLogo size={120} variant="glow" priority={true} />
+      <div style={{ textAlign: 'center' }}>
+        <p
+          className="cinzel text-gold-metallic"
+          style={{
+            fontSize: 24,
+            fontWeight: 700,
+            letterSpacing: 4,
+            lineHeight: 1,
+            marginBottom: 5,
+          }}
+        >
+          CHAIRMATCH
+        </p>
+        <p
+          style={{
+            fontSize: 9,
+            letterSpacing: 5,
+            color: 'var(--stone)',
+          }}
+        >
+          DEUTSCHLAND
+        </p>
+      </div>
+    </div>
+  )
+
+  const backBtn = (onClick: () => void) => (
+    <button onClick={onClick} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: 'var(--stone)', fontSize: 14, cursor: 'pointer', marginBottom: 16, padding: 0 }}>
+      {t('onboarding.back')}
+    </button>
+  )
+
+  // ═══ LOGIN ═══
+  if (phase === 'login') {
+    return shell(<>
+      {backBtn(() => setPhase('roleSelect'))}
+      {logo()}
+      <div className="card" style={{ width: '100%', padding: 20 }}>
+        <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--gold2)', marginBottom: 16, textAlign: 'center' }}>{t('auth.welcomeBack')}</p>
+        <input className="inp" type="email" placeholder={t('auth.email')} value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{ marginBottom: 10 }} />
+        <input className="inp" type="password" placeholder={t('auth.passwordShort')} value={loginPw} onChange={e => setLoginPw(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') handleLogin() }}
+          style={{ marginBottom: 16 }} />
+        {loginError && <p style={{ fontSize: 12, color: 'var(--red)', marginBottom: 12 }}>{loginError}</p>}
+        <button className="bgold" style={{ fontSize: 15, fontWeight: 800 }} onClick={handleLogin}>{t('auth.login')} →</button>
+      </div>
+    </>)
+  }
+
+  async function handleLogin() {
+    if (!loginEmail || !loginPw) { setLoginError(t('auth.fillAllFields')); return }
+    setLoginError('')
+    try {
+      // B3-Fix: NextAuth-Callback erwartet form-data + CSRF-Token, kein JSON.
+      // Wir nutzen signIn() aus next-auth/react — der kümmert sich um beides.
+      const result = await signIn('credentials', {
+        email: loginEmail,
+        password: loginPw,
+        redirect: false,
+      })
+      if (result?.ok && !result.error) {
+        finish('CUSTOMER')
+      } else {
+        setLoginError(t('auth.invalidCredentials'))
+      }
+    } catch {
+      setLoginError(t('auth.connectionError'))
+    }
+  }
+
+  // ═══ CUSTOMER SETUP ═══
+  if (phase === 'customerSetup') {
+    const canSubmit = profile.vn && profile.nn && profile.email && isValidEmail(profile.email)
+    return shell(<>
+      {backBtn(() => setPhase('roleSelect'))}
+      {logo()}
+      <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gold2)', marginBottom: 6 }}>{t('onboarding.yourProfile')}</p>
+      <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20, textAlign: 'center' }}>{t('onboarding.profileSubtitle')}</p>
+
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input className="inp" placeholder={`${t('onboarding.firstName')} *`} value={profile.vn} onChange={e => updateProfile('vn', e.target.value)} style={{ flex: 1 }} />
+          <input className="inp" placeholder={`${t('onboarding.lastName')} *`} value={profile.nn} onChange={e => updateProfile('nn', e.target.value)} style={{ flex: 1 }} />
+        </div>
+        <input className="inp" type="email" placeholder={`${t('auth.email')} *`} value={profile.email} onChange={e => updateProfile('email', e.target.value)} />
+        <input className="inp" type="tel" placeholder={t('onboarding.phone')} value={profile.phone} onChange={e => updateProfile('phone', e.target.value)} />
+        <input className="inp" placeholder={t('onboarding.city')} value={profile.city} onChange={e => updateProfile('city', e.target.value)} />
+      </div>
+
+      <button className="bgold" disabled={!canSubmit} style={{ marginTop: 20 }} onClick={() => {
+        // LOW-Fix: i18n-Toast statt hardcoded Deutsch
+        showToast(profile.vn
+          ? `${t('onboarding.welcome')}, ${profile.vn}! ✉️ ${t('onboarding.confirmationTo')} ${profile.email}`
+          : `${t('onboarding.welcome')}!`)
+        setTimeout(() => finish('CUSTOMER'), 800)
+      }}>
+        {t('onboarding.letsBegin')}
+      </button>
+      <button onClick={() => finish('CUSTOMER')} style={{ marginTop: 10, background: 'none', border: 'none', color: 'var(--stone)', fontSize: 13, cursor: 'pointer' }}>
+        {t('onboarding.fillLater')}
+      </button>
+    </>)
+  }
+
+  // ═══ PROVIDER / B2B SETUP — extrahiert in onboarding/ProviderSetupWizard.tsx ═══
+  if (phase === 'provSetup') {
+    if (role === 'CUSTOMER') {
+      // Defensive: CUSTOMER sollte nie in provSetup landen
+      setPhase('customerSetup')
+      return null
+    }
+    return (
+      <ProviderSetupWizard
+        role={role}
+        profile={profile}
+        updateProfile={updateProfile}
+        isProfileValid={!!isProfileValid}
+        onBack={() => setPhase('roleSelect')}
+        onComplete={(result) => finish(result.role, result)}
+        showToast={showToast}
+      />
+    )
+  }
+
+
+  // ═══ ROLE SELECT ═══
+  if (phase === 'roleSelect') {
+    return shell(<>
+      {backBtn(() => { setPhase('slides'); setStep(slides.length - 1) })}
+      {logo()}
+
+      {/* GROSSE GOLDENE REGISTRIEREN-BUTTON — direkt zu /auth */}
+      <Link
+        href="/auth?tab=register"
+        style={{
+          display: 'block', width: '100%', marginBottom: 12, textDecoration: 'none',
+          padding: '18px 24px', borderRadius: 'var(--btn-radius)',
+          background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
+          color: '#1a1000', textAlign: 'center', fontWeight: 800, fontSize: 16, letterSpacing: '0.05em',
+        }}
+      >
+        ✦ Jetzt registrieren →
+      </Link>
+      <Link
+        href="/auth?tab=login"
+        style={{
+          display: 'block', width: '100%', marginBottom: 24, textDecoration: 'none',
+          padding: '14px 24px', borderRadius: 'var(--btn-radius)',
+          background: 'transparent', border: '1.5px solid var(--gold)',
+          color: 'var(--gold2)', textAlign: 'center', fontWeight: 600, fontSize: 14,
+        }}
+      >
+        Bereits Konto? Anmelden
+      </Link>
+
+      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'var(--stone)', textAlign: 'center', marginBottom: 12, textTransform: 'uppercase' }}>
+        ── ODER DIREKT DURCHSTARTEN ──
+      </p>
+      <p className="cinzel" style={{ fontSize: 18, fontWeight: 600, textAlign: 'center', marginBottom: 16, color: 'var(--gold2)' }}>
+        {t('onboarding.iAm')}
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+        {([
+          [t('onboarding.roleCustomer'), 'CUSTOMER'],
+          [t('onboarding.roleProvider'), 'PROVIDER'],
+          [t('onboarding.roleB2B'), 'B2B'],
+        ] as const).map(([label, r]) => (
+          <button key={r} className="boutline" style={{ padding: 17, fontSize: 14, fontWeight: 700, textAlign: 'left' }}
+            onClick={() => selectRole(r)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {/* Skip — direkt entdecken */}
+      <button
+        onClick={() => finish('CUSTOMER')}
+        className="bgold"
+        style={{ marginTop: 20, width: '100%', background: 'transparent', border: '1.5px solid var(--gold)', color: 'var(--gold2)', fontSize: 14, fontWeight: 700 }}
+      >
+        {t('onboarding.discoverNoAccount')}
+      </button>
+      {/* Login link */}
+      <div style={{ width: '100%', borderTop: '1px solid var(--border)', marginTop: 20, paddingTop: 20, textAlign: 'center' }}>
+        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 10 }}>{t('onboarding.alreadyRegistered')}</p>
+        <button onClick={() => setPhase('login')} className="boutline" style={{ padding: '12px 24px', fontSize: 13 }}>
+          {t('auth.login')} →
+        </button>
+      </div>
+    </>)
+  }
+
+  // ═══ SLIDES ═══ — Extrahiert in components/onboarding/SlidesPanel.tsx
+  return (
+    <SlidesPanel
+      slides={slides}
+      step={step}
+      onStepChange={setStep}
+      onLastSlideContinue={() => setPhase('roleSelect')}
+      onSkip={() => finish('CUSTOMER')}
+      labels={{
+        back: t('onboarding.back'),
+        next: t('onboarding.next'),
+        letsGo: t('onboarding.letsGo'),
+        skipDiscover: t('onboarding.skipDiscover'),
+      }}
+    />
+  )
+}
