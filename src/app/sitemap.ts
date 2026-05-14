@@ -1,6 +1,9 @@
 import { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { PROVS } from '@/lib/demo-data'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
+import { VERTICALS } from '@/lib/seo-data/verticals'
+import { shouldIndex } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,13 +64,58 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-    return [...staticPages, ...catPages, ...salonPages, ...demoPages]
+    // Vertical-Deutschland-Hubs (alle Phase 1 — immer indexiert)
+    const verticalHubs: MetadataRoute.Sitemap = VERTICALS.map((v) => ({
+      url: `${base}/${v.slug}-deutschland`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    }))
+
+    // Stadt-Hubs + Stadt × Vertical — nur in Sitemap wenn >= Threshold Salons
+    const cityHubs: MetadataRoute.Sitemap = []
+    const cityVerticalPages: MetadataRoute.Sitemap = []
+    for (const c of PHASE_1_CITIES) {
+      const { count: cityCount } = await supabase
+        .from('salons')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .ilike('city', c.name)
+      if (shouldIndex(cityCount ?? 0)) {
+        cityHubs.push({
+          url: `${base}/${c.slug}`,
+          changeFrequency: 'weekly',
+          priority: 0.8,
+        })
+      }
+      for (const v of VERTICALS) {
+        const { count: cvCount } = await supabase
+          .from('salons')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true)
+          .ilike('city', c.name)
+          .eq('category', v.slug)
+        if (shouldIndex(cvCount ?? 0)) {
+          cityVerticalPages.push({
+            url: `${base}/${c.slug}/${v.slug}`,
+            changeFrequency: 'weekly',
+            priority: 0.75,
+          })
+        }
+      }
+    }
+
+    return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages]
   } catch {
     const demoPages: MetadataRoute.Sitemap = PROVS.map(p => ({
       url: `${base}/salon/${p.id}`,
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }))
-    return [...staticPages, ...catPages, ...demoPages]
+    const verticalHubs: MetadataRoute.Sitemap = VERTICALS.map((v) => ({
+      url: `${base}/${v.slug}-deutschland`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    }))
+    return [...staticPages, ...catPages, ...demoPages, ...verticalHubs]
   }
 }
