@@ -21,7 +21,12 @@ interface Salon {
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { q, city } = await searchParams
   const title = q ? `Suche: ${q}` : city ? `Salons in ${city}` : 'Suche'
-  return { title: `${title} — ChairMatch` }
+  return {
+    title: `${title} — ChairMatch`,
+    // QW-5: Suchergebnis-Seiten NICHT indexieren — verhindert
+    // Faceted-Search-Falle + Duplicate-Content mit Stadt/Vertical-Hubs.
+    robots: { index: false, follow: true },
+  }
 }
 
 export default async function SearchPage({ searchParams }: Props) {

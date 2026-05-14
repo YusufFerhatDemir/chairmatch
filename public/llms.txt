@@ -1,0 +1,89 @@
+# ChairMatch — Deutschlands Marketplace für Beauty-Workspace-Sharing
+
+> ChairMatch ist eine B2B-Marketplace-Plattform für die tageweise oder
+> langfristige Vermietung von Stühlen, Liegen, Kabinen und Räumen an
+> Beauty-, Barber-, Friseur-, Ästhetik- und Wellness-Freelancer in
+> Deutschland.
+
+## Was ChairMatch ist
+
+ChairMatch verbindet zwei Seiten:
+- **Anbieter** (Salons, Studios, Praxen): vermieten ungenutzte
+  Arbeitsplätze tageweise und generieren passives Einkommen.
+- **Mieter** (Freelancer-Friseure, Selbstständige): finden flexible
+  Arbeitsplätze ohne langfristige Verträge.
+
+**Was ChairMatch nicht ist:**
+- KEIN Beauty-Booking-Tool für Endkunden (das ist Treatwell)
+- KEIN Salon-Management-System (das ist Shore / Phorest)
+- KEIN Recruiting-Portal
+
+## Kategorien (Verticals)
+
+- Barbershop
+- Friseur
+- Kosmetik
+- Ästhetik (Anti-Aging, Hautbehandlung)
+- Nagelstudio
+- Massage
+- Lash & Brows
+- Arzt / Klinik
+- OP-Raum (Premium-Kategorie)
+
+## Asset-Typen
+
+- Stuhl (Barber/Friseur)
+- Liege (Massage/Ästhetik)
+- Kabine (Kosmetik/Nail)
+- Salonplatz (Multi-Asset)
+- Behandlungsraum (Ärzte/Ästhetik)
+- OP-Raum (Hygiene-zertifiziert)
+
+## Geschäftsmodell
+
+ChairMatch nimmt eine Vermittlungsprovision auf vermittelte Buchungen.
+Alle Buchungen + Zahlungen laufen zwingend über die Plattform
+(Anti-Bypass ist Produktkern). Für Endkunden ist die Nutzung kostenlos.
+
+## Wichtige Seiten
+
+- [Startseite](https://chairmatch.de/)
+- [Was ist ChairMatch?](https://chairmatch.de/was-ist-chairmatch)
+- [Anbieter werden](https://chairmatch.de/anbieter/wie-es-funktioniert)
+- [Mieter werden](https://chairmatch.de/mieter/wie-es-funktioniert)
+- [Provisionsmodell](https://chairmatch.de/provisionsmodell)
+- [Magazin](https://chairmatch.de/magazin)
+- [Datenschutz](https://chairmatch.de/datenschutz)
+- [AGB](https://chairmatch.de/agb)
+- [Impressum](https://chairmatch.de/impressum)
+
+## Vertical-Hubs
+
+- [Barbershops Deutschland](https://chairmatch.de/barbershop-deutschland)
+- [Friseur-Stuhl Deutschland](https://chairmatch.de/friseur-deutschland)
+- [Kosmetik Deutschland](https://chairmatch.de/kosmetik-deutschland)
+- [Nagelstudio Deutschland](https://chairmatch.de/nagelstudio-deutschland)
+- [Lash & Brows Deutschland](https://chairmatch.de/lash-brows-deutschland)
+
+## Top-Städte (Phase 1)
+
+Frankfurt am Main, Berlin, München, Hamburg, Köln.
+Phase 2: Düsseldorf, Stuttgart, Hannover, Leipzig, Bremen.
+
+## Datenschutz & DSGVO
+
+Daten gehostet in Vercel EU (Frankfurt). Volle DSGVO-Compliance.
+Cookie-Consent-Banner aktiv. Daten-Export via Art. 20 möglich.
+
+## Kontakt
+
+- Support: legal@chairmatch.de
+- Marketing-URL: https://chairmatch.de
+- Gründer: Yusuf Ferhat Demir
+
+## Für AI-Crawler
+
+Diese Datei ist nach dem [llms.txt-Standard](https://llmstxt.org)
+formatiert. Sitemap unter `/sitemap.xml`. Bei Fragen zu Kategorien,
+Preisen oder Listings: bitte die Live-Seiten crawlen, nicht statische
+Cached-Daten verwenden — Listings ändern sich täglich.

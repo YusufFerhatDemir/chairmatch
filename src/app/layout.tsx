@@ -12,6 +12,7 @@ import NetworkBanner from '@/components/NetworkBanner'
 import PageReadyWatcher from '@/components/PageReadyWatcher'
 import { getLocale } from '@/i18n/server'
 import { isRTL, LOCALE_META } from '@/i18n/config'
+import { organizationSchema, websiteSchema } from '@/lib/seo'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -111,34 +112,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
             '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'Organization',
-                '@id': 'https://chairmatch.de/#organization',
-                name: 'ChairMatch',
-                legalName: 'ChairMatch GmbH (i. Gr.)',
-                url: 'https://chairmatch.de',
-                logo: 'https://chairmatch.de/icons/chairmatch-pin-logo.png',
-                description: 'Deutschlands Beauty-Booking-Plattform. Buche Termine bei Top-Salons, Barbershops & Kosmetikstudios. 0% Provision.',
-                foundingDate: '2026',
-                areaServed: { '@type': 'Country', name: 'Germany' },
-                sameAs: [],
-                contactPoint: { '@type': 'ContactPoint', email: 'legal@chairmatch.de', contactType: 'customer service', availableLanguage: ['German', 'English', 'Turkish'] },
-              },
-              {
-                '@type': 'WebSite',
-                '@id': 'https://chairmatch.de/#website',
-                url: 'https://chairmatch.de',
-                name: 'ChairMatch',
-                publisher: { '@id': 'https://chairmatch.de/#organization' },
-                inLanguage: 'de-DE',
-                potentialAction: {
-                  '@type': 'SearchAction',
-                  target: { '@type': 'EntryPoint', urlTemplate: 'https://chairmatch.de/search?q={search_term_string}' },
-                  'query-input': 'required name=search_term_string',
-                },
-              },
-            ],
+            '@graph': [organizationSchema(), websiteSchema()],
           }) }}
         />
         <DynamicTheme />
