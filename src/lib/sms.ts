@@ -7,6 +7,8 @@
  * Vercel-Log abgegriffen werden.
  */
 
+import { logger } from '@/lib/logger'
+
 const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID
 const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN
 const TWILIO_FROM = process.env.TWILIO_FROM_NUMBER
@@ -32,7 +34,7 @@ export async function sendSms(to: string, body: string): Promise<SmsResult> {
   }
 
   if (!SMS_ENABLED) {
-    console.warn('[sms] TWILIO_* nicht konfiguriert → SMS wird nur geloggt:', { to: normalized, body })
+    logger.warn('sms.dev_fallback', { to: normalized, body })
     return { ok: true, devCode: extractCodeFromBody(body) }
   }
 
@@ -57,13 +59,13 @@ export async function sendSms(to: string, body: string): Promise<SmsResult> {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '')
-      console.error('[sms] Twilio failed:', res.status, errText)
+      logger.error('sms.twilio_failed', new Error(errText || `HTTP ${res.status}`), { to: normalized, status: res.status })
       return { ok: false, error: `SMS-Versand fehlgeschlagen (${res.status})` }
     }
-
+    logger.info('sms.sent', { to: normalized })
     return { ok: true }
   } catch (e) {
-    console.error('[sms] Exception:', e)
+    logger.error('sms.exception', e, { to: normalized })
     return { ok: false, error: 'SMS-Service nicht erreichbar' }
   }
 }

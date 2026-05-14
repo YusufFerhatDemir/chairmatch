@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { sendSms, normalizeE164, generateOtpCode } from '@/lib/sms'
 import { withApi, apiError } from '@/lib/api-wrapper'
+import { logger } from '@/lib/logger'
 
 /**
  * POST /api/auth/phone/send
@@ -52,9 +53,10 @@ export const POST = withApi(async (req: Request) => {
     expires_at: expiresAt,
   })
   if (insertError) {
-    console.error('[phone/send] DB-Insert failed:', insertError.message)
+    logger.error('phone.send.db_insert_failed', insertError, { phone })
     return apiError('Code konnte nicht erzeugt werden', 500)
   }
+  logger.info('phone.send.code_created', { phone })
 
   // SMS verschicken
   const smsBody = `Dein ChairMatch-Code: ${code}\n\nGültig für ${CODE_TTL_MIN} Min. Niemals weitergeben.`

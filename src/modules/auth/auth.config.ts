@@ -3,6 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 import { headers } from 'next/headers'
 import { getSupabaseAdmin, getSupabaseAnon } from '@/lib/supabase-server'
 import { loginSchema } from './auth.schemas'
+import { logger } from '@/lib/logger'
 
 // Fail-fast: kein stiller Fallback auf altes Supabase-Projekt mehr.
 // Supabase-Clients holen wir aus '@/lib/supabase-server' — die werfen
@@ -79,7 +80,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           })
 
           if (error || !data.user) {
-            console.error('[AUTH] signInWithPassword failed:', { email, error: error?.message })
+            logger.warn('auth.signin.invalid_credentials', { email, supabaseError: error?.message })
             await logLoginAttempt(ip, email, false)
             return null
           }
@@ -95,7 +96,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .single()
 
           if (profileError) {
-            console.error('[AUTH] Profile-Lookup failed:', { userId: data.user.id, email, profileError: profileError.message })
+            logger.warn('auth.signin.profile_lookup_failed', { userId: data.user.id, email, error: profileError.message })
             // Fallback: trotzdem Login zulassen mit Daten aus auth.user
             return {
               id: data.user.id,
@@ -106,7 +107,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           if (!profile) {
-            console.error('[AUTH] Profile not found:', { userId: data.user.id, email })
+            logger.warn('auth.signin.profile_not_found', { userId: data.user.id, email })
             // Auto-create Profile via auth.user-Metadata
             return {
               id: data.user.id,
@@ -117,7 +118,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           if ((profile as { is_active?: boolean }).is_active === false) {
-            console.error('[AUTH] Profile inactive:', { userId: data.user.id, email })
+            logger.warn('auth.signin.profile_inactive', { userId: data.user.id, email })
             return null
           }
 
@@ -129,7 +130,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             passwordMustChange: !!(profile as { password_must_change?: boolean }).password_must_change,
           }
         } catch (e) {
-          console.error('[AUTH] authorize() crashed:', e)
+          logger.error('auth.authorize.crashed', e)
           return null
         }
       },

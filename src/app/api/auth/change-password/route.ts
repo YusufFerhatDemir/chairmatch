@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { withApi, apiError } from '@/lib/api-wrapper'
+import { logger } from '@/lib/logger'
 
 /**
  * POST /api/auth/change-password
@@ -38,9 +39,10 @@ export const POST = withApi(async (req: Request) => {
     password: parsed.data.newPassword,
   })
   if (authErr) {
-    console.error('[change-password] auth.admin failed:', authErr.message)
+    logger.error('auth.change_password.failed', authErr, { userId })
     return apiError('Passwort konnte nicht geändert werden', 500)
   }
+  logger.info('auth.change_password.success', { userId })
 
   // 2. Flag entfernen
   await admin

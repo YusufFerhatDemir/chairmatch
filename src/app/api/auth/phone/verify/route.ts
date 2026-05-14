@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { normalizeE164 } from '@/lib/sms'
 import { withApi, apiError } from '@/lib/api-wrapper'
 import { getServerSession } from '@/modules/auth/session'
+import { logger } from '@/lib/logger'
 
 /**
  * POST /api/auth/phone/verify
@@ -55,7 +56,7 @@ export const POST = withApi(async (req: Request) => {
     .limit(1)
 
   if (selectError) {
-    console.error('[phone/verify] DB-Select failed:', selectError.message)
+    logger.error('phone.verify.db_select_failed', selectError, { phone })
     return apiError('Verifizierung nicht möglich', 500)
   }
 

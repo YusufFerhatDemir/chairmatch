@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 /**
  * Provider-Registrierung (öffentlich erreichbar).
@@ -128,7 +129,7 @@ export async function POST(req: NextRequest) {
         // Mail-Fehler darf den Provider nicht in Sackgasse stranden lassen —
         // wir geben Passwort im Response zurück (HTTPS-only) als Fallback,
         // damit das Onboarding-UI es ihm anzeigen kann.
-        console.error('[register-provider] Welcome-Mail failed:', mailErr)
+        logger.warn('provider.register.welcome_mail_failed', { email: d.em, userId, err: String(mailErr) })
         return NextResponse.json({
           success: true,
           fallbackPassword: password,
@@ -142,7 +143,7 @@ export async function POST(req: NextRequest) {
       try {
         await admin.auth.admin.deleteUser(userId)
       } catch (rollbackErr) {
-        console.error('[register-provider] Rollback failed:', rollbackErr)
+        logger.error('provider.register.rollback_failed', rollbackErr, { userId })
       }
       const msg = (innerErr as Error).message || 'Unbekannter Fehler'
       return NextResponse.json(
@@ -151,7 +152,7 @@ export async function POST(req: NextRequest) {
       )
     }
   } catch (e) {
-    console.error('[register-provider] crashed:', e)
+    logger.error('provider.register.crashed', e)
     return NextResponse.json(
       { error: 'Interner Serverfehler' },
       { status: 500 }
