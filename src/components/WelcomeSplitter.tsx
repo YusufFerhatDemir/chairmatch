@@ -16,7 +16,7 @@
  * in der DevTools-Konsole — Splitter erscheint wieder.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -77,7 +77,19 @@ interface Props {
   children: React.ReactNode
 }
 
+/**
+ * Wrapper mit Suspense — useSearchParams MUSS in Suspense gewrappt sein
+ * in Next.js 15, sonst failt der Static-Pre-Render-Build.
+ */
 export function WelcomeGate({ children }: Props) {
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <WelcomeGateInner>{children}</WelcomeGateInner>
+    </Suspense>
+  )
+}
+
+function WelcomeGateInner({ children }: Props) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
