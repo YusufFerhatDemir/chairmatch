@@ -5,6 +5,7 @@ import { createBookingSchema, cancelBookingSchema } from './booking.schemas'
 import { checkConflict, snapshotPolicy, validateTransition, validatePromoCode, calculatePrice } from './booking.service'
 import { getServerSession } from '@/modules/auth/session'
 import { sendBookingConfirmation, sendProviderNotification } from '@/lib/email'
+import { logger } from '@/lib/logger'
 
 export async function createBooking(input: unknown) {
   const parsed = createBookingSchema.safeParse(input)
@@ -111,7 +112,7 @@ export async function createBooking(input: unknown) {
         .eq('code', data.promoCode.toUpperCase())
     } catch {
       // Best effort - log but continue
-      console.error('Failed to update promo code usage')
+      logger.warn('booking.promo_update_failed', {})
     }
   }
 
@@ -132,7 +133,7 @@ export async function createBooking(input: unknown) {
       },
     })
   } catch {
-    console.error('Failed to create audit log')
+    logger.warn('booking.audit_log_failed', {})
   }
 
   // Step 4: Consent (HIGH/VERY_HIGH)
@@ -145,7 +146,7 @@ export async function createBooking(input: unknown) {
         given: true,
       })
     } catch {
-      console.error('Failed to create consent record')
+      logger.warn('booking.consent_record_failed', {})
     }
   }
 
@@ -194,7 +195,7 @@ export async function createBooking(input: unknown) {
 
     await Promise.allSettled(tasks)
   } catch {
-    console.error('Failed to send booking emails')
+    logger.error('booking.email_send_failed', new Error('Booking emails failed'))
   }
 
   return { success: true, bookingId: newBooking.id }
@@ -248,7 +249,7 @@ export async function cancelBooking(input: unknown) {
       details: { reason, actor },
     })
   } catch {
-    console.error('Failed to create audit log')
+    logger.warn('booking.audit_log_failed', {})
   }
 
   return { success: true }
@@ -286,7 +287,7 @@ export async function confirmBooking(bookingId: string) {
       entity_id: bookingId,
     })
   } catch {
-    console.error('Failed to create audit log')
+    logger.warn('booking.audit_log_failed', {})
   }
 
   return { success: true }
@@ -324,7 +325,7 @@ export async function completeBooking(bookingId: string) {
       entity_id: bookingId,
     })
   } catch {
-    console.error('Failed to create audit log')
+    logger.warn('booking.audit_log_failed', {})
   }
 
   return { success: true }
@@ -362,7 +363,7 @@ export async function markNoShow(bookingId: string) {
       entity_id: bookingId,
     })
   } catch {
-    console.error('Failed to create audit log')
+    logger.warn('booking.audit_log_failed', {})
   }
 
   return { success: true }

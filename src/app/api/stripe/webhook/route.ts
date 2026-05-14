@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe, STRIPE_WEBHOOK_SECRET } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { calculateNewCustomerCommission } from '@/modules/marketplace/commission.service'
+import { logger } from '@/lib/logger'
 import type Stripe from 'stripe'
 
 // Disable body parsing — Stripe needs raw body
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!STRIPE_WEBHOOK_SECRET) {
-    console.error('STRIPE_WEBHOOK_SECRET is not configured')
+    logger.error('stripe.webhook.secret_missing', new Error('STRIPE_WEBHOOK_SECRET not set'))
     return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
   }
 
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET)
   } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+    logger.error('stripe.webhook.signature_invalid', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
 
       // Trigger new customer commission after booking payment
       if (meta.type === 'booking_payment' && meta.booking_id) {
-        calculateNewCustomerCommission(meta.booking_id).catch(console.error)
+        calculateNewCustomerCommission(meta.booking_id).catch((e) => logger.error('stripe.commission.calc_failed', e, { bookingId: meta.booking_id }))
       }
 
       if (meta.type === 'provider_subscription' && meta.user_id) {

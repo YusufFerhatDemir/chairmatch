@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { logger } from '@/lib/logger'
 
 // ---------------------------------------------------------------------------
 // Resend client — gracefully falls back to console.log if API key is not set
@@ -119,10 +120,7 @@ function goldButton(text: string, url: string): string {
 
 async function send(to: string, subject: string, html: string): Promise<{ success: boolean; id?: string; error?: string }> {
   if (!resend) {
-    console.log(`[Email] RESEND_API_KEY not set — logging instead`)
-    console.log(`[Email] To: ${to}`)
-    console.log(`[Email] Subject: ${subject}`)
-    console.log(`[Email] HTML length: ${html.length} chars`)
+    logger.warn('email.dev_fallback', { to, subject, htmlBytes: html.length })
     return { success: true, id: `local_${Date.now()}` }
   }
 
@@ -135,14 +133,14 @@ async function send(to: string, subject: string, html: string): Promise<{ succes
     })
 
     if (error) {
-      console.error('[Email] Resend error:', error)
+      logger.error('email.resend_failed', new Error(error.message), { to, subject })
       return { success: false, error: error.message }
     }
-
+    logger.info('email.sent', { to, subject, id: data?.id })
     return { success: true, id: data?.id }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown email error'
-    console.error('[Email] Exception:', message)
+    logger.error('email.exception', err, { to, subject })
     return { success: false, error: message }
   }
 }
@@ -475,7 +473,7 @@ export async function sendPostBookingAffiliateRecommendations(
 
   const to = profile?.email
   if (!to) {
-    console.warn(`[Email] sendPostBookingAffiliateRecommendations: kein E-Mail für user ${userId}`)
+    logger.warn('email.affiliate_recs.no_email', { userId })
     return { success: false, error: 'Kein E-Mail-Empfänger' }
   }
 
@@ -508,7 +506,7 @@ export async function sendPostBookingAffiliateRecommendations(
   }
 
   if (productList.length === 0) {
-    console.log('[Email] sendPostBookingAffiliateRecommendations: keine Produkte vorhanden')
+    logger.info('email.affiliate_recs.no_products', {})
     return { success: false, error: 'Keine Affiliate-Produkte verfügbar' }
   }
 
