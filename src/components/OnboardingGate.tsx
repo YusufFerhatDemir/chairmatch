@@ -8,6 +8,7 @@ import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope,
 import { BrandLogo } from '@/components/BrandLogo'
 import { useTranslations } from '@/i18n/client'
 import { SlidesPanel } from './onboarding/SlidesPanel'
+import { ProviderSetupWizard } from './onboarding/ProviderSetupWizard'
 
 const CAT_LUCIDE: Record<string, LucideIcon> = {
   barber: Scissors,
@@ -60,24 +61,10 @@ export default function OnboardingGate({ slides, children }: Props) {
   const [loginPw, setLoginPw] = useState('')
   const [loginError, setLoginError] = useState('')
 
-  // Customer setup
+  // Customer setup (von ProviderSetupWizard mitbenutzt für Profil-Daten)
   const [profile, setProfile] = useState<ProfileData>({ ...emptyProfile })
 
-  // Provider setup
-  const [provStep, setProvStep] = useState(1)
-  const [provCat, setProvCat] = useState('')
-  const [provServices, setProvServices] = useState<string[]>([])
-  const [customServices, setCustomServices] = useState<{ nm: string; dur: number; pr: number }[]>([])
-  const [provEquip, setProvEquip] = useState<string[]>([])
-  const [customEquip, setCustomEquip] = useState<{ nm: string; pr: number; icon: string }[]>([])
-  const [agb, setAgb] = useState(false)
-
-  // Custom add forms
-  const [csNm, setCsNm] = useState('')
-  const [csDur, setCsDur] = useState('')
-  const [csPr, setCsPr] = useState('')
-  const [ceNm, setCeNm] = useState('')
-  const [cePr, setCePr] = useState('')
+  // Provider setup state lebt jetzt ausschließlich im ProviderSetupWizard.
 
   // Toast
   const [toast, setToast] = useState('')
@@ -95,7 +82,7 @@ export default function OnboardingGate({ slides, children }: Props) {
   useEffect(() => {
     const el = document.getElementById('ob-scroll')
     if (el) el.scrollTop = 0
-  }, [phase, provStep, step])
+  }, [phase, step])
 
   // Timeout-Safety: Wenn Session-Check >3s hängt, nehmen wir 'nicht eingeloggt'
   // an — aber nur wenn sessionStatus immer noch 'loading' ist (nicht wenn er
@@ -175,11 +162,18 @@ export default function OnboardingGate({ slides, children }: Props) {
     setTimeout(() => setToast(''), 3000)
   }
 
-  async function finish(r: string) {
+  // Letzte Wizard-Auswahl (kommt vom ProviderSetupWizard via onComplete).
+  // Wir brauchen sie für die finale API-Anfrage und für localStorage-Backup.
+  interface ProvWizardResult {
+    cat: string
+    services: string[]
+    customServices: { nm: string; dur: number; pr: number }[]
+    equipment: string[]
+    customEquipment: { nm: string; pr: number; icon: string }[]
+  }
+
+  async function finish(r: string, wizardData?: ProvWizardResult) {
     // H7-Fix: Provider-Registrierung VOR dem Setzen des onboarded-Flags prüfen.
-    // Vorher konnte ein 500er die Anmeldung verschlucken und der User landete
-    // ohne Account auf der Startseite (denkt, alles ist gut → erste Buchung
-    // schlägt fehl mit kryptischem Fehler).
     if ((r === 'PROVIDER' || r === 'B2B') && profile.email && profile.vn && profile.nn) {
       try {
         const ctrl = new AbortController()
@@ -192,7 +186,7 @@ export default function OnboardingGate({ slides, children }: Props) {
             vn: profile.vn, nn: profile.nn, em: profile.email, tel: profile.phone || '',
             geschaeft: profile.biz || `${profile.vn} ${profile.nn}`,
             st: profile.street || '', plz: profile.plz || '', city: profile.city || '',
-            kat: provCat || 'friseur', iban: profile.iban || '', gb: true,
+            kat: wizardData?.cat || 'friseur', iban: profile.iban || '', gb: true,
             chair: false, agb: true, dsgvo: true,
           }),
         })
@@ -201,12 +195,11 @@ export default function OnboardingGate({ slides, children }: Props) {
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}))
           setToast(errData.error || 'Anmeldung fehlgeschlagen — bitte später erneut versuchen.')
-          return // Phase NICHT auf "done" setzen — User soll's nochmal probieren können
+          return
         }
 
         const data = await res.json().catch(() => ({}))
         if (data.fallbackPassword) {
-          // Mail-Versand schlug fehl — wir zeigen das Passwort einmalig direkt
           setToast(`Account erstellt. Initial-Passwort: ${data.fallbackPassword} — bitte sicher notieren!`)
         } else {
           setToast('Account erstellt — schau in dein Postfach für die Login-Daten.')
@@ -226,11 +219,13 @@ export default function OnboardingGate({ slides, children }: Props) {
     if (profile.vn || profile.email) {
       localStorage.setItem('cm_setup_profile', JSON.stringify(profile))
     }
-    if (provCat) localStorage.setItem('cm_prov_cat', provCat)
-    if (provServices.length) localStorage.setItem('cm_prov_svcs', JSON.stringify(provServices))
-    if (provEquip.length) localStorage.setItem('cm_prov_equip', JSON.stringify(provEquip))
-    if (customServices.length) localStorage.setItem('cm_custom_svcs', JSON.stringify(customServices))
-    if (customEquip.length) localStorage.setItem('cm_custom_equip', JSON.stringify(customEquip))
+    if (wizardData) {
+      if (wizardData.cat) localStorage.setItem('cm_prov_cat', wizardData.cat)
+      if (wizardData.services.length) localStorage.setItem('cm_prov_svcs', JSON.stringify(wizardData.services))
+      if (wizardData.equipment.length) localStorage.setItem('cm_prov_equip', JSON.stringify(wizardData.equipment))
+      if (wizardData.customServices.length) localStorage.setItem('cm_custom_svcs', JSON.stringify(wizardData.customServices))
+      if (wizardData.customEquipment.length) localStorage.setItem('cm_custom_equip', JSON.stringify(wizardData.customEquipment))
+    }
 
     setDone(true)
   }
@@ -241,7 +236,6 @@ export default function OnboardingGate({ slides, children }: Props) {
       setPhase('customerSetup')
     } else {
       setPhase('provSetup')
-      setProvStep(1)
     }
   }
 
@@ -249,14 +243,8 @@ export default function OnboardingGate({ slides, children }: Props) {
     setProfile(prev => ({ ...prev, [key]: val }))
   }
 
-  // Service/Equip catalog for selected category
-  const catServices = SVC_CATALOG[provCat] || []
-  const catEquip = EQUIP_CATALOG[provCat] || []
-  const allServices = [...catServices, ...customServices.map(s => ({ nm: s.nm, dur: s.dur, pr: s.pr }))]
-  const allEquip = [...catEquip, ...customEquip.map(e => ({ nm: e.nm, pr: e.pr, icon: e.icon }))]
-
-  // Provider categories (exclude angebote, termin)
-  const provCategories = CATEGORIES.filter(c => !['angebote', 'termin'].includes(c.id))
+  // Service-, Equipment- und Kategorien-Datenstrukturen werden komplett im
+  // ProviderSetupWizard verwaltet — kein lokales State-Mirroring mehr nötig.
 
   const isProfileValid = profile.vn && profile.nn && profile.email && isValidEmail(profile.email) && profile.phone && profile.biz && profile.street && profile.plz && profile.city
 
@@ -415,315 +403,26 @@ export default function OnboardingGate({ slides, children }: Props) {
     </>)
   }
 
-  // ═══ PROVIDER / B2B SETUP (5 Steps) ═══
+  // ═══ PROVIDER / B2B SETUP — extrahiert in onboarding/ProviderSetupWizard.tsx ═══
   if (phase === 'provSetup') {
-    const progressBar = (
-      <div style={{ width: '100%', marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{ fontSize: 12, color: 'var(--stone)' }}>Schritt {provStep}/5</span>
-        </div>
-        <div style={{ height: 3, background: 'var(--c3)', borderRadius: 2 }}>
-          <div style={{ height: 3, background: 'var(--gold)', borderRadius: 2, width: `${provStep * 20}%`, transition: 'width 0.3s' }} />
-        </div>
-      </div>
+    if (role === 'CUSTOMER') {
+      // Defensive: CUSTOMER sollte nie in provSetup landen
+      setPhase('customerSetup')
+      return null
+    }
+    return (
+      <ProviderSetupWizard
+        role={role}
+        profile={profile}
+        updateProfile={updateProfile}
+        isProfileValid={!!isProfileValid}
+        onBack={() => setPhase('roleSelect')}
+        onComplete={(result) => finish(result.role, result)}
+        showToast={showToast}
+      />
     )
-
-    function provBack() {
-      if (provStep === 1) setPhase('roleSelect')
-      else setProvStep(provStep - 1)
-    }
-
-    // ── Step 1: Category ──
-    if (provStep === 1) {
-      return shell(<>
-        {backBtn(provBack)}
-        {progressBar}
-        <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gold2)', marginBottom: 6 }}>Was ist dein Handwerk?</p>
-        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20 }}>Wähle deine Branche</p>
-        <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-          {provCategories.map(cat => (
-            <button key={cat.id} onClick={() => {
-              setProvCat(cat.id)
-              setProvServices([])
-              setProvEquip([])
-              setCustomServices([])
-              setCustomEquip([])
-            }} className="catcard" style={{
-              border: provCat === cat.id ? '1.5px solid var(--gold)' : '1px solid #2a2418',
-              boxShadow: provCat === cat.id ? '0 0 28px rgba(176,144,96,.1)' : undefined,
-              position: 'relative',
-            }}>
-              {provCat === cat.id && (
-                <div style={{ position: 'absolute', top: 8, right: 8, width: 20, height: 20, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#080706', fontWeight: 800 }}>✓</div>
-              )}
-              <div className="caticon" style={{ height: 80, padding: 8, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {(() => { const Icon = CAT_LUCIDE[cat.id]; return Icon ? <Icon size={40} stroke="url(#caticon-gold)" aria-label={cat.label} /> : null })()}
-              </div>
-              <div className="catlbl" style={{ fontSize: 12 }}>{cat.label}</div>
-              <div className="catsub">{cat.sub}</div>
-            </button>
-          ))}
-        </div>
-        <button className="bgold" disabled={!provCat} style={{ marginTop: 20 }} onClick={() => {
-          // Init services for this category
-          const catSvcs = SVC_CATALOG[provCat] || []
-          setProvServices(catSvcs.slice(0, 3).map(s => s.nm))
-          setProvStep(2)
-        }}>
-          {t('onboarding.next')}
-        </button>
-      </>)
-    }
-
-    // ── Step 2: Services ──
-    if (provStep === 2) {
-      function toggleSvc(nm: string) {
-        setProvServices(prev => prev.includes(nm) ? prev.filter(s => s !== nm) : [...prev, nm])
-      }
-      function toggleAllSvcs() {
-        if (provServices.length === allServices.length) setProvServices([])
-        else setProvServices(allServices.map(s => s.nm))
-      }
-      function addCustomSvc() {
-        if (!csNm.trim()) { showToast('Bitte Name eingeben'); return }
-        if (allServices.some(s => s.nm === csNm.trim())) { showToast('Existiert bereits'); return }
-        const svc = { nm: csNm.trim(), dur: Number(csDur) || 30, pr: Number(csPr) || 0 }
-        setCustomServices(prev => [...prev, svc])
-        setProvServices(prev => [...prev, svc.nm])
-        setCsNm(''); setCsDur(''); setCsPr('')
-      }
-
-      return shell(<>
-        {backBtn(provBack)}
-        {progressBar}
-        <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gold2)', marginBottom: 6 }}>Deine Services</p>
-        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20, textAlign: 'center' }}>Tippe zum Aktivieren. Eigene Services kannst du unten hinzufügen.</p>
-
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: 'var(--gold2)', fontWeight: 700 }}>{provServices.length} aktiv</span>
-          <button onClick={toggleAllSvcs} style={{ fontSize: 12, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>
-            {provServices.length === allServices.length ? 'Alle aus' : 'Alle an'}
-          </button>
-        </div>
-
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {allServices.map(s => {
-            const active = provServices.includes(s.nm)
-            const isCustom = customServices.some(cs => cs.nm === s.nm)
-            return (
-              <button key={s.nm} onClick={() => toggleSvc(s.nm)} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--c2)', borderRadius: 12,
-                border: active ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer', textAlign: 'left', width: '100%',
-              }}>
-                <div style={{ width: 20, height: 20, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: active ? 'rgba(176,144,96,.15)' : 'transparent', flexShrink: 0 }}>
-                  {active ? '✓' : ''}
-                </div>
-                <span style={{ flex: 1, fontSize: 13, fontWeight: active ? 700 : 400, color: active ? 'var(--cream)' : 'var(--stone)' }}>
-                  {s.nm} {isCustom && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'rgba(176,144,96,.1)', color: 'var(--gold2)', marginLeft: 4 }}>EIGENER</span>}
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--stone)', flexShrink: 0 }}>{s.dur} min</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold2)', flexShrink: 0 }}>{s.pr}€</span>
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Custom Service Form */}
-        <div style={{ width: '100%', marginTop: 14, padding: 14, border: '1.5px dashed var(--border)', borderRadius: 14 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--stone)', marginBottom: 10 }}>+ Eigenen Service hinzufügen</p>
-          <input className="inp" placeholder="Name (z.B. Trockenschnitt)" value={csNm} onChange={e => setCsNm(e.target.value)} style={{ marginBottom: 8, fontSize: 13 }} />
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input className="inp" type="number" placeholder="Dauer (min)" value={csDur} onChange={e => setCsDur(e.target.value)} style={{ flex: 1, fontSize: 13 }} />
-            <input className="inp" type="number" placeholder="Preis (€)" value={csPr} onChange={e => setCsPr(e.target.value)} style={{ flex: 1, fontSize: 13 }} />
-          </div>
-          <button onClick={addCustomSvc} className="boutline" style={{ marginTop: 10, padding: '8px 16px', fontSize: 12, width: '100%' }}>+ Hinzufügen</button>
-        </div>
-
-        <button className="bgold" disabled={provServices.length === 0} style={{ marginTop: 20 }} onClick={() => {
-          const catEq = EQUIP_CATALOG[provCat] || []
-          setProvEquip(catEq.filter(e => e.pr === 0).map(e => e.nm))
-          setProvStep(3)
-        }}>
-          {t('onboarding.next')}
-        </button>
-      </>)
-    }
-
-    // ── Step 3: Equipment ──
-    if (provStep === 3) {
-      function toggleEq(nm: string) {
-        setProvEquip(prev => prev.includes(nm) ? prev.filter(e => e !== nm) : [...prev, nm])
-      }
-      function toggleAllEq() {
-        if (provEquip.length === allEquip.length) setProvEquip([])
-        else setProvEquip(allEquip.map(e => e.nm))
-      }
-      function addCustomEq() {
-        if (!ceNm.trim()) { showToast('Bitte Name eingeben'); return }
-        if (allEquip.some(e => e.nm === ceNm.trim())) { showToast('Existiert bereits'); return }
-        const eq = { nm: ceNm.trim(), pr: Number(cePr) || 0, icon: '' }
-        setCustomEquip(prev => [...prev, eq])
-        setProvEquip(prev => [...prev, eq.nm])
-        setCeNm(''); setCePr('')
-      }
-
-      const hasEquip = allEquip.length > 0
-
-      return shell(<>
-        {backBtn(provBack)}
-        {progressBar}
-        <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gold2)', marginBottom: 6 }}>Deine Ausstattung</p>
-        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20, textAlign: 'center' }}>Geräte die Mieter gegen Aufpreis nutzen können. 0 € = inklusive.</p>
-
-        {!hasEquip && (
-          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 16, textAlign: 'center' }}>
-            Für deine Kategorie gibt es noch keine Standard-Geräte. Du kannst eigene hinzufügen oder direkt weiter.
-          </p>
-        )}
-
-        {hasEquip && (
-          <>
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 12, color: 'var(--gold2)', fontWeight: 700 }}>{provEquip.length} aktiv</span>
-              <button onClick={toggleAllEq} style={{ fontSize: 12, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                {provEquip.length === allEquip.length ? 'Alle aus' : 'Alle an'}
-              </button>
-            </div>
-
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {allEquip.map(eq => {
-                const active = provEquip.includes(eq.nm)
-                const isCustom = customEquip.some(ce => ce.nm === eq.nm)
-                return (
-                  <button key={eq.nm} onClick={() => toggleEq(eq.nm)} style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--c2)', borderRadius: 12,
-                    border: active ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer', textAlign: 'left', width: '100%',
-                  }}>
-                    <div style={{ width: 20, height: 20, borderRadius: 4, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--gold)', background: active ? 'rgba(176,144,96,.15)' : 'transparent', flexShrink: 0 }}>
-                      {active ? '✓' : ''}
-                    </div>
-                    <span style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4AF37' }}>
-                      {(() => { const Icon = CAT_LUCIDE[provCat]; return Icon ? <Icon size={18} /> : <span style={{ fontSize: 14 }}>{eq.icon}</span> })()}
-                    </span>
-                    <span style={{ flex: 1, fontSize: 13, fontWeight: active ? 700 : 400, color: active ? 'var(--cream)' : 'var(--stone)' }}>
-                      {eq.nm} {isCustom && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, background: 'rgba(176,144,96,.1)', color: 'var(--gold2)', marginLeft: 4 }}>EIGENER</span>}
-                    </span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: eq.pr === 0 ? 'var(--green)' : 'var(--gold2)', flexShrink: 0 }}>
-                      {eq.pr === 0 ? 'Inkl.' : `+${eq.pr}€`}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </>
-        )}
-
-        {/* Custom Equipment Form */}
-        <div style={{ width: '100%', marginTop: 14, padding: 14, border: '1.5px dashed var(--border)', borderRadius: 14 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--stone)', marginBottom: 10 }}>+ Eigenes Gerät hinzufügen</p>
-          <input className="inp" placeholder="Name (z.B. Dampfgerät)" value={ceNm} onChange={e => setCeNm(e.target.value)} style={{ marginBottom: 8, fontSize: 13 }} />
-          <input className="inp" type="number" placeholder="Aufpreis pro Tag (€)" value={cePr} onChange={e => setCePr(e.target.value)} style={{ fontSize: 13 }} />
-          <button onClick={addCustomEq} className="boutline" style={{ marginTop: 10, padding: '8px 16px', fontSize: 12, width: '100%' }}>+ Hinzufügen</button>
-        </div>
-
-        <button className="bgold" style={{ marginTop: 20 }} onClick={() => setProvStep(4)}>
-          {t('onboarding.next')}
-        </button>
-      </>)
-    }
-
-    // ── Step 4: Profile ──
-    if (provStep === 4) {
-      return shell(<>
-        {backBtn(provBack)}
-        {progressBar}
-        <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gold2)', marginBottom: 6 }}>Dein Profil</p>
-        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20, textAlign: 'center' }}>
-          {role === 'B2B' ? 'Geschäftsdaten für B2B-Vermietung' : 'Damit Kunden dich finden & kontaktieren können'}
-        </p>
-
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <input className="inp" placeholder="Vorname *" value={profile.vn} onChange={e => updateProfile('vn', e.target.value)} style={{ flex: 1 }} />
-            <input className="inp" placeholder="Nachname *" value={profile.nn} onChange={e => updateProfile('nn', e.target.value)} style={{ flex: 1 }} />
-          </div>
-          <input className="inp" type="email" placeholder="E-Mail *" value={profile.email} onChange={e => updateProfile('email', e.target.value)} />
-          <input className="inp" type="tel" placeholder="Telefon *" value={profile.phone} onChange={e => updateProfile('phone', e.target.value)} />
-          <input className="inp" placeholder="Geschäftsname *" value={profile.biz} onChange={e => updateProfile('biz', e.target.value)} />
-          <input className="inp" placeholder="Straße + Nr. *" value={profile.street} onChange={e => updateProfile('street', e.target.value)} />
-          <div style={{ display: 'flex', gap: 10 }}>
-            <input className="inp" placeholder="PLZ *" value={profile.plz} onChange={e => updateProfile('plz', e.target.value)} style={{ flex: 1 }} />
-            <input className="inp" placeholder="Stadt *" value={profile.city} onChange={e => updateProfile('city', e.target.value)} style={{ flex: 1 }} />
-          </div>
-          {role === 'B2B' && (
-            <>
-              <input className="inp" placeholder="IBAN (für Auszahlungen)" value={profile.iban} onChange={e => updateProfile('iban', e.target.value)} />
-              <input className="inp" placeholder="USt-IdNr." value={profile.ustid} onChange={e => updateProfile('ustid', e.target.value)} />
-            </>
-          )}
-        </div>
-
-        <button className="bgold" disabled={!isProfileValid} style={{ marginTop: 20 }} onClick={() => setProvStep(5)}>
-          {t('onboarding.next')}
-        </button>
-      </>)
-    }
-
-    // ── Step 5: Summary ──
-    if (provStep === 5) {
-      const catLabel = CATEGORIES.find(c => c.id === provCat)?.label || provCat
-      return shell(<>
-        {backBtn(provBack)}
-        {progressBar}
-
-        <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(74,138,90,.15)', border: '1px solid rgba(74,138,90,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, marginBottom: 14 }}>✓</div>
-
-        <p className="cinzel" style={{ fontSize: 20, fontWeight: 600, color: 'var(--gold2)', marginBottom: 6 }}>Alles bereit!</p>
-        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20, textAlign: 'center' }}>Prüfe deine Angaben und bestätige.</p>
-
-        <div className="card" style={{ width: '100%', padding: 14, marginBottom: 20 }}>
-          {[
-            ['Branche', catLabel],
-            ['Name', `${profile.vn} ${profile.nn}`],
-            ['Geschäft', profile.biz],
-            ['Adresse', `${profile.street}, ${profile.plz} ${profile.city}`],
-            ['E-Mail', profile.email],
-            ['Telefon', profile.phone],
-            ['Services', `${provServices.length} aktiv`],
-            ['Ausstattung', `${provEquip.length} Geräte`],
-          ].map(([k, v]) => (
-            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-              <span style={{ color: 'var(--stone)' }}>{k}</span>
-              <span style={{ color: 'var(--cream)', fontWeight: 600, textAlign: 'right', maxWidth: '60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* AGB Checkbox */}
-        <button onClick={() => setAgb(!agb)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: 12, background: 'var(--c2)', borderRadius: 12, border: agb ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer', marginBottom: 20 }}>
-          <div style={{ width: 22, height: 22, borderRadius: 5, border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: 'var(--gold)', background: agb ? 'rgba(176,144,96,.15)' : 'transparent', flexShrink: 0 }}>
-            {agb ? '✓' : ''}
-          </div>
-          <span style={{ fontSize: 12, color: 'var(--cream)', textAlign: 'left' }}>
-            Ich akzeptiere die{' '}
-            <Link href="/agb" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>AGB</Link>
-            {' '}& die{' '}
-            <Link href="/datenschutz" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>Datenschutzerklärung</Link>
-          </span>
-        </button>
-
-        <button className="bgold" disabled={!agb} onClick={() => {
-          showToast(`Bestätigungsmail gesendet an ${profile.email} ✉️`)
-          setTimeout(() => finish(role), 800)
-        }}>
-          Profil erstellen & Bestätigungsmail erhalten
-        </button>
-        <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 12, textAlign: 'center', lineHeight: 1.5 }}>
-          Du erhältst eine Bestätigungs-E-Mail an <strong style={{ color: 'var(--cream)' }}>{profile.email}</strong>. Dein Profil wird nach Prüfung freigeschaltet.
-        </p>
-      </>)
-    }
   }
+
 
   // ═══ ROLE SELECT ═══
   if (phase === 'roleSelect') {
