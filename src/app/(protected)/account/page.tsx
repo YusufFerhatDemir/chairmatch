@@ -32,56 +32,31 @@ function NotificationBell() {
 }
 
 function TwoFactorToggle() {
+  // Card verweist zur neuen Security-Übersicht (saubere QR-UI dort, statt
+  // window.open auf rohes otpauth://-URL).
   const [enabled, setEnabled] = useState<boolean | null>(null)
-  const [loading, setLoading] = useState(false)
   useEffect(() => {
     let cancelled = false
     safeFetchJson<{ enabled?: boolean }>('/api/auth/2fa/setup', { timeoutMs: 6000, retries: 1 })
       .then((res) => {
         if (cancelled) return
-        if (res.ok) setEnabled(res.data?.enabled === true)
-        else setEnabled(false)
+        setEnabled(res.ok ? res.data?.enabled === true : false)
       })
     return () => { cancelled = true }
   }, [])
   return (
-    <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ color: 'var(--cream)', fontSize: 13 }}>🔐 Zwei-Faktor-Auth (2FA)</span>
-      {enabled === null ? (
-        <span style={{ fontSize: 11, color: 'var(--stone)' }}>...</span>
-      ) : enabled ? (
-        <span className="badge badge-gold" style={{ fontSize: 9 }}>Aktiv</span>
-      ) : (
-        <button
-          className="boutline"
-          disabled={loading}
-          onClick={async () => {
-            setLoading(true)
-            try {
-              const r = await safeFetch('/api/auth/2fa/setup', {
-                method: 'POST',
-                timeoutMs: 8000,
-                retries: 1,
-              })
-              if (r.ok) {
-                const d = await r.json().catch(() => ({}))
-                if (d?.qrUrl) {
-                  window.open(d.qrUrl, '_blank')
-                }
-                setEnabled(true)
-              }
-            } catch {
-              /* show error silently — UI stays usable */
-            } finally {
-              setLoading(false)
-            }
-          }}
-          style={{ fontSize: 11, padding: '4px 12px' }}
-        >
-          {loading ? '...' : 'Aktivieren'}
-        </button>
-      )}
-    </div>
+    <Link href="/account/security" style={{ textDecoration: 'none' }}>
+      <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+        <span style={{ color: 'var(--cream)', fontSize: 13 }}>🔐 Sicherheit & Login</span>
+        {enabled === null ? (
+          <span style={{ fontSize: 11, color: 'var(--stone)' }}>…</span>
+        ) : enabled ? (
+          <span className="badge badge-gold" style={{ fontSize: 9 }}>2FA aktiv</span>
+        ) : (
+          <span style={{ fontSize: 11, color: 'var(--gold2)' }}>Einrichten →</span>
+        )}
+      </div>
+    </Link>
   )
 }
 
