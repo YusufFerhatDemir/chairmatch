@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { BackButton } from '@/components/BackButton'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -30,9 +31,9 @@ export default function ForgotPasswordPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '80vh' }}>
-        <Link href="/auth" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none', marginBottom: 24 }}>
-          ← Zurück
-        </Link>
+        <div style={{ marginBottom: 14 }}>
+          <BackButton href="/auth" label="Zurück" />
+        </div>
         <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', textAlign: 'center', marginBottom: 32 }}>
           Passwort zurücksetzen
         </h1>

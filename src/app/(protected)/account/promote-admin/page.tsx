@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { BrandLogo } from '@/components/BrandLogo'
+import { BackButton } from '@/components/BackButton'
 
 export default function PromoteAdminPage() {
   const sessionHook = useSession()
@@ -268,16 +269,7 @@ export default function PromoteAdminPage() {
 
         {/* Back-Link */}
         <div style={{ marginTop: 30, textAlign: 'center' }}>
-          <Link
-            href="/account"
-            style={{
-              fontSize: 12,
-              color: 'var(--stone)',
-              textDecoration: 'none',
-            }}
-          >
-            ← Zurück zum Konto
-          </Link>
+          <BackButton href="/account" label="Zurück zum Konto" />
         </div>
 
         {/* Sicherheits-Hinweis */}

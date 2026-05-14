@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
+import { detectBypass, bypassWarningMessage } from '@/lib/anti-bypass'
+import { logger } from '@/lib/logger'
 
 /**
  * GET /api/messages
@@ -133,6 +135,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // UUID-Validierung — verhindert SQL-Injection via .or()-Filter
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!UUID_REGEX.test(receiverId)) {
+      return NextResponse.json({ error: 'receiverId hat ungültiges Format' }, { status: 400 })
+    }
+    if (salonId && !UUID_REGEX.test(salonId)) {
+      return NextResponse.json({ error: 'salonId hat ungültiges Format' }, { status: 400 })
+    }
+
     if (content.length > 5000) {
       return NextResponse.json(
         { error: 'Nachricht darf maximal 5000 Zeichen lang sein' },
@@ -147,7 +158,55 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Anti-Bypass-Check: blockiere Kontakt-Daten in unbestätigten Conversations.
+    // Sobald eine Buchung existiert (bestätigt), kann frei kommuniziert werden.
     const supabase = getSupabaseAdmin()
+
+    const bypass = detectBypass(content)
+    if (bypass.triggered) {
+      // Prüfe ob bereits eine bestätigte Buchung zwischen den Parteien existiert
+      let hasConfirmedBooking = false
+      try {
+        const { count } = await supabase
+          .from('bookings')
+          .select('*', { count: 'exact', head: true })
+          .or(`and(tenant_id.eq.${userId},provider_id.eq.${receiverId}),and(tenant_id.eq.${receiverId},provider_id.eq.${userId})`)
+          .in('status', ['confirmed', 'paid', 'completed'])
+        hasConfirmedBooking = (count ?? 0) > 0
+      } catch {
+        // bei Schema-Mismatch: lieber blockieren
+        hasConfirmedBooking = false
+      }
+
+      if (!hasConfirmedBooking) {
+        // Audit-Log
+        try {
+          await supabase.from('audit_logs').insert({
+            user_id: userId,
+            action: 'message.bypass_blocked',
+            entity_type: 'message',
+            entity_id: receiverId,
+            metadata: {
+              reasons: bypass.reasons,
+              confidence: bypass.confidence,
+              salon_id: salonId ?? null,
+              content_length: content.length,
+            },
+          })
+        } catch (e) {
+          logger.warn('messages.bypass_audit_failed', { err: String(e) })
+        }
+
+        return NextResponse.json(
+          {
+            error: 'bypass_blocked',
+            message: bypassWarningMessage(bypass),
+            reasons: bypass.reasons,
+          },
+          { status: 422 }
+        )
+      }
+    }
 
     // Look for an existing conversation between these two users (optionally scoped to salon)
     let conversationId: string | null = null

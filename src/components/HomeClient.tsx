@@ -8,7 +8,7 @@ import { PROMO_CODES } from '@/lib/constants'
 import { haversine, formatDistance, requestUserLocation } from '@/lib/geo'
 import { RecommendationBanner } from '@/components/recommendations/RecommendationBanner'
 import Footer from '@/components/Footer'
-import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, type LucideIcon } from 'lucide-react'
+import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, Smile, Snowflake, type LucideIcon } from 'lucide-react'
 import { useTranslations } from '@/i18n/client'
 import { safeFetch, safeFetchJson } from '@/lib/safe-fetch'
 
@@ -247,6 +247,130 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           <p style={{ fontSize: 11, color: 'var(--stone)' }}>{t('home.germanyWide')}</p>
         </div>
       </div>
+
+      {/* WAS IST CHAIRMATCH — Erklärung für Erstbesucher */}
+      <section style={{
+        margin: '16px var(--pad) 0',
+        padding: '18px 18px',
+        background: 'linear-gradient(135deg, rgba(212,175,55,0.10), rgba(176,144,96,0.04))',
+        border: '1px solid var(--gold)',
+        borderRadius: 14,
+      }}>
+        <p className="cinzel text-gold-metallic" style={{
+          fontSize: 18, fontWeight: 700, lineHeight: 1.3, margin: '0 0 6px',
+        }}>
+          Deutschlands #1 für Beauty & Haar
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--cream)', lineHeight: 1.5, margin: '0 0 14px' }}>
+          Verifizierte Salons & Kliniken — von Barbershop bis Haartransplantation.
+          Sicher buchen, transparente Preise, echte Bewertungen.
+        </p>
+
+        {/* 3 Audience-Cards (Endkunde / Mieter / Anbieter) */}
+        <div style={{ display: 'grid', gap: 8 }}>
+          <Link
+            href="/explore"
+            className="bgold"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '11px 14px',
+              fontSize: 13, fontWeight: 700,
+              textDecoration: 'none', borderRadius: 10,
+            }}
+          >
+            <span>👤 Termin buchen</span>
+            <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.85 }}>Friseur · Beauty · Klinik →</span>
+          </Link>
+
+          <Link
+            href="/mieter/wie-es-funktioniert"
+            className="boutline"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '11px 14px',
+              fontSize: 13, fontWeight: 700,
+              textDecoration: 'none', borderRadius: 10,
+            }}
+          >
+            <span>💼 Stuhl mieten</span>
+            <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75 }}>Selbstständig arbeiten →</span>
+          </Link>
+
+          <Link
+            href="/anbieter/wie-es-funktioniert"
+            className="boutline"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '11px 14px',
+              fontSize: 13, fontWeight: 700,
+              textDecoration: 'none', borderRadius: 10,
+            }}
+          >
+            <span>🏢 Salon-Platz vermieten</span>
+            <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75 }}>+800-1.500 €/Monat extra →</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* MEDICAL BEAUTY PREMIUM — Grid mit allen Premium-Services */}
+      <section style={{ margin: '14px var(--pad) 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <p style={{
+            fontSize: 10, fontWeight: 800, letterSpacing: 2,
+            color: 'var(--gold2)', textTransform: 'uppercase', margin: 0,
+          }}>
+            ✨ Medical Beauty Premium
+          </p>
+          <Link href="/premium" style={{ fontSize: 11, color: 'var(--gold)', textDecoration: 'none', fontWeight: 600 }}>
+            Alle ansehen →
+          </Link>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+          <PremiumServiceCard
+            href="/haartransplantation"
+            icon={Scissors}
+            title="Haartransplantation"
+            tag="FUE · DHI"
+            priceFrom="ab 2.490 €"
+          />
+          <PremiumServiceCard
+            href="/zahnimplantate"
+            icon={Smile}
+            title="Zahnimplantate"
+            tag="All-on-4 · Veneers"
+            priceFrom="ab 1.490 €"
+          />
+          <PremiumServiceCard
+            href="/augenlasern"
+            icon={Eye}
+            title="Augenlasern"
+            tag="LASIK · Smile"
+            priceFrom="ab 1.490 €"
+          />
+          <PremiumServiceCard
+            href="/longevity"
+            icon={Snowflake}
+            title="Longevity"
+            tag="Cryo · HBOT · HIFU"
+            priceFrom="ab 29 €"
+          />
+          <PremiumServiceCard
+            href="/iv-infusionen"
+            icon={Syringe}
+            title="IV-Infusionen"
+            tag="NAD+ · Glutathion"
+            priceFrom="ab 79 €"
+          />
+          <PremiumServiceCard
+            href="/category/aesthetik"
+            icon={Sparkles}
+            title="Ästhetik"
+            tag="Botox · Filler"
+            priceFrom="ab 290 €"
+          />
+        </div>
+      </section>
 
       {/* Promo Banner */}
       {topOfferPercent && (
@@ -605,5 +729,50 @@ function ProviderCard({ p, favorites, toggleFav, userLocation }: { p: DemoProvid
         </div>
       </div>
     </a>
+  )
+}
+
+function PremiumServiceCard({
+  href, icon: Icon, title, tag, priceFrom,
+}: {
+  href: string
+  icon: LucideIcon
+  title: string
+  tag: string
+  priceFrom: string
+}) {
+  return (
+    <Link
+      href={href as never}
+      style={{
+        display: 'flex', flexDirection: 'column', gap: 6,
+        padding: 12,
+        background: 'var(--c2)',
+        border: '1px solid rgba(212,175,55,0.18)',
+        borderRadius: 12,
+        textDecoration: 'none',
+        minHeight: 100,
+      }}
+    >
+      <div style={{
+        width: 32, height: 32, borderRadius: 8,
+        background: 'linear-gradient(135deg, rgba(212,175,55,0.20), rgba(176,144,96,0.06))',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <Icon size={16} color="var(--gold2)" strokeWidth={2} />
+      </div>
+      <div style={{ flex: 1 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--cream)', margin: '0 0 1px', lineHeight: 1.2 }}>
+          {title}
+        </p>
+        <p style={{ fontSize: 10, color: 'var(--stone)', margin: 0, lineHeight: 1.2 }}>
+          {tag}
+        </p>
+      </div>
+      <p style={{ fontSize: 11, color: 'var(--gold2)', fontWeight: 700, margin: 0 }}>
+        {priceFrom}
+      </p>
+    </Link>
   )
 }

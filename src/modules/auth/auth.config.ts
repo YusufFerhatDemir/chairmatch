@@ -230,24 +230,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: 'jwt',
-    // 365 Tage Session-Dauer — User bleibt 1 Jahr eingeloggt (WhatsApp-Style)
+    // 30 Tage Session-Dauer — branchen-üblich für B2B-Apps mit Compliance-Daten
+    // (vorher 365 Tage — vom Security-Audit als zu lang für IBAN/Versicherungsdaten bewertet)
     // Bei jeder Aktivität wird die Session automatisch verlängert (Rolling-Refresh)
-    maxAge: 365 * 24 * 60 * 60, // 365 Tage in Sekunden
-    updateAge: 24 * 60 * 60,    // alle 24h Token erneuern (Rolling-Refresh)
+    maxAge: 30 * 24 * 60 * 60, // 30 Tage in Sekunden
+    updateAge: 24 * 60 * 60,   // alle 24h Token erneuern (Rolling-Refresh)
   },
   jwt: {
     // Token läuft genauso lange wie die Session — synchron halten
-    maxAge: 365 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60,
   },
   cookies: {
     sessionToken: {
-      name: 'authjs.session-token',
+      // __Secure-Prefix: Cookie nur über HTTPS akzeptiert (zusätzlicher MITM-Schutz)
+      name: process.env.NODE_ENV === 'production' ? '__Secure-authjs.session-token' : 'authjs.session-token',
       options: {
         httpOnly: true,          // Schutz vor XSS (JS kann Cookie nicht lesen)
         sameSite: 'lax',         // Schutz vor CSRF, OAuth-Redirects funktionieren
         path: '/',
         secure: process.env.NODE_ENV === 'production', // Nur HTTPS in Production
-        maxAge: 365 * 24 * 60 * 60, // 365 Tage persistentes Cookie
+        maxAge: 30 * 24 * 60 * 60, // 30 Tage persistentes Cookie
       },
     },
   },

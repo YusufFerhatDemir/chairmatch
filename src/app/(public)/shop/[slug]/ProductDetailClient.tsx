@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ShoppingBag, ChevronLeft, Star } from 'lucide-react'
+import { BackButton } from '@/components/BackButton'
 
 interface Variant {
   id: string
@@ -70,9 +71,7 @@ export default function ProductDetailClient({ product: p }: Props) {
       <div className="screen">
         {/* Back */}
         <div style={{ padding: '16px var(--pad) 0' }}>
-          <Link href="/shop" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <ChevronLeft size={16} /> Zurück zum Shop
-          </Link>
+          <BackButton href="/shop" label="Zurück zum Shop" />
         </div>
 
         {/* Image */}

@@ -251,6 +251,106 @@ export function serviceAreaSchema(city: string, vertical?: string) {
   }
 }
 
+/**
+ * Article-Schema für Magazin-Artikel.
+ *
+ * Optimiert für Google Discover, AI-Engines (ChatGPT, Claude, Perplexity)
+ * und Top-Stories-Karussell. Mit Image (OG-Image-Route auto-discovered)
+ * und author/publisher/dateModified.
+ */
+export interface ArticleSchemaInput {
+  slug: string
+  title: string
+  description: string
+  publishedAt: string
+  modifiedAt?: string
+  category: string
+  keywords: string[]
+  readMinutes?: number
+}
+
+export function articleSchema(a: ArticleSchemaInput) {
+  const url = `https://chairmatch.de/magazin/${a.slug}`
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    '@id': `${url}#article`,
+    headline: a.title,
+    description: a.description,
+    datePublished: a.publishedAt,
+    dateModified: a.modifiedAt || a.publishedAt,
+    image: [`${url}/opengraph-image`],
+    author: {
+      '@type': 'Person',
+      name: 'Yusuf Ferhat Demir',
+      url: 'https://chairmatch.de/was-ist-chairmatch',
+    },
+    publisher: { '@id': 'https://chairmatch.de/#organization' },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    keywords: a.keywords.join(', '),
+    articleSection: a.category,
+    inLanguage: 'de-DE',
+    isAccessibleForFree: true,
+    ...(a.readMinutes ? { timeRequired: `PT${a.readMinutes}M` } : {}),
+  }
+}
+
+/**
+ * Service+Offer-Schema für Listing-Detail-Pages.
+ *
+ * Repräsentiert ein einzelnes Stuhl-/Liegen-/Raum-Angebot eines Salons
+ * mit konkretem Preis/Tag und Verfügbarkeit. Wird mit LocalBusiness des
+ * Salons über provider.@id verknüpft.
+ */
+export interface ListingSchemaInput {
+  id: string
+  slug: string
+  name: string
+  description?: string | null
+  pricePerDayEur: number
+  category: string
+  salon: {
+    slug: string
+    name: string
+    city?: string | null
+  }
+  availability?: 'InStock' | 'OutOfStock' | 'LimitedAvailability'
+}
+
+export function listingSchema(input: ListingSchemaInput) {
+  const url = `https://chairmatch.de/listings/${input.slug}`
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${url}#service`,
+    name: input.name,
+    description: input.description || `${input.name} — Stuhl-Miete bei ${input.salon.name}${input.salon.city ? ` in ${input.salon.city}` : ''}`,
+    serviceType: input.category,
+    provider: {
+      '@type': 'LocalBusiness',
+      '@id': `https://chairmatch.de/salon/${input.salon.slug}#localbusiness`,
+      name: input.salon.name,
+    },
+    areaServed: input.salon.city
+      ? { '@type': 'City', name: input.salon.city }
+      : { '@type': 'Country', name: 'Germany' },
+    offers: {
+      '@type': 'Offer',
+      url,
+      priceCurrency: 'EUR',
+      price: input.pricePerDayEur.toFixed(2),
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price: input.pricePerDayEur.toFixed(2),
+        priceCurrency: 'EUR',
+        unitText: 'DAY',
+      },
+      availability: `https://schema.org/${input.availability || 'InStock'}`,
+      seller: { '@id': 'https://chairmatch.de/#organization' },
+    },
+  }
+}
+
 /** City-Slug-Konverter — Umlaute zu ASCII */
 export function cityToSlug(city: string): string {
   return city

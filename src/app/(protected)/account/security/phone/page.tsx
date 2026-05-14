@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { PhoneAuthWidget } from '@/components/PhoneAuthWidget'
+import { BackButton } from '@/components/BackButton'
 
 /**
  * Phone-Nummer-Verifizierung im Account-Bereich.
@@ -28,7 +29,9 @@ export default function PhoneVerifyPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <Link href="/account/security" style={{ color: 'var(--stone)', fontSize: 14, textDecoration: 'none' }}>← Zurück</Link>
+        <div style={{ marginBottom: 14 }}>
+          <BackButton href="/account/security" label="Zurück" />
+        </div>
         <h1 className="cinzel" style={{ color: 'var(--gold2)', fontSize: 22, marginTop: 12, marginBottom: 8 }}>Telefonnummer verifizieren</h1>
 
         {verified ? (

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import ProductDetailClient from './ProductDetailClient'
+import { BackButton } from '@/components/BackButton'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -38,7 +39,9 @@ export default async function ProductPage({ params }: Props) {
       <div className="shell">
         <div className="screen" style={{ padding: 'var(--pad)', textAlign: 'center' }}>
           <h1 style={{ fontSize: 'var(--font-xl)', color: 'var(--cream)', marginTop: 40 }}>Produkt nicht gefunden</h1>
-          <a href="/shop" style={{ color: 'var(--gold)', marginTop: 16, display: 'inline-block' }}>← Zurück zum Shop</a>
+          <div style={{ marginTop: 16, display: 'inline-block' }}>
+            <BackButton href="/shop" label="Zurück zum Shop" />
+          </div>
         </div>
       </div>
     )

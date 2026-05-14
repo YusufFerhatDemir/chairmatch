@@ -10,7 +10,15 @@ export const POST = withApi(async (request: Request) => {
   const body = await (request as NextRequest).json().catch(() => null)
   if (!body || typeof body !== 'object') return apiError('Ungültige Anfrage', 400)
 
-  const result = await createReview({ ...body, customerId: session.user.id })
+  // Backward-Compat: wenn Frontend kein reviewType schickt aber salonId + bookingId,
+  // dann ist es eine "customer_to_salon" Bewertung (klassisch)
+  const safeBody = body as Record<string, unknown>
+  const normalizedBody = {
+    ...safeBody,
+    reviewType: safeBody.reviewType || 'customer_to_salon',
+  }
+
+  const result = await createReview(normalizedBody)
   if ('error' in result) return apiError(result.error ?? 'Review konnte nicht erstellt werden', 400)
   return NextResponse.json(result, { status: 201 })
 })

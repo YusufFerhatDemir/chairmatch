@@ -8,6 +8,14 @@ import { useTranslations } from '@/i18n/client'
 import { BackBtn, GoldGradientDefs } from './helpers'
 
 /**
+ * ProviderSetupWizard — wiederverwendbarer Multi-Step-Wizard für Provider-Setup.
+ *
+ * EINER VON DREI Provider-Registrierungs-UIs (siehe docs/adr/0001).
+ * Backend (identisch): /api/register-provider (via Eltern-Komponente)
+ * Schwesternfiles:
+ *   - src/components/OnboardingGate.tsx (nutzt diesen Wizard intern)
+ *   - src/app/(public)/register/anbieter/page.tsx (SEO-Deep-Link)
+ *
  * Provider-/B2B-Setup-Wizard — 5 Schritte:
  *   1) Kategorie wählen
  *   2) Services markieren / hinzufügen

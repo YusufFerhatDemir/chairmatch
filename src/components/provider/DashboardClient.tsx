@@ -172,6 +172,40 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
         {salonName && (
           <p style={{ fontSize: 13, color: 'var(--stone)', marginTop: 4 }}>{salonName}</p>
         )}
+
+        {/* Quick-Actions */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+          <a
+            href="/provider/bilder"
+            style={{
+              padding: '8px 14px',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              textDecoration: 'none',
+              background: 'var(--c2)',
+              color: 'var(--cream)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            📸 Bilder verwalten
+          </a>
+          <a
+            href="/explore"
+            style={{
+              padding: '8px 14px',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              textDecoration: 'none',
+              background: 'var(--c2)',
+              color: 'var(--cream)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            🔍 Salon-Vorschau
+          </a>
+        </div>
       </div>
 
       {/* ═══ Stripe Connect Banner ═══ */}

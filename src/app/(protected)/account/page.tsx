@@ -45,6 +45,7 @@ function TwoFactorToggle() {
     return () => { cancelled = true }
   }, [])
   return (
+    <>
     <Link href="/account/security" style={{ textDecoration: 'none' }}>
       <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
         <span style={{ color: 'var(--cream)', fontSize: 13 }}>🔐 Sicherheit & Login</span>
@@ -57,6 +58,13 @@ function TwoFactorToggle() {
         )}
       </div>
     </Link>
+    <Link href={"/account/bewertungen" as never} style={{ textDecoration: 'none' }}>
+      <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+        <span style={{ color: 'var(--cream)', fontSize: 13 }}>⭐ Meine Bewertungen</span>
+        <span style={{ fontSize: 11, color: 'var(--gold2)' }}>Öffnen →</span>
+      </div>
+    </Link>
+    </>
   )
 }
 
@@ -166,7 +174,26 @@ export default function AccountPage() {
               </p>
               <p className="cinzel" style={{ fontSize: 24, fontWeight: 700, color: 'var(--gold2)' }}>0,00 €</p>
             </div>
-            <button className="bgold" style={{ width: 'auto', padding: '10px 14px', fontSize: 12 }}>Empfehlen</button>
+            <button
+              onClick={async () => {
+                const url = `${window.location.origin}/?ref=${session?.user?.id ?? ''}`
+                const text = `Probiere ChairMatch — Deutschlands Marketplace für Beauty-Workspace-Sharing. Mit meiner Empfehlung beide 15 € Rabatt: ${url}`
+                if (navigator.share) {
+                  try { await navigator.share({ title: 'ChairMatch empfehlen', text, url }) } catch { /* user cancelled */ }
+                } else {
+                  try {
+                    await navigator.clipboard.writeText(url)
+                    alert('Link in die Zwischenablage kopiert!')
+                  } catch {
+                    prompt('Empfehlungs-Link:', url)
+                  }
+                }
+              }}
+              className="bgold"
+              style={{ width: 'auto', padding: '10px 14px', fontSize: 12, border: 'none', cursor: 'pointer' }}
+            >
+              Empfehlen
+            </button>
           </div>
         </div>
 

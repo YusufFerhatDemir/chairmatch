@@ -163,7 +163,7 @@ export default async function RootLayout({
                     });
                   });
                 })
-                .catch(function(e) { console.warn('[sw] register failed:', e); });
+                .catch(function() { /* SW-Registration silently failt — kein Console-Spam in Prod */ });
 
               // Wenn der neue SW die Kontrolle übernimmt, einmalig refreshen
               var refreshing = false;

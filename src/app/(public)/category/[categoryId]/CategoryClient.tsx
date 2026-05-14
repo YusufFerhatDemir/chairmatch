@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PROVS, type DemoProvider } from '@/lib/demo-data'
+import { BackButton } from '@/components/BackButton'
 
 interface DBSalon {
   id: string
@@ -67,7 +68,9 @@ export default function CategoryClient({ categoryId, category, dbSalons }: Props
     <div className="shell">
       <div className="screen">
         <div className="sticky">
-          <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>← Zurück</Link>
+          <div style={{ marginBottom: 14 }}>
+            <BackButton href="/" label="Zurück" />
+          </div>
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginTop: 8 }}>
             {category?.label || categoryLabels[categoryId] || categoryId}
           </h1>

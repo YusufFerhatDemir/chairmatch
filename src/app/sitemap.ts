@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic'
 
 const CATEGORY_SLUGS = [
   'barber', 'friseur', 'kosmetik', 'aesthetik',
+  'haartransplantation', 'zahnimplantate', 'augenlasern', 'longevity', 'infusion',
   'nail', 'massage', 'lash', 'arzt', 'opraum',
 ]
 
@@ -37,6 +38,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/agb`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/agb-provider`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/cookie-settings`, changeFrequency: 'monthly', priority: 0.2 },
+    { url: `${base}/faq`, changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${base}/products`, changeFrequency: 'daily', priority: 0.85 },
+    // Premium Medical-Beauty Money-Pages
+    { url: `${base}/premium`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${base}/haartransplantation`, changeFrequency: 'weekly', priority: 0.95 },
+    { url: `${base}/zahnimplantate`, changeFrequency: 'weekly', priority: 0.95 },
+    { url: `${base}/augenlasern`, changeFrequency: 'weekly', priority: 0.95 },
+    { url: `${base}/longevity`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${base}/iv-infusionen`, changeFrequency: 'weekly', priority: 0.9 },
   ]
 
   // Category pages (all 9 categories)
@@ -118,7 +128,52 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-    return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages, ...magazinPages]
+    // Produkte (Marketplace)
+    let productPages: MetadataRoute.Sitemap = []
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: products } = await (supabase as any)
+        .from('products')
+        .select('id, slug, updated_at')
+        .eq('is_active', true)
+        .limit(5000)
+      productPages = (products ?? []).map((p: { id: string; slug?: string | null; updated_at?: string }) => ({
+        url: `${base}/products/${p.slug || p.id}`,
+        lastModified: p.updated_at,
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }))
+    } catch {
+      // ok
+    }
+
+    // Listings (aktive Services mit Slug)
+    let listingPages: MetadataRoute.Sitemap = []
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: services } = await (supabase as any)
+        .from('services')
+        .select('id, slug, created_at')
+        .eq('is_active', true)
+        .limit(5000)
+      listingPages = (services ?? []).map((s: { id: string; slug?: string | null; created_at?: string }) => ({
+        url: `${base}/listings/${s.slug || s.id}`,
+        lastModified: s.created_at,
+        changeFrequency: 'weekly' as const,
+        priority: 0.75,
+      }))
+    } catch {
+      // Falls services-Tabelle Schema-Mismatch hat — ignorieren
+    }
+
+    // Freelancer-Rechner (Lead-Magnet)
+    const toolPages: MetadataRoute.Sitemap = [{
+      url: `${base}/freelancer-rechner`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }]
+
+    return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages, ...magazinPages, ...listingPages, ...productPages, ...toolPages]
   } catch {
     const demoPages: MetadataRoute.Sitemap = PROVS.map(p => ({
       url: `${base}/salon/${p.id}`,

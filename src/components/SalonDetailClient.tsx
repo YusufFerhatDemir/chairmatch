@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PROVS, getProviderSpecs, type DemoProvider, type DemoSpec } from '@/lib/demo-data'
 import SalonMap from '@/components/SalonMap'
+import { BackButton } from '@/components/BackButton'
 
 interface SalonData {
   id: string
@@ -21,6 +22,12 @@ interface SalonData {
   tags?: string[] | null
   phone?: string | null
   opening_hours?: Record<string, { open: string; close: string } | null> | null
+  /** Salon-Logo (square) — vom Provider hochgeladen via /provider/bilder */
+  logo_url?: string | null
+  /** Hero-Cover-Bild (16:9) — Lieferando-Style */
+  cover_url?: string | null
+  /** Galerie-Bilder — Innenraum, Kabinen, Stühle */
+  gallery_urls?: string[]
 }
 
 interface SalonService {
@@ -186,14 +193,82 @@ export default function SalonDetailClient({ salon, services, staff, reviews, ren
 
   const demoGal = demoP?.gal || []
 
+  // Cover-Bild: erst gepflegtes cover_url, dann erstes gallery-Bild, dann erstes demo-Bild
+  const heroCover = salon.cover_url
+    || (salon.gallery_urls && salon.gallery_urls[0])
+    || (demoGal[0] ?? null)
+
   return (
     <div className="shell">
       <div className="screen">
-        {/* Header */}
-        <div style={{ padding: '20px var(--pad)', background: 'var(--c1)' }}>
-          <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>← Zurück</Link>
-          <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 12 }}>{salon.name}</h1>
-          {displayTagline && <p style={{ color: 'var(--stone)', fontSize: 'var(--font-md)', marginTop: 4 }}>{displayTagline}</p>}
+        {/* HERO mit Cover-Bild (Lieferando/Wolt-Style) */}
+        {heroCover && (
+          <div style={{
+            position: 'relative',
+            width: '100%',
+            aspectRatio: '16/9',
+            maxHeight: 280,
+            overflow: 'hidden',
+            background: `url(${heroCover}) center/cover`,
+          }}>
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(8,7,6,0.7) 100%)',
+            }} />
+            <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>
+              <BackButton
+                href="/"
+                label="Zurück"
+                style={{
+                  background: 'rgba(0,0,0,0.65)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Header — mit Logo wenn vorhanden */}
+        <div style={{
+          padding: '20px var(--pad)',
+          background: 'var(--c1)',
+          position: 'relative',
+          marginTop: heroCover && salon.logo_url ? -32 : 0,
+        }}>
+          {!heroCover && (
+            <div style={{ marginBottom: 12 }}>
+              <BackButton href="/" label="Zurück" />
+            </div>
+          )}
+
+          {/* Logo + Name (Lieferando-Style: Logo links, Name rechts) */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginTop: heroCover ? 0 : 12 }}>
+            {salon.logo_url && (
+              <div style={{
+                width: 64,
+                height: 64,
+                borderRadius: 12,
+                overflow: 'hidden',
+                background: 'var(--c2)',
+                border: '2px solid var(--c1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                flexShrink: 0,
+              }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={salon.logo_url}
+                  alt={`${salon.name} Logo`}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', margin: 0 }}>{salon.name}</h1>
+              {displayTagline && <p style={{ color: 'var(--stone)', fontSize: 'var(--font-md)', marginTop: 4 }}>{displayTagline}</p>}
+            </div>
+          </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 12, alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <Stars rating={displayRating} size={14} />

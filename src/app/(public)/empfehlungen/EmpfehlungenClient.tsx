@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import AffiliateProductCard from '@/components/AffiliateProductCard'
+import { BackButton } from '@/components/BackButton'
 import type { AffiliateProductRow } from './page'
 
 const CATEGORIES = ['Haarpflege', 'Gesichtspflege', 'Make-up', 'Tools'] as const
@@ -22,6 +23,9 @@ export default function EmpfehlungenClient({ products }: Props) {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        <div style={{ marginBottom: 14 }}>
+          <BackButton href="/" label="Zurück" />
+        </div>
         {/* Hero */}
         <div
           style={{

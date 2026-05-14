@@ -22,10 +22,24 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 const REDACT_KEYS = new Set([
-  'password', 'newPassword', 'oldPassword', 'token', 'access_token',
+  'password', 'newpassword', 'oldpassword', 'token', 'access_token',
   'refresh_token', 'apikey', 'api_key', 'secret', 'authorization',
-  'cookie', 'csrf', 'creditCard', 'cvv', 'iban',
+  'cookie', 'csrf', 'creditcard', 'cvv', 'iban',
+  // DSGVO-PII (durch Security-Audit hinzugefügt)
+  'phone', 'phonenumber', 'phone_number', 'mobile', 'tel',
+  'ssn', 'taxid', 'tax_id', 'ustid', 'gewerbenummer',
+  'birthdate', 'birthday', 'dob',
 ])
+
+// Email-Masking: max@example.com → m***@example.com (DSGVO-konform, debug-fähig)
+function maskEmail(email: string): string {
+  const at = email.indexOf('@')
+  if (at < 1) return '[EMAIL]'
+  const local = email.slice(0, at)
+  const domain = email.slice(at)
+  if (local.length <= 2) return `${local[0]}***${domain}`
+  return `${local[0]}***${local[local.length - 1]}${domain}`
+}
 
 function redact(obj: unknown): unknown {
   if (obj === null || obj === undefined) return obj
@@ -34,8 +48,12 @@ function redact(obj: unknown): unknown {
 
   const result: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-    if (REDACT_KEYS.has(k.toLowerCase())) {
+    const lowerK = k.toLowerCase()
+    if (REDACT_KEYS.has(lowerK)) {
       result[k] = '[REDACTED]'
+    } else if (lowerK === 'email' && typeof v === 'string') {
+      // Email speziell: maskieren statt komplett redacten (Debugging möglich)
+      result[k] = maskEmail(v)
     } else if (typeof v === 'object' && v !== null) {
       result[k] = redact(v)
     } else {

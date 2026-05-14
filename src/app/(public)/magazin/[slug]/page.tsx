@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { MAGAZIN_ARTIKEL, getMagazinArtikel } from '@/lib/seo-data/magazin'
-import { breadcrumbSchema, faqSchema } from '@/lib/seo'
+import { breadcrumbSchema, faqSchema, articleSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -97,18 +97,15 @@ export default async function MagazinArticlePage({ params }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Article',
-            headline: a.title,
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema({
+            slug,
+            title: a.title,
             description: a.description,
-            datePublished: a.publishedAt,
-            author: { '@type': 'Person', name: 'Yusuf Ferhat Demir' },
-            publisher: { '@id': 'https://chairmatch.de/#organization' },
-            mainEntityOfPage: `https://chairmatch.de/magazin/${slug}`,
-            keywords: a.keywords.join(', '),
-            articleSection: a.category,
-          }) }}
+            publishedAt: a.publishedAt,
+            category: a.category,
+            keywords: a.keywords,
+            readMinutes: a.readMinutes,
+          })) }}
         />
         <script
           type="application/ld+json"

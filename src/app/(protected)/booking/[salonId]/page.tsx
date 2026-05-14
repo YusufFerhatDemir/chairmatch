@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PROVS, getProviderSpecs, type DemoProvider, type DemoSpec } from '@/lib/demo-data'
 import { PROMO_CODES } from '@/lib/constants'
+import { BackButton } from '@/components/BackButton'
 
 interface Service {
   id: string
@@ -242,7 +243,9 @@ export default function BookingPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <Link href={`/salon/${salonId}`} style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>← Zurück</Link>
+        <div style={{ marginBottom: 14 }}>
+          <BackButton href={`/salon/${salonId}`} label="Zurück" />
+        </div>
         <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 12, marginBottom: 4 }}>Termin buchen</h1>
         {salon && <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginBottom: 16 }}>{salon.name}</p>}
 
@@ -379,8 +382,8 @@ export default function BookingPage() {
               {!selectedSpec ? 'Tippe auf einen Spezialisten oder überspringe' : `${selectedSpec.nm} ausgewählt`}
             </p>
 
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setStep(1)} className="boutline" style={{ flex: 1, cursor: 'pointer' }}>Zurück</button>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <BackButton onClick={() => setStep(1)} label="Zurück" size="sm" />
               <button onClick={() => setStep(3)} className="bgold" style={{ flex: 1 }}>
                 {selectedSpec ? 'Weiter' : 'Überspringen'}
               </button>
@@ -473,8 +476,8 @@ export default function BookingPage() {
                 </label>
               </div>
             )}
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setStep(2)} className="boutline" style={{ flex: 1, cursor: 'pointer' }}>Zurück</button>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <BackButton onClick={() => setStep(2)} label="Zurück" size="sm" />
               <button type="button" onClick={handleSubmit} className="bgold" style={{ flex: 1 }} disabled={loading || !canSubmit}>
                 {loading ? 'Wird gebucht...' : 'Jetzt buchen'}
               </button>

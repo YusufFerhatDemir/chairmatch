@@ -79,6 +79,18 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+  async rewrites() {
+    return [
+      // IndexNow Key-File: /<INDEXNOW_KEY>.txt → /api/indexnow/key
+      // Wir routen alle *.txt Anfragen auf api/indexnow/key. Da auf der
+      // Domain sonst keine .txt-Dateien liegen, ist die Kollision-Wahrscheinlichkeit 0.
+      // (robots.txt + llms.txt sind eigene Routes/Files.)
+      {
+        source: '/:key([a-f0-9]{16,64}).txt',
+        destination: '/api/indexnow/key',
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {

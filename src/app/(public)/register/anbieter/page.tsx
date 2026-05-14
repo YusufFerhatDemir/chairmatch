@@ -1,5 +1,18 @@
 'use client'
 
+/**
+ * /register/anbieter — SEO-/Marketing-Deep-Link für Provider-Akquise.
+ *
+ * EINER VON DREI Provider-Registrierungs-UIs (siehe docs/adr/0001).
+ * Backend (identisch): /api/register-provider
+ * Schwesternfiles:
+ *   - src/components/OnboardingGate.tsx (First-Visit-Overlay)
+ *   - src/components/onboarding/ProviderSetupWizard.tsx (Reusable Multi-Step)
+ *
+ * Wenn du hier Form-Felder änderst, prüfe ob auch die anderen zwei UIs +
+ * der Backend-Endpoint angepasst werden müssen.
+ */
+
 import { useState } from 'react'
 import Link from 'next/link'
 import { BrandLogo } from '@/components/BrandLogo'
@@ -127,10 +140,25 @@ export default function AnbieterRegisterPage() {
           {/* Step 1: Personal */}
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {([['Vorname', 'vn', 'text', 'Max'], ['Nachname', 'nn', 'text', 'Mustermann'], ['E-Mail', 'em', 'email', 'max@mail.de'], ['Telefon', 'tel', 'tel', '+49 170 ...']] as const).map(([label, key, type, ph]) => (
+              {([
+                ['Vorname', 'vn', 'text', 'Max', 1, 60],
+                ['Nachname', 'nn', 'text', 'Mustermann', 1, 60],
+                ['E-Mail', 'em', 'email', 'max@mail.de', 5, 120],
+                ['Telefon', 'tel', 'tel', '+49 170 ...', 6, 30],
+              ] as const).map(([label, key, type, ph, minLen, maxLen]) => (
                 <div key={key}>
-                  <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{label}</label>
-                  <input className="inp" type={type} value={f[key] as string} onChange={e => upd(key, e.target.value)} placeholder={ph} />
+                  <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{label} *</label>
+                  <input
+                    className="inp"
+                    type={type}
+                    value={f[key] as string}
+                    onChange={e => upd(key, e.target.value)}
+                    placeholder={ph}
+                    required
+                    minLength={minLen}
+                    maxLength={maxLen}
+                    autoComplete={type === 'email' ? 'email' : type === 'tel' ? 'tel' : key === 'vn' ? 'given-name' : key === 'nn' ? 'family-name' : 'on'}
+                  />
                 </div>
               ))}
             </div>
@@ -139,10 +167,25 @@ export default function AnbieterRegisterPage() {
           {/* Step 2: Business */}
           {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {([['Geschäftsname', 'geschaeft', 'Mein Studio'], ['Straße + Nr.', 'st', 'Münchener Str. 17'], ['PLZ', 'plz', '60329'], ['Stadt', 'city', 'Frankfurt']] as const).map(([label, key, ph]) => (
+              {([
+                ['Geschäftsname', 'geschaeft', 'Mein Studio', 2, 100, undefined],
+                ['Straße + Nr.', 'st', 'Münchener Str. 17', 3, 100, undefined],
+                ['PLZ', 'plz', '60329', 5, 5, '[0-9]{5}'],
+                ['Stadt', 'city', 'Frankfurt', 2, 60, undefined],
+              ] as const).map(([label, key, ph, minLen, maxLen, pattern]) => (
                 <div key={key}>
-                  <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{label}</label>
-                  <input className="inp" value={f[key] as string} onChange={e => upd(key, e.target.value)} placeholder={ph} />
+                  <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{label} *</label>
+                  <input
+                    className="inp"
+                    value={f[key] as string}
+                    onChange={e => upd(key, e.target.value)}
+                    placeholder={ph}
+                    required
+                    minLength={minLen}
+                    maxLength={maxLen}
+                    pattern={pattern}
+                    inputMode={key === 'plz' ? 'numeric' : 'text'}
+                  />
                 </div>
               ))}
               <div>

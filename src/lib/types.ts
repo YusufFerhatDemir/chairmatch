@@ -43,7 +43,17 @@ export interface Salon {
   specialists?: string[]
 }
 
-export type SalonCategory = 'barber' | 'friseur' | 'kosmetik' | 'aesthetik' | 'nail' | 'massage' | 'lash' | 'arzt' | 'opraum'
+export type SalonCategory =
+  | 'barber' | 'friseur' | 'kosmetik' | 'nail' | 'massage' | 'lash'
+  // Medical-Beauty Säule
+  | 'aesthetik'          // Botox, Filler, Anti-Aging
+  | 'haartransplantation' // FUE/DHI/Saphir
+  | 'zahnimplantate'      // Dental-Implantate, Veneers
+  | 'augenlasern'         // LASIK, Femto-LASIK, ReLEx Smile
+  | 'longevity'           // Cryo, Sauerstoff, HIFU, Anti-Aging-Center
+  | 'infusion'            // IV-Drips, NAD+, Vitamin-Cocktails
+  // Medical
+  | 'arzt' | 'opraum'
 
 export type SubscriptionTier = 'starter' | 'premium' | 'gold'
 

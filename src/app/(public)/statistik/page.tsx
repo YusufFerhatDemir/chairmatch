@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Footer from '@/components/Footer'
+import { BackButton } from '@/components/BackButton'
 
 export const metadata: Metadata = {
   title: 'ChairMatch Statistik — Plattform in Zahlen',
@@ -53,9 +54,9 @@ export default async function StatistikPage() {
       <div className="screen" style={{ padding: 'var(--pad)' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', padding: '32px 0 28px' }}>
-          <Link href="/" style={{ color: 'var(--stone)', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 16 }}>
-            ← Zurück zur App
-          </Link>
+          <div style={{ marginBottom: 14, textAlign: 'left' }}>
+            <BackButton href="/" label="Zurück zur App" />
+          </div>
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', letterSpacing: 2, margin: 0 }}>
             CHAIRMATCH IN ZAHLEN
           </h1>

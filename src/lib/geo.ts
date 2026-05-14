@@ -35,13 +35,20 @@ export function requestUserLocation(): Promise<{ lat: number; lng: number } | nu
   })
 }
 
-/** Geocode a city or PLZ via Nominatim (free, no API key) */
+/**
+ * Geocode a city or PLZ via Nominatim (free, no API key).
+ * Hard timeout 5s — Geocoding darf niemals hängen.
+ */
 export async function geocodeCity(query: string): Promise<{ lat: number; lng: number } | null> {
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Deutschland')}&format=json&limit=1`
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
     const res = await fetch(url, {
       headers: { 'User-Agent': 'ChairMatch/1.0' },
+      signal: controller.signal,
     })
+    clearTimeout(timeoutId)
     if (!res.ok) return null
     const data = await res.json()
     if (data.length === 0) return null

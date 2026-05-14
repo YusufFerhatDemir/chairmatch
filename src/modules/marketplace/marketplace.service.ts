@@ -47,8 +47,11 @@ export async function getProducts(filters: ProductFilters) {
   if (filters.salonId) query = query.eq('salon_id', filters.salonId)
   if (filters.sellerId) query = query.eq('seller_id', filters.sellerId)
   if (filters.search) {
-    const q = filters.search.replace(/[%_]/g, '')
-    query = query.or(`name.ilike.%${q}%,brand.ilike.%${q}%,description.ilike.%${q}%`)
+    // Escape sowohl Wildcards (%, _) als auch PostgREST-Sonderzeichen (",()*)
+    const q = filters.search.replace(/[%_,()*"'\\;]/g, '').trim().slice(0, 100)
+    if (q) {
+      query = query.or(`name.ilike.%${q}%,brand.ilike.%${q}%,description.ilike.%${q}%`)
+    }
   }
   if (filters.limit) query = query.limit(filters.limit)
   if (filters.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 20) - 1)

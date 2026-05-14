@@ -4,6 +4,27 @@ import { createBookingCheckout, createSubscriptionCheckout, createProductOrderCh
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { logger } from '@/lib/logger'
 
+/**
+ * Whitelist erlaubter Origins für Stripe-Checkout success/cancel URLs.
+ * Schutz gegen Open-Redirect, falls Angreifer manipulierte Origin-Header schickt.
+ */
+const ALLOWED_ORIGINS = new Set([
+  'https://chairmatch.de',
+  'https://www.chairmatch.de',
+  ...(process.env.NODE_ENV === 'development'
+    ? ['http://localhost:3000', 'http://localhost:3001']
+    : []),
+])
+
+function safeOrigin(req: NextRequest): string {
+  const candidate = req.headers.get('origin')
+  if (candidate && ALLOWED_ORIGINS.has(candidate)) {
+    return candidate
+  }
+  // Fallback auf Production-Origin — niemals dem Client-Origin vertrauen
+  return 'https://chairmatch.de'
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession()
@@ -31,7 +52,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Buchung nicht gefunden' }, { status: 404 })
       }
 
-      const origin = req.headers.get('origin') || 'https://chairmatch.de'
+      const origin = safeOrigin(req)
       const checkoutSession = await createBookingCheckout({
         bookingId,
         customerEmail: session.user.email || '',
@@ -64,7 +85,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Ungültiger Tier' }, { status: 400 })
       }
 
-      const origin = req.headers.get('origin') || 'https://chairmatch.de'
+      const origin = safeOrigin(req)
       const checkoutSession = await createSubscriptionCheckout({
         userId: session.user.id,
         email: session.user.email || '',
@@ -101,7 +122,7 @@ export async function POST(req: NextRequest) {
         quantity: i.quantity,
       }))
 
-      const origin = req.headers.get('origin') || 'https://chairmatch.de'
+      const origin = safeOrigin(req)
       const checkoutSession = await createProductOrderCheckout({
         orderId,
         orderNumber: order.order_number,

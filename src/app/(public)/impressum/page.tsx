@@ -2,7 +2,7 @@
 // {{PLACEHOLDER}} müssen vor Livegang ersetzt werden.
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { BackButton } from '@/components/BackButton'
 
 export const metadata: Metadata = {
   title: 'Impressum',
@@ -14,9 +14,9 @@ export default function ImpressumPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
-          ← Zurück
-        </Link>
+        <div style={{ marginBottom: 14 }}>
+          <BackButton href="/" label="Zurück" />
+        </div>
         <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 16, marginBottom: 24 }}>
           Impressum
         </h1>

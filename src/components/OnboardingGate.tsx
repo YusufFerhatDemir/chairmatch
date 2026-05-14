@@ -1,5 +1,18 @@
 'use client'
 
+/**
+ * OnboardingGate — First-Visit-Overlay für unauthentifizierte User.
+ *
+ * EINER VON DREI Provider-Registrierungs-UIs (siehe docs/adr/0001).
+ * Backend (identisch): /api/register-provider
+ * Schwesternfiles:
+ *   - src/app/(public)/register/anbieter/page.tsx (SEO-Deep-Link)
+ *   - src/components/onboarding/ProviderSetupWizard.tsx (Reusable, hier intern genutzt)
+ *
+ * Trigger: erste Session ohne abgeschlossenes Onboarding (slides-state-check).
+ * Phasen: slides → roleSelect → login/customerSetup/provSetup.
+ */
+
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession, signIn } from 'next-auth/react'

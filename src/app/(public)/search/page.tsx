@@ -33,8 +33,9 @@ export default async function SearchPage({ searchParams }: Props) {
   const { q, city, plz } = await searchParams
 
   let salons: Salon[] = []
+  let dbTimedOut = false
 
-  // DB search
+  // DB search mit hard timeout — Search-Page darf NIEMALS hängen
   try {
     const supabase = getSupabaseAdmin()
 
@@ -46,31 +47,40 @@ export default async function SearchPage({ searchParams }: Props) {
       .limit(50)
 
     if (q) {
-      // H5-Fix: PostgREST .or() interpretiert Komma als Operator-Trenner, Backtick
-      // als Identifier-Quote, Klammern als Gruppen — alle müssen raus, sonst
-      // kann ein User die Query brechen oder andere Felder ansprechen.
       const safeQ = q
-        .replace(/[%_(),.`'"\\;]/g, '') // PostgREST + SQL-relevant chars raus
-        .replace(/\s+/g, ' ')            // collapse whitespace
+        .replace(/[%_(),.`'"\\;]/g, '')
+        .replace(/\s+/g, ' ')
         .trim()
-        .slice(0, 80)                     // hard length cap
+        .slice(0, 80)
       if (safeQ.length >= 2) {
         query = query.or(`name.ilike.%${safeQ}%,description.ilike.%${safeQ}%`)
       }
     }
 
     if (city) {
-      // Whitelist: nur Buchstaben, Leerzeichen, Bindestriche, Umlaute
       const safeCity = city.replace(/[^a-zA-ZäöüÄÖÜß\s-]/g, '').slice(0, 60).trim()
       if (safeCity) {
         query = query.ilike('city', safeCity)
       }
     }
 
-    const { data } = await query
-    if (data) salons = data
+    // Hard 4s timeout — falls Supabase langsam ist, fallback auf Demo-Daten + UI zeigt "Verbindung schwach"
+    const timeout = new Promise<{ data: null; timedOut: true }>((resolve) =>
+      setTimeout(() => resolve({ data: null, timedOut: true }), 4000)
+    )
+    const result = await Promise.race([
+      query.then((r) => ({ data: r.data as Salon[] | null, timedOut: false })),
+      timeout,
+    ])
+
+    if (result.timedOut) {
+      dbTimedOut = true
+    } else if (result.data) {
+      salons = result.data
+    }
   } catch {
-    // DB connection failed
+    // DB connection failed — fallback to demo data below
+    dbTimedOut = true
   }
 
   // Also search demo providers
@@ -100,5 +110,21 @@ export default async function SearchPage({ searchParams }: Props) {
     }
   }
 
-  return <SearchClient salons={salons} initialQ={q || ''} initialCity={city || ''} initialPlz={plz || ''} />
+  // Liste aller verfügbaren Städte (für Empty-State-Vorschläge)
+  // Nimmt unique Cities aus salons + demo + Phase-1-Cities (Berlin/Hamburg/München/Köln/Frankfurt)
+  const allCities = Array.from(new Set([
+    ...salons.map((s) => s.city).filter(Boolean) as string[],
+    ...PROVS.map((p) => p.city),
+  ])).sort()
+
+  return (
+    <SearchClient
+      salons={salons}
+      initialQ={q || ''}
+      initialCity={city || ''}
+      initialPlz={plz || ''}
+      availableCities={allCities}
+      dbTimedOut={dbTimedOut}
+    />
+  )
 }

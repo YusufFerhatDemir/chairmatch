@@ -3,12 +3,14 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-const tabs = [
+const tabs: ReadonlyArray<{ href: string; label: string }> = [
   { href: '/admin/super/einstellungen', label: 'Einstellungen' },
+  { href: '/admin/super/kpi', label: 'KPI' },
+  { href: '/admin/super/health', label: 'Health' },
   { href: '/admin/super/onboarding', label: 'Onboarding' },
   { href: '/admin/super/logo', label: 'Logo' },
   { href: '/admin/super/kategorien', label: 'Kategorien' },
-] as const
+]
 
 export default function SuperAdminTabs() {
   const pathname = usePathname()
@@ -18,7 +20,7 @@ export default function SuperAdminTabs() {
       {tabs.map(tab => {
         const active = pathname === tab.href
         return (
-          <Link key={tab.href} href={tab.href as typeof tab.href & string} style={{
+          <Link key={tab.href} href={tab.href as never} style={{
             padding: '8px 14px', borderRadius: 'var(--btn-radius)',
             fontSize: 'var(--font-sm)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap',
             color: active ? '#080706' : 'var(--cream)',

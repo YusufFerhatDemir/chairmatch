@@ -52,15 +52,23 @@ export default function AuthPage() {
       }
       setError(result.error === 'CredentialsSignin' ? t('auth.wrongEmailPw') : result.error)
     } else {
-      // Role-based redirect
-      const res = await fetch('/api/auth/session')
-      const session = await res.json()
-      const role = session?.user?.role
-      if (role === 'super_admin') router.push('/admin/super')
-      else if (role === 'admin') router.push('/admin')
-      else if (role === 'investor') router.push('/investor')
-      else if (role === 'anbieter') router.push('/provider')
-      else router.push('/')
+      // Role-based redirect — Session-API mit Timeout, sonst Fallback auf /
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 3000)
+        const res = await fetch('/api/auth/session', { signal: controller.signal })
+        clearTimeout(timeoutId)
+        const session = await res.json()
+        const role = session?.user?.role
+        if (role === 'super_admin') router.push('/admin/super')
+        else if (role === 'admin') router.push('/admin')
+        else if (role === 'investor') router.push('/investor')
+        else if (role === 'anbieter') router.push('/provider')
+        else router.push('/')
+      } catch {
+        // Session-API langsam — User ist eingeloggt, lieber sofort weiter zur Home
+        router.push('/')
+      }
     }
   }
 
@@ -69,39 +77,49 @@ export default function AuthPage() {
     setLoading(true)
     setError(null)
 
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          agbAccepted,
+          datenschutzAccepted,
+          marketingAccepted,
+        }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || t('auth.registerFailed'))
+        return
+      }
+
+      // Auto-login after register
+      const result = await signIn('credentials', {
         email,
         password,
-        fullName,
-        agbAccepted,
-        datenschutzAccepted,
-        marketingAccepted,
-      }),
-    })
+        redirect: false,
+      })
 
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error || t('auth.registerFailed'))
+      if (result?.error) {
+        setError(t('auth.registerSuccess'))
+        setTab('login')
+      } else {
+        router.push('/')
+      }
+    } catch (err) {
+      const isAbort = (err as Error)?.name === 'AbortError'
+      setError(isAbort ? 'Zeitüberschreitung. Bitte erneut versuchen.' : 'Netzwerkfehler. Bitte erneut versuchen.')
+    } finally {
       setLoading(false)
-      return
-    }
-
-    // Auto-login after register
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
-
-    setLoading(false)
-    if (result?.error) {
-      setError(t('auth.registerSuccess'))
-      setTab('login')
-    } else {
-      router.push('/')
     }
   }
 

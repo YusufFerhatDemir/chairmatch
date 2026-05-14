@@ -1,17 +1,22 @@
 export const dynamic = 'force-dynamic'
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getCachedOnboardingSlides } from '@/lib/settings'
-import OnboardingGate from '@/components/OnboardingGate'
 import HomeClient from '@/components/HomeClient'
+import { WelcomeGate } from '@/components/WelcomeSplitter'
 import { getTranslations } from '@/i18n/server'
+
+// REVERT-ANLEITUNG (falls Splitter doch nicht gefällt):
+// 1. Diesen Import wieder hinzufügen:
+//      import { getCachedOnboardingSlides } from '@/lib/settings'
+//      import OnboardingGate from '@/components/OnboardingGate'
+// 2. Im JSX <WelcomeGate> durch <OnboardingGate slides={onboardingSlides}> ersetzen
+// 3. `const slides = await getCachedOnboardingSlides().catch(() => [])` wieder einfügen
+// Die OnboardingGate-Komponente bleibt unverändert im Repo.
 
 export default async function HomePage() {
   let categories: { id: string; slug: string; label: string; description: string | null; icon_url: string | null; sort_order: number; is_active: boolean }[] = []
   let salons: { id: string; name: string; slug: string | null; description: string | null; city: string | null; logo_url: string | null; avg_rating: number; is_verified: boolean; review_count: number; category: string; subscription_tier: string; street: string | null; services: { id: string; name: string; price_cents: number }[]; rental_equipment: { type: string; price_per_day_cents: number }[] }[] = []
   let topOfferPercent: number | null = null
-
-  const slides = await getCachedOnboardingSlides().catch(() => [])
 
   try {
     const supabase = getSupabaseAdmin()
@@ -47,16 +52,8 @@ export default async function HomePage() {
   const tGreeting = await getTranslations('greeting')
   const greeting = hour < 12 ? tGreeting('morning') : hour < 17 ? tGreeting('day') : tGreeting('evening')
 
-  const onboardingSlides = slides.map(s => ({
-    id: s.id,
-    title: s.title,
-    subtitle: s.subtitle,
-    icon: s.icon,
-    imageUrl: s.imageUrl,
-  }))
-
   return (
-    <OnboardingGate slides={onboardingSlides}>
+    <WelcomeGate>
       <div className="shell">
         <div className="screen">
           <HomeClient
@@ -67,6 +64,6 @@ export default async function HomePage() {
           />
         </div>
       </div>
-    </OnboardingGate>
+    </WelcomeGate>
   )
 }

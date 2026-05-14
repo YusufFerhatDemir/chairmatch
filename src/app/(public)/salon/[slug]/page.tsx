@@ -168,12 +168,19 @@ export default async function SalonDetailPage({ params }: Props) {
 
     if (!salon) notFound()
 
-    const [servicesRes, reviewsRes, staffRes, rentalsRes] = await Promise.all([
+    const [servicesRes, reviewsRes, staffRes, rentalsRes, imagesRes] = await Promise.all([
       supabase.from('services').select('*').eq('salon_id', salon.id).eq('is_active', true).order('sort_order', { ascending: true }),
       supabase.from('reviews').select('*, customer:profiles(full_name)').eq('salon_id', salon.id).order('created_at', { ascending: false }).limit(10),
       supabase.from('staff').select('*').eq('salon_id', salon.id).eq('is_active', true),
       supabase.from('rental_equipment').select('*').eq('salon_id', salon.id).eq('is_available', true),
+      supabase.from('salon_images').select('id, image_type, url, sort_order').eq('salon_id', salon.id).order('sort_order', { ascending: true, nullsFirst: false }),
     ])
+
+    // Bilder nach Typ gruppieren
+    const allImages = (imagesRes.data || []) as Array<{ id: string; image_type: string; url: string }>
+    const logoUrl = allImages.find((i) => i.image_type === 'logo')?.url ?? null
+    const coverUrl = allImages.find((i) => i.image_type === 'cover')?.url ?? null
+    const galleryUrls = allImages.filter((i) => i.image_type === 'gallery').map((i) => i.url)
 
     const salonData = {
       id: salon.id,
@@ -202,13 +209,15 @@ export default async function SalonDetailPage({ params }: Props) {
       aggregateRating: salon.review_count > 0 ? { '@type': 'AggregateRating', ratingValue: salon.avg_rating, reviewCount: salon.review_count, bestRating: 5 } : undefined,
       telephone: salon.phone || undefined,
       url: `https://chairmatch.de/salon/${salon.slug || salon.id}`,
+      logo: logoUrl || undefined,
+      image: coverUrl ? [coverUrl, ...galleryUrls.slice(0, 5)] : (galleryUrls.length > 0 ? galleryUrls.slice(0, 6) : undefined),
     }
 
     return (
       <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dbJsonLd) }} />
       <SalonDetailClient
-        salon={salonData}
+        salon={{ ...salonData, logo_url: logoUrl, cover_url: coverUrl, gallery_urls: galleryUrls }}
         services={(servicesRes.data || []).map(s => ({ id: s.id, name: s.name, duration_minutes: s.duration_minutes, price_cents: s.price_cents }))}
         staff={(staffRes.data || []).map(m => ({ id: m.id, name: m.name, title: m.title, avatar_url: m.avatar_url }))}
         reviews={(reviewsRes.data || []).map(r => ({ id: r.id, rating: r.rating, comment: r.comment, reply: r.reply, customer: r.customer, created_at: r.created_at }))}

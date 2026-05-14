@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { BackButton } from '@/components/BackButton'
 
 type ConsentChoices = { necessary: boolean; statistics: boolean; marketing: boolean }
 
@@ -55,9 +56,9 @@ export default function CookieSettingsPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
-          ← Zurück
-        </Link>
+        <div style={{ marginBottom: 14 }}>
+          <BackButton href="/" label="Zurück" />
+        </div>
         <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 16, marginBottom: 24 }}>
           Cookie-Einstellungen
         </h1>
