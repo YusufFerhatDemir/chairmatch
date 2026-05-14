@@ -4,7 +4,7 @@
     { "path": "/api/cron/hard-delete", "schedule": "0 2 * * *" },
     { "path": "/api/cron/cleanup", "schedule": "0 3 * * *" },
     { "path": "/api/cron/onboarding-emails", "schedule": "0 9 * * *" },
-    { "path": "/api/cron/index-new-content", "schedule": "0 */2 * * *" },
+    { "path": "/api/cron/index-new-content", "schedule": "0 5 * * *" },
     { "path": "/api/cron/publish-reviews", "schedule": "30 3 * * *" }
   ],
   "headers": [
