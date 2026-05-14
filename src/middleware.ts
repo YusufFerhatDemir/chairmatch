@@ -113,6 +113,7 @@ const publicPaths = [
   '/impressum',
   '/agb',
   '/agb-provider',
+  '/widerruf',
   '/cookie-settings',
   '/landing',
   '/pitch',
@@ -120,11 +121,31 @@ const publicPaths = [
   '/shop',
   '/statistik',
   '/api/auth',
+  // SEO/Marketing-Pages (alle public!)
+  '/was-ist-chairmatch',
+  '/provisionsmodell',
+  '/empfehlungen',
+  '/faq',
+  '/magazin',
+  '/freelancer-rechner',
+  '/products',
+  '/premium',
+  // Medical Beauty Money-Pages
+  '/haartransplantation',
+  '/zahnimplantate',
+  '/augenlasern',
+  '/longevity',
+  '/iv-infusionen',
 ]
 
 const publicPrefixes = [
   '/salon/',
   '/category/',
+  '/listings/',         // NEU: Listing-Detail-Pages
+  '/products/',         // NEU: Product-Detail-Pages
+  '/magazin/',          // NEU: Magazin-Artikel
+  '/anbieter/',         // NEU: Anbieter-Funnel-Pages
+  '/mieter/',           // NEU: Mieter-Funnel-Pages
   '/auth/',
   '/api/auth/',
   '/api/analytics/',
@@ -138,12 +159,17 @@ const publicPrefixes = [
   '/api/salons/',
   '/api/products',
   '/api/public-stats',
+  '/api/wait-list',     // NEU: Wait-List Signup
+  '/api/indexnow/',     // NEU: IndexNow Key-File
   '/api/setup/',
   '/api/register-provider', // B2-Fix: Public Provider-Signup
   '/api/debug-auth',        // TEMP: Debug-Endpoint, bald wieder weg
   '/unsubscribe',           // DSGVO: Newsletter ohne Login abmeldbar
   '/shop/',
   '/register/',
+  '/stadt/',            // Stadt-Hubs für SEO
+  // Vertical-Deutschland-Hubs (z.B. /barbershop-deutschland)
+  // werden über pathname.endsWith('-deutschland') gemacht im Check unten
   '/_next/',
   '/icons/',
   '/brand/',
@@ -209,6 +235,15 @@ export default auth((req) => {
   // ------ Öffentliche Routen ------
   if (publicPaths.includes(pathname)) return NextResponse.next()
   if (publicPrefixes.some(p => pathname.startsWith(p))) return NextResponse.next()
+
+  // Vertical-Deutschland-Hubs (z.B. /barbershop-deutschland, /friseur-deutschland)
+  if (pathname.match(/^\/[a-z-]+-deutschland\/?$/)) return NextResponse.next()
+
+  // Stadt-Hubs (z.B. /berlin, /muenchen, /berlin/friseur)
+  // Whitelist nur die Phase-1-Städte um nicht alle 2-Wort-Routes zu öffnen
+  const phase1Cities = ['berlin', 'hamburg', 'muenchen', 'koeln', 'frankfurt']
+  const firstSegment = pathname.split('/')[1]
+  if (firstSegment && phase1Cities.includes(firstSegment)) return NextResponse.next()
 
   // ------ Auth-Prüfung ------
   const session = req.auth
