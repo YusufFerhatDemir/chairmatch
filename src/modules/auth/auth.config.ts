@@ -4,6 +4,10 @@ import { headers } from 'next/headers'
 import { getSupabaseAdmin, getSupabaseAnon } from '@/lib/supabase-server'
 import { loginSchema } from './auth.schemas'
 import { logger } from '@/lib/logger'
+import { verifyToken } from '@/lib/totp'
+
+/** Spezial-Auth-Error: 2FA-Code wird verlangt (Frontend zeigt extra Feld) */
+const TOTP_REQUIRED_ERROR = 'TOTP_REQUIRED'
 
 // Fail-fast: kein stiller Fallback auf altes Supabase-Projekt mehr.
 // Supabase-Clients holen wir aus '@/lib/supabase-server' — die werfen
@@ -38,13 +42,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        totpCode: { label: '2FA-Code', type: 'text' },
       },
       async authorize(credentials) {
         try {
           const parsed = loginSchema.safeParse(credentials)
           if (!parsed.success) return null
 
-          const { email, password } = parsed.data
+          const { email, password, totpCode } = parsed.data
 
           // Rate-Limit: 10 Fehlversuche / 15min pro IP
           const h = await headers()
@@ -86,6 +91,51 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           await logLoginAttempt(ip, email, true)
+
+          // ── 2FA-Check: Wenn aktiviert, MUSS valider TOTP-Code mitkommen ──
+          // Wir checken VOR Profile-Load damit auch bei fehlendem Profile
+          // kein 2FA-Bypass möglich ist.
+          const supabaseAdminFor2FA = getSupabaseAdmin()
+          const { data: twoFa } = await supabaseAdminFor2FA
+            .from('user_2fa')
+            .select('enabled, secret, recovery_codes, recovery_codes_used')
+            .eq('user_id', data.user.id)
+            .maybeSingle()
+
+          if ((twoFa as { enabled?: boolean } | null)?.enabled === true) {
+            if (!totpCode) {
+              logger.info('auth.2fa.required', { userId: data.user.id })
+              throw new Error(TOTP_REQUIRED_ERROR)
+            }
+            const code = totpCode.trim()
+            const twoFaData = twoFa as {
+              enabled: boolean; secret: string;
+              recovery_codes: string[] | null;
+              recovery_codes_used: string[] | null;
+            }
+
+            // Prüfe TOTP-Code (6 Ziffern) ODER Recovery-Code (8+ Zeichen)
+            const isTotp = /^\d{6}$/.test(code) && verifyToken(twoFaData.secret, code)
+            const recoveryCodes = twoFaData.recovery_codes ?? []
+            const usedCodes = twoFaData.recovery_codes_used ?? []
+            const isRecovery = code.length >= 8 && recoveryCodes.includes(code) && !usedCodes.includes(code)
+
+            if (!isTotp && !isRecovery) {
+              logger.warn('auth.2fa.invalid_code', { userId: data.user.id })
+              return null
+            }
+
+            // Recovery-Code als verbraucht markieren
+            if (isRecovery) {
+              await supabaseAdminFor2FA
+                .from('user_2fa')
+                .update({ recovery_codes_used: [...usedCodes, code] })
+                .eq('user_id', data.user.id)
+              logger.info('auth.2fa.recovery_code_used', { userId: data.user.id, remaining: recoveryCodes.length - usedCodes.length - 1 })
+            } else {
+              logger.info('auth.2fa.success', { userId: data.user.id })
+            }
+          }
 
           // Last-active-Tracking für Re-Engagement-Mails (fire-and-forget)
           try {

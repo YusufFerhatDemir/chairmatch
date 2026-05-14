@@ -23,6 +23,7 @@ export default function TwoFAPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [alreadyEnabled, setAlreadyEnabled] = useState(false)
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/auth?callbackUrl=/account/security/2fa')
@@ -76,6 +77,9 @@ export default function TwoFAPage() {
       if (!res.ok || !data.success) {
         setError(data.error || 'Code falsch — versuche es nochmal.')
         return
+      }
+      if (Array.isArray(data.recoveryCodes) && data.recoveryCodes.length > 0) {
+        setRecoveryCodes(data.recoveryCodes)
       }
       setStep('done')
     } catch {
@@ -163,10 +167,41 @@ export default function TwoFAPage() {
               {alreadyEnabled ? '2FA bereits aktiv' : '2FA erfolgreich aktiviert'}
             </h2>
             <p style={{ color: 'var(--stone)', fontSize: 13, lineHeight: 1.6, marginBottom: 20 }}>
-              Bei zukünftigen Logins wirst du nach dem 6-stelligen Code aus deiner Authenticator-App gefragt.
+              Ab dem nächsten Login wirst du nach dem 6-stelligen Code aus deiner Authenticator-App gefragt.
             </p>
+
+            {recoveryCodes && recoveryCodes.length > 0 && (
+              <div style={{ textAlign: 'left', background: '#000', border: '1px solid var(--gold)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)', margin: '0 0 8px', textAlign: 'center' }}>
+                  🔑 Deine Recovery-Codes
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--red)', margin: '0 0 14px', textAlign: 'center', lineHeight: 1.5 }}>
+                  Speichere diese Codes JETZT an einem sicheren Ort. Du siehst sie nie wieder!<br/>
+                  Jeder Code funktioniert nur EINMAL.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, fontFamily: 'monospace' }}>
+                  {recoveryCodes.map((c, i) => (
+                    <code key={i} style={{ fontSize: 13, color: 'var(--cream)', background: '#1a1a1a', padding: '6px 10px', borderRadius: 6, letterSpacing: '0.05em' }}>
+                      {c}
+                    </code>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = `ChairMatch Recovery-Codes\n\n${recoveryCodes.join('\n')}\n\nSpeichere diese Codes sicher. Jeder funktioniert nur einmal.`
+                    navigator.clipboard?.writeText(text)
+                  }}
+                  className="boutline"
+                  style={{ marginTop: 12, fontSize: 12, padding: '6px 14px', width: '100%' }}
+                >
+                  📋 Alle kopieren
+                </button>
+              </div>
+            )}
+
             <p style={{ fontSize: 11, color: 'var(--stone2)', marginBottom: 20, padding: 10, background: 'rgba(212,175,55,0.08)', borderRadius: 8, border: '1px solid rgba(212,175,55,0.2)' }}>
-              ⚠️ Wichtig: Bewahre deine Authenticator-App sicher auf. Bei Verlust kannst du nur über Support den Account zurücksetzen.
+              ⚠️ Wenn du deine Authenticator-App verlierst, kannst du dich nur mit einem der Recovery-Codes oben anmelden.
             </p>
             <Link href="/account/security" className="bgold" style={{ display: 'inline-block', padding: '12px 24px', textDecoration: 'none' }}>
               Zurück zur Sicherheit

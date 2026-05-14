@@ -11,6 +11,9 @@ const passwordSchema = z
 export const loginSchema = z.object({
   email: z.string().email('Ungültige E-Mail-Adresse'),
   password: z.string().min(1, 'Passwort erforderlich'),
+  // Optional: TOTP-Code aus Authenticator-App (6 Ziffern) ODER Recovery-Code (mind. 8 Z.).
+  // Wird nur abgefragt, wenn der Account 2FA aktiviert hat.
+  totpCode: z.string().optional(),
 })
 
 export const registerSchema = z.object({
