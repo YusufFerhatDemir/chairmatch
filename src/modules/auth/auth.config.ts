@@ -87,6 +87,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           await logLoginAttempt(ip, email, true)
 
+          // Last-active-Tracking für Re-Engagement-Mails (fire-and-forget)
+          try {
+            const adminClient = getSupabaseAdmin()
+            void adminClient
+              .from('profiles')
+              .update({ last_active_at: new Date().toISOString() })
+              .eq('id', data.user.id)
+          } catch { /* nicht-kritisch */ }
+
           // Profile-Load mit SERVICE-ROLE-CLIENT (bypassed RLS)
           const supabaseAdmin = getSupabaseAdmin()
           const { data: profile, error: profileError } = await supabaseAdmin
