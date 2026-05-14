@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createBooking, getBookings } from '@/modules/booking/booking.actions'
 import { getServerSession } from '@/modules/auth/session'
 import { withApi, apiError } from '@/lib/api-wrapper'
+import { getIdempotentResponse, storeIdempotentResponse } from '@/lib/idempotency'
 
 /**
  * Whitelist-basiertes Schema für Booking-POST.
@@ -45,17 +46,34 @@ export const POST = withApi(async (request: Request) => {
     return apiError(first?.message || 'Ungültige Eingabe', 400)
   }
 
-  // Idempotency-Key wird vom Client gesendet, vom Action-Layer für Dedup genutzt
-  const idempotencyKey = request.headers.get('x-idempotency-key') || undefined
+  // Idempotency-Key: wenn vorhanden, gegen Cache-Tabelle prüfen
+  const idempotencyKey = request.headers.get('x-idempotency-key') || ''
+  if (idempotencyKey) {
+    const cached = await getIdempotentResponse(idempotencyKey, session.user.id, 'booking')
+    if (cached) {
+      return NextResponse.json(cached.body, { status: cached.status })
+    }
+  }
 
   const result = await createBooking({
     ...parsed.data,
     customerId: session.user.id, // IMMUTABLE — aus Session, NICHT aus Body
-    idempotencyKey,
   })
 
   if ('error' in result) {
     return apiError(result.error ?? 'Buchung konnte nicht erstellt werden', 400)
+  }
+
+  // Erfolgreichen Outcome cachen (fire-and-forget)
+  if (idempotencyKey) {
+    void storeIdempotentResponse(
+      idempotencyKey,
+      session.user.id,
+      'booking',
+      ('bookingId' in result && typeof result.bookingId === 'string') ? result.bookingId : null,
+      201,
+      result,
+    )
   }
 
   return NextResponse.json(result, { status: 201 })
