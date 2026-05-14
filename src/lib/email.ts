@@ -238,6 +238,54 @@ export async function sendWelcomeEmail(to: string, name: string) {
 }
 
 /**
+ * Day-3 Engagement-Mail: Tipps für neue Kunden, drei Tage nach Registrierung.
+ * Wird vom Cron-Job ausgelöst — durchsucht profiles WHERE created_at zwischen
+ * 3 und 4 Tagen alt UND day3_email_sent_at IS NULL.
+ */
+export async function sendDay3OnboardingEmail(to: string, name: string) {
+  const subject = 'So holst du das Beste aus ChairMatch raus'
+  const html = baseLayout(subject, `
+    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Hi ${esc(name)} 👋</h2>
+    <p>Du bist jetzt drei Tage dabei. Hier sind die Top-3-Tricks, die unsere aktivsten Kunden nutzen:</p>
+    <div style="margin:20px 0;padding:14px;background:#1a1a1a;border-radius:8px;border-left:3px solid #D4AF37">
+      <p style="margin:0;color:#D4AF37;font-weight:700">🎯 Tipp 1: Favoriten markieren</p>
+      <p style="margin:6px 0 0;color:#aaa;font-size:13px">Drück das Herz bei jedem Salon den du magst — bei Last-Minute-Slots kriegst du Push-Benachrichtigung.</p>
+    </div>
+    <div style="margin:14px 0;padding:14px;background:#1a1a1a;border-radius:8px;border-left:3px solid #D4AF37">
+      <p style="margin:0;color:#D4AF37;font-weight:700">⭐ Tipp 2: Bewertungen lesen</p>
+      <p style="margin:6px 0 0;color:#aaa;font-size:13px">Echte Kunden-Feedbacks unter jedem Salon. Niemand soll dich enttäuschen.</p>
+    </div>
+    <div style="margin:14px 0;padding:14px;background:#1a1a1a;border-radius:8px;border-left:3px solid #D4AF37">
+      <p style="margin:0;color:#D4AF37;font-weight:700">💎 Tipp 3: Loyalty-Punkte sammeln</p>
+      <p style="margin:6px 0 0;color:#aaa;font-size:13px">Bei jeder Buchung kriegst du Punkte. 10 Punkte = 1 € Rabatt bei der nächsten Buchung.</p>
+    </div>
+    ${goldButton('Jetzt entdecken', 'https://chairmatch.de/explore')}
+    <p style="font-size:13px;color:#777;margin-top:24px">Fragen? Antworte einfach auf diese Mail.</p>
+  `)
+  return send(to, subject, html)
+}
+
+/**
+ * Re-Engagement-Mail nach 14 Tagen Inaktivität.
+ * Bringt Kunden zurück mit speziellem Rabattcode.
+ */
+export async function sendReEngagementEmail(to: string, name: string) {
+  const subject = 'Wir vermissen dich — 15 % auf deine nächste Buchung'
+  const html = baseLayout(subject, `
+    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Wir vermissen dich, ${esc(name)}</h2>
+    <p>Du warst eine Weile nicht da — und es gibt frische Salons in deiner Nähe, die du noch nicht entdeckt hast.</p>
+    <div style="margin:24px 0;padding:24px;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(176,144,96,0.05));border-radius:12px;border:1px solid rgba(212,175,55,0.3);text-align:center">
+      <p style="margin:0 0 6px;color:#aaa;font-size:12px;letter-spacing:2px">EXKLUSIV FÜR DICH</p>
+      <p style="margin:0 0 8px;color:#D4AF37;font-size:32px;font-weight:bold;letter-spacing:3px;font-family:monospace">COMEBACK15</p>
+      <p style="margin:0;color:#fff;font-size:14px">15 % auf deine nächste Buchung — gültig 7 Tage.</p>
+    </div>
+    ${goldButton('Termin suchen', 'https://chairmatch.de/explore')}
+    <p style="font-size:13px;color:#777;margin-top:24px">Keine Lust mehr? <a href="https://chairmatch.de/unsubscribe" style="color:#888">Abmelden</a></p>
+  `)
+  return send(to, subject, html)
+}
+
+/**
  * Provider-spezifische Willkommens-Mail mit Initial-Passwort.
  *
  * Wird beim Provider-Onboarding aufgerufen, damit der frische Provider sich

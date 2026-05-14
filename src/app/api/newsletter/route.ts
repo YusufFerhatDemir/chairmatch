@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 /**
  * Public Newsletter-Signup.
@@ -117,7 +118,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('[Newsletter signup]', err)
+    logger.error('newsletter.signup_failed', err)
     return NextResponse.json({ error: 'Serverfehler' }, { status: 500 })
   }
 }

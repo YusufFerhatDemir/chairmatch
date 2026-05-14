@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createReviewSchema, replySchema } from './review.schemas'
 import { checkEligibility, updateSalonRating } from './review.service'
 import { getServerSession } from '@/modules/auth/session'
+import { logger } from '@/lib/logger'
 
 export async function createReview(input: unknown) {
   const parsed = createReviewSchema.safeParse(input)
@@ -62,7 +63,7 @@ export async function createReview(input: unknown) {
       },
     })
   } catch {
-    console.error('Failed to create audit log')
+    logger.warn('reviews.audit_log_failed', {})
   }
 
   // Update salon aggregate (outside transaction for performance)

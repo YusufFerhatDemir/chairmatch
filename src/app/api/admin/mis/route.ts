@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/modules/auth/auth.config'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { withApi, apiError } from '@/lib/api-wrapper'
+import { logger } from '@/lib/logger'
 
 async function requireAdmin() {
   const session = await auth()
@@ -435,7 +436,7 @@ export const GET = withApi(async () => {
         .filter(tx => tx.status === 'refunded')
         .slice(0, 10)
     } catch (err) {
-      console.warn('platform_transactions noch nicht verfügbar:', err)
+      logger.warn('mis.platform_transactions_unavailable', { err: String(err) })
     }
 
     // Recent transactions für UI (Top 25 succeeded/pending)
@@ -497,7 +498,7 @@ export const GET = withApi(async () => {
       generatedAt: new Date().toISOString(),
     })
   } catch (err) {
-    console.error('MIS API error:', err)
+    logger.error('mis.api_error', err)
     return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
   }
 }, { timeoutMs: 15000 })

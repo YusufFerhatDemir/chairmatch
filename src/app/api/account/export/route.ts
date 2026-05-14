@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/modules/auth/auth.config'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { logger } from '@/lib/logger'
 
 /** DSGVO Art. 20: Daten-Export (JSON) — innerhalb 72h */
 export async function GET() {
@@ -20,7 +21,7 @@ export async function GET() {
     ])
 
     if (profile.error || bookings.error || consents.error) {
-      console.error('Export query error:', profile.error || bookings.error || consents.error)
+      logger.error('account.export.query_failed', new Error(String(profile.error || bookings.error || consents.error)))
       return NextResponse.json({ error: 'Daten konnten nicht geladen werden' }, { status: 500 })
     }
 
@@ -39,7 +40,7 @@ export async function GET() {
       },
     })
   } catch (err) {
-    console.error('Export failed:', err)
+    logger.error('account.export.failed', err)
     return NextResponse.json({ error: 'Export fehlgeschlagen' }, { status: 500 })
   }
 }

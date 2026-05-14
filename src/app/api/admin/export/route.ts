@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/modules/auth/auth.config'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { logger } from '@/lib/logger'
 
 async function requireAdmin() {
   const session = await auth()
@@ -154,7 +155,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('Export error:', err)
+    logger.error('admin.export_failed', err)
     return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
   }
 }

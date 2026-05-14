@@ -11,6 +11,7 @@
 import { Resend } from 'resend'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { wrapNewsletterHtml, buildUnsubscribeUrl, htmlToPlainText } from '@/lib/newsletter-template'
+import { logger } from '@/lib/logger'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL || 'ChairMatch <noreply@chairmatch.de>'
@@ -189,7 +190,7 @@ export async function sendCampaign(campaignId: string): Promise<{
 
     if (!resend) {
       // Dry-Run-Modus: simulieren
-      console.log(`[Newsletter] DRY-RUN: would send ${emails.length} emails (RESEND_API_KEY not set)`)
+      logger.warn('newsletter.dry_run', { count: emails.length })
       for (const s of batch) {
         const sendId = sendIdBySubscriber.get(s.id)
         if (!sendId) continue
@@ -221,7 +222,7 @@ export async function sendCampaign(campaignId: string): Promise<{
         const errMsg = typeof error === 'object' && error && 'message' in error
           ? String((error as { message?: unknown }).message)
           : String(error)
-        console.error('[Newsletter] Batch error:', errMsg)
+        logger.error('newsletter.batch_failed', new Error(errMsg))
         // alle als failed markieren
         for (const s of batch) {
           const sendId = sendIdBySubscriber.get(s.id)
@@ -260,7 +261,7 @@ export async function sendCampaign(campaignId: string): Promise<{
       }
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Unknown send error'
-      console.error('[Newsletter] Batch exception:', errMsg)
+      logger.error('newsletter.batch_exception', err, { msg: errMsg })
       for (const s of batch) {
         const sendId = sendIdBySubscriber.get(s.id)
         if (!sendId) continue
@@ -322,7 +323,7 @@ export async function sendTestEmail(
   const subject = `[TEST] ${campaign.subject}`
 
   if (!resend) {
-    console.log(`[Newsletter] DRY-RUN: would send test mail to ${testEmail}`)
+    logger.warn('newsletter.test.dry_run', { testEmail })
     return { success: true }
   }
   try {

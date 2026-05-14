@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { createBookingCheckout, createSubscriptionCheckout, createProductOrderCheckout } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: 'Ungültiger Typ' }, { status: 400 })
   } catch (err) {
-    console.error('Stripe checkout error:', err)
+    logger.error('stripe.checkout_failed', err)
     return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
   }
 }

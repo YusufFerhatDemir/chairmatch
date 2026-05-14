@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { logger } from '@/lib/logger'
 
 export type NotificationType =
   | 'info'
@@ -54,7 +55,7 @@ export async function createNotification(
     .single()
 
   if (error) {
-    console.error('[createNotification] Error:', error.message)
+    logger.error('notifications.create_failed', new Error(error.message))
     return null
   }
 
@@ -100,7 +101,7 @@ export async function createBulkNotifications(
     .select('id')
 
   if (error) {
-    console.error('[createBulkNotifications] Error:', error.message)
+    logger.error('notifications.bulk_create_failed', new Error(error.message))
     return 0
   }
 
