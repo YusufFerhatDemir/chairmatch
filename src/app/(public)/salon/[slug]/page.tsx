@@ -15,14 +15,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const demo = PROVS.find(p => p.id === slug)
   if (demo) {
+    const title = `${demo.nm} — ${demo.cat} in ${demo.city} buchen`
+    const description = `${demo.tl}. ★ ${demo.rt} aus ${demo.rc} Bewertungen. Jetzt online Termin buchen bei ${demo.nm} in ${demo.city} — ohne Telefonstress, 24/7 verfügbar.`
     return {
-      title: `${demo.nm} — ${demo.city}`,
-      description: `${demo.tl}. ★ ${demo.rt} (${demo.rc} Bewertungen). Jetzt Termin buchen bei ${demo.nm} in ${demo.city}.`,
+      title,
+      description,
+      keywords: [demo.cat, demo.nm, demo.city, 'Termin buchen', 'Beauty', 'Friseur', 'ChairMatch'].join(', '),
+      alternates: { canonical: `https://chairmatch.de/salon/${slug}` },
       openGraph: {
         title: `${demo.nm} — Termin buchen | ChairMatch`,
         description: `${demo.tl}. ★ ${demo.rt} Bewertung. ${demo.city}.`,
         url: `https://chairmatch.de/salon/${slug}`,
         type: 'website',
+        locale: 'de_DE',
+        siteName: 'ChairMatch',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${demo.nm} — ${demo.city}`,
+        description,
       },
     }
   }
@@ -31,20 +42,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const supabase = getSupabaseAdmin()
     const { data: salon } = await supabase
       .from('salons')
-      .select('name, description, city, avg_rating, review_count')
+      .select('name, description, city, category, avg_rating, review_count, street, postal_code')
       .eq('slug', slug)
       .limit(1)
       .maybeSingle()
 
     if (salon) {
+      const cat = String(salon.category || 'Salon')
+      const title = `${salon.name} — ${cat} in ${salon.city || 'Deutschland'} buchen`
+      const description = `${salon.description || `${salon.name} in ${salon.city || 'Deutschland'}`}. ★ ${salon.avg_rating ?? 'neu'} ${salon.review_count ? `aus ${salon.review_count} Bewertungen` : ''}. Jetzt online Termin buchen — ohne Telefonstress, 24/7 verfügbar.`
       return {
-        title: `${salon.name} — ${salon.city || 'Deutschland'}`,
-        description: `${salon.description || salon.name}. ★ ${salon.avg_rating} (${salon.review_count} Bewertungen). Jetzt Termin buchen.`,
+        title,
+        description,
+        keywords: [cat, salon.name, salon.city, 'Termin buchen', 'Beauty', 'ChairMatch'].filter(Boolean).join(', '),
+        alternates: { canonical: `https://chairmatch.de/salon/${slug}` },
         openGraph: {
           title: `${salon.name} — Termin buchen | ChairMatch`,
           description: `${salon.description || salon.name}. ★ ${salon.avg_rating} Bewertung.`,
           url: `https://chairmatch.de/salon/${slug}`,
           type: 'website',
+          locale: 'de_DE',
+          siteName: 'ChairMatch',
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: `${salon.name} — ${salon.city || 'Deutschland'}`,
+          description,
         },
       }
     }

@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { PROVS } from '@/lib/demo-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,9 +54,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }))
 
-    return [...staticPages, ...catPages, ...salonPages]
+    // Demo-Salons (PROVS) auch indexieren bis echte Provider live sind
+    const demoPages: MetadataRoute.Sitemap = PROVS.map(p => ({
+      url: `${base}/salon/${p.id}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
+
+    return [...staticPages, ...catPages, ...salonPages, ...demoPages]
   } catch {
-    // If DB fails, still return static + category pages
-    return [...staticPages, ...catPages]
+    const demoPages: MetadataRoute.Sitemap = PROVS.map(p => ({
+      url: `${base}/salon/${p.id}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
+    return [...staticPages, ...catPages, ...demoPages]
   }
 }
