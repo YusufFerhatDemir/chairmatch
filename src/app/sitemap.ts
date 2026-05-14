@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { PROVS } from '@/lib/demo-data'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { VERTICALS } from '@/lib/seo-data/verticals'
+import { MAGAZIN_ARTIKEL } from '@/lib/seo-data/magazin'
 import { shouldIndex } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
@@ -23,6 +24,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/rentals`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${base}/search`, changeFrequency: 'daily', priority: 0.8 },
     { url: `${base}/landing`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${base}/was-ist-chairmatch`, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${base}/anbieter/wie-es-funktioniert`, changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${base}/mieter/wie-es-funktioniert`, changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${base}/provisionsmodell`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${base}/magazin`, changeFrequency: 'weekly', priority: 0.85 },
     { url: `${base}/pitch`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/auth`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/register/anbieter`, changeFrequency: 'monthly', priority: 0.6 },
@@ -104,7 +110,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages]
+    // Magazin-Artikel
+    const magazinPages: MetadataRoute.Sitemap = MAGAZIN_ARTIKEL.map((a) => ({
+      url: `${base}/magazin/${a.slug}`,
+      lastModified: a.publishedAt,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }))
+
+    return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages, ...magazinPages]
   } catch {
     const demoPages: MetadataRoute.Sitemap = PROVS.map(p => ({
       url: `${base}/salon/${p.id}`,

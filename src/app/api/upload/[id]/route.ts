@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
+import { logger } from '@/lib/logger'
 
 export async function DELETE(
   _request: NextRequest,
@@ -48,7 +49,7 @@ export async function DELETE(
         .remove([image.storage_path])
 
       if (storageError) {
-        console.error('Storage-Löschfehler:', storageError.message)
+        logger.warn('upload.storage_delete_failed', { err: storageError.message })
         // Continue with DB deletion even if storage removal fails
       }
     }
