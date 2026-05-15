@@ -40,6 +40,13 @@ export function organizationSchema() {
     '@type': 'Organization',
     '@id': 'https://chairmatch.de/#organization',
     name: 'ChairMatch',
+    alternateName: ['Chair Match', 'Chairmatch', 'chairmatch.de'],
+    slogan: 'Deutschlands #1 Marketplace für Beauty-Workspace-Sharing',
+    brand: {
+      '@type': 'Brand',
+      name: 'ChairMatch',
+      logo: 'https://chairmatch.de/icons/chairmatch-pin-logo.png',
+    },
     legalName: 'ChairMatch GmbH (i. Gr.)',
     url: 'https://chairmatch.de',
     logo: {
