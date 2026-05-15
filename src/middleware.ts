@@ -17,6 +17,7 @@ const rateLimitMap = new Map<string, RateLimitEntry>()
 
 const RATE_LIMIT_API = 60        // max Requests pro Minute für /api/*
 const RATE_LIMIT_AUTH = 10       // max Requests pro Minute für /api/auth/*
+const RATE_LIMIT_AVAILABILITY = 30  // /api/availability ist public → anti-Scraping
 const RATE_WINDOW_MS = 60_000    // 1 Minute
 const CLEANUP_INTERVAL_MS = 5 * 60_000  // 5 Minuten
 
@@ -112,6 +113,7 @@ const publicPaths = [
   '/impressum',
   '/agb',
   '/agb-provider',
+  '/widerruf',
   '/cookie-settings',
   '/landing',
   '/pitch',
@@ -119,11 +121,31 @@ const publicPaths = [
   '/shop',
   '/statistik',
   '/api/auth',
+  // SEO/Marketing-Pages (alle public!)
+  '/was-ist-chairmatch',
+  '/provisionsmodell',
+  '/empfehlungen',
+  '/faq',
+  '/magazin',
+  '/freelancer-rechner',
+  '/products',
+  '/premium',
+  // Medical Beauty Money-Pages
+  '/haartransplantation',
+  '/zahnimplantate',
+  '/augenlasern',
+  '/longevity',
+  '/iv-infusionen',
 ]
 
 const publicPrefixes = [
   '/salon/',
   '/category/',
+  '/listings/',         // NEU: Listing-Detail-Pages
+  '/products/',         // NEU: Product-Detail-Pages
+  '/magazin/',          // NEU: Magazin-Artikel
+  '/anbieter/',         // NEU: Anbieter-Funnel-Pages
+  '/mieter/',           // NEU: Mieter-Funnel-Pages
   '/auth/',
   '/api/auth/',
   '/api/analytics/',
@@ -137,12 +159,17 @@ const publicPrefixes = [
   '/api/salons/',
   '/api/products',
   '/api/public-stats',
+  '/api/wait-list',     // NEU: Wait-List Signup
+  '/api/indexnow/',     // NEU: IndexNow Key-File
   '/api/setup/',
   '/api/register-provider', // B2-Fix: Public Provider-Signup
   '/api/debug-auth',        // TEMP: Debug-Endpoint, bald wieder weg
   '/unsubscribe',           // DSGVO: Newsletter ohne Login abmeldbar
   '/shop/',
   '/register/',
+  '/stadt/',            // Stadt-Hubs für SEO
+  // Vertical-Deutschland-Hubs (z.B. /barbershop-deutschland)
+  // werden über pathname.endsWith('-deutschland') gemacht im Check unten
   '/_next/',
   '/icons/',
   '/brand/',
@@ -177,13 +204,25 @@ export default auth((req) => {
 
   if (pathname.startsWith('/api/') && !isNextAuthInternal) {
     const ip = getClientIp(req)
-    // Rate-Limit nur für sensitive Auth-Routen (register, signin, reset-password)
-    const isSensitiveAuth = pathname === '/api/auth/register' ||
+    // B5-Fix: Sensitive Auth-Routes nur bei POST/PUT/PATCH/DELETE rate-limiten.
+    // Sonst können bereits GETs (z.B. /api/auth/2fa/setup für Account-Render)
+    // den User in 429 sperren.
+    const isWriteMethod = req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS'
+    const isSensitiveAuth = isWriteMethod && (
+      pathname === '/api/auth/register' ||
       pathname === '/api/auth/forgot-password' ||
-      pathname.startsWith('/api/auth/2fa/')
+      pathname.startsWith('/api/auth/2fa/') ||
+      pathname.startsWith('/api/auth/phone/')
+    )
 
     if (isSensitiveAuth) {
       if (isRateLimited(ip, 'auth', RATE_LIMIT_AUTH)) {
+        return rateLimitResponse()
+      }
+    } else if (pathname.startsWith('/api/availability')) {
+      // M4-Fix: Public Availability-Endpoint hat eigenen, kleineren Bucket —
+      // verhindert Bot-Scraping aller Salon-Slots.
+      if (isRateLimited(ip, 'availability', RATE_LIMIT_AVAILABILITY)) {
         return rateLimitResponse()
       }
     } else {
@@ -196,6 +235,15 @@ export default auth((req) => {
   // ------ Öffentliche Routen ------
   if (publicPaths.includes(pathname)) return NextResponse.next()
   if (publicPrefixes.some(p => pathname.startsWith(p))) return NextResponse.next()
+
+  // Vertical-Deutschland-Hubs (z.B. /barbershop-deutschland, /friseur-deutschland)
+  if (pathname.match(/^\/[a-z-]+-deutschland\/?$/)) return NextResponse.next()
+
+  // Stadt-Hubs (z.B. /berlin, /muenchen, /berlin/friseur)
+  // Whitelist nur die Phase-1-Städte um nicht alle 2-Wort-Routes zu öffnen
+  const phase1Cities = ['berlin', 'hamburg', 'muenchen', 'koeln', 'frankfurt']
+  const firstSegment = pathname.split('/')[1]
+  if (firstSegment && phase1Cities.includes(firstSegment)) return NextResponse.next()
 
   // ------ Auth-Prüfung ------
   const session = req.auth
@@ -213,6 +261,23 @@ export default auth((req) => {
   }
 
   const role = (session.user as { role?: string })?.role || ''
+  const mustChangePw = !!(session.user as { passwordMustChange?: boolean })?.passwordMustChange
+
+  // ------ Force Password Change ------
+  // Wenn das Flag gesetzt ist (z.B. Provider mit Initial-Passwort), darf der User
+  // NUR auf /auth/change-password und einige whitelist-Routen. Alles andere → Redirect.
+  if (mustChangePw && !pathname.startsWith('/auth/change-password') && !pathname.startsWith('/api/auth/')) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: 'Passwort muss geändert werden', code: 'PW_MUST_CHANGE' },
+        { status: 403 }
+      )
+    }
+    const url = new URL('/auth/change-password', req.url)
+    url.searchParams.set('forced', '1')
+    url.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(url)
+  }
 
   // ------ RBAC ------
   const forbidden = () => pathname.startsWith('/api/')
@@ -241,7 +306,11 @@ export default auth((req) => {
 })
 
 export const config = {
+  // B4-Fix: Statische Assets KOMPLETT vom Middleware-JWT-Check ausschließen.
+  // Vorher lief die Auth-Logik für jeden Icon-, Font-, Manifest-Request mit
+  // 200-500ms Latenz auf langsamen Mobilnetzen. Das fühlte sich an wie "App
+  // hängt sofort beim Start".
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/|icons/|brand/|screenshots/|favicon|apple-touch-icon|manifest|sw\\.js|robots|sitemap|og-image|icon-).*)',
   ],
 }
