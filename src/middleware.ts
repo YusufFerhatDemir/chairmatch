@@ -146,7 +146,6 @@ const publicPrefixes = [
   '/magazin/',          // NEU: Magazin-Artikel
   '/anbieter/',         // NEU: Anbieter-Funnel-Pages
   '/mieter/',           // NEU: Mieter-Funnel-Pages
-  '/vermieter/',        // NEU: Vermieter-Funnel-Pages
   '/auth/',
   '/api/auth/',
   '/api/analytics/',
