@@ -2,13 +2,11 @@ export const dynamic = 'force-dynamic'
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import HomeClient from '@/components/HomeClient'
-import { WelcomeGate } from '@/components/WelcomeSplitter'
 import { getTranslations } from '@/i18n/server'
 
-// WelcomeSplitter ist wieder aktiv (User-Wunsch 2026-05-15 v2):
-// Erstbesucher sehen 3-Card-Audience-Splitter (Kunde/Anbieter/Business)
-// + Trust-Triangle. Nach erstem Klick wird das via localStorage gespeichert
-// und User sehen direkt die HomeClient.
+// HomePage rendert direkt HomeClient — KEIN WelcomeSplitter mehr (User-Wunsch 2026-05-15 v3).
+// Erstbesucher landen direkt auf Home. Die Rollen-Auswahl
+// (Kunde/Anbieter/Mieter/Vermieter) liegt jetzt auf /auth.
 
 export default async function HomePage() {
   let categories: { id: string; slug: string; label: string; description: string | null; icon_url: string | null; sort_order: number; is_active: boolean }[] = []
@@ -50,17 +48,15 @@ export default async function HomePage() {
   const greeting = hour < 12 ? tGreeting('morning') : hour < 17 ? tGreeting('day') : tGreeting('evening')
 
   return (
-    <WelcomeGate>
-      <div className="shell">
-        <div className="screen">
-          <HomeClient
-            categories={categories}
-            dbSalons={salons}
-            greeting={greeting}
-            topOfferPercent={topOfferPercent}
-          />
-        </div>
+    <div className="shell">
+      <div className="screen">
+        <HomeClient
+          categories={categories}
+          dbSalons={salons}
+          greeting={greeting}
+          topOfferPercent={topOfferPercent}
+        />
       </div>
-    </WelcomeGate>
+    </div>
   )
 }

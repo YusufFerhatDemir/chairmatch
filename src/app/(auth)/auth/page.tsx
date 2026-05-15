@@ -4,8 +4,61 @@ import { signIn } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import {
+  CalendarCheck, Scissors, Armchair, Building2,
+  ShieldCheck, BadgeCheck, Eye,
+  type LucideIcon,
+} from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
 import { useTranslations } from '@/i18n/client'
+
+/**
+ * Rollen-Auswahl (4 Rollen) — wird oberhalb der Login/Register-Form gerendert.
+ * Stil: ChairMatch-Brand (gold/cream/dark + lucide-icons).
+ *
+ * - Kunde: bucht Termine
+ * - Anbieter: bietet Services (Salon/Selbständiger)
+ * - Mieter: sucht Stuhl/Kabine zur Miete
+ * - Vermieter: bietet Stuhl/Kabine zur Vermietung an
+ */
+interface RoleCard {
+  id: 'kunde' | 'anbieter' | 'mieter' | 'vermieter'
+  icon: LucideIcon
+  title: string
+  subtitle: string
+  href: string
+}
+
+const ROLES: RoleCard[] = [
+  {
+    id: 'kunde',
+    icon: CalendarCheck,
+    title: 'Kunde',
+    subtitle: 'Ich suche Termine & Behandlungen',
+    href: '/explore',
+  },
+  {
+    id: 'anbieter',
+    icon: Scissors,
+    title: 'Anbieter',
+    subtitle: 'Ich biete Services & nehme Buchungen entgegen',
+    href: '/anbieter/wie-es-funktioniert',
+  },
+  {
+    id: 'mieter',
+    icon: Armchair,
+    title: 'Mieter',
+    subtitle: 'Ich möchte einen Stuhl oder Kabine mieten',
+    href: '/mieter/wie-es-funktioniert',
+  },
+  {
+    id: 'vermieter',
+    icon: Building2,
+    title: 'Vermieter',
+    subtitle: 'Ich vermiete meinen Stuhl, Kabine oder Studio',
+    href: '/vermieter/wie-es-funktioniert',
+  },
+]
 
 export default function AuthPage() {
   const t = useTranslations()
@@ -288,6 +341,164 @@ export default function AuthPage() {
             {loading ? t('common.loading') : tab === 'login' ? t('auth.login') : t('auth.register')}
           </button>
         </form>
+
+        {/* ── ODER DIREKT DURCHSTARTEN ──
+            Rollen-Auswahl: 4 Rollen mit lucide-Icons in ChairMatch-Brand-Farben.
+            Routet ohne Auth direkt zur jeweiligen Onboarding-Seite — der User
+            kann später noch registrieren. */}
+        <div
+          style={{
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: 12,
+            margin: '32px 0 16px',
+          }}
+          aria-hidden="true"
+        >
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, var(--gold))' }} />
+          <span className="cinzel" style={{
+            fontSize: 11, fontWeight: 600, color: 'var(--gold2)',
+            letterSpacing: 2, whiteSpace: 'nowrap',
+          }}>
+            ODER DIREKT DURCHSTARTEN
+          </span>
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--gold), transparent)' }} />
+        </div>
+
+        <p className="cinzel" style={{
+          fontSize: 14, fontWeight: 600, color: 'var(--gold2)',
+          textAlign: 'center', letterSpacing: 1, margin: '0 0 14px',
+        }}>
+          ICH BIN&nbsp;…
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {ROLES.map((role) => {
+            const Icon = role.icon
+            return (
+              <Link
+                key={role.id}
+                href={role.href as never}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '14px 16px',
+                  background: 'var(--c2)',
+                  border: '1px solid rgba(212, 175, 55, 0.25)',
+                  borderRadius: 14,
+                  textDecoration: 'none',
+                  transition: 'border-color 0.18s ease, background 0.18s ease',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--gold)'
+                  ;(e.currentTarget as HTMLAnchorElement).style.background = 'rgba(212, 175, 55, 0.06)'
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(212, 175, 55, 0.25)'
+                  ;(e.currentTarget as HTMLAnchorElement).style.background = 'var(--c2)'
+                }}
+                aria-label={`${role.title}: ${role.subtitle}`}
+              >
+                <div
+                  style={{
+                    width: 44, height: 44, borderRadius: 12,
+                    background: 'rgba(212, 175, 55, 0.08)',
+                    border: '1px solid rgba(212, 175, 55, 0.25)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon size={22} color="var(--gold)" strokeWidth={1.7} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p className="cinzel" style={{
+                    fontSize: 14, fontWeight: 700, color: 'var(--gold2)',
+                    margin: '0 0 2px', lineHeight: 1.2,
+                  }}>
+                    {role.title}
+                  </p>
+                  <p style={{
+                    fontSize: 11, color: 'var(--stone)', fontWeight: 500,
+                    margin: 0, lineHeight: 1.3,
+                  }}>
+                    {role.subtitle}
+                  </p>
+                </div>
+                <span
+                  style={{
+                    width: 26, height: 26, borderRadius: '50%',
+                    border: '1px solid var(--gold)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--gold)', fontSize: 14, lineHeight: 1, flexShrink: 0,
+                  }}
+                  aria-hidden="true"
+                >
+                  ›
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+
+        {/* Escape-Hatch */}
+        <Link
+          href="/"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 8,
+            padding: '12px 16px',
+            background: 'transparent',
+            border: '1px solid rgba(212, 175, 55, 0.35)',
+            borderRadius: 12,
+            color: 'var(--cream)',
+            fontSize: 13, fontWeight: 600,
+            textDecoration: 'none',
+            marginTop: 14,
+          }}
+        >
+          <Eye size={16} color="var(--gold)" strokeWidth={2} />
+          <span>Ohne Anmeldung entdecken</span>
+          <span style={{ color: 'var(--gold)' }}>›</span>
+        </Link>
+
+        {/* Trust-Badges-Triangle */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 0,
+            paddingTop: 18, marginTop: 22,
+            borderTop: '1px solid var(--border)',
+          }}
+        >
+          {[
+            { Icon: ShieldCheck, title: 'Sichere', subtitle: 'Buchung' },
+            { Icon: BadgeCheck, title: 'Geprüfte', subtitle: 'Anbieter' },
+            { Icon: Building2, title: 'Flexible', subtitle: 'Vermietung' },
+          ].map((b, idx) => (
+            <div
+              key={b.title}
+              style={{
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', textAlign: 'center',
+                padding: '0 4px',
+                borderLeft: idx > 0 ? '1px solid var(--border)' : 'none',
+              }}
+            >
+              <b.Icon size={24} color="var(--gold)" strokeWidth={1.7} />
+              <p style={{
+                fontSize: 11, color: 'var(--cream)', fontWeight: 700,
+                margin: '8px 0 0', lineHeight: 1.2,
+              }}>
+                {b.title}
+              </p>
+              <p style={{
+                fontSize: 10, color: 'var(--stone)', fontWeight: 500,
+                margin: '2px 0 0', lineHeight: 1.2,
+              }}>
+                {b.subtitle}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
