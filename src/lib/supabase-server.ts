@@ -69,16 +69,22 @@ function buildPhaseStubClient(): any {
 }
 
 export function getSupabaseAdmin() {
-  // Build-Phase: niemals werfen, sondern Stub geben
-  if (isBuildPhase()) {
-    const hasEnv = process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL
-    if (!hasEnv) {
-      return buildPhaseStubClient()
-    }
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  const supabaseUrl = ensureEnv('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL)
-  const supabaseServiceKey = ensureEnv('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY)
+  // Wenn ENV-Vars fehlen oder zu kurz → niemals werfen, sondern Stub.
+  // Das schützt vor Build-Crashes wenn Vercel die ENV-Vars zur Build-Zeit
+  // nicht durchreicht (passiert bei Static-Generation von Pages mit
+  // Datenbank-Abfragen). Zur Request-Zeit ist die Variable dann da.
+  if (!supabaseUrl || supabaseUrl.length < 20 ||
+      !supabaseServiceKey || supabaseServiceKey.length < 20) {
+    // Best-effort: Build-Phase oder Misconfiguration — Stub statt Crash
+    if (typeof console !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.warn('[supabase-server] ENV missing — returning stub client (no DB access)')
+    }
+    return buildPhaseStubClient()
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return createClient<any, any>(supabaseUrl, supabaseServiceKey, {
