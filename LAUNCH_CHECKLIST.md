@@ -5,6 +5,18 @@ Hak ab, mach weiter. Wenn etwas hängt, geh in den verlinkten Guide.
 
 ---
 
+## Current Status (2026-05-15)
+- Git: branch `main`, HEAD `024bd70`, alle Code-Änderungen gepusht ✅
+- Typecheck: 53 pre-existing TS-`any`-Warnings (unverändert, von `ignoreBuildErrors: true` in `next.config` toleriert) ⚠️ — Build & Deploy laufen
+- Launch-Dateien: alle vorhanden ✅
+  - `.env.example`, `LAUNCH_CHECKLIST.md`, `SUPABASE_SETUP.md`, `VERCEL_ENV_SETUP.md`, `RESEND_DOMAIN_SETUP.md`, `supabase/migrations/_BUNDLED_FOR_PROD.sql`
+- Was noch fehlt (NUR Browser/Dashboard-Klicks, kein Terminal mehr nötig):
+  1. **Supabase** → SQL-Editor → `_BUNDLED_FOR_PROD.sql` einfügen → Run
+  2. **Vercel** → Settings → Environment Variables → `.env.local` importieren → Redeploy
+  3. **Resend** → Domains-Tab → DNS-Records aus Guide kopieren → Verify
+
+---
+
 ## Übersicht: Was wann zu tun ist
 
 | # | Schritt | Zeit | Guide |
