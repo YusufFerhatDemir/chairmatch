@@ -26,7 +26,57 @@ function ensureEnv(name: string, value: string | undefined): string {
   return value
 }
 
+/**
+ * Build-Time-Detection: Während `next build` werden Server-Components
+ * für Static-Pre-Render aufgerufen. ENV-Vars sind aber u.U. nicht
+ * gesetzt — dann darf der Build NICHT crashen, sondern Pages werden
+ * dynamic gerendert zur Request-Zeit.
+ *
+ * Heuristik: NEXT_PHASE === 'phase-production-build' während Vercel Build.
+ */
+function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === 'phase-production-build'
+}
+
+/**
+ * No-Op Supabase-Client für Build-Phase — alle .from().select() geben
+ * leere Arrays zurück statt zu crashen. Die echten Daten kommen zur
+ * Request-Zeit über den richtigen Client.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildPhaseStubClient(): any {
+  const emptyResponse = { data: null, error: null, count: null }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chainable: any = new Proxy({}, {
+    get: (_, prop) => {
+      if (prop === 'then') return undefined // not a thenable
+      if (prop === Symbol.iterator) return undefined
+      // .then-callbacks via await
+      if (prop === 'data' || prop === 'error' || prop === 'count') {
+        return prop === 'data' ? [] : null
+      }
+      return () => chainable
+    },
+  })
+  // Promise-like: await query → emptyResponse
+  chainable.then = (resolve: (v: typeof emptyResponse) => unknown) => resolve({ ...emptyResponse, data: [] as never })
+  return {
+    from: () => chainable,
+    rpc: () => chainable,
+    auth: { getSession: async () => ({ data: { session: null }, error: null }) },
+    storage: { from: () => ({ remove: async () => ({ error: null }), upload: async () => ({ error: null }) }) },
+  }
+}
+
 export function getSupabaseAdmin() {
+  // Build-Phase: niemals werfen, sondern Stub geben
+  if (isBuildPhase()) {
+    const hasEnv = process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!hasEnv) {
+      return buildPhaseStubClient()
+    }
+  }
+
   const supabaseUrl = ensureEnv('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL)
   const supabaseServiceKey = ensureEnv('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY)
 
