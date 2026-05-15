@@ -2,16 +2,12 @@ export const dynamic = 'force-dynamic'
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import HomeClient from '@/components/HomeClient'
-import { WelcomeGate } from '@/components/WelcomeSplitter'
 import { getTranslations } from '@/i18n/server'
 
-// REVERT-ANLEITUNG (falls Splitter doch nicht gefällt):
-// 1. Diesen Import wieder hinzufügen:
-//      import { getCachedOnboardingSlides } from '@/lib/settings'
-//      import OnboardingGate from '@/components/OnboardingGate'
-// 2. Im JSX <WelcomeGate> durch <OnboardingGate slides={onboardingSlides}> ersetzen
-// 3. `const slides = await getCachedOnboardingSlides().catch(() => [])` wieder einfügen
-// Die OnboardingGate-Komponente bleibt unverändert im Repo.
+// WelcomeSplitter ist von der Startseite entfernt (User-Entscheidung 2026-05-15).
+// Erstbesucher sehen direkt die Home mit Premium-Services + Salons — schneller
+// Zugang ohne extra Klick. Der Splitter-Code bleibt unter
+// `src/components/WelcomeSplitter.tsx` für spätere Nutzung (z.B. auf /onboarding).
 
 export default async function HomePage() {
   let categories: { id: string; slug: string; label: string; description: string | null; icon_url: string | null; sort_order: number; is_active: boolean }[] = []
@@ -53,17 +49,15 @@ export default async function HomePage() {
   const greeting = hour < 12 ? tGreeting('morning') : hour < 17 ? tGreeting('day') : tGreeting('evening')
 
   return (
-    <WelcomeGate>
-      <div className="shell">
-        <div className="screen">
-          <HomeClient
-            categories={categories}
-            dbSalons={salons}
-            greeting={greeting}
-            topOfferPercent={topOfferPercent}
-          />
-        </div>
+    <div className="shell">
+      <div className="screen">
+        <HomeClient
+          categories={categories}
+          dbSalons={salons}
+          greeting={greeting}
+          topOfferPercent={topOfferPercent}
+        />
       </div>
-    </WelcomeGate>
+    </div>
   )
 }
