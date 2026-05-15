@@ -23,3 +23,7 @@ vite.config.js
 # Supabase temp files
 supabase/.temp/
 .env*.local
+
+# Cowork Auto-Deploy Token — NEVER commit
+.cm-github-token
+../.cm-github-token
