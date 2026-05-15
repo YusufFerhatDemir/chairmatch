@@ -1,31 +1,25 @@
 #!/usr/bin/env bash
-# ChairMatch Quick-Deploy-Script
-# Verwendung: ./deploy.sh "commit message"
-# Oder: ./deploy.sh   (nimmt default message)
+# Standard-Deploy-Flow für Chairmatch.
+# yusuf braucht das NIE manuell auszuführen — das ist für Agents.
+# Vercel deployed automatisch nach Push auf main.
 
 set -e
-cd "$(dirname "$0")"
 
-MSG="${1:-chore: deploy update}"
+COMMIT_MSG="${1:-chore: update}"
 
-echo "🧹 Lock-File entfernen falls vorhanden..."
-rm -f .git/index.lock 2>/dev/null || true
+# Cleanup stale locks
+rm -f .git/index.lock .git/objects/maintenance.lock 2>/dev/null || true
 
-echo "📦 Änderungen stagen..."
+echo "→ typecheck..."
+npm run typecheck
+
+echo "→ git add + commit..."
 git add -A
+git diff --cached --quiet && { echo "Nothing to commit"; exit 0; }
+git commit -m "$COMMIT_MSG"
 
-if git diff --cached --quiet; then
-  echo "✨ Keine Änderungen — nichts zu committen."
-else
-  echo "💾 Committing: $MSG"
-  git commit -m "$MSG"
-fi
-
-echo "🚀 Push zu GitHub..."
+echo "→ push..."
 git push origin main
 
-echo ""
-echo "✅ Deploy ausgelöst!"
-echo "📡 Vercel deployed automatisch in 2-3 Min."
-echo "🌐 Check: https://chairmatch.de"
-echo "📊 Status: https://vercel.com/yusufferhatdemirs-projects/chairmatch/deployments"
+echo "✓ Push durch. Vercel deployed automatisch in ~1-2 Min."
+echo "  Status: https://vercel.com/team_iJXOJqpBTNdePfg1tMV0r1ip/chairmatch/deployments"
