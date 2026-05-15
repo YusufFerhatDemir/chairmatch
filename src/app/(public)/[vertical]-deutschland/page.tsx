@@ -26,7 +26,10 @@ export async function generateStaticParams() {
   return VERTICALS.map((v) => ({ vertical: `${v.slug}-deutschland` }))
 }
 
-function parseVerticalSlug(rawSlug: string): string | null {
+function parseVerticalSlug(rawSlug: string | undefined | null): string | null {
+  // Null-Check verhindert "Cannot read properties of undefined (reading 'endsWith')"
+  // wenn Next.js die Page beim Build mit ungültigen Params probe-rendered.
+  if (!rawSlug || typeof rawSlug !== 'string') return null
   if (!rawSlug.endsWith('-deutschland')) return null
   return rawSlug.replace(/-deutschland$/, '')
 }

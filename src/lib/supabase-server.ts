@@ -39,32 +39,55 @@ function isBuildPhase(): boolean {
 }
 
 /**
- * No-Op Supabase-Client für Build-Phase — alle .from().select() geben
- * leere Arrays zurück statt zu crashen. Die echten Daten kommen zur
- * Request-Zeit über den richtigen Client.
+ * No-Op Supabase-Client für Build-Phase / fehlende ENV-Vars.
+ *
+ * - .from().select().eq().single()-Chains liefern { data: null, error: null }
+ * - .from().select()-Aggregat-Chains (await) liefern { data: [], error: null, count: 0 }
+ * - .storage.from().upload/remove liefern { error: null }
+ *
+ * Das schützt vor Build-Crashes wenn Vercel ENV-Vars nicht durchreicht.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildPhaseStubClient(): any {
-  const emptyResponse = { data: null, error: null, count: null }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chainable: any = new Proxy({}, {
-    get: (_, prop) => {
-      if (prop === 'then') return undefined // not a thenable
-      if (prop === Symbol.iterator) return undefined
-      // .then-callbacks via await
-      if (prop === 'data' || prop === 'error' || prop === 'count') {
-        return prop === 'data' ? [] : null
-      }
-      return () => chainable
-    },
-  })
-  // Promise-like: await query → emptyResponse
-  chainable.then = (resolve: (v: typeof emptyResponse) => unknown) => resolve({ ...emptyResponse, data: [] as never })
+  function makeQueryBuilder(): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const builder: any = function () { return builder }
+    // Chainable methods that return builder
+    const chainMethods = [
+      'select', 'insert', 'update', 'upsert', 'delete',
+      'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'like', 'ilike',
+      'in', 'is', 'contains', 'or', 'and', 'not', 'match',
+      'order', 'limit', 'range', 'offset', 'filter',
+      'returning', 'csv', 'explain',
+    ]
+    for (const m of chainMethods) builder[m] = () => builder
+    // Terminal methods (return Promise)
+    builder.single = () => Promise.resolve({ data: null, error: null })
+    builder.maybeSingle = () => Promise.resolve({ data: null, error: null })
+    builder.then = (resolve: (v: { data: never[]; error: null; count: number }) => unknown) =>
+      resolve({ data: [], error: null, count: 0 })
+    builder.catch = () => builder
+    builder.finally = (cb: () => void) => { cb(); return builder }
+    return builder
+  }
+
   return {
-    from: () => chainable,
-    rpc: () => chainable,
-    auth: { getSession: async () => ({ data: { session: null }, error: null }) },
-    storage: { from: () => ({ remove: async () => ({ error: null }), upload: async () => ({ error: null }) }) },
+    from: () => makeQueryBuilder(),
+    rpc: () => Promise.resolve({ data: null, error: null }),
+    auth: {
+      getSession: async () => ({ data: { session: null }, error: null }),
+      getUser: async () => ({ data: { user: null }, error: null }),
+    },
+    storage: {
+      from: () => ({
+        remove: async () => ({ error: null, data: [] }),
+        upload: async () => ({ error: null, data: { path: '' } }),
+        download: async () => ({ error: null, data: null }),
+        getPublicUrl: () => ({ data: { publicUrl: '' } }),
+        list: async () => ({ data: [], error: null }),
+      }),
+    },
   }
 }
 
