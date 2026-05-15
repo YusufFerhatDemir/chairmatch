@@ -1,3 +1,2 @@
-Rollback + SEO/GEO komplett zurück.
-Stand: 2026-05-15 18:22:13
-Routes: was-ist, provisionsmodell, empfehlungen, faq, magazin, [vertical]-deutschland.
+SEO/GEO-Vollausbau komplett — Stand: 2026-05-15 22:00:25
+Routes: Stadt-Hubs, Stadt×Vertical, Anbieter/Mieter-Funnels, Freelancer-Rechner, Medical Beauty, Premium
