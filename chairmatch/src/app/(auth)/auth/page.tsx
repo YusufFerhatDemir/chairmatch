@@ -35,7 +35,7 @@ const ROLES: RoleCard[] = [
     id: 'kunde',
     icon: CalendarCheck,
     title: 'Kunde',
-    subtitle: 'Ich suche Termine & Behandlungen',
+    subtitle: 'CACHE-TEST-V11-MARKER-789xyz',
     href: '/explore',
   },
   {
