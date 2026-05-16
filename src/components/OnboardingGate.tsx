@@ -650,68 +650,220 @@ export default function OnboardingGate({ slides, children }: Props) {
     }
   }
 
-  // ═══ ROLE SELECT ═══
+  // ═══ ROLE SELECT — V11 Welcome-Splitter Layout ═══
   if (phase === 'roleSelect') {
+    const V11_ROLES = [
+      { id: 'CUSTOMER',  title: 'Kunde',     sub1: 'Ich suche',      sub2: 'Termine',   href: '/explore' },
+      { id: 'PROVIDER',  title: 'Anbieter',  sub1: 'Ich biete',      sub2: 'Services',  href: '/anbieter/wie-es-funktioniert' },
+      { id: 'MIETER',    title: 'Mieter',    sub1: 'Stuhl / Kabine', sub2: 'mieten',    href: '/mieter/wie-es-funktioniert' },
+      { id: 'VERMIETER', title: 'Vermieter', sub1: 'Stuhl / Kabine', sub2: 'vermieten', href: '/vermieter/wie-es-funktioniert' },
+    ] as const
+
     return shell(<>
       {backBtn(() => { setPhase('slides'); setStep(slides.length - 1) })}
-      {logo()}
 
-      {/* GROSSE GOLDENE REGISTRIEREN-BUTTON — direkt zu /auth */}
+      {/* Header — Pin-Logo XL + CHAIRMATCH + DEUTSCHLAND + Tagline */}
+      <div style={{ textAlign: 'center', marginBottom: 26, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <BrandLogo size={130} variant="glow" priority={true} />
+        <p className="cinzel text-gold-metallic" style={{
+          fontSize: 34, fontWeight: 600, letterSpacing: '0.16em',
+          margin: '16px 0 6px',
+        }}>
+          CHAIRMATCH
+        </p>
+        <p className="cinzel" style={{
+          fontSize: 13, color: 'var(--stone)', letterSpacing: '0.45em',
+          margin: '0 0 18px',
+        }}>
+          DEUTSCHLAND
+        </p>
+        <p style={{
+          fontSize: 14, color: 'var(--cream)', lineHeight: 1.55,
+          margin: 0, padding: '0 8px', maxWidth: 480,
+        }}>
+          Die Plattform für Termine, Services und die Vermietung von Stühlen &amp; Kabinen.
+        </p>
+      </div>
+
+      {/* Gold-Primary-CTA */}
       <Link
         href="/auth?tab=register"
         style={{
-          display: 'block', width: '100%', marginBottom: 12, textDecoration: 'none',
-          padding: '18px 24px', borderRadius: 'var(--btn-radius)',
-          background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
-          color: '#1a1000', textAlign: 'center', fontWeight: 800, fontSize: 16, letterSpacing: '0.05em',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 10, width: '100%',
+          padding: '15px 22px',
+          background: 'linear-gradient(90deg, #BF953F 0%, #FCF6BA 25%, #E5C158 50%, #FBF5B7 75%, #AA771C 100%)',
+          color: '#1A1308',
+          fontSize: 15, fontWeight: 600, letterSpacing: '0.02em',
+          border: 'none', borderRadius: 12,
+          textDecoration: 'none',
+          marginBottom: 10,
+          boxShadow: '0 6px 24px rgba(196,168,106,0.35), inset 0 1px 0 rgba(255,255,255,0.4)',
         }}
       >
-        ✦ Jetzt registrieren →
+        <span style={{ color: '#1A1308' }}>✦</span>
+        <span>Jetzt kostenlos registrieren</span>
+        <span style={{ marginLeft: 'auto', fontSize: 18, color: '#1A1308' }}>→</span>
       </Link>
+
+      {/* Outline-Secondary-CTA */}
       <Link
         href="/auth?tab=login"
         style={{
-          display: 'block', width: '100%', marginBottom: 24, textDecoration: 'none',
-          padding: '14px 24px', borderRadius: 'var(--btn-radius)',
-          background: 'transparent', border: '1.5px solid var(--gold)',
-          color: 'var(--gold2)', textAlign: 'center', fontWeight: 600, fontSize: 14,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 10, width: '100%',
+          padding: '13px 22px',
+          background: 'transparent',
+          color: 'var(--cream)',
+          fontSize: 14, letterSpacing: '0.02em',
+          border: '1px solid rgba(196,168,106,0.4)', borderRadius: 12,
+          textDecoration: 'none',
+          marginBottom: 28,
         }}
       >
-        Bereits Konto? Anmelden
+        <span style={{ color: 'var(--gold)' }}>👤</span>
+        <span>Bereits Konto? Anmelden</span>
       </Link>
 
-      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'var(--stone)', textAlign: 'center', marginBottom: 12, textTransform: 'uppercase' }}>
-        ── ODER DIREKT DURCHSTARTEN ──
-      </p>
-      <p className="cinzel" style={{ fontSize: 18, fontWeight: 600, textAlign: 'center', marginBottom: 16, color: 'var(--gold2)' }}>
-        {t('onboarding.iAm')}
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-        {([
-          [t('onboarding.roleCustomer'), 'CUSTOMER'],
-          [t('onboarding.roleProvider'), 'PROVIDER'],
-          [t('onboarding.roleB2B'), 'B2B'],
-        ] as const).map(([label, r]) => (
-          <button key={r} className="boutline" style={{ padding: 17, fontSize: 14, fontWeight: 700, textAlign: 'left' }}
-            onClick={() => selectRole(r)}>
-            {label}
-          </button>
+      {/* Ich bin … Trennlinien-Sektion */}
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'center', gap: 14,
+        marginBottom: 18, width: '100%',
+      }}>
+        <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, var(--gold2))' }} />
+        <span className="cinzel" style={{
+          fontSize: 15, color: 'var(--gold2)',
+          letterSpacing: '0.28em', whiteSpace: 'nowrap',
+        }}>
+          Ich bin …
+        </span>
+        <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--gold2), transparent)' }} />
+      </div>
+
+      {/* 2x2 Grid — Kunde / Anbieter / Mieter / Vermieter */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: 12,
+        marginBottom: 18,
+        width: '100%',
+      }}>
+        {V11_ROLES.map((role) => (
+          <Link
+            key={role.id}
+            href={role.href}
+            onClick={() => {
+              try { localStorage.setItem('cm_welcome_seen', '1') } catch {}
+              try { localStorage.setItem('cm_role', role.id) } catch {}
+            }}
+            style={{
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'space-between',
+              padding: '22px 16px 18px',
+              background: 'var(--c2)',
+              border: '1px solid rgba(176,144,96,0.22)',
+              borderRadius: 14,
+              textDecoration: 'none',
+              minHeight: 200,
+              transition: 'all .25s',
+            }}
+            aria-label={role.title}
+          >
+            <div style={{ marginBottom: 14 }}>
+              <BrandLogo size={58} variant="glow" animateStar={false} priority={false} />
+            </div>
+            <p className="cinzel" style={{
+              fontSize: 20, fontWeight: 500, color: 'var(--gold2)',
+              margin: '0 0 10px', lineHeight: 1.2,
+            }}>
+              {role.title}
+            </p>
+            <p style={{
+              fontSize: 13, color: 'var(--cream)', lineHeight: 1.4,
+              margin: '0 0 14px', textAlign: 'center', minHeight: 34,
+            }}>
+              {role.sub1}<br />{role.sub2}
+            </p>
+            <div style={{
+              width: 30, height: 30, borderRadius: '50%',
+              border: '1px solid rgba(196,168,106,0.5)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--gold2)', fontSize: 14, lineHeight: 1,
+            }}>
+              ›
+            </div>
+          </Link>
         ))}
       </div>
-      {/* Skip — direkt entdecken */}
+
+      {/* Ohne Anmeldung entdecken */}
       <button
         onClick={() => finish('CUSTOMER')}
-        className="bgold"
-        style={{ marginTop: 20, width: '100%', background: 'transparent', border: '1.5px solid var(--gold)', color: 'var(--gold2)', fontSize: 14, fontWeight: 700 }}
+        style={{
+          width: '100%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 12,
+          padding: '14px 20px',
+          background: 'transparent',
+          border: '1px solid rgba(196,168,106,0.45)',
+          borderRadius: 14,
+          color: 'var(--cream)',
+          fontSize: 14, letterSpacing: '0.02em',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          marginBottom: 24,
+        }}
       >
-        {t('onboarding.discoverNoAccount')}
+        <span style={{ color: 'var(--gold2)', fontSize: 18 }}>👁</span>
+        <span>Ohne Anmeldung entdecken</span>
+        <span style={{ color: 'var(--gold2)', fontSize: 14, marginLeft: 'auto' }}>›</span>
       </button>
-      {/* Login link */}
-      <div style={{ width: '100%', borderTop: '1px solid var(--border)', marginTop: 20, paddingTop: 20, textAlign: 'center' }}>
-        <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 10 }}>{t('onboarding.alreadyRegistered')}</p>
-        <button onClick={() => setPhase('login')} className="boutline" style={{ padding: '12px 24px', fontSize: 13 }}>
-          {t('auth.login')} →
-        </button>
+
+      {/* Trust-Section */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 0,
+        paddingTop: 22,
+        borderTop: '1px solid rgba(176,144,96,0.22)',
+        width: '100%',
+      }}>
+        {[
+          { icon: '🛡', title: 'Sichere', subtitle: 'Buchung' },
+          { icon: '✓', title: 'Geprüfte', subtitle: 'Anbieter' },
+          { icon: '🏢', title: 'Flexible', subtitle: 'Vermietung' },
+        ].map((b, idx) => (
+          <div
+            key={b.title}
+            style={{
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', textAlign: 'center',
+              padding: '0 6px',
+              borderLeft: idx > 0 ? '1px solid rgba(196,168,106,0.18)' : 'none',
+            }}
+          >
+            <span style={{
+              fontSize: 26, color: 'var(--gold2)',
+              filter: 'drop-shadow(0 0 8px rgba(196,168,106,0.35))',
+              marginBottom: 8,
+            }}>
+              {b.icon}
+            </span>
+            <p style={{
+              fontSize: 13, color: 'var(--cream)', fontWeight: 500,
+              margin: '0 0 2px', lineHeight: 1.2,
+            }}>
+              {b.title}
+            </p>
+            <p style={{
+              fontSize: 12, color: 'var(--stone)',
+              margin: 0, lineHeight: 1.2,
+            }}>
+              {b.subtitle}
+            </p>
+          </div>
+        ))}
       </div>
     </>)
   }
