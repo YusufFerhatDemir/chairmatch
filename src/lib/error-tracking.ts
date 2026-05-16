@@ -82,3 +82,41 @@ export async function logApiError(
     extra: { statusCode },
   })
 }
+/**
+ * Returns true when Sentry is configured via NEXT_PUBLIC_SENTRY_DSN.
+ * Used by callers to gate Sentry-specific logic (e.g. captureException).
+ * Kept as a function — not a const — so server/client evaluations stay
+ * dynamic and bundlers don't inline a stale value.
+ */
+export function isSentryConfigured(): boolean {
+  const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
+  return typeof dsn === 'string' && dsn.length > 0 && dsn.startsWith('https://')
+}
+
+/**
+ * Capture an exception to Sentry if configured.
+ * Lazy-loads @sentry/nextjs so the bundle stays slim when Sentry is not set.
+ * Falls back to console.error.
+ */
+export async function captureException(error: unknown, context?: Record<string, unknown>): Promise<void> {
+  if (!isSentryConfigured()) {
+    console.error('[error-tracking] captureException (no Sentry):', error, context)
+    return
+  }
+  try {
+    const Sentry = await import('@sentry/nextjs')
+    if (context) {
+      Sentry.withScope((scope) => {
+        for (const [k, v] of Object.entries(context)) {
+          scope.setExtra(k, v)
+        }
+        Sentry.captureException(error)
+      })
+    } else {
+      Sentry.captureException(error)
+    }
+  } catch {
+    console.error('[error-tracking] Sentry capture failed:', error)
+  }
+}
+
