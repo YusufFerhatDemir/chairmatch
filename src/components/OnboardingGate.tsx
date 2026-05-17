@@ -652,19 +652,36 @@ export default function OnboardingGate({ slides, children }: Props) {
 
   // ═══ ROLE SELECT — V11 Welcome-Splitter Layout ═══
   if (phase === 'roleSelect') {
-    const V11_ROLES = [
+    const V14_ROLES = [
       { id: 'CUSTOMER',  title: 'Kunde',     sub1: 'Ich suche',      sub2: 'Termine',   href: '/explore' },
       { id: 'PROVIDER',  title: 'Anbieter',  sub1: 'Ich biete',      sub2: 'Services',  href: '/anbieter/wie-es-funktioniert' },
       { id: 'MIETER',    title: 'Mieter',    sub1: 'Stuhl / Kabine', sub2: 'mieten',    href: '/mieter/wie-es-funktioniert' },
       { id: 'VERMIETER', title: 'Vermieter', sub1: 'Stuhl / Kabine', sub2: 'vermieten', href: '/vermieter/wie-es-funktioniert' },
     ] as const
 
-    return shell(<>
-      {backBtn(() => { setPhase('slides'); setStep(slides.length - 1) })}
+    const V14_USPS = [
+      { t1: 'Termine',   t2: 'buchen',    sub: 'Friseur, Kosmetik, Massage, Medical' },
+      { t1: 'Workspace', t2: 'teilen',    sub: 'Stuhl, Liege, Kabine — flexibel' },
+      { t1: '0 %',       t2: 'Provision', sub: 'Fair zu Anbietern, transparent zu Kunden' },
+    ]
 
-      {/* Header — Pin-Logo XL + CHAIRMATCH + DEUTSCHLAND + Tagline */}
-      <div style={{ textAlign: 'center', marginBottom: 26, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <BrandLogo size={130} variant="glow" priority={true} />
+    const V14_TRUST = [
+      { title: 'Sichere',  sub1: 'Buchung &',   sub2: 'Bezahlung' },
+      { title: 'Geprüfte', sub1: 'Anbieter &',  sub2: 'Kliniken' },
+      { title: 'Flexible', sub1: 'Vermietung &',sub2: 'Termine' },
+    ]
+
+    const V14_FAQ = [
+      'Was kostet ChairMatch für Anbieter?',
+      'Wie melde ich meinen Salon an?',
+      'Kann ich Stühle vermieten und Termine anbieten?',
+      'Wie funktioniert die Auszahlung?',
+    ]
+
+    return (<>
+      {/* 1) Header — Pin-Logo XL + CHAIRMATCH + DEUTSCHLAND + Marketplace-Tagline */}
+      <div style={{ textAlign: 'center', marginBottom: 26, width: '100%' }}>
+        <BrandLogo size={130} variant="glow" animateStar={true} priority={true} />
         <p className="cinzel text-gold-metallic" style={{
           fontSize: 34, fontWeight: 600, letterSpacing: '0.16em',
           margin: '16px 0 6px',
@@ -679,36 +696,38 @@ export default function OnboardingGate({ slides, children }: Props) {
         </p>
         <p style={{
           fontSize: 14, color: 'var(--cream)', lineHeight: 1.55,
-          margin: 0, padding: '0 8px', maxWidth: 480,
+          margin: 0, padding: '0 8px',
         }}>
-          Die Plattform für Termine, Services und die Vermietung von Stühlen &amp; Kabinen.
+          <strong>Marketplace</strong> für Beauty-Termine, Medical-Behandlungen und die Vermietung von Stühlen &amp; Kabinen.
         </p>
       </div>
 
-      {/* Gold-Primary-CTA */}
+      {/* 2) Primary Gold CTA — Jetzt kostenlos registrieren */}
       <Link
-        href="/auth?tab=register"
+        href={'/auth?mode=register'}
+        onClick={() => { try { localStorage.setItem('cm_welcome_seen', '1') } catch {} }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: 10, width: '100%',
           padding: '15px 22px',
-          background: 'linear-gradient(90deg, #BF953F 0%, #FCF6BA 25%, #E5C158 50%, #FBF5B7 75%, #AA771C 100%)',
+          background: 'var(--gold-gradient)',
           color: '#1A1308',
           fontSize: 15, fontWeight: 600, letterSpacing: '0.02em',
           border: 'none', borderRadius: 12,
-          textDecoration: 'none',
+          textDecoration: 'none', cursor: 'pointer',
           marginBottom: 10,
           boxShadow: '0 6px 24px rgba(196,168,106,0.35), inset 0 1px 0 rgba(255,255,255,0.4)',
         }}
       >
-        <span style={{ color: '#1A1308' }}>✦</span>
+        <Sparkles size={18} color="#1A1308" strokeWidth={2.2} />
         <span>Jetzt kostenlos registrieren</span>
-        <span style={{ marginLeft: 'auto', fontSize: 18, color: '#1A1308' }}>→</span>
+        <span style={{ marginLeft: 'auto', fontSize: 16, color: '#1A1308' }}>→</span>
       </Link>
 
-      {/* Outline-Secondary-CTA */}
+      {/* Secondary Outline CTA */}
       <Link
-        href="/auth?tab=login"
+        href={'/auth'}
+        onClick={() => { try { localStorage.setItem('cm_welcome_seen', '1') } catch {} }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: 10, width: '100%',
@@ -717,39 +736,34 @@ export default function OnboardingGate({ slides, children }: Props) {
           color: 'var(--cream)',
           fontSize: 14, letterSpacing: '0.02em',
           border: '1px solid rgba(196,168,106,0.4)', borderRadius: 12,
-          textDecoration: 'none',
+          textDecoration: 'none', cursor: 'pointer',
           marginBottom: 28,
         }}
       >
-        <span style={{ color: 'var(--gold)' }}>👤</span>
         <span>Bereits Konto? Anmelden</span>
       </Link>
 
-      {/* Ich bin … Trennlinien-Sektion */}
+      {/* 3) Ich bin */}
       <div style={{
         display: 'flex', alignItems: 'center',
         justifyContent: 'center', gap: 14,
         marginBottom: 18, width: '100%',
       }}>
         <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, var(--gold2))' }} />
-        <span className="cinzel" style={{
-          fontSize: 15, color: 'var(--gold2)',
-          letterSpacing: '0.28em', whiteSpace: 'nowrap',
+        <span className="cinzel text-gold-metallic" style={{
+          fontSize: 15, letterSpacing: '0.28em', whiteSpace: 'nowrap',
         }}>
-          Ich bin …
+          Ich bin
         </span>
         <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, var(--gold2), transparent)' }} />
       </div>
 
-      {/* 2x2 Grid — Kunde / Anbieter / Mieter / Vermieter */}
+      {/* 4) 2x2 Grid */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: 12,
-        marginBottom: 18,
-        width: '100%',
+        display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: 12, marginBottom: 18, width: '100%',
       }}>
-        {V11_ROLES.map((role) => (
+        {V14_ROLES.map((role) => (
           <Link
             key={role.id}
             href={role.href}
@@ -759,112 +773,158 @@ export default function OnboardingGate({ slides, children }: Props) {
             }}
             style={{
               display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'space-between',
-              padding: '22px 16px 18px',
+              alignItems: 'center', justifyContent: 'flex-start',
+              padding: '24px 14px 22px',
               background: 'var(--c2)',
               border: '1px solid rgba(176,144,96,0.22)',
               borderRadius: 14,
-              textDecoration: 'none',
-              minHeight: 200,
-              transition: 'all .25s',
+              textDecoration: 'none', cursor: 'pointer',
+              minHeight: 180, transition: 'all .25s',
             }}
-            aria-label={role.title}
           >
-            <div style={{ marginBottom: 14 }}>
-              <BrandLogo size={58} variant="glow" animateStar={false} priority={false} />
+            <div style={{ marginBottom: 12 }}>
+              <BrandLogo size={56} variant="glow" animateStar={false} priority={false} />
             </div>
-            <p className="cinzel" style={{
-              fontSize: 20, fontWeight: 500, color: 'var(--gold2)',
-              margin: '0 0 10px', lineHeight: 1.2,
+            <p className="cinzel text-gold-metallic" style={{
+              fontSize: 22, fontWeight: 500,
+              margin: '0 0 8px', lineHeight: 1.2,
             }}>
               {role.title}
             </p>
             <p style={{
               fontSize: 13, color: 'var(--cream)', lineHeight: 1.4,
-              margin: '0 0 14px', textAlign: 'center', minHeight: 34,
+              margin: 0, textAlign: 'center',
             }}>
               {role.sub1}<br />{role.sub2}
             </p>
-            <div style={{
-              width: 30, height: 30, borderRadius: '50%',
-              border: '1px solid rgba(196,168,106,0.5)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--gold2)', fontSize: 14, lineHeight: 1,
-            }}>
-              ›
-            </div>
           </Link>
         ))}
       </div>
 
-      {/* Ohne Anmeldung entdecken */}
-      <button
-        onClick={() => finish('CUSTOMER')}
+      {/* 5) Ohne Anmeldung entdecken */}
+      <Link
+        href={'/'}
+        onClick={() => { try { localStorage.setItem('cm_welcome_seen', '1') } catch {} }}
         style={{
           width: '100%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: 12,
-          padding: '14px 20px',
+          gap: 12, padding: '14px 20px',
           background: 'transparent',
           border: '1px solid rgba(196,168,106,0.45)',
-          borderRadius: 14,
-          color: 'var(--cream)',
+          borderRadius: 14, color: 'var(--cream)',
           fontSize: 14, letterSpacing: '0.02em',
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          marginBottom: 24,
+          textDecoration: 'none', cursor: 'pointer', marginBottom: 28,
         }}
       >
-        <span style={{ color: 'var(--gold2)', fontSize: 18 }}>👁</span>
         <span>Ohne Anmeldung entdecken</span>
-        <span style={{ color: 'var(--gold2)', fontSize: 14, marginLeft: 'auto' }}>›</span>
-      </button>
+        <span style={{ color: 'var(--gold2)', marginLeft: 4 }}>→</span>
+      </Link>
 
-      {/* Trust-Section */}
+      {/* 6) Was ist ChairMatch? + USPs */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 0,
-        paddingTop: 22,
-        borderTop: '1px solid rgba(176,144,96,0.22)',
-        width: '100%',
+        background: 'var(--c2)',
+        border: '1px solid rgba(196,168,106,0.18)',
+        borderRadius: 16, padding: '22px 20px',
+        marginBottom: 24, width: '100%',
       }}>
-        {[
-          { icon: '🛡', title: 'Sichere', subtitle: 'Buchung' },
-          { icon: '✓', title: 'Geprüfte', subtitle: 'Anbieter' },
-          { icon: '🏢', title: 'Flexible', subtitle: 'Vermietung' },
-        ].map((b, idx) => (
-          <div
-            key={b.title}
-            style={{
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', textAlign: 'center',
-              padding: '0 6px',
-              borderLeft: idx > 0 ? '1px solid rgba(196,168,106,0.18)' : 'none',
-            }}
-          >
-            <span style={{
-              fontSize: 26, color: 'var(--gold2)',
-              filter: 'drop-shadow(0 0 8px rgba(196,168,106,0.35))',
-              marginBottom: 8,
+        <p className="cinzel text-gold-metallic" style={{
+          fontSize: 22, fontWeight: 500, textAlign: 'center', margin: '0 0 14px',
+        }}>
+          Was ist ChairMatch?
+        </p>
+        <p style={{
+          fontSize: 14.5, color: 'var(--cream)', lineHeight: 1.65,
+          textAlign: 'center', margin: '0 0 18px', padding: '0 4px',
+        }}>
+          ChairMatch ist <strong>Deutschlands Marketplace</strong> für Beauty- und Medical-Termine sowie die flexible <strong>Vermietung von Stühlen, Liegen und Kabinen</strong>. Wir verbinden Kunden, Friseure, Kosmetik-Profis, Ärzte und Salons in einem System — mit 0% Provision, transparenten Preisen und Termin-Buchung in unter 60 Sekunden.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {V14_USPS.map((u, i) => (
+            <div key={i} style={{
+              background: 'var(--c1)',
+              border: '1px solid rgba(196,168,106,0.22)',
+              borderRadius: 12, padding: '16px 10px', textAlign: 'center',
             }}>
-              {b.icon}
-            </span>
-            <p style={{
-              fontSize: 13, color: 'var(--cream)', fontWeight: 500,
-              margin: '0 0 2px', lineHeight: 1.2,
+              <p className="cinzel text-gold-metallic" style={{
+                fontSize: 15, fontWeight: 500, lineHeight: 1.25, margin: '0 0 8px',
+              }}>
+                {u.t1}<br />{u.t2}
+              </p>
+              <p style={{ fontSize: 12.5, color: 'var(--cream)', lineHeight: 1.45, margin: 0 }}>
+                {u.sub}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 7) Trust Section */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0,
+        padding: '20px 0',
+        borderTop: '1px solid rgba(176,144,96,0.22)',
+        borderBottom: '1px solid rgba(176,144,96,0.22)',
+        marginBottom: 24, width: '100%',
+      }}>
+        {V14_TRUST.map((c, idx) => (
+          <div key={c.title} style={{
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', textAlign: 'center', padding: '0 8px',
+            borderRight: idx < V14_TRUST.length - 1 ? '1px solid rgba(196,168,106,0.15)' : 'none',
+          }}>
+            <p className="cinzel text-gold-metallic" style={{
+              fontSize: 17, fontWeight: 500, margin: '0 0 8px', lineHeight: 1.2,
             }}>
-              {b.title}
+              {c.title}
             </p>
-            <p style={{
-              fontSize: 12, color: 'var(--stone)',
-              margin: 0, lineHeight: 1.2,
-            }}>
-              {b.subtitle}
+            <p style={{ fontSize: 12.5, color: 'var(--cream)', margin: 0, lineHeight: 1.4 }}>
+              {c.sub1}<br />{c.sub2}
             </p>
           </div>
         ))}
       </div>
+
+      {/* 8) FAQ */}
+      <div style={{
+        background: 'var(--c2)',
+        border: '1px solid rgba(196,168,106,0.18)',
+        borderRadius: 16, padding: '22px 20px', marginBottom: 22, width: '100%',
+      }}>
+        <p className="cinzel text-gold-metallic" style={{
+          fontSize: 20, fontWeight: 500, margin: '0 0 14px',
+        }}>
+          Häufige Fragen für Anbieter
+        </p>
+        {V14_FAQ.map((q, idx) => (
+          <Link key={idx} href={'/faq?role=anbieter'} style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '14px 0',
+            borderBottom: idx < V14_FAQ.length - 1 ? '1px solid rgba(196,168,106,0.12)' : 'none',
+            fontSize: 14.5, color: 'var(--cream)',
+            textDecoration: 'none', cursor: 'pointer',
+          }}>
+            <span>{q}</span>
+            <span style={{ color: 'var(--gold2)', fontSize: 18, flexShrink: 0, marginLeft: 12 }}>+</span>
+          </Link>
+        ))}
+        <Link href={'/faq?role=anbieter'} className="cinzel" style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          marginTop: 16, padding: '14px 16px',
+          border: '1px solid rgba(196,168,106,0.35)', borderRadius: 12,
+          textDecoration: 'none', color: 'var(--gold2)',
+        }}>
+          <span style={{ fontSize: 15 }}>Alle Fragen für Anbieter ansehen</span>
+          <span>→</span>
+        </Link>
+      </div>
+
+      {/* 9) Footer */}
+      <p style={{
+        textAlign: 'center', fontSize: 11, letterSpacing: '0.25em',
+        color: 'var(--stone)', margin: '20px 0 0', width: '100%',
+      }}>
+        MADE IN GERMANY · DSGVO · TÜV-ZERTIFIZIERT
+      </p>
     </>)
   }
 
