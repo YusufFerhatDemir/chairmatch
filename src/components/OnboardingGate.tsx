@@ -678,7 +678,7 @@ export default function OnboardingGate({ slides, children }: Props) {
       'Wie funktioniert die Auszahlung?',
     ]
 
-    return (<>
+    return (<div style={{maxWidth: 460, width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column'}}>
       {/* 1) Header — Pin-Logo XL + CHAIRMATCH + DEUTSCHLAND + Marketplace-Tagline */}
       <div style={{ textAlign: 'center', marginBottom: 26, width: '100%' }}>
         <BrandLogo size={130} variant="glow" animateStar={true} priority={true} />
@@ -925,7 +925,7 @@ export default function OnboardingGate({ slides, children }: Props) {
       }}>
         MADE IN GERMANY · DSGVO · TÜV-ZERTIFIZIERT
       </p>
-    </>)
+    </div>)
   }
 
   // ═══ SLIDES ═══
