@@ -771,6 +771,7 @@ export default function OnboardingGate({ slides, children }: Props) {
               e.preventDefault()
               try { localStorage.setItem('cm_welcome_seen', '1') } catch {}
               try { localStorage.setItem('cm_role', role.id) } catch {}
+              try { sessionStorage.setItem('cm_onboarded', '1') } catch {}
               window.location.assign(role.href)
             }}
             style={{
@@ -1069,6 +1070,7 @@ export default function OnboardingGate({ slides, children }: Props) {
     </div>
   )
 }
+
 
 
 
