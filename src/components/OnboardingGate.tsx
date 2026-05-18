@@ -653,7 +653,7 @@ export default function OnboardingGate({ slides, children }: Props) {
   // ═══ ROLE SELECT — V11 Welcome-Splitter Layout ═══
   if (phase === 'roleSelect') {
     const V14_ROLES = [
-      { id: 'CUSTOMER',  title: 'Kunde',     sub1: 'Ich suche',      sub2: 'Termine',   href: '/explore' },
+      { id: 'CUSTOMER',  title: 'Kunde',     sub1: 'Ich suche',      sub2: 'Termine',   href: '/' },
       { id: 'PROVIDER',  title: 'Anbieter',  sub1: 'Ich biete',      sub2: 'Services',  href: '/anbieter/onboarding' },
       { id: 'MIETER',    title: 'Mieter',    sub1: 'Stuhl / Kabine', sub2: 'mieten',    href: '/mieter/onboarding' },
       { id: 'VERMIETER', title: 'Vermieter', sub1: 'Stuhl / Kabine', sub2: 'vermieten', href: '/vermieter/onboarding' },
@@ -1067,4 +1067,5 @@ export default function OnboardingGate({ slides, children }: Props) {
     </div>
   )
 }
+
 
