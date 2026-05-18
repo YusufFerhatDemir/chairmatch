@@ -47,7 +47,10 @@ function isValidEmail(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
 export default function OnboardingGate({ slides, children }: Props) {
   const t = useTranslations()
   const { data: session } = useSession()
-  const [done, setDone] = useState<boolean | null>(null)
+  const [done, setDone] = useState<boolean | null>(() => {
+    if (typeof window === 'undefined') return null
+    try { return sessionStorage.getItem('cm_onboarded') === '1' ? true : null } catch { return null }
+  })
 
   // Onboarding state
   const [step, setStep] = useState(0)
@@ -97,8 +100,8 @@ export default function OnboardingGate({ slides, children }: Props) {
   useEffect(() => {
     if (done !== null) return
     const t = setTimeout(() => {
-      setDone(sessionStorage.getItem('cm_onboarded') === '1')
-    }, 3000)
+      try { setDone(sessionStorage.getItem('cm_onboarded') === '1') } catch { setDone(false) }
+    }, 800)
     return () => clearTimeout(t)
   }, [done])
 
