@@ -767,9 +767,11 @@ export default function OnboardingGate({ slides, children }: Props) {
           <Link
             key={role.id}
             href={role.href}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault()
               try { localStorage.setItem('cm_welcome_seen', '1') } catch {}
               try { localStorage.setItem('cm_role', role.id) } catch {}
+              window.location.assign(role.href)
             }}
             style={{
               display: 'flex', flexDirection: 'column',
@@ -1067,5 +1069,6 @@ export default function OnboardingGate({ slides, children }: Props) {
     </div>
   )
 }
+
 
 
