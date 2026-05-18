@@ -14,25 +14,20 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
-import {
-  Paintbrush, Scissors, Sparkles, Hand, Heart, Eye,
-  Syringe, Cross, Stethoscope, Pencil,
-  type LucideIcon,
-} from 'lucide-react'
 
 type CatId = 'friseur' | 'barber' | 'kosmetik' | 'nagel' | 'massage' | 'wimpern' | 'aesthetik' | 'medical' | 'arzt' | 'pmu'
 
-const CATEGORIES: { id: CatId; title: string; Icon: LucideIcon }[] = [
-  { id: 'friseur',   title: 'Friseur',        Icon: Paintbrush },
-  { id: 'barber',    title: 'Barbershop',     Icon: Scissors },
-  { id: 'kosmetik',  title: 'Kosmetik',       Icon: Sparkles },
-  { id: 'nagel',     title: 'Nagel',          Icon: Hand },
-  { id: 'massage',   title: 'Massage',        Icon: Heart },
-  { id: 'wimpern',   title: 'Wimpern',        Icon: Eye },
-  { id: 'aesthetik', title: 'Ästhetik',       Icon: Syringe },
-  { id: 'medical',   title: 'Medical Beauty', Icon: Cross },
-  { id: 'arzt',      title: 'Arzt',           Icon: Stethoscope },
-  { id: 'pmu',       title: 'PMU',            Icon: Pencil },
+const CATEGORIES: { id: CatId; title: string }[] = [
+  { id: 'friseur',   title: 'Friseur' },
+  { id: 'barber',    title: 'Barbershop' },
+  { id: 'kosmetik',  title: 'Kosmetik' },
+  { id: 'nagel',     title: 'Nagel' },
+  { id: 'massage',   title: 'Massage' },
+  { id: 'wimpern',   title: 'Wimpern' },
+  { id: 'aesthetik', title: 'Ästhetik' },
+  { id: 'medical',   title: 'Medical Beauty' },
+  { id: 'arzt',      title: 'Arzt' },
+  { id: 'pmu',       title: 'PMU' },
 ]
 
 const SERVICES_BY_CAT: Record<CatId, { id: string; name: string; price: number; duration: number }[]> = {
@@ -189,42 +184,32 @@ export default function AnbieterOnboardingPage() {
         </div>
 
         {step === 1 && (
-          <>
-            {/* Shared SVG defs for gold-gradient icon stroke (same as HomeClient) */}
-            <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
-              <defs>
-                <linearGradient id="caticon-gold-anb" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#BF953F" />
-                  <stop offset="22%" stopColor="#FCF6BA" />
-                  <stop offset="45%" stopColor="#B38728" />
-                  <stop offset="67%" stopColor="#FBF5B7" />
-                  <stop offset="100%" stopColor="#AA771C" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="cat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {CATEGORIES.map((c) => {
-                const active = cats.has(c.id)
-                const Icon = c.Icon
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => toggleCat(c.id)}
-                    className="catcard"
-                    style={{
-                      cursor: 'pointer',
-                      border: active ? '1px solid #C4A86A' : undefined,
-                    }}
-                  >
-                    <div className="caticon">
-                      <Icon size={44} stroke="url(#caticon-gold-anb)" aria-label={c.title} />
-                    </div>
-                    <div className="catlbl">{c.title}</div>
-                  </div>
-                )
-              })}
-            </div>
-          </>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {CATEGORIES.map((c) => {
+              const active = cats.has(c.id)
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => toggleCat(c.id)}
+                  style={{
+                    background: 'var(--c1)',
+                    border: active ? '1px solid #C4A86A' : '0.5px solid rgba(196,168,106,0.25)',
+                    borderRadius: 12, padding: '14px 8px',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', gap: 6,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  <BrandLogo size={42} variant="glow" animateStar={false} priority={false} />
+                  <span className={active ? 'cinzel text-gold-metallic' : 'cinzel'} style={{
+                    fontSize: 12.5, fontWeight: 500, color: active ? undefined : 'var(--cream)',
+                  }}>
+                    {c.title}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         )}
 
         {step === 2 && (
