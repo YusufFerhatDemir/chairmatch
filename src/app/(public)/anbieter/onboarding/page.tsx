@@ -14,20 +14,25 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
+import {
+  Paintbrush, Scissors, Sparkles, Hand, Heart, Eye,
+  Syringe, Cross, Stethoscope, Pencil,
+  type LucideIcon,
+} from 'lucide-react'
 
 type CatId = 'friseur' | 'barber' | 'kosmetik' | 'nagel' | 'massage' | 'wimpern' | 'aesthetik' | 'medical' | 'arzt' | 'pmu'
 
-const CATEGORIES: { id: CatId; title: string }[] = [
-  { id: 'friseur',   title: 'Friseur' },
-  { id: 'barber',    title: 'Barbershop' },
-  { id: 'kosmetik',  title: 'Kosmetik' },
-  { id: 'nagel',     title: 'Nagel' },
-  { id: 'massage',   title: 'Massage' },
-  { id: 'wimpern',   title: 'Wimpern' },
-  { id: 'aesthetik', title: 'Ästhetik' },
-  { id: 'medical',   title: 'Medical Beauty' },
-  { id: 'arzt',      title: 'Arzt' },
-  { id: 'pmu',       title: 'PMU' },
+const CATEGORIES: { id: CatId; title: string; Icon: LucideIcon }[] = [
+  { id: 'friseur',   title: 'Friseur',        Icon: Paintbrush },
+  { id: 'barber',    title: 'Barbershop',     Icon: Scissors },
+  { id: 'kosmetik',  title: 'Kosmetik',       Icon: Sparkles },
+  { id: 'nagel',     title: 'Nagel',          Icon: Hand },
+  { id: 'massage',   title: 'Massage',        Icon: Heart },
+  { id: 'wimpern',   title: 'Wimpern',        Icon: Eye },
+  { id: 'aesthetik', title: 'Ästhetik',       Icon: Syringe },
+  { id: 'medical',   title: 'Medical Beauty', Icon: Cross },
+  { id: 'arzt',      title: 'Arzt',           Icon: Stethoscope },
+  { id: 'pmu',       title: 'PMU',            Icon: Pencil },
 ]
 
 const SERVICES_BY_CAT: Record<CatId, { id: string; name: string; price: number; duration: number }[]> = {
@@ -187,6 +192,7 @@ export default function AnbieterOnboardingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {CATEGORIES.map((c) => {
               const active = cats.has(c.id)
+              const Icon = c.Icon
               return (
                 <button
                   key={c.id}
@@ -196,11 +202,11 @@ export default function AnbieterOnboardingPage() {
                     border: active ? '1px solid #C4A86A' : '0.5px solid rgba(196,168,106,0.25)',
                     borderRadius: 12, padding: '14px 8px',
                     display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', gap: 6,
+                    alignItems: 'center', gap: 8,
                     cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >
-                  <BrandLogo size={42} variant="glow" animateStar={false} priority={false} />
+                  <Icon size={32} color={active ? '#FCF6BA' : '#C4A86A'} strokeWidth={1.5} />
                   <span className={active ? 'cinzel text-gold-metallic' : 'cinzel'} style={{
                     fontSize: 12.5, fontWeight: 500, color: active ? undefined : 'var(--cream)',
                   }}>
