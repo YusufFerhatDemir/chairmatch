@@ -51,7 +51,7 @@ export default function OnboardingGate({ slides, children }: Props) {
 
   // Onboarding state
   const [step, setStep] = useState(0)
-  const [phase, setPhase] = useState<Phase>('slides')
+  const [phase, setPhase] = useState<Phase>('roleSelect')
   const [role, setRole] = useState<'CUSTOMER' | 'PROVIDER' | 'B2B'>('CUSTOMER')
 
   // Login state
