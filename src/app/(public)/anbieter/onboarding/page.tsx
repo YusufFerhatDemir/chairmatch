@@ -15,19 +15,19 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 
-type CatId = 'friseur' | 'barber' | 'kosmetik' | 'nagel' | 'massage' | 'lash' | 'aesthetik' | 'arzt' | 'opraum' | 'angebote'
+type CatId = 'friseur' | 'barber' | 'kosmetik' | 'nagel' | 'massage' | 'wimpern' | 'aesthetik' | 'medical' | 'arzt' | 'pmu'
 
-const CATEGORIES: { id: CatId; title: string; sub: string; icon: string }[] = [
-  { id: 'friseur',   title: 'Friseur',      sub: 'Schnitt · Farbe · Styling',     icon: '/icons/02_friseur_256x384.png' },
-  { id: 'barber',    title: 'Barbershop',   sub: 'Fade · Cut · Bart',             icon: '/icons/01_barbershop_256x384.png' },
-  { id: 'kosmetik',  title: 'Kosmetik',     sub: 'Facial · Peeling · Laser',      icon: '/icons/03_kosmetik_256x384.png' },
-  { id: 'aesthetik', title: 'Ästhetik',     sub: 'Botox · Filler · Anti-Aging',   icon: '/icons/04_aesthetik_256x384.png' },
-  { id: 'nagel',     title: 'Nagelstudio',  sub: 'Gel · Nail Art · Maniküre',     icon: '/icons/05_nagelstudio_256x384.png' },
-  { id: 'massage',   title: 'Massage',      sub: 'Klassisch · Thai · Hot Stone',  icon: '/icons/06_massage_256x384.png' },
-  { id: 'lash',      title: 'Lash & Brows', sub: 'Extensions · Lifting',          icon: '/icons/07_lash_brows_256x384.png' },
-  { id: 'arzt',      title: 'Arzt / Klinik',sub: 'Derma · Laser · Behandlung',    icon: '/icons/08_arzt_klinik_256x384.png' },
-  { id: 'opraum',    title: 'OP-Raum',      sub: 'Sterile Räume · Chirurgie',     icon: '/icons/09_op_raum_256x384.png' },
-  { id: 'angebote',  title: 'Angebote',     sub: 'Rabatte · Specials',            icon: '/icons/10_angebote_256x384.png' },
+const CATEGORIES: { id: CatId; title: string }[] = [
+  { id: 'friseur',   title: 'Friseur' },
+  { id: 'barber',    title: 'Barbershop' },
+  { id: 'kosmetik',  title: 'Kosmetik' },
+  { id: 'nagel',     title: 'Nagel' },
+  { id: 'massage',   title: 'Massage' },
+  { id: 'wimpern',   title: 'Wimpern' },
+  { id: 'aesthetik', title: 'Ästhetik' },
+  { id: 'medical',   title: 'Medical Beauty' },
+  { id: 'arzt',      title: 'Arzt' },
+  { id: 'pmu',       title: 'Permanent Make-Up' },
 ]
 
 const SERVICES_BY_CAT: Record<CatId, { id: string; name: string; price: number; duration: number }[]> = {
@@ -170,7 +170,7 @@ export default function AnbieterOnboardingPage() {
           <p className="cinzel text-gold-metallic" style={{
             fontSize: 22, fontWeight: 500, letterSpacing: 1, margin: '0 0 6px',
           }}>
-            {step === 1 && 'Wähle deine Branche'}
+            {step === 1 && 'Was bietest du an?'}
             {step === 2 && 'Deine Services'}
             {step === 3 && 'Wer bist du?'}
             {step === 4 && 'Rechtliches & Auszahlung'}
@@ -184,7 +184,7 @@ export default function AnbieterOnboardingPage() {
         </div>
 
         {step === 1 && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {CATEGORIES.map((c) => {
               const active = cats.has(c.id)
               return (
@@ -192,40 +192,19 @@ export default function AnbieterOnboardingPage() {
                   key={c.id}
                   onClick={() => toggleCat(c.id)}
                   style={{
-                    background: 'var(--c2)',
-                    border: active ? '1px solid #C4A86A' : '0.5px solid rgba(196,168,106,0.22)',
-                    borderRadius: 14, padding: '14px 10px',
+                    background: 'var(--c1)',
+                    border: active ? '1px solid #C4A86A' : '0.5px solid rgba(196,168,106,0.25)',
+                    borderRadius: 12, padding: '14px 8px',
                     display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', gap: 8,
+                    alignItems: 'center', gap: 6,
                     cursor: 'pointer', fontFamily: 'inherit',
-                    transition: 'all .2s',
                   }}
                 >
-                  <div style={{
-                    width: 88, height: 88,
-                    background: 'var(--c1)',
-                    border: '1px solid rgba(196,168,106,0.25)',
-                    borderRadius: 14,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    overflow: 'hidden',
-                  }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={c.icon}
-                      alt={c.title}
-                      style={{ width: 70, height: 70, objectFit: 'contain' }}
-                    />
-                  </div>
-                  <span style={{
-                    fontSize: 14, fontWeight: 700, color: 'var(--cream)',
-                    marginTop: 4,
+                  <BrandLogo size={42} variant="glow" animateStar={false} priority={false} />
+                  <span className={active ? 'cinzel text-gold-metallic' : 'cinzel'} style={{
+                    fontSize: 12.5, fontWeight: 500, color: active ? undefined : 'var(--cream)',
                   }}>
                     {c.title}
-                  </span>
-                  <span style={{
-                    fontSize: 11, color: 'var(--stone)', textAlign: 'center', lineHeight: 1.3,
-                  }}>
-                    {c.sub}
                   </span>
                 </button>
               )
