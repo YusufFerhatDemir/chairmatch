@@ -654,9 +654,9 @@ export default function OnboardingGate({ slides, children }: Props) {
   if (phase === 'roleSelect') {
     const V14_ROLES = [
       { id: 'CUSTOMER',  title: 'Kunde',     sub1: 'Ich suche',      sub2: 'Termine',   href: '/explore' },
-      { id: 'PROVIDER',  title: 'Anbieter',  sub1: 'Ich biete',      sub2: 'Services',  href: '/anbieter/wie-es-funktioniert' },
-      { id: 'MIETER',    title: 'Mieter',    sub1: 'Stuhl / Kabine', sub2: 'mieten',    href: '/mieter/wie-es-funktioniert' },
-      { id: 'VERMIETER', title: 'Vermieter', sub1: 'Stuhl / Kabine', sub2: 'vermieten', href: '/vermieter/wie-es-funktioniert' },
+      { id: 'PROVIDER',  title: 'Anbieter',  sub1: 'Ich biete',      sub2: 'Services',  href: '/anbieter/onboarding' },
+      { id: 'MIETER',    title: 'Mieter',    sub1: 'Stuhl / Kabine', sub2: 'mieten',    href: '/mieter/onboarding' },
+      { id: 'VERMIETER', title: 'Vermieter', sub1: 'Stuhl / Kabine', sub2: 'vermieten', href: '/vermieter/onboarding' },
     ] as const
 
     const V14_USPS = [
@@ -1067,3 +1067,4 @@ export default function OnboardingGate({ slides, children }: Props) {
     </div>
   )
 }
+
