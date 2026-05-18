@@ -243,7 +243,6 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--cream)' }}>{greeting}</p>
           <p style={{ fontSize: 11, color: 'var(--stone)' }}>{t('home.germanyWide')}</p>
         </div>
       </div>
