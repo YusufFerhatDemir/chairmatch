@@ -189,33 +189,42 @@ export default function AnbieterOnboardingPage() {
         </div>
 
         {step === 1 && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {CATEGORIES.map((c) => {
-              const active = cats.has(c.id)
-              const Icon = c.Icon
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => toggleCat(c.id)}
-                  style={{
-                    background: 'var(--c1)',
-                    border: active ? '1px solid #C4A86A' : '0.5px solid rgba(196,168,106,0.25)',
-                    borderRadius: 12, padding: '14px 8px',
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', gap: 8,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                  }}
-                >
-                  <Icon size={32} color={active ? '#FCF6BA' : '#C4A86A'} strokeWidth={1.5} />
-                  <span className={active ? 'cinzel text-gold-metallic' : 'cinzel'} style={{
-                    fontSize: 12.5, fontWeight: 500, color: active ? undefined : 'var(--cream)',
-                  }}>
-                    {c.title}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
+          <>
+            {/* Shared SVG defs for gold-gradient icon stroke (same as HomeClient) */}
+            <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+              <defs>
+                <linearGradient id="caticon-gold-anb" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#BF953F" />
+                  <stop offset="22%" stopColor="#FCF6BA" />
+                  <stop offset="45%" stopColor="#B38728" />
+                  <stop offset="67%" stopColor="#FBF5B7" />
+                  <stop offset="100%" stopColor="#AA771C" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className="cat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {CATEGORIES.map((c) => {
+                const active = cats.has(c.id)
+                const Icon = c.Icon
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => toggleCat(c.id)}
+                    className="catcard"
+                    style={{
+                      cursor: 'pointer',
+                      border: active ? '1px solid #C4A86A' : undefined,
+                    }}
+                  >
+                    <div className="caticon">
+                      <Icon size={44} stroke="url(#caticon-gold-anb)" aria-label={c.title} />
+                    </div>
+                    <div className="catlbl">{c.title}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
 
         {step === 2 && (
