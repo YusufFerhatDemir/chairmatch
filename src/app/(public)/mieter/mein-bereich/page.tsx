@@ -57,17 +57,28 @@ export default function MeinBereichPage() {
         boxShadow: '0 50px 120px rgba(0,0,0,0.78)',
       }}>
 
-        {/* Header */}
-        <div style={{ padding: '22px 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <BrandLogo size={54} variant="glow" animateStar={false} priority={true} />
-            <div>
-              <h1 className="cinzel text-gold-metallic" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 3, lineHeight: 1 }}>
-                CHAIRMATCH
-              </h1>
-              <p style={{ fontSize: 8, letterSpacing: 3, color: 'var(--gold2)', marginTop: 3 }}>DEUTSCHLAND</p>
-            </div>
-          </div>
+        {/* Top bar — Zurück + Konto */}
+        <div style={{ padding: '16px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button
+            onClick={() => {
+              try {
+                sessionStorage.removeItem('cm_onboarded')
+                localStorage.removeItem('cm_welcome_seen')
+              } catch {}
+              window.location.assign('/')
+            }}
+            aria-label="Zurück zur Rollen-Auswahl"
+            style={{
+              width: 38, height: 38, borderRadius: 10,
+              background: 'rgba(196,168,106,0.08)',
+              border: '1px solid rgba(196,168,106,0.22)',
+              color: 'var(--gold2)', fontSize: 18, fontWeight: 700,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'inherit',
+            }}
+          >
+            ‹
+          </button>
           <button
             onClick={() => router.push('/konto')}
             style={{ background: 'transparent', border: 'none', color: 'var(--stone)', fontSize: 10, letterSpacing: 1.5, fontWeight: 600, cursor: 'pointer', textTransform: 'uppercase' }}
@@ -75,6 +86,17 @@ export default function MeinBereichPage() {
           >
             Konto
           </button>
+        </div>
+
+        {/* Header — Logo + Brandname */}
+        <div style={{ padding: '4px 20px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <BrandLogo size={54} variant="glow" animateStar={false} priority={true} />
+          <div>
+            <h1 className="cinzel text-gold-metallic" style={{ fontSize: 15, fontWeight: 700, letterSpacing: 3, lineHeight: 1 }}>
+              CHAIRMATCH
+            </h1>
+            <p style={{ fontSize: 8, letterSpacing: 3, color: 'var(--gold2)', marginTop: 3 }}>DEUTSCHLAND</p>
+          </div>
         </div>
 
         {/* Greeting */}
