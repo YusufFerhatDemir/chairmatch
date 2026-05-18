@@ -27,7 +27,7 @@ const CATEGORIES: { id: CatId; title: string }[] = [
   { id: 'aesthetik', title: 'Ästhetik' },
   { id: 'medical',   title: 'Medical Beauty' },
   { id: 'arzt',      title: 'Arzt' },
-  { id: 'pmu',       title: 'PMU' },
+  { id: 'pmu',       title: 'Permanent Make-Up' },
 ]
 
 const SERVICES_BY_CAT: Record<CatId, { id: string; name: string; price: number; duration: number }[]> = {
