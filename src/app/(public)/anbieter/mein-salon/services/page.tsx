@@ -2,28 +2,27 @@
 
 import MeinBereichSubPage, { AktuellBox, TippsBox, GoldButton } from '@/components/MeinBereichSubPage'
 
+import { useTranslations } from '@/i18n/client'
+
 export default function Page() {
+  const t = useTranslations()
   return (
     <MeinBereichSubPage
       parentHref="/anbieter/mein-salon"
-      parentLabel="Mein Salon"
-      title='Services & Preise'
-      subtitle='Was bietest du an? Mit Preisen und Dauer.'
-      showSave={true}
-      storageKey="cm_anbieter_services"
+      parentLabel={t('meinSalon.title')}
+      title={t('subServices.title')}
+      subtitle={t('subServices.subtitle')}
+      showSave={false}
       role="anbieter"
     >
-      <AktuellBox label="Aktive Services">
-            <p style={{ fontSize: 32, fontFamily: 'Cinzel', fontWeight: 600 }} className="text-gold-metallic">0</p>
-            <p style={{ fontSize: 11, color: 'var(--stone)' }}>Noch keine Services angelegt</p>
-          </AktuellBox>
-          <GoldButton>+ Service hinzufügen</GoldButton>
-          <TippsBox title="Beispiele" tipps={[
-            'Damenschnitt · 60 Min · 45 €',
-            'Färben · 90 Min · 60 €',
-            'Hot-Towel-Rasur · 45 Min · 30 €',
-            'Preise später anpassbar',
-          ]} />
+      <AktuellBox label={t('subServices.activeLbl')}>
+        <p style={{ fontSize: 32, fontFamily: 'Cinzel', fontWeight: 600 }} className="text-gold-metallic">0</p>
+        <p style={{ fontSize: 11, color: 'var(--stone)' }}>{t('subServices.noneYet')}</p>
+      </AktuellBox>
+      <GoldButton>{t('subServices.addBtn')}</GoldButton>
+      <TippsBox title={t('subServices.tippsTitle')} tipps={[
+        t('subServices.tip1'), t('subServices.tip2'), t('subServices.tip3'), t('subServices.tip4'),
+      ]} />
     </MeinBereichSubPage>
   )
 }
