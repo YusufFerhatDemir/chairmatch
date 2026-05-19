@@ -10,6 +10,8 @@ export default function Page() {
       title='Live-Vorschau'
       subtitle='So sehen Mieter dein Inserat.'
       showSave={false}
+      storageKey="cm_vermieter_vorschau"
+      role="vermieter"
     >
       <AktuellBox label="Vorschau">
             <p style={{ fontSize: 14, color: 'var(--cream)', textAlign: 'center', lineHeight: 1.5 }}>
