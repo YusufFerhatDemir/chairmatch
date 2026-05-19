@@ -1,32 +1,32 @@
 'use client'
 
-import MeinBereichSubPage from '@/components/MeinBereichSubPage'
+import MeinBereichSubPage, { AktuellBox, TippsBox, GoldButton } from '@/components/MeinBereichSubPage'
 import { DocumentUpload } from '@/components/UploadField'
-
-const DOCS = [
-  { id: 'hygiene',    title: 'Hygiene-Zertifikat',           sub: 'Gesundheitsamt · gültig 24 Mo.' },
-  { id: 'approbation', title: 'Approbation / Berufsurkunde', sub: 'Arzt-Lizenz · Original-Scan' },
-  { id: 'medical',    title: 'Medical-Beauty-Lizenz',        sub: 'Pflicht bei Botox / Filler / Laser' },
-]
+import { useTranslations } from '@/i18n/client'
 
 export default function Page() {
+  const t = useTranslations()
   return (
     <MeinBereichSubPage
       parentHref="/anbieter/mein-salon"
-      parentLabel="Mein Salon"
-      title="Hygiene & Zertifikate"
-      subtitle="Pflicht für OP-Räume und Medical Beauty."
-      role="anbieter"
+      parentLabel={t('meinSalon.title')}
+      title={t('subZertifikate.title')}
+      subtitle={t('subZertifikate.subtitle')}
       showSave={false}
+      role="anbieter"
     >
-      <DocumentUpload storageKey="cm_anbieter_zertifikate" docs={DOCS} />
+      <DocumentUpload storageKey="cm_anbieter_zertifikate" docs={[
+        { id: 'hygiene',    title: t('subZertifikate.doc1Title'), sub: t('subZertifikate.doc1Sub') },
+        { id: 'approbation', title: t('subZertifikate.doc2Title'), sub: t('subZertifikate.doc2Sub') },
+        { id: 'medical',    title: t('subZertifikate.doc3Title'), sub: t('subZertifikate.doc3Sub') },
+      ]} />
       <div style={{
         background: 'rgba(232,80,64,0.06)',
         border: '1px solid rgba(232,80,64,0.25)',
         borderRadius: 12, padding: '12px 14px',
         fontSize: 12, color: '#FF9090', lineHeight: 1.6,
       }}>
-        <strong>Pflicht-Info:</strong> Ohne vollständige Zertifikate kannst du dein OP-Raum-Inserat nicht veröffentlichen. Wir prüfen die Dokumente manuell innerhalb von 48&nbsp;Stunden.
+        {t('subZertifikate.infoBox')}
       </div>
     </MeinBereichSubPage>
   )
