@@ -10,6 +10,8 @@ export default function Page() {
       title='Öffnungszeiten'
       subtitle='Wann bist du erreichbar?'
       showSave={true}
+      storageKey="cm_anbieter_zeiten"
+      role="anbieter"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {['Mo','Di','Mi','Do','Fr','Sa','So'].map(d => (
@@ -22,7 +24,7 @@ export default function Page() {
                 <input type="time" defaultValue="09:00" style={{
                   flex: 1, padding: '6px 8px', background: 'var(--c2)', color: 'var(--cream)',
                   border: '0.5px solid rgba(196,168,106,0.2)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit',
-                }}/>
+                }} data-storage="value"/>
                 <span style={{ color: 'var(--gold2)' }}>—</span>
                 <input type="time" defaultValue="18:00" style={{
                   flex: 1, padding: '6px 8px', background: 'var(--c2)', color: 'var(--cream)',
