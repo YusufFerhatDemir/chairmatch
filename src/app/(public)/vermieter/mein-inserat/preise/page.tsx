@@ -10,6 +10,8 @@ export default function Page() {
       title='Preise'
       subtitle='Was kostet die Miete?'
       showSave={true}
+      storageKey="cm_vermieter_preise"
+      role="vermieter"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
@@ -28,7 +30,7 @@ export default function Page() {
                   width: 80, padding: '8px 10px', background: 'var(--c2)', color: 'var(--cream)',
                   border: '0.5px solid rgba(196,168,106,0.2)', borderRadius: 8,
                   fontSize: 14, fontFamily: 'inherit', textAlign: 'right',
-                }}/>
+                }} data-storage="value"/>
                 <span style={{ color: 'var(--gold2)', fontSize: 14, fontWeight: 700 }}>€</span>
               </div>
             ))}
