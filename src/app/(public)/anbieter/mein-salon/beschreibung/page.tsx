@@ -10,6 +10,8 @@ export default function Page() {
       title='Beschreibung'
       subtitle='Was macht deinen Salon besonders?'
       showSave={true}
+      storageKey="cm_anbieter_beschreibung"
+      role="anbieter"
     >
       <textarea
             placeholder="Heller Salon im Zentrum mit 4 Stühlen, eigenem Lounge-Bereich und Espresso-Bar..."
@@ -20,7 +22,7 @@ export default function Page() {
               border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 14,
               fontSize: 14, fontFamily: 'inherit', resize: 'vertical', minHeight: 140,
             }}
-          />
+          / data-storage="value">
           <TippsBox title="Tipps für gute Texte" tipps={[
             'Maximal 500 Zeichen · kurz und klar',
             'Was ist einzigartig? Lage · Stil · Stimmung',
