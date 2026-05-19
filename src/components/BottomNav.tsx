@@ -21,19 +21,19 @@ const NAVS: Record<NavRole, NavItem[]> = {
     { label: 'START',       href: '/anbieter/mein-salon',              svg: ICONS.home },
     { label: 'TERMIN',      href: '/anbieter/mein-salon/zeiten',       svg: ICONS.cal },
     { label: 'NACHRICHTEN', href: '/anbieter/mein-salon/bewertungen',  svg: ICONS.msg },
-    { label: 'KONTO',       href: '/anbieter/mein-salon/auszahlung',   svg: ICONS.user },
+    { label: 'KONTO',       href: '/konto',                            svg: ICONS.user },
   ],
   vermieter: [
     { label: 'START',    href: '/vermieter/mein-inserat',                  svg: ICONS.home },
     { label: 'TERMIN',   href: '/vermieter/mein-inserat/verfuegbarkeit',   svg: ICONS.cal },
     { label: 'ANFRAGEN', href: '/vermieter/mein-inserat/anfragen',         svg: ICONS.msg },
-    { label: 'KONTO',    href: '/vermieter/mein-inserat/auszahlung',       svg: ICONS.user },
+    { label: 'KONTO',    href: '/konto',                                   svg: ICONS.user },
   ],
   mieter: [
     { label: 'START',     href: '/mieter/mein-bereich',          svg: ICONS.home },
     { label: 'SUCHE',     href: '/mieter/mein-bereich/suchen',   svg: ICONS.search },
     { label: 'FAVORITEN', href: '/mieter/mein-bereich/favoriten',svg: ICONS.heart },
-    { label: 'KONTO',     href: '/mieter/mein-bereich/profil',   svg: ICONS.user },
+    { label: 'KONTO',     href: '/konto',                       svg: ICONS.user },
   ],
 }
 
