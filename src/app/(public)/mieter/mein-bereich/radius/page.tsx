@@ -10,6 +10,8 @@ export default function Page() {
       title='Suchradius'
       subtitle='Wie weit darf der Stuhl entfernt sein?'
       showSave={true}
+      storageKey="cm_mieter_radius"
+      role="mieter"
     >
       <AktuellBox label="Aktuell">
             <p style={{ fontSize: 38, fontFamily: 'Cinzel', fontWeight: 600 }} className="text-gold-metallic">10 km</p>
