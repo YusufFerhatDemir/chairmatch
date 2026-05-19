@@ -125,7 +125,20 @@ export default function MeinInseratPage() {
           {ACTIONS.map((a) => (
             <button
               key={a.id}
-              onClick={() => alert(`„${a.lbl}" — wird im nächsten Schritt gebaut`)}
+              onClick={() => {
+                const map: Record<string, string> = {
+  fotos: '/vermieter/mein-inserat/fotos',
+  ausstattung: '/vermieter/mein-inserat/ausstattung',
+  preise: '/vermieter/mein-inserat/preise',
+  verfuegbarkeit: '/vermieter/mein-inserat/verfuegbarkeit',
+  anfragen: '/vermieter/mein-inserat/anfragen',
+  auszahlung: '/vermieter/mein-inserat/auszahlung',
+  vorschau: '/vermieter/mein-inserat/vorschau',
+}
+                const href = map[a.id]
+                if (href) router.push(href as never)
+                else alert(`„${a.lbl}" — kommt bald`)
+              }}
               style={{
                 gridColumn: a.wide ? '1 / -1' : 'auto',
                 background: 'linear-gradient(145deg, rgba(191,149,63,0.05) 0%, var(--c1) 50%, rgba(179,135,40,0.03) 100%)',
