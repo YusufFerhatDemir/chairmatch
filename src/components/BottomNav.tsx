@@ -38,10 +38,11 @@ const NAVS: Record<NavRole, NavItem[]> = {
   ],
 }
 
-export default function BottomNav({ role }: { role: NavRole }) {
+export default function BottomNav({ role }: { role?: NavRole }) {
   const pathname = usePathname() || ''
   const t = useTranslations()
-  const items = NAVS[role]
+  const items = role ? NAVS[role] : undefined
+  if (!items) return null
   const rootHrefs = ['/anbieter/mein-salon', '/vermieter/mein-inserat', '/mieter/mein-bereich']
   return (
     <div style={{
