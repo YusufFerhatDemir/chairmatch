@@ -1,6 +1,7 @@
 'use client'
 
 import { BrandLogo } from '@/components/BrandLogo'
+import BottomNav from '@/components/BottomNav'
 import { useRouter } from 'next/navigation'
 
 const STATS = [
@@ -180,6 +181,8 @@ export default function MeinBereichPage() {
             </button>
           ))}
         </div>
+
+        <BottomNav role="mieter" />
       </div>
     </div>
   )
