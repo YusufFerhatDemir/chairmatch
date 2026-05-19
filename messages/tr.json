@@ -510,5 +510,61 @@
     "onlyPdfImg": "Sadece PDF veya resim",
     "readError": "Dosya okuma hatası",
     "storageFull": "Depolama dolu — önce eski öğeyi sil"
+  },
+  "welcomeSplitter": {
+    "title": "Hoş geldin",
+    "brand": "CHAIRMATCH",
+    "tagline": "Almanya'nın Güzellik Pazarı",
+    "subtitle": "Kimsin?",
+    "roleKunde": "Müşteri",
+    "kundeSub1": "Arıyorum",
+    "kundeSub2": "randevular",
+    "roleAnbieter": "Sağlayıcı",
+    "anbieterSub1": "Sunuyorum",
+    "anbieterSub2": "hizmetler",
+    "roleMieter": "Kiracı",
+    "mieterSub1": "Sandalye / Kabin",
+    "mieterSub2": "kiralamak",
+    "roleVermieter": "Kiraya veren",
+    "vermieterSub1": "Sandalye / Kabin",
+    "vermieterSub2": "kiraya vermek"
+  },
+  "wizard": {
+    "step": "ADIM",
+    "of": "/",
+    "back": "Geri",
+    "next": "İleri",
+    "publish": "Yayınla",
+    "save": "Kaydet"
+  },
+  "wizAnbieter": {
+    "s1Title": "Ne sunuyorsun?",
+    "s1Subtitle": "Birden çok kategori mümkün.",
+    "s2Title": "Hizmetlerin",
+    "s2Subtitle": "Hizmetleri seç. Fiyatlar sonra ayarlanır.",
+    "s3Title": "Kimsin?",
+    "s3Subtitle": "Müşteriler bu verileri profilinde görür.",
+    "s4Title": "Yasal & Ödeme",
+    "s4Subtitle": "Ticari sağlayıcılar için zorunlu."
+  },
+  "wizMieter": {
+    "s1Title": "Ne arıyorsun?",
+    "s1Subtitle": "Sandalye, kabin veya oda?",
+    "s2Title": "Nerede & Ne zaman?",
+    "s2Subtitle": "Şehir, tarih, bütçe.",
+    "s3Title": "Profilin",
+    "s3Subtitle": "Meslek, diller, deneyim.",
+    "s4Title": "Lisans",
+    "s4Subtitle": "Ciddi sağlayıcılar için meslek belgesi."
+  },
+  "wizVermieter": {
+    "s1Title": "Ne kiralıyorsun?",
+    "s1Subtitle": "Sunduğun yerleri seç.",
+    "s2Title": "Adres, Fotoğraflar & Donanım",
+    "s2Subtitle": "Nerede ve nasıl görünüyor?",
+    "s3Title": "Fiyatlar & Müsaitlik",
+    "s3Subtitle": "Ne kadar ve ne zaman boş?",
+    "s4Title": "Yasal & IBAN",
+    "s4Subtitle": "Sahip, vergi verileri, ödeme."
   }
 }
