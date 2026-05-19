@@ -10,6 +10,8 @@ export default function Page() {
       title='Verlauf'
       subtitle='Deine früheren Buchungen.'
       showSave={false}
+      storageKey="cm_mieter_verlauf"
+      role="mieter"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
