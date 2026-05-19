@@ -5,6 +5,7 @@ import { BrandLogo } from '@/components/BrandLogo'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
+import { supabase } from '@/lib/supabase'
 
 interface User {
   name: string
@@ -26,10 +27,30 @@ export default function KontoPage() {
   const [agbOk, setAgbOk] = useState(false)
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('cm_user')
-      if (raw) setUser(JSON.parse(raw))
-    } catch {}
+    // Check supabase session first (preferred over localStorage)
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) {
+        const meta = data.session.user.user_metadata || {}
+        const u: User = {
+          name: meta.name || data.session.user.email?.split('@')[0] || 'User',
+          email: data.session.user.email || '',
+          role: (meta.role as User['role']) || 'kunde',
+        }
+        setUser(u)
+        try { localStorage.setItem('cm_user', JSON.stringify(u)) } catch {}
+      } else {
+        // Fallback to localStorage
+        try {
+          const raw = localStorage.getItem('cm_user')
+          if (raw) setUser(JSON.parse(raw))
+        } catch {}
+      }
+    }).catch(() => {
+      try {
+        const raw = localStorage.getItem('cm_user')
+        if (raw) setUser(JSON.parse(raw))
+      } catch {}
+    })
   }, [])
 
   function showToast(msg: string, type: 'ok' | 'err' = 'ok') {
@@ -42,17 +63,33 @@ export default function KontoPage() {
       showToast(t('toast.emailPw'), 'err'); return
     }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 500))
-    let role: User['role'] = 'kunde'
     try {
-      if (localStorage.getItem('cm_anbieter_draft')) role = 'anbieter'
-      else if (localStorage.getItem('cm_vermieter_draft')) role = 'vermieter'
-      else if (localStorage.getItem('cm_mieter_draft')) role = 'mieter'
-    } catch {}
-    const u: User = { name: email.split('@')[0], email, role }
-    try { localStorage.setItem('cm_user', JSON.stringify(u)) } catch {}
-    setUser(u); setLoading(false)
-    showToast(t('toast.signedIn'), 'ok')
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        showToast(error.message || 'Login fehlgeschlagen', 'err')
+        setLoading(false)
+        return
+      }
+      // Detect role from prior onboarding (best effort)
+      let role: User['role'] = 'kunde'
+      try {
+        if (localStorage.getItem('cm_anbieter_draft')) role = 'anbieter'
+        else if (localStorage.getItem('cm_vermieter_draft')) role = 'vermieter'
+        else if (localStorage.getItem('cm_mieter_draft')) role = 'mieter'
+      } catch {}
+      const u: User = {
+        name: data.user?.user_metadata?.name || email.split('@')[0],
+        email: data.user?.email || email,
+        role,
+      }
+      try { localStorage.setItem('cm_user', JSON.stringify(u)) } catch {}
+      setUser(u)
+      showToast(t('toast.signedIn'), 'ok')
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Login fehlgeschlagen'
+      showToast(msg, 'err')
+    }
+    setLoading(false)
   }
 
   async function handleRegister() {
@@ -60,20 +97,44 @@ export default function KontoPage() {
     if (password.length < 8) { showToast(t('toast.pwShort'), 'err'); return }
     if (!agbOk) { showToast(t('toast.agbAccept'), 'err'); return }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 600))
-    let role: User['role'] = 'kunde'
     try {
-      if (localStorage.getItem('cm_anbieter_draft')) role = 'anbieter'
-      else if (localStorage.getItem('cm_vermieter_draft')) role = 'vermieter'
-      else if (localStorage.getItem('cm_mieter_draft')) role = 'mieter'
-    } catch {}
-    const u: User = { name, email, role }
-    try { localStorage.setItem('cm_user', JSON.stringify(u)) } catch {}
-    setUser(u); setLoading(false)
-    showToast(t('toast.signedIn'), 'ok')
+      let role: User['role'] = 'kunde'
+      try {
+        if (localStorage.getItem('cm_anbieter_draft')) role = 'anbieter'
+        else if (localStorage.getItem('cm_vermieter_draft')) role = 'vermieter'
+        else if (localStorage.getItem('cm_mieter_draft')) role = 'mieter'
+      } catch {}
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name, role },
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/konto` : undefined,
+        },
+      })
+      if (error) {
+        showToast(error.message || 'Registrierung fehlgeschlagen', 'err')
+        setLoading(false)
+        return
+      }
+      const u: User = { name, email, role }
+      try { localStorage.setItem('cm_user', JSON.stringify(u)) } catch {}
+      setUser(u)
+      // Show special toast hint about email confirmation
+      if (data.user && !data.session) {
+        showToast('Konto erstellt — Bestätigungs-Mail prüfen', 'ok')
+      } else {
+        showToast(t('toast.signedIn'), 'ok')
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Registrierung fehlgeschlagen'
+      showToast(msg, 'err')
+    }
+    setLoading(false)
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    try { await supabase.auth.signOut() } catch {}
     try { localStorage.removeItem('cm_user') } catch {}
     setUser(null); setEmail(''); setPassword(''); setName('')
     showToast(t('toast.signedOut'), 'ok')
