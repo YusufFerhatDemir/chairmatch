@@ -510,5 +510,61 @@
     "onlyPdfImg": "Nur PDF oder Bilder erlaubt",
     "readError": "Fehler beim Lesen der Datei",
     "storageFull": "Speicher voll — älteres Element zuerst löschen"
+  },
+  "welcomeSplitter": {
+    "title": "Willkommen bei",
+    "brand": "CHAIRMATCH",
+    "tagline": "Deutschlands Beauty-Marketplace",
+    "subtitle": "Wer bist du?",
+    "roleKunde": "Kunde",
+    "kundeSub1": "Ich suche",
+    "kundeSub2": "Termine",
+    "roleAnbieter": "Anbieter",
+    "anbieterSub1": "Ich biete",
+    "anbieterSub2": "Services",
+    "roleMieter": "Mieter",
+    "mieterSub1": "Stuhl / Kabine",
+    "mieterSub2": "mieten",
+    "roleVermieter": "Vermieter",
+    "vermieterSub1": "Stuhl / Kabine",
+    "vermieterSub2": "vermieten"
+  },
+  "wizard": {
+    "step": "SCHRITT",
+    "of": "/",
+    "back": "Zurück",
+    "next": "Weiter",
+    "publish": "Veröffentlichen",
+    "save": "Speichern"
+  },
+  "wizAnbieter": {
+    "s1Title": "Was bietest du an?",
+    "s1Subtitle": "Mehrere Kategorien möglich.",
+    "s2Title": "Deine Services",
+    "s2Subtitle": "Wähle Services. Preise später anpassbar.",
+    "s3Title": "Wer bist du?",
+    "s3Subtitle": "Diese Daten sehen Kunden im Profil.",
+    "s4Title": "Rechtliches & Auszahlung",
+    "s4Subtitle": "Pflicht für gewerbliche Anbieter."
+  },
+  "wizMieter": {
+    "s1Title": "Was suchst du?",
+    "s1Subtitle": "Stuhl, Kabine oder Raum?",
+    "s2Title": "Wo & Wann?",
+    "s2Subtitle": "Stadt, Datum, Budget.",
+    "s3Title": "Dein Profil",
+    "s3Subtitle": "Beruf, Sprachen, Erfahrung.",
+    "s4Title": "Lizenz",
+    "s4Subtitle": "Berufsnachweis für seriöse Anbieter."
+  },
+  "wizVermieter": {
+    "s1Title": "Was vermietest du?",
+    "s1Subtitle": "Wähle die Plätze die du anbietest.",
+    "s2Title": "Adresse, Fotos & Ausstattung",
+    "s2Subtitle": "Wo und wie sieht es aus?",
+    "s3Title": "Preise & Verfügbarkeit",
+    "s3Subtitle": "Was kostet es und wann ist es frei?",
+    "s4Title": "Rechtliches & IBAN",
+    "s4Subtitle": "Inhaber, Steuer-Daten, Auszahlung."
   }
 }
