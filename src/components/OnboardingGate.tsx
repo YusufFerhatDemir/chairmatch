@@ -656,10 +656,10 @@ export default function OnboardingGate({ slides, children }: Props) {
   // ═══ ROLE SELECT — V11 Welcome-Splitter Layout ═══
   if (phase === 'roleSelect') {
     const V14_ROLES = [
-      { id: 'CUSTOMER',  title: 'Kunde',     sub1: 'Ich suche',      sub2: 'Termine',   href: '/' },
-      { id: 'PROVIDER',  title: 'Anbieter',  sub1: 'Ich biete',      sub2: 'Services',  href: '/anbieter/mein-salon' },
-      { id: 'MIETER',    title: 'Mieter',    sub1: 'Stuhl / Kabine', sub2: 'mieten',    href: '/mieter/mein-bereich' },
-      { id: 'VERMIETER', title: 'Vermieter', sub1: 'Stuhl / Kabine', sub2: 'vermieten', href: '/vermieter/mein-inserat' },
+      { id: 'CUSTOMER',  title: t('welcomeSplitter.roleKunde'),     sub1: t('welcomeSplitter.kundeSub1'),      sub2: t('welcomeSplitter.kundeSub2'),       href: '/' },
+      { id: 'PROVIDER',  title: t('welcomeSplitter.roleAnbieter'),  sub1: t('welcomeSplitter.anbieterSub1'),   sub2: t('welcomeSplitter.anbieterSub2'),    href: '/anbieter/mein-salon' },
+      { id: 'MIETER',    title: t('welcomeSplitter.roleMieter'),    sub1: t('welcomeSplitter.mieterSub1'),     sub2: t('welcomeSplitter.mieterSub2'),      href: '/mieter/mein-bereich' },
+      { id: 'VERMIETER', title: t('welcomeSplitter.roleVermieter'), sub1: t('welcomeSplitter.vermieterSub1'),  sub2: t('welcomeSplitter.vermieterSub2'),   href: '/vermieter/mein-inserat' },
     ] as const
 
     const V14_USPS = [
