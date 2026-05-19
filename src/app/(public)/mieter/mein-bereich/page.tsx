@@ -125,7 +125,20 @@ export default function MeinBereichPage() {
           {ACTIONS.map((a) => (
             <button
               key={a.id}
-              onClick={() => alert(`„${a.lbl}" — wird im nächsten Schritt gebaut`)}
+              onClick={() => {
+                const map: Record<string, string> = {
+  suchen: '/mieter/mein-bereich/suchen',
+  favoriten: '/mieter/mein-bereich/favoriten',
+  anfragen: '/mieter/mein-bereich/anfragen',
+  profil: '/mieter/mein-bereich/profil',
+  verlauf: '/mieter/mein-bereich/verlauf',
+  radius: '/mieter/mein-bereich/radius',
+  angebote: '/mieter/mein-bereich/angebote',
+}
+                const href = map[a.id]
+                if (href) router.push(href as never)
+                else alert(`„${a.lbl}" — kommt bald`)
+              }}
               style={{
                 gridColumn: a.wide ? '1 / -1' : 'auto',
                 background: 'linear-gradient(145deg, rgba(191,149,63,0.05) 0%, var(--c1) 50%, rgba(179,135,40,0.03) 100%)',
