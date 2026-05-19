@@ -10,6 +10,8 @@ export default function Page() {
       title='Ausstattung'
       subtitle='Was ist beim Platz inklusive?'
       showSave={true}
+      storageKey="cm_vermieter_ausstattung"
+      role="vermieter"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
