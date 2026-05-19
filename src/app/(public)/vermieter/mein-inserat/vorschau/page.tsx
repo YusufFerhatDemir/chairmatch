@@ -2,23 +2,23 @@
 
 import MeinBereichSubPage, { AktuellBox, TippsBox, GoldButton } from '@/components/MeinBereichSubPage'
 
+import { useTranslations } from '@/i18n/client'
+
 export default function Page() {
+  const t = useTranslations()
   return (
     <MeinBereichSubPage
       parentHref="/vermieter/mein-inserat"
-      parentLabel="Mein Inserat"
-      title='Live-Vorschau'
-      subtitle='So sehen Mieter dein Inserat.'
+      parentLabel={t('meinInserat.title')}
+      title={t('subVorschau.title')}
+      subtitle={t('subVorschau.subtitle')}
       showSave={false}
-      storageKey="cm_vermieter_vorschau"
       role="vermieter"
     >
-      <AktuellBox label="Vorschau">
-            <p style={{ fontSize: 14, color: 'var(--cream)', textAlign: 'center', lineHeight: 1.5 }}>
-              Hier siehst du <b className="text-gold-metallic">genau wie Mieter</b> dein Inserat in der App finden — mit Fotos, Preisen, Bewertungen.
-            </p>
-          </AktuellBox>
-          <GoldButton>👁 Vorschau öffnen</GoldButton>
+      <AktuellBox label={t('subVorschau.previewLbl')}>
+        <p style={{ fontSize: 14, color: 'var(--cream)', textAlign: 'center', lineHeight: 1.5 }}>{t('subVorschau.hint')}</p>
+      </AktuellBox>
+      <GoldButton>{t('subVorschau.openBtn')}</GoldButton>
     </MeinBereichSubPage>
   )
 }
