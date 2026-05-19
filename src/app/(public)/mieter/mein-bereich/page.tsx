@@ -1,6 +1,5 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
 
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
