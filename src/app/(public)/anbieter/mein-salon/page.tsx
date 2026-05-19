@@ -126,7 +126,21 @@ export default function MeinSalonPage() {
           {ACTIONS.map((a) => (
             <button
               key={a.id}
-              onClick={() => alert(`„${a.lbl}" — wird im nächsten Schritt gebaut`)}
+              onClick={() => {
+                const map: Record<string, string> = {
+  logo: '/anbieter/mein-salon/logo',
+  galerie: '/anbieter/mein-salon/galerie',
+  beschreibung: '/anbieter/mein-salon/beschreibung',
+  services: '/anbieter/mein-salon/services',
+  oeffnungszeiten: '/anbieter/mein-salon/zeiten',
+  bewertungen: '/anbieter/mein-salon/bewertungen',
+  auszahlung: '/anbieter/mein-salon/auszahlung',
+  vorschau: '/anbieter/mein-salon/vorschau',
+}
+                const href = map[a.id]
+                if (href) router.push(href as never)
+                else alert(`„${a.lbl}" — kommt bald`)
+              }}
               style={{
                 gridColumn: a.wide ? '1 / -1' : 'auto',
                 background: 'linear-gradient(145deg, rgba(191,149,63,0.05) 0%, var(--c1) 50%, rgba(179,135,40,0.03) 100%)',
