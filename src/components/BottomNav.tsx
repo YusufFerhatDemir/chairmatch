@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from '@/i18n/client'
 
 type NavRole = 'anbieter' | 'vermieter' | 'mieter'
 
-interface NavItem { label: string; href: string; svg: React.ReactNode }
+interface NavItem { labelKey: string; href: string; svg: React.ReactNode }
 
 const ICONS = {
   home:   <><path d="M3 12l9-9 9 9M5 10v10h14V10"/></>,
@@ -18,27 +19,28 @@ const ICONS = {
 
 const NAVS: Record<NavRole, NavItem[]> = {
   anbieter: [
-    { label: 'START',       href: '/anbieter/mein-salon',              svg: ICONS.home },
-    { label: 'TERMIN',      href: '/anbieter/mein-salon/zeiten',       svg: ICONS.cal },
-    { label: 'NACHRICHTEN', href: '/anbieter/mein-salon/bewertungen',  svg: ICONS.msg },
-    { label: 'KONTO',       href: '/konto',                            svg: ICONS.user },
+    { labelKey: 'bottomNav.start',       href: '/anbieter/mein-salon',              svg: ICONS.home },
+    { labelKey: 'bottomNav.appointment', href: '/anbieter/mein-salon/zeiten',       svg: ICONS.cal },
+    { labelKey: 'bottomNav.messages',    href: '/anbieter/mein-salon/bewertungen',  svg: ICONS.msg },
+    { labelKey: 'bottomNav.account',     href: '/konto',                            svg: ICONS.user },
   ],
   vermieter: [
-    { label: 'START',    href: '/vermieter/mein-inserat',                  svg: ICONS.home },
-    { label: 'TERMIN',   href: '/vermieter/mein-inserat/verfuegbarkeit',   svg: ICONS.cal },
-    { label: 'ANFRAGEN', href: '/vermieter/mein-inserat/anfragen',         svg: ICONS.msg },
-    { label: 'KONTO',    href: '/konto',                                   svg: ICONS.user },
+    { labelKey: 'bottomNav.start',       href: '/vermieter/mein-inserat',                  svg: ICONS.home },
+    { labelKey: 'bottomNav.appointment', href: '/vermieter/mein-inserat/verfuegbarkeit',   svg: ICONS.cal },
+    { labelKey: 'bottomNav.requests',    href: '/vermieter/mein-inserat/anfragen',         svg: ICONS.msg },
+    { labelKey: 'bottomNav.account',     href: '/konto',                                   svg: ICONS.user },
   ],
   mieter: [
-    { label: 'START',     href: '/mieter/mein-bereich',          svg: ICONS.home },
-    { label: 'SUCHE',     href: '/mieter/mein-bereich/suchen',   svg: ICONS.search },
-    { label: 'FAVORITEN', href: '/mieter/mein-bereich/favoriten',svg: ICONS.heart },
-    { label: 'KONTO',     href: '/konto',                       svg: ICONS.user },
+    { labelKey: 'bottomNav.start',       href: '/mieter/mein-bereich',           svg: ICONS.home },
+    { labelKey: 'bottomNav.search',      href: '/mieter/mein-bereich/suchen',    svg: ICONS.search },
+    { labelKey: 'bottomNav.favorites',   href: '/mieter/mein-bereich/favoriten', svg: ICONS.heart },
+    { labelKey: 'bottomNav.account',     href: '/konto',                         svg: ICONS.user },
   ],
 }
 
 export default function BottomNav({ role }: { role: NavRole }) {
   const pathname = usePathname() || ''
+  const t = useTranslations()
   const items = NAVS[role]
   const rootHrefs = ['/anbieter/mein-salon', '/vermieter/mein-inserat', '/mieter/mein-bereich']
   return (
@@ -53,7 +55,7 @@ export default function BottomNav({ role }: { role: NavRole }) {
       {items.map((it) => {
         const isOn = pathname === it.href || (!rootHrefs.includes(it.href) && pathname.startsWith(it.href + '/'))
         return (
-          <Link key={it.label} href={it.href} style={{
+          <Link key={it.labelKey} href={it.href} style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
             fontSize: 9, letterSpacing: 1.5, fontWeight: 600,
             color: isOn ? 'var(--gold2)' : 'rgba(232,230,218,0.45)',
@@ -62,7 +64,7 @@ export default function BottomNav({ role }: { role: NavRole }) {
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
               {it.svg}
             </svg>
-            <span>{it.label}</span>
+            <span>{t(it.labelKey)}</span>
           </Link>
         )
       })}
