@@ -2,44 +2,47 @@
 
 import MeinBereichSubPage, { AktuellBox, TippsBox, GoldButton } from '@/components/MeinBereichSubPage'
 
+import { useTranslations } from '@/i18n/client'
+
 export default function Page() {
+  const t = useTranslations()
   return (
     <MeinBereichSubPage
       parentHref="/mieter/mein-bereich"
-      parentLabel="Mein Bereich"
-      title='Mein Profil'
-      subtitle='Deine Daten als Mieter.'
-      showSave={true}
+      parentLabel={t('meinBereich.title')}
+      title={t('subProfil.title')}
+      subtitle={t('subProfil.subtitle')}
       storageKey="cm_mieter_profil"
+      showSave={true}
       role="mieter"
     >
       <div>
-            <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>Name</label>
-            <input type="text" placeholder="Max Mustermann" style={{
-              width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
-              border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
-            }} data-storage="value"/>
-          </div>
-          <div>
-            <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>Beruf</label>
-            <select style={{
-              width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
-              border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
-            }}>
-              <option>Friseur / Friseurin</option>
-              <option>Barber</option>
-              <option>Kosmetiker / Kosmetikerin</option>
-              <option>Nageldesigner / -in</option>
-              <option>Masseur / Masseuse</option>
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>Lizenz / Meisterbrief</label>
-            <input type="text" placeholder="Lizenz-Nr. oder Meisterbrief-Nr." style={{
-              width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
-              border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
-            }}/>
-          </div>
+        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subProfil.nameLbl')}</label>
+        <input type="text" data-storage="name" placeholder="Max Mustermann" style={{
+          width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
+          border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
+        }}/>
+      </div>
+      <div>
+        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subProfil.jobLbl')}</label>
+        <select data-storage="job" style={{
+          width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
+          border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
+        }}>
+          <option>{t('subProfil.jobFriseur')}</option>
+          <option>{t('subProfil.jobBarber')}</option>
+          <option>{t('subProfil.jobKosmetik')}</option>
+          <option>{t('subProfil.jobNagel')}</option>
+          <option>{t('subProfil.jobMassage')}</option>
+        </select>
+      </div>
+      <div>
+        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subProfil.licenseLbl')}</label>
+        <input type="text" data-storage="license" placeholder={t('subProfil.licensePlaceholder')} style={{
+          width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
+          border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
+        }}/>
+      </div>
     </MeinBereichSubPage>
   )
 }
