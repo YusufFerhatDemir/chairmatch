@@ -1,7 +1,9 @@
 'use client'
 
 import { BrandLogo } from '@/components/BrandLogo'
+import BottomNav from '@/components/BottomNav'
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 const STATS = [
   { v: '12', l: 'Termine' },
@@ -32,6 +34,20 @@ const ACTIONS: Action[] = [
 
 export default function MeinSalonPage() {
   const router = useRouter()
+  const [needsHygiene, setNeedsHygiene] = useState(false)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('cm_anbieter_draft')
+      if (raw) {
+        const obj = JSON.parse(raw)
+        const cats: string[] = Array.isArray(obj.cats) ? obj.cats : []
+        if (cats.some((c) => ['medical', 'arzt', 'opraum', 'aesthetik'].includes(c))) {
+          setNeedsHygiene(true)
+        }
+      }
+    } catch {}
+  }, [])
 
   return (
     <div style={{
@@ -123,6 +139,41 @@ export default function MeinSalonPage() {
 
         {/* Action Grid */}
         <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+          {needsHygiene && (
+            <button
+              onClick={() => router.push('/anbieter/mein-salon/zertifikate' as never)}
+              style={{
+                gridColumn: '1 / -1',
+                background: 'linear-gradient(145deg, rgba(232,80,64,0.08) 0%, var(--c1) 50%, rgba(232,80,64,0.04) 100%)',
+                border: '1.5px solid #E85040',
+                borderRadius: 16, padding: '13px 16px',
+                display: 'flex', alignItems: 'center', gap: 14, flexDirection: 'row',
+                cursor: 'pointer', fontFamily: 'inherit', position: 'relative',
+                boxShadow: '0 0 16px rgba(232,80,64,0.18)',
+                color: 'var(--cream)',
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: -6, right: -6,
+                background: '#E85040', color: '#fff', fontSize: 9, fontWeight: 700,
+                padding: '3px 8px', borderRadius: 8, letterSpacing: 1,
+              }}>PFLICHT</span>
+              <div style={{
+                width: 46, height: 46, borderRadius: 12,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+                background: 'radial-gradient(circle, rgba(232,80,64,0.15), transparent 70%)',
+                border: '1px solid rgba(232,80,64,0.3)',
+                flexShrink: 0, fontSize: 22,
+              }}>
+                🛡️
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#FF9090' }}>Hygiene & Zertifikate</span>
+                <span style={{ fontSize: 10.5, color: 'var(--stone)' }}>Pflicht für OP-Raum / Medical Beauty</span>
+              </div>
+              <span style={{ fontSize: 18, color: '#FF9090', flexShrink: 0 }}>›</span>
+            </button>
+          )}
           {ACTIONS.map((a) => (
             <button
               key={a.id}
@@ -182,6 +233,8 @@ export default function MeinSalonPage() {
             </button>
           ))}
         </div>
+
+        <BottomNav role="anbieter" />
       </div>
     </div>
   )
