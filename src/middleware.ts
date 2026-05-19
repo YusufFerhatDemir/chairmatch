@@ -147,6 +147,7 @@ const publicPrefixes = [
   '/anbieter/',         // NEU: Anbieter-Funnel-Pages
   '/mieter/',           // NEU: Mieter-Funnel-Pages
   '/vermieter/',        // NEU: Vermieter-Onboarding (Public-Whitelist)
+  '/konto',             // Konto-Seite (Login/Register/Profil)
   '/auth/',
   '/api/auth/',
   '/api/analytics/',
