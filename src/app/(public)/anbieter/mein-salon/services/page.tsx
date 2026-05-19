@@ -10,6 +10,8 @@ export default function Page() {
       title='Services & Preise'
       subtitle='Was bietest du an? Mit Preisen und Dauer.'
       showSave={true}
+      storageKey="cm_anbieter_services"
+      role="anbieter"
     >
       <AktuellBox label="Aktive Services">
             <p style={{ fontSize: 32, fontFamily: 'Cinzel', fontWeight: 600 }} className="text-gold-metallic">0</p>
