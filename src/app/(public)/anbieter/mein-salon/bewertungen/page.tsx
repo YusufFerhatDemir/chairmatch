@@ -10,6 +10,8 @@ export default function Page() {
       title='Bewertungen'
       subtitle='Was Kunden über dich sagen.'
       showSave={true}
+      storageKey="cm_anbieter_bewertungen"
+      role="anbieter"
     >
       <AktuellBox label="Gesamt">
             <p style={{ fontSize: 38, fontFamily: 'Cinzel', fontWeight: 600 }} className="text-gold-metallic">4,9 ★</p>
