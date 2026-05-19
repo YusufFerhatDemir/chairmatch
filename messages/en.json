@@ -510,5 +510,61 @@
     "onlyPdfImg": "Only PDF or images",
     "readError": "Error reading file",
     "storageFull": "Storage full — delete older item first"
+  },
+  "welcomeSplitter": {
+    "title": "Welcome to",
+    "brand": "CHAIRMATCH",
+    "tagline": "Germany's Beauty Marketplace",
+    "subtitle": "Who are you?",
+    "roleKunde": "Customer",
+    "kundeSub1": "I'm looking for",
+    "kundeSub2": "appointments",
+    "roleAnbieter": "Provider",
+    "anbieterSub1": "I offer",
+    "anbieterSub2": "services",
+    "roleMieter": "Renter",
+    "mieterSub1": "Chair / Cabin",
+    "mieterSub2": "to rent",
+    "roleVermieter": "Lessor",
+    "vermieterSub1": "Chair / Cabin",
+    "vermieterSub2": "to rent out"
+  },
+  "wizard": {
+    "step": "STEP",
+    "of": "/",
+    "back": "Back",
+    "next": "Next",
+    "publish": "Publish",
+    "save": "Save"
+  },
+  "wizAnbieter": {
+    "s1Title": "What do you offer?",
+    "s1Subtitle": "Multiple categories possible.",
+    "s2Title": "Your Services",
+    "s2Subtitle": "Choose services. Prices adjustable later.",
+    "s3Title": "Who are you?",
+    "s3Subtitle": "Customers see this data on your profile.",
+    "s4Title": "Legal & Payout",
+    "s4Subtitle": "Required for commercial providers."
+  },
+  "wizMieter": {
+    "s1Title": "What are you looking for?",
+    "s1Subtitle": "Chair, cabin or room?",
+    "s2Title": "Where & When?",
+    "s2Subtitle": "City, date, budget.",
+    "s3Title": "Your Profile",
+    "s3Subtitle": "Profession, languages, experience.",
+    "s4Title": "License",
+    "s4Subtitle": "Professional proof for serious providers."
+  },
+  "wizVermieter": {
+    "s1Title": "What do you rent out?",
+    "s1Subtitle": "Choose the spots you offer.",
+    "s2Title": "Address, Photos & Equipment",
+    "s2Subtitle": "Where and what does it look like?",
+    "s3Title": "Prices & Availability",
+    "s3Subtitle": "What does it cost and when is it free?",
+    "s4Title": "Legal & IBAN",
+    "s4Subtitle": "Owner, tax data, payout."
   }
 }
