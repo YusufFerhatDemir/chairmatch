@@ -10,6 +10,8 @@ export default function Page() {
       title='Meine Anfragen'
       subtitle='Deine offenen und erledigten Anfragen.'
       showSave={false}
+      storageKey="cm_mieter_anfragen"
+      role="mieter"
     >
       <AktuellBox label="Status">
             <p style={{ fontSize: 38, fontFamily: 'Cinzel', fontWeight: 600 }} className="text-gold-metallic">2</p>
