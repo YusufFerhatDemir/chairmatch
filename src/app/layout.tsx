@@ -14,6 +14,8 @@ import { getLocale } from '@/i18n/server'
 import { isRTL, LOCALE_META } from '@/i18n/config'
 import './globals.css'
 
+
+export const dynamic = 'force-dynamic'
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-dm-sans',
