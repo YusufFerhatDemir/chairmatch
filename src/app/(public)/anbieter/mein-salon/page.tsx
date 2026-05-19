@@ -4,12 +4,7 @@ import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-
-const STATS = [
-  { v: '12', l: 'Termine' },
-  { v: '4,9★', l: 'Bewertung' },
-  { v: '€480', l: 'Diese Woche' },
-]
+import { useTranslations } from '@/i18n/client'
 
 type Action = { id: string; lbl: string; sub: string; icon: JSX.Element; badge?: number; wide?: boolean }
 
@@ -21,19 +16,9 @@ function Icon({ children }: { children: React.ReactNode }) {
   )
 }
 
-const ACTIONS: Action[] = [
-  { id: 'logo', lbl: 'Logo / Profilbild', sub: 'Rundes Bild oben', icon: <Icon><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></Icon> },
-  { id: 'galerie', lbl: 'Salon-Galerie', sub: 'Bilder hochladen', icon: <Icon><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></Icon> },
-  { id: 'beschreibung', lbl: 'Beschreibung', sub: 'Über deinen Salon', icon: <Icon><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></Icon> },
-  { id: 'services', lbl: 'Services & Preise', sub: '8 aktiv', icon: <Icon><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></Icon> },
-  { id: 'oeffnungszeiten', lbl: 'Öffnungszeiten', sub: 'Mo–Sa · 9–18', icon: <Icon><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></Icon> },
-  { id: 'bewertungen', lbl: 'Bewertungen', sub: '3 neue Reviews', badge: 3, icon: <Icon><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></Icon> },
-  { id: 'auszahlung', lbl: 'Auszahlung', sub: 'IBAN & Stripe', icon: <Icon><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></Icon> },
-  { id: 'vorschau', lbl: 'So sehen dich Kunden', sub: 'Vorschau deines öffentlichen Profils', wide: true, icon: <Icon><circle cx="12" cy="12" r="3"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/></Icon> },
-]
-
 export default function MeinSalonPage() {
   const router = useRouter()
+  const t = useTranslations()
   const [needsHygiene, setNeedsHygiene] = useState(false)
 
   useEffect(() => {
@@ -48,6 +33,23 @@ export default function MeinSalonPage() {
       }
     } catch {}
   }, [])
+
+  const STATS = [
+    { v: '12',     l: t('meinSalon.stat1') },
+    { v: '4,9★',   l: t('meinSalon.stat2') },
+    { v: '€480',   l: t('meinSalon.stat3') },
+  ]
+
+  const ACTIONS: Action[] = [
+    { id: 'logo',           lbl: t('meinSalon.logo'),        sub: t('meinSalon.logoSub'),       icon: <Icon><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></Icon> },
+    { id: 'galerie',        lbl: t('meinSalon.galerie'),     sub: t('meinSalon.galerieSub'),    icon: <Icon><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></Icon> },
+    { id: 'beschreibung',   lbl: t('meinSalon.description'), sub: t('meinSalon.descriptionSub'),icon: <Icon><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></Icon> },
+    { id: 'services',       lbl: t('meinSalon.services'),    sub: t('meinSalon.servicesActive', { n: 8 }), icon: <Icon><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></Icon> },
+    { id: 'oeffnungszeiten',lbl: t('meinSalon.hours'),       sub: t('meinSalon.hoursSub'),      icon: <Icon><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></Icon> },
+    { id: 'bewertungen',    lbl: t('meinSalon.reviews'),     sub: t('meinSalon.reviewsNew', { n: 3 }), badge: 3, icon: <Icon><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></Icon> },
+    { id: 'auszahlung',     lbl: t('meinSalon.payout'),      sub: t('meinSalon.payoutSub'),     icon: <Icon><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></Icon> },
+    { id: 'vorschau',       lbl: t('meinSalon.preview'),     sub: t('meinSalon.previewSub'),    wide: true, icon: <Icon><circle cx="12" cy="12" r="3"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/></Icon> },
+  ]
 
   return (
     <div style={{
@@ -73,8 +75,6 @@ export default function MeinSalonPage() {
         border: '1px solid rgba(196,168,106,0.12)',
         boxShadow: '0 50px 120px rgba(0,0,0,0.78)',
       }}>
-
-        {/* Top bar — Zurück + Konto */}
         <div style={{ padding: '16px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button
             onClick={() => {
@@ -84,7 +84,7 @@ export default function MeinSalonPage() {
               } catch {}
               window.location.assign('/')
             }}
-            aria-label="Zurück zur Rollen-Auswahl"
+            aria-label={t('buttons.back')}
             style={{
               width: 38, height: 38, borderRadius: 10,
               background: 'rgba(196,168,106,0.08)',
@@ -93,19 +93,16 @@ export default function MeinSalonPage() {
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: 'inherit',
             }}
-          >
-            ‹
-          </button>
+          >‹</button>
           <button
             onClick={() => router.push('/konto')}
             style={{ background: 'transparent', border: 'none', color: 'var(--stone)', fontSize: 10, letterSpacing: 1.5, fontWeight: 600, cursor: 'pointer', textTransform: 'uppercase' }}
-            aria-label="Konto"
+            aria-label={t('bottomNav.account')}
           >
-            Konto
+            {t('bottomNav.account')}
           </button>
         </div>
 
-        {/* Header — Logo + Brandname */}
         <div style={{ padding: '4px 20px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <BrandLogo size={54} variant="glow" animateStar={false} priority={true} />
           <div>
@@ -116,15 +113,13 @@ export default function MeinSalonPage() {
           </div>
         </div>
 
-        {/* Greeting */}
         <div style={{ padding: '0 20px 18px' }}>
           <h2 className="cinzel text-gold-metallic" style={{ fontSize: 26, fontWeight: 500, letterSpacing: 0.5, lineHeight: 1.15, marginBottom: 5 }}>
-            Mein Salon
+            {t('meinSalon.title')}
           </h2>
-          <p style={{ fontSize: 13, color: 'var(--stone)' }}>Tippe einmal — bearbeite direkt.</p>
+          <p style={{ fontSize: 13, color: 'var(--stone)' }}>{t('meinSalon.subtitle')}</p>
         </div>
 
-        {/* Stats */}
         <div style={{ margin: '0 20px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
           {STATS.map((s, i) => (
             <div key={i} style={{
@@ -137,7 +132,6 @@ export default function MeinSalonPage() {
           ))}
         </div>
 
-        {/* Action Grid */}
         <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
           {needsHygiene && (
             <button
@@ -157,19 +151,17 @@ export default function MeinSalonPage() {
                 position: 'absolute', top: -6, right: -6,
                 background: '#E85040', color: '#fff', fontSize: 9, fontWeight: 700,
                 padding: '3px 8px', borderRadius: 8, letterSpacing: 1,
-              }}>PFLICHT</span>
+              }}>{t('meinSalon.hygieneTag')}</span>
               <div style={{
                 width: 46, height: 46, borderRadius: 12,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'radial-gradient(circle, rgba(232,80,64,0.15), transparent 70%)',
                 border: '1px solid rgba(232,80,64,0.3)',
                 flexShrink: 0, fontSize: 22,
-              }}>
-                🛡️
-              </div>
+              }}>🛡️</div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left' }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#FF9090' }}>Hygiene & Zertifikate</span>
-                <span style={{ fontSize: 10.5, color: 'var(--stone)' }}>Pflicht für OP-Raum / Medical Beauty</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#FF9090' }}>{t('meinSalon.hygiene')}</span>
+                <span style={{ fontSize: 10.5, color: 'var(--stone)' }}>{t('meinSalon.hygieneSub')}</span>
               </div>
               <span style={{ fontSize: 18, color: '#FF9090', flexShrink: 0 }}>›</span>
             </button>
@@ -179,18 +171,17 @@ export default function MeinSalonPage() {
               key={a.id}
               onClick={() => {
                 const map: Record<string, string> = {
-  logo: '/anbieter/mein-salon/logo',
-  galerie: '/anbieter/mein-salon/galerie',
-  beschreibung: '/anbieter/mein-salon/beschreibung',
-  services: '/anbieter/mein-salon/services',
-  oeffnungszeiten: '/anbieter/mein-salon/zeiten',
-  bewertungen: '/anbieter/mein-salon/bewertungen',
-  auszahlung: '/anbieter/mein-salon/auszahlung',
-  vorschau: '/anbieter/mein-salon/vorschau',
-}
+                  logo: '/anbieter/mein-salon/logo',
+                  galerie: '/anbieter/mein-salon/galerie',
+                  beschreibung: '/anbieter/mein-salon/beschreibung',
+                  services: '/anbieter/mein-salon/services',
+                  oeffnungszeiten: '/anbieter/mein-salon/zeiten',
+                  bewertungen: '/anbieter/mein-salon/bewertungen',
+                  auszahlung: '/anbieter/mein-salon/auszahlung',
+                  vorschau: '/anbieter/mein-salon/vorschau',
+                }
                 const href = map[a.id]
                 if (href) router.push(href as never)
-                else alert(`„${a.lbl}" — kommt bald`)
               }}
               style={{
                 gridColumn: a.wide ? '1 / -1' : 'auto',
@@ -214,7 +205,7 @@ export default function MeinSalonPage() {
               )}
               <div style={{
                 width: a.wide ? 46 : 56, height: a.wide ? 46 : 56, borderRadius: a.wide ? 12 : 14,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%)',
                 border: '1px solid rgba(212,175,55,0.14)',
                 flexShrink: 0,
