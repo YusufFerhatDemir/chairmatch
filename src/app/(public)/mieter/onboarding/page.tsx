@@ -13,6 +13,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from '@/i18n/client'
 import { BrandLogo } from '@/components/BrandLogo'
 
 type PlaceId = 'stuhl' | 'liege' | 'kabine' | 'op' | 'raum'
@@ -30,6 +31,7 @@ const LANGUAGES = ['DE', 'EN', 'TR', 'AR'] as const
 
 export default function MieterOnboardingPage() {
   const router = useRouter()
+  const t = useTranslations()
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
 
   const [selected, setSelected] = useState<Set<PlaceId>>(new Set())
@@ -110,7 +112,7 @@ export default function MieterOnboardingPage() {
             }}
           >‹</button>
           <div style={{ fontSize: 10, letterSpacing: 3, color: 'rgba(196,168,106,0.7)' }}>
-            SCHRITT {step} / 4
+            {t('wizard.step')} {step} / 4
           </div>
           <div style={{ width: 32 }} />
         </div>
@@ -132,13 +134,13 @@ export default function MieterOnboardingPage() {
           <p className="cinzel text-gold-metallic" style={{
             fontSize: 22, fontWeight: 500, letterSpacing: 1, margin: '0 0 6px',
           }}>
-            {step === 1 && 'Was suchst du?'}
-            {step === 2 && 'Wo & Wann?'}
-            {step === 3 && 'Wer bist du?'}
-            {step === 4 && 'Lizenz & Rechtliches'}
+            {step === 1 && t('wizMieter.s1Title')}
+            {step === 2 && t('wizMieter.s2Title')}
+            {step === 3 && t('wizMieter.s3Title')}
+            {step === 4 && t('wizMieter.s4Title')}
           </p>
           <p style={{ fontSize: 13, color: 'var(--cream)', margin: 0 }}>
-            {step === 1 && 'Tippe an was du anmieten willst.'}
+            {step === 1 && t('wizMieter.s1Subtitle')}
             {step === 2 && 'Standort, Zeitraum und Budget.'}
             {step === 3 && 'Vermieter sieht dein Profil.'}
             {step === 4 && 'Pflicht für gewerbliche Anmietung.'}
