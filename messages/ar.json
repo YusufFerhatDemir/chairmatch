@@ -510,5 +510,61 @@
     "onlyPdfImg": "PDF أو صور فقط",
     "readError": "خطأ في قراءة الملف",
     "storageFull": "التخزين ممتلئ — احذف العنصر القديم أولاً"
+  },
+  "welcomeSplitter": {
+    "title": "مرحباً بك في",
+    "brand": "CHAIRMATCH",
+    "tagline": "سوق الجمال في ألمانيا",
+    "subtitle": "من أنت؟",
+    "roleKunde": "عميل",
+    "kundeSub1": "أبحث عن",
+    "kundeSub2": "مواعيد",
+    "roleAnbieter": "مزود",
+    "anbieterSub1": "أقدم",
+    "anbieterSub2": "خدمات",
+    "roleMieter": "مستأجر",
+    "mieterSub1": "كرسي / كابينة",
+    "mieterSub2": "للإيجار",
+    "roleVermieter": "مؤجر",
+    "vermieterSub1": "كرسي / كابينة",
+    "vermieterSub2": "للتأجير"
+  },
+  "wizard": {
+    "step": "خطوة",
+    "of": "/",
+    "back": "رجوع",
+    "next": "التالي",
+    "publish": "نشر",
+    "save": "حفظ"
+  },
+  "wizAnbieter": {
+    "s1Title": "ماذا تقدم؟",
+    "s1Subtitle": "يمكن اختيار فئات متعددة.",
+    "s2Title": "خدماتك",
+    "s2Subtitle": "اختر الخدمات. يمكن تعديل الأسعار لاحقاً.",
+    "s3Title": "من أنت؟",
+    "s3Subtitle": "يرى العملاء هذه البيانات في ملفك.",
+    "s4Title": "قانوني والسحب",
+    "s4Subtitle": "إلزامي للمزودين التجاريين."
+  },
+  "wizMieter": {
+    "s1Title": "عمّ تبحث؟",
+    "s1Subtitle": "كرسي، كابينة أو غرفة؟",
+    "s2Title": "أين ومتى؟",
+    "s2Subtitle": "المدينة، التاريخ، الميزانية.",
+    "s3Title": "ملفك",
+    "s3Subtitle": "المهنة، اللغات، الخبرة.",
+    "s4Title": "الرخصة",
+    "s4Subtitle": "دليل مهني للمزودين الجادين."
+  },
+  "wizVermieter": {
+    "s1Title": "ماذا تؤجر؟",
+    "s1Subtitle": "اختر الأماكن التي تقدمها.",
+    "s2Title": "العنوان، الصور والمعدات",
+    "s2Subtitle": "أين وكيف يبدو؟",
+    "s3Title": "الأسعار والتوفر",
+    "s3Subtitle": "كم يكلف ومتى يكون شاغراً؟",
+    "s4Title": "قانوني وIBAN",
+    "s4Subtitle": "المالك، البيانات الضريبية، السحب."
   }
 }
