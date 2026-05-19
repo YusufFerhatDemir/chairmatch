@@ -306,5 +306,209 @@
     "radiusSub": "{km} km around {city}",
     "offers": "New offers for you",
     "offersSub": "Based on your profile"
+  },
+  "subLogo": {
+    "title": "Logo / Profile",
+    "subtitle": "The round image customers see first.",
+    "uploaded": "✓ Image uploaded",
+    "noImage": "No image yet · Initials are shown",
+    "choose": "Choose image",
+    "other": "Other image",
+    "remove": "Remove",
+    "tippsTitle": "Tips for a good logo",
+    "tip1": "Square · min. 400 × 400 px",
+    "tip2": "Salon logo or your own photo",
+    "tip3": "Bright foreground · dark border",
+    "tip4": "No watermarks from other apps"
+  },
+  "subGalerie": {
+    "title": "Salon Gallery",
+    "subtitle": "Images shown on profile.",
+    "ofMax": "{n} of {max} images uploaded",
+    "addBtn": "+ Upload images",
+    "tippsTitle": "What inspires customers",
+    "tip1": "Min. 3 images · interior, chairs, detail",
+    "tip2": "Daylight · bright · sharp",
+    "tip3": "No people without consent",
+    "tip4": "JPG or PNG · max 5 MB per image"
+  },
+  "subBeschreibung": {
+    "title": "Description",
+    "subtitle": "What makes your salon special?",
+    "placeholder": "Bright salon in center, 4 chairs, own lounge area and espresso bar...",
+    "tippsTitle": "Tips for good text",
+    "tip1": "Max 500 characters · short and clear",
+    "tip2": "What's unique? Location · Style · Atmosphere",
+    "tip3": "Who is your target group?"
+  },
+  "subServices": {
+    "title": "Services & Prices",
+    "subtitle": "What do you offer? With prices and duration.",
+    "activeLbl": "Active Services",
+    "noneYet": "No services yet",
+    "addBtn": "+ Add service",
+    "tippsTitle": "Examples",
+    "tip1": "Ladies cut · 60 min · €45",
+    "tip2": "Coloring · 90 min · €60",
+    "tip3": "Hot towel shave · 45 min · €30",
+    "tip4": "Prices adjustable later"
+  },
+  "subZeiten": {
+    "title": "Opening Hours",
+    "subtitle": "When are you available?",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "subBewertungen": {
+    "title": "Reviews",
+    "subtitle": "What customers say about you.",
+    "totalLbl": "Total",
+    "fromCount": "from {n} reviews · {x} new"
+  },
+  "subAuszahlung": {
+    "title": "Payout",
+    "subtitle": "Where does customer money go?",
+    "statusLbl": "Status",
+    "notSetup": "Not set up yet",
+    "ibanHint": "You need an IBAN so customers can pay.",
+    "ibanLbl": "IBAN",
+    "tippsTitle": "Payout Info",
+    "tip1": "Payout once a week to your account",
+    "tip2": "0% commission on rentals",
+    "tip3": "Secure processing via Stripe",
+    "tip4": "You get an invoice by email"
+  },
+  "subFotos": {
+    "title": "Photos",
+    "subtitle": "Images of your chair / couch.",
+    "tippsTitle": "What renters want to see",
+    "tip1": "Clear view of the workspace",
+    "tip2": "Mirror · chair · tools visible",
+    "tip3": "Clean room · good light"
+  },
+  "subAusstattung": {
+    "title": "Equipment",
+    "subtitle": "What's included with the spot?",
+    "item1": "Mirror",
+    "item2": "Hair dryer",
+    "item3": "Straightener",
+    "item4": "Scissors & combs",
+    "item5": "Sterilizer",
+    "item6": "Customer seating",
+    "item7": "WiFi",
+    "item8": "Air conditioning",
+    "item9": "Water connection",
+    "item10": "Coffee machine"
+  },
+  "subPreise": {
+    "title": "Prices",
+    "subtitle": "What does rent cost?",
+    "perHour": "Per hour",
+    "perDay": "Per day",
+    "perWeek": "Per week",
+    "perMonth": "Per month"
+  },
+  "subVerfuegbarkeit": {
+    "title": "Availability",
+    "subtitle": "When is the spot free?",
+    "daysLbl": "Days",
+    "timesLbl": "Time"
+  },
+  "subAnfragen": {
+    "title": "Rental Requests",
+    "subtitle": "Who wants to rent your spot?",
+    "openLbl": "Open",
+    "newLbl": "NEW",
+    "newRequests": "new requests · unseen"
+  },
+  "subVorschau": {
+    "title": "Live Preview",
+    "subtitle": "This is how renters see your listing.",
+    "previewLbl": "Preview",
+    "hint": "Here you see exactly how renters find your listing.",
+    "openBtn": "Open preview"
+  },
+  "subSuchen": {
+    "title": "Search chairs",
+    "subtitle": "Set filters and view results.",
+    "cityLbl": "City",
+    "maxLbl": "Max. €/day",
+    "searchBtn": "Search"
+  },
+  "subFavoriten": {
+    "title": "Favorites",
+    "subtitle": "Chairs you saved.",
+    "savedLbl": "Saved",
+    "favorites": "Favorites"
+  },
+  "subMieterAnfragen": {
+    "title": "My Requests",
+    "subtitle": "Your open and completed requests.",
+    "statusLbl": "Status",
+    "newReplies": "new replies",
+    "confirmed": "CONFIRMED",
+    "openTag": "OPEN",
+    "rejected": "REJECTED"
+  },
+  "subProfil": {
+    "title": "My Profile",
+    "subtitle": "Your renter data.",
+    "nameLbl": "Name",
+    "jobLbl": "Profession",
+    "licenseLbl": "License / Master craftsman",
+    "licensePlaceholder": "License or master craftsman no.",
+    "jobFriseur": "Hairdresser",
+    "jobBarber": "Barber",
+    "jobKosmetik": "Beautician",
+    "jobNagel": "Nail designer",
+    "jobMassage": "Masseur"
+  },
+  "subVerlauf": {
+    "title": "History",
+    "subtitle": "Your past bookings."
+  },
+  "subRadius": {
+    "title": "Search Radius",
+    "subtitle": "How far can the chair be?",
+    "currentLbl": "Current",
+    "around": "around {city}",
+    "tippsTitle": "Tip",
+    "tip1": "Larger radius = more choice",
+    "tip2": "Smaller radius = easier travel",
+    "tip3": "10–15 km is good in cities"
+  },
+  "subAngebote": {
+    "title": "New offers for you",
+    "subtitle": "Based on your profile and search history."
+  },
+  "subZertifikate": {
+    "title": "Hygiene & Certificates",
+    "subtitle": "Required for OR and Medical Beauty.",
+    "doc1Title": "Hygiene Certificate",
+    "doc1Sub": "Health authority · valid 24 mo.",
+    "doc2Title": "Approbation / Certification",
+    "doc2Sub": "Doctor license · original scan",
+    "doc3Title": "Medical Beauty License",
+    "doc3Sub": "Required for Botox / Filler / Laser",
+    "infoBox": "Required: Without complete certificates you cannot publish your OR listing. We check documents manually within 48 hours."
+  },
+  "upload": {
+    "current": "Current",
+    "uploaded": "Uploaded",
+    "missing": "MISSING",
+    "uploadedTag": "UPLOADED",
+    "replace": "Replace",
+    "delete": "Delete",
+    "uploadDoc": "Upload document (PDF · JPG · max 5 MB)",
+    "fileTooLarge": "File too large (max 5 MB)",
+    "onlyImages": "Only images allowed",
+    "onlyPdfImg": "Only PDF or images",
+    "readError": "Error reading file",
+    "storageFull": "Storage full — delete older item first"
   }
 }
