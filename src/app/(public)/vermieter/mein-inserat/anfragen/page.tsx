@@ -10,6 +10,8 @@ export default function Page() {
       title='Mietanfragen'
       subtitle='Wer will deinen Platz mieten?'
       showSave={false}
+      storageKey="cm_vermieter_anfragen"
+      role="vermieter"
     >
       <AktuellBox label="Offen">
             <p style={{ fontSize: 38, fontFamily: 'Cinzel', fontWeight: 600 }} className="text-gold-metallic">5</p>
