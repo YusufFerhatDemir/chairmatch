@@ -1,25 +1,23 @@
 'use client'
 
-import MeinBereichSubPage, { TippsBox } from '@/components/MeinBereichSubPage'
+import MeinBereichSubPage, { AktuellBox, TippsBox, GoldButton } from '@/components/MeinBereichSubPage'
 import { GalleryUpload } from '@/components/UploadField'
+import { useTranslations } from '@/i18n/client'
 
 export default function Page() {
+  const t = useTranslations()
   return (
     <MeinBereichSubPage
       parentHref="/anbieter/mein-salon"
-      parentLabel="Mein Salon"
-      title="Salon-Galerie"
-      subtitle="Bilder die im Profil gezeigt werden."
-      storageKey="cm_anbieter_galerie_meta"
-      role="anbieter"
+      parentLabel={t('meinSalon.title')}
+      title={t('subGalerie.title')}
+      subtitle={t('subGalerie.subtitle')}
       showSave={false}
+      role="anbieter"
     >
-      <GalleryUpload storageKey="cm_anbieter_galerie_images" maxImages={12} label="Bildern" />
-      <TippsBox title="Was Kunden begeistert" tipps={[
-        'Mind. 3 Bilder · Innenraum, Stühle, Detail',
-        'Tageslicht · hell · scharf',
-        'Keine Personen ohne deren Einverständnis',
-        'JPG oder PNG · max. 5 MB pro Bild',
+      <GalleryUpload storageKey="cm_anbieter_galerie_images" maxImages={12} label="" />
+      <TippsBox title={t('subGalerie.tippsTitle')} tipps={[
+        t('subGalerie.tip1'), t('subGalerie.tip2'), t('subGalerie.tip3'), t('subGalerie.tip4'),
       ]} />
     </MeinBereichSubPage>
   )
