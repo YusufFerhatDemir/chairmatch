@@ -14,6 +14,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from '@/i18n/client'
 import { BrandLogo } from '@/components/BrandLogo'
 
 type PlaceId = 'stuhl' | 'liege' | 'kabine' | 'op' | 'raum'
@@ -47,6 +48,7 @@ const DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
 export default function VermieterOnboardingPage() {
   const router = useRouter()
+  const t = useTranslations()
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
 
   // Slide 1
@@ -133,7 +135,7 @@ export default function VermieterOnboardingPage() {
             ‹
           </button>
           <div style={{ fontSize: 10, letterSpacing: 3, color: 'rgba(196,168,106,0.7)' }}>
-            SCHRITT {step} / 4
+            {t('wizard.step')} {step} / 4
           </div>
           <div style={{ width: 32 }} />
         </div>
@@ -155,14 +157,14 @@ export default function VermieterOnboardingPage() {
           <p className="cinzel text-gold-metallic" style={{
             fontSize: 22, fontWeight: 500, letterSpacing: 1, margin: '0 0 6px',
           }}>
-            {step === 1 && 'Was vermietest du?'}
-            {step === 2 && 'Standort & Ausstattung'}
-            {step === 3 && 'Preise & Verfügbarkeit'}
-            {step === 4 && 'Inhaber & Rechtliches'}
+            {step === 1 && t('wizVermieter.s1Title')}
+            {step === 2 && t('wizVermieter.s2Title')}
+            {step === 3 && t('wizVermieter.s3Title')}
+            {step === 4 && t('wizVermieter.s4Title')}
           </p>
           <p style={{ fontSize: 13, color: 'var(--cream)', margin: 0 }}>
-            {step === 1 && 'Anzahl mit + und − wählen.'}
-            {step === 2 && 'Adresse, Fotos und Ausstattung.'}
+            {step === 1 && t('wizVermieter.s1Subtitle')}
+            {step === 2 && t('wizVermieter.s2Subtitle')}
             {step === 3 && 'Pro Platz eigene Preise möglich.'}
             {step === 4 && 'Pflichtangaben für die Vermietung.'}
           </p>
