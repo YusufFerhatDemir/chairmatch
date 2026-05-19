@@ -306,5 +306,209 @@
     "radiusSub": "{km} km um {city}",
     "offers": "Neue Angebote für dich",
     "offersSub": "Auf Basis deines Profils"
+  },
+  "subLogo": {
+    "title": "Logo / Profilbild",
+    "subtitle": "Das runde Bild, das Kunden zuerst sehen.",
+    "uploaded": "✓ Bild hochgeladen",
+    "noImage": "Noch kein Bild · Initialen werden angezeigt",
+    "choose": "Bild auswählen",
+    "other": "Anderes Bild",
+    "remove": "Entfernen",
+    "tippsTitle": "Tipps für ein gutes Logo",
+    "tip1": "Quadratisch · mind. 400 × 400 px",
+    "tip2": "Salon-Logo oder dein eigenes Foto",
+    "tip3": "Heller Vordergrund · dunkler Rand",
+    "tip4": "Keine Wasserzeichen anderer Apps"
+  },
+  "subGalerie": {
+    "title": "Salon-Galerie",
+    "subtitle": "Bilder die im Profil gezeigt werden.",
+    "ofMax": "{n} von {max} Bildern hochgeladen",
+    "addBtn": "+ Bilder hochladen",
+    "tippsTitle": "Was Kunden begeistert",
+    "tip1": "Mind. 3 Bilder · Innenraum, Stühle, Detail",
+    "tip2": "Tageslicht · hell · scharf",
+    "tip3": "Keine Personen ohne Einverständnis",
+    "tip4": "JPG oder PNG · max. 5 MB pro Bild"
+  },
+  "subBeschreibung": {
+    "title": "Beschreibung",
+    "subtitle": "Was macht deinen Salon besonders?",
+    "placeholder": "Heller Salon im Zentrum, 4 Stühlen, eigenem Lounge-Bereich und Espresso-Bar...",
+    "tippsTitle": "Tipps für gute Texte",
+    "tip1": "Maximal 500 Zeichen · kurz und klar",
+    "tip2": "Was ist einzigartig? Lage · Stil · Stimmung",
+    "tip3": "Wer ist deine Zielgruppe?"
+  },
+  "subServices": {
+    "title": "Services & Preise",
+    "subtitle": "Was bietest du an? Mit Preisen und Dauer.",
+    "activeLbl": "Aktive Services",
+    "noneYet": "Noch keine Services angelegt",
+    "addBtn": "+ Service hinzufügen",
+    "tippsTitle": "Beispiele",
+    "tip1": "Damenschnitt · 60 Min · 45 €",
+    "tip2": "Färben · 90 Min · 60 €",
+    "tip3": "Hot-Towel-Rasur · 45 Min · 30 €",
+    "tip4": "Preise später anpassbar"
+  },
+  "subZeiten": {
+    "title": "Öffnungszeiten",
+    "subtitle": "Wann bist du erreichbar?",
+    "mon": "Mo",
+    "tue": "Di",
+    "wed": "Mi",
+    "thu": "Do",
+    "fri": "Fr",
+    "sat": "Sa",
+    "sun": "So"
+  },
+  "subBewertungen": {
+    "title": "Bewertungen",
+    "subtitle": "Was Kunden über dich sagen.",
+    "totalLbl": "Gesamt",
+    "fromCount": "aus {n} Bewertungen · {x} neu"
+  },
+  "subAuszahlung": {
+    "title": "Auszahlung",
+    "subtitle": "Wohin geht das Geld vom Kunden?",
+    "statusLbl": "Status",
+    "notSetup": "Noch nicht eingerichtet",
+    "ibanHint": "Du brauchst eine IBAN, damit Kunden zahlen können.",
+    "ibanLbl": "IBAN",
+    "tippsTitle": "Auszahlungs-Info",
+    "tip1": "Auszahlung 1× pro Woche auf dein Konto",
+    "tip2": "0 % Provision für Vermietungen",
+    "tip3": "Sichere Abwicklung über Stripe",
+    "tip4": "Du bekommst eine Rechnung per Mail"
+  },
+  "subFotos": {
+    "title": "Fotos",
+    "subtitle": "Bilder deines Stuhls / der Liege.",
+    "tippsTitle": "Was Mieter sehen wollen",
+    "tip1": "Klare Sicht auf den Arbeitsplatz",
+    "tip2": "Spiegel · Stuhl · Werkzeuge sichtbar",
+    "tip3": "Sauberer Raum · gutes Licht"
+  },
+  "subAusstattung": {
+    "title": "Ausstattung",
+    "subtitle": "Was ist beim Platz inklusive?",
+    "item1": "Spiegel",
+    "item2": "Föhn",
+    "item3": "Glätteisen",
+    "item4": "Schere & Kämme",
+    "item5": "Sterilisator",
+    "item6": "Sitzgelegenheit für Kunden",
+    "item7": "WLAN",
+    "item8": "Klimaanlage",
+    "item9": "Wasseranschluss",
+    "item10": "Kaffeemaschine"
+  },
+  "subPreise": {
+    "title": "Preise",
+    "subtitle": "Was kostet die Miete?",
+    "perHour": "Pro Stunde",
+    "perDay": "Pro Tag",
+    "perWeek": "Pro Woche",
+    "perMonth": "Pro Monat"
+  },
+  "subVerfuegbarkeit": {
+    "title": "Verfügbarkeit",
+    "subtitle": "Wann ist der Platz frei?",
+    "daysLbl": "Tage",
+    "timesLbl": "Uhrzeit"
+  },
+  "subAnfragen": {
+    "title": "Mietanfragen",
+    "subtitle": "Wer will deinen Platz mieten?",
+    "openLbl": "Offen",
+    "newLbl": "NEU",
+    "newRequests": "neue Anfragen · ungesehen"
+  },
+  "subVorschau": {
+    "title": "Live-Vorschau",
+    "subtitle": "So sehen Mieter dein Inserat.",
+    "previewLbl": "Vorschau",
+    "hint": "Hier siehst du genau wie Mieter dein Inserat in der App finden.",
+    "openBtn": "Vorschau öffnen"
+  },
+  "subSuchen": {
+    "title": "Stühle suchen",
+    "subtitle": "Filter setzen und Treffer ansehen.",
+    "cityLbl": "Stadt",
+    "maxLbl": "Max. €/Tag",
+    "searchBtn": "Suchen"
+  },
+  "subFavoriten": {
+    "title": "Favoriten",
+    "subtitle": "Stühle die du gemerkt hast.",
+    "savedLbl": "Gespeichert",
+    "favorites": "Favoriten"
+  },
+  "subMieterAnfragen": {
+    "title": "Meine Anfragen",
+    "subtitle": "Deine offenen und erledigten Anfragen.",
+    "statusLbl": "Status",
+    "newReplies": "Antworten neu",
+    "confirmed": "BESTÄTIGT",
+    "openTag": "OFFEN",
+    "rejected": "ABGELEHNT"
+  },
+  "subProfil": {
+    "title": "Mein Profil",
+    "subtitle": "Deine Daten als Mieter.",
+    "nameLbl": "Name",
+    "jobLbl": "Beruf",
+    "licenseLbl": "Lizenz / Meisterbrief",
+    "licensePlaceholder": "Lizenz-Nr. oder Meisterbrief-Nr.",
+    "jobFriseur": "Friseur / Friseurin",
+    "jobBarber": "Barber",
+    "jobKosmetik": "Kosmetiker / Kosmetikerin",
+    "jobNagel": "Nageldesigner / -in",
+    "jobMassage": "Masseur / Masseuse"
+  },
+  "subVerlauf": {
+    "title": "Verlauf",
+    "subtitle": "Deine früheren Buchungen."
+  },
+  "subRadius": {
+    "title": "Suchradius",
+    "subtitle": "Wie weit darf der Stuhl entfernt sein?",
+    "currentLbl": "Aktuell",
+    "around": "um {city}",
+    "tippsTitle": "Tipp",
+    "tip1": "Größerer Radius = mehr Auswahl",
+    "tip2": "Kleinerer Radius = bessere Anfahrt",
+    "tip3": "10–15 km sind in der Stadt ein guter Mittelwert"
+  },
+  "subAngebote": {
+    "title": "Neue Angebote für dich",
+    "subtitle": "Auf Basis deines Profils und Suchverlaufs."
+  },
+  "subZertifikate": {
+    "title": "Hygiene & Zertifikate",
+    "subtitle": "Pflicht für OP-Räume und Medical Beauty.",
+    "doc1Title": "Hygiene-Zertifikat",
+    "doc1Sub": "Gesundheitsamt · gültig 24 Mo.",
+    "doc2Title": "Approbation / Berufsurkunde",
+    "doc2Sub": "Arzt-Lizenz · Original-Scan",
+    "doc3Title": "Medical-Beauty-Lizenz",
+    "doc3Sub": "Pflicht bei Botox / Filler / Laser",
+    "infoBox": "Pflicht-Info: Ohne vollständige Zertifikate kannst du dein OP-Raum-Inserat nicht veröffentlichen. Wir prüfen die Dokumente manuell innerhalb von 48 Stunden."
+  },
+  "upload": {
+    "current": "Aktuell",
+    "uploaded": "Hochgeladen",
+    "missing": "FEHLT",
+    "uploadedTag": "HOCHGELADEN",
+    "replace": "Ersetzen",
+    "delete": "Löschen",
+    "uploadDoc": "Dokument hochladen (PDF · JPG · max. 5 MB)",
+    "fileTooLarge": "Datei zu groß (max 5 MB)",
+    "onlyImages": "Nur Bilder erlaubt",
+    "onlyPdfImg": "Nur PDF oder Bilder erlaubt",
+    "readError": "Fehler beim Lesen der Datei",
+    "storageFull": "Speicher voll — älteres Element zuerst löschen"
   }
 }
