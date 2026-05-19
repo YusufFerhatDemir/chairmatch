@@ -10,6 +10,8 @@ export default function Page() {
       title='Salon-Galerie'
       subtitle='Bilder die im Profil gezeigt werden.'
       showSave={true}
+      storageKey="cm_anbieter_galerie"
+      role="anbieter"
     >
       <AktuellBox label="Hochgeladen">
             <p style={{ fontSize: 24, color: 'var(--gold2)' }}>0 / 12</p>
