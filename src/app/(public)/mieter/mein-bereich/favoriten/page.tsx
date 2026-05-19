@@ -10,6 +10,8 @@ export default function Page() {
       title='Favoriten'
       subtitle='Stühle die du gemerkt hast.'
       showSave={false}
+      storageKey="cm_mieter_favoriten"
+      role="mieter"
     >
       <AktuellBox label="Gespeichert">
             <p style={{ fontSize: 38, fontFamily: 'Cinzel', fontWeight: 600 }} className="text-gold-metallic">4</p>
