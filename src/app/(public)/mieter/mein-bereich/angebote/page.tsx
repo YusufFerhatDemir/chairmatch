@@ -10,6 +10,8 @@ export default function Page() {
       title='Neue Angebote für dich'
       subtitle='Auf Basis deines Profils und Suchverlaufs.'
       showSave={false}
+      storageKey="cm_mieter_angebote"
+      role="mieter"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
