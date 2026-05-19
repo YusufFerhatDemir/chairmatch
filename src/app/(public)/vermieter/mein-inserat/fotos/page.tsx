@@ -10,6 +10,8 @@ export default function Page() {
       title='Fotos'
       subtitle='Bilder deines Stuhls / der Liege.'
       showSave={true}
+      storageKey="cm_vermieter_fotos"
+      role="vermieter"
     >
       <AktuellBox label="Hochgeladen">
             <p style={{ fontSize: 24, color: 'var(--gold2)' }}>3 / 8</p>
