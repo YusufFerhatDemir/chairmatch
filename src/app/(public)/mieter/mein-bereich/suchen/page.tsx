@@ -10,6 +10,8 @@ export default function Page() {
       title='Stühle suchen'
       subtitle='Filter setzen und Treffer ansehen.'
       showSave={true}
+      storageKey="cm_mieter_suchen"
+      role="mieter"
     >
       <div>
             <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>Stadt</label>
@@ -17,7 +19,7 @@ export default function Page() {
               width: '100%', marginTop: 6, padding: '12px 14px',
               background: 'var(--c1)', color: 'var(--cream)',
               border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
-            }}/>
+            }} data-storage="value"/>
           </div>
           <div>
             <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>Max. €/Tag</label>
