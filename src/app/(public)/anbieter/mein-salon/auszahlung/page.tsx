@@ -10,6 +10,8 @@ export default function Page() {
       title='Auszahlung'
       subtitle='Wohin geht das Geld vom Kunden?'
       showSave={true}
+      storageKey="cm_anbieter_auszahlung"
+      role="anbieter"
     >
       <AktuellBox label="Status">
             <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--gold2)' }}>Noch nicht eingerichtet</p>
@@ -22,7 +24,7 @@ export default function Page() {
               background: 'var(--c1)', color: 'var(--cream)',
               border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12,
               fontSize: 14, fontFamily: 'inherit', letterSpacing: 1,
-            }}/>
+            }} data-storage="value"/>
           </div>
           <TippsBox title="Auszahlungs-Info" tipps={[
             'Auszahlung 1× pro Woche auf dein Konto',
