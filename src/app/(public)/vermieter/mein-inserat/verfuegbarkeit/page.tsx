@@ -10,6 +10,8 @@ export default function Page() {
       title='Verfügbarkeit'
       subtitle='Wann ist der Platz frei?'
       showSave={true}
+      storageKey="cm_vermieter_verfuegbarkeit"
+      role="vermieter"
     >
       <div>
             <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>Tage</label>
@@ -30,7 +32,7 @@ export default function Page() {
               <input type="time" defaultValue="09:00" style={{
                 flex: 1, padding: '10px 12px', background: 'var(--c1)', color: 'var(--cream)',
                 border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 10, fontSize: 14, fontFamily: 'inherit',
-              }}/>
+              }} data-storage="value"/>
               <span style={{ color: 'var(--gold2)' }}>—</span>
               <input type="time" defaultValue="18:00" style={{
                 flex: 1, padding: '10px 12px', background: 'var(--c1)', color: 'var(--cream)',
