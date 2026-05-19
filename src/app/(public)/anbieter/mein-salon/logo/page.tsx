@@ -10,6 +10,8 @@ export default function Page() {
       title='Logo / Profilbild'
       subtitle='Das runde Bild, das Kunden zuerst sehen.'
       showSave={true}
+      storageKey="cm_anbieter_logo"
+      role="anbieter"
     >
       <AktuellBox>
             <div style={{
