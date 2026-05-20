@@ -228,5 +228,293 @@
     "mieterSub2": "kirala",
     "vermieterSub1": "Koltuk / Kabin",
     "vermieterSub2": "kiraya ver"
+  },
+  "bottomNav": {
+    "account": "Hesap",
+    "start": "Ana sayfa"
+  },
+  "meinSalon": {
+    "title": "Salonum",
+    "subtitle": "Profilini ve rezervasyonlarını yönet",
+    "stat1": "Bugünkü randevular",
+    "stat2": "Değerlendirme",
+    "stat3": "Aylık ciro",
+    "logo": "Logo",
+    "logoSub": "Salon logonu ayarla",
+    "galerie": "Galeri",
+    "galerieSub": "Salon fotoğrafları",
+    "description": "Açıklama",
+    "descriptionSub": "Seni özel kılan ne",
+    "services": "Hizmetler",
+    "servicesActive": "{count} aktif",
+    "hours": "Açılış saatleri",
+    "hoursSub": "Salon ne zaman açık",
+    "reviews": "Değerlendirmeler",
+    "reviewsNew": "{count} yeni",
+    "payout": "Ödeme",
+    "payoutSub": "Ödemen nasıl yapılır",
+    "preview": "Önizleme",
+    "previewSub": "Müşteriler seni nasıl görüyor",
+    "hygiene": "Hijyen & Sertifikalar",
+    "hygieneSub": "Medikal Güzellik için zorunlu",
+    "hygieneTag": "ZORUNLU"
+  },
+  "meinBereich": {
+    "title": "Alanım",
+    "subtitle": "Mükemmel koltuğunu bul",
+    "stat1": "Açık talepler",
+    "stat2": "Onaylandı",
+    "stat3": "Ort. gün",
+    "search": "Ara",
+    "searchSub": "Koltuk veya kabin bul",
+    "favorites": "Favoriler",
+    "favoritesSub": "Kaydedilen yerler",
+    "requests": "Talepler",
+    "requestsNew": "{count} yeni",
+    "profile": "Profil",
+    "profileSub": "Verilerin",
+    "history": "Geçmiş",
+    "historySub": "Geçmiş kiralamalar",
+    "radius": "Yarıçap",
+    "radiusSub": "Arama alanını ayarla",
+    "offers": "Teklifler",
+    "offersSub": "Güncel kampanyalar"
+  },
+  "meinInserat": {
+    "title": "İlanım",
+    "subtitle": "Koltuk ilanını yönet",
+    "stat1": "Açık talepler",
+    "stat2": "Aylık rezervasyon",
+    "stat3": "Aylık ciro",
+    "photos": "Fotoğraflar",
+    "photosSub": "Koltuğunun resimleri",
+    "equipment": "Ekipman",
+    "equipmentSub": "Dahil olanlar",
+    "prices": "Fiyatlar",
+    "pricesSub": "Gün / Hafta / Ay",
+    "availability": "Müsaitlik",
+    "availabilitySub": "Ne zaman boş",
+    "requests": "Talepler",
+    "requestsOpen": "{count} açık",
+    "payout": "Ödeme",
+    "payoutSub": "Ödemen nasıl yapılır",
+    "preview": "Önizleme",
+    "previewSub": "Kiracılar seni nasıl görüyor"
+  },
+  "konto": {
+    "title": "Hesap",
+    "subtitle": "Verilerini yönet",
+    "welcomeBack": "Tekrar hoş geldin",
+    "signInOrCreate": "Giriş yap veya hesap oluştur",
+    "registerSubtitle": "Ücretsiz hesabını oluştur",
+    "yourName": "Adın",
+    "email": "E-posta",
+    "password": "Şifre",
+    "passwordPlaceholder": "En az 10 karakter",
+    "passwordSec": "Güvenli şifre",
+    "passwordChange": "Şifre değiştir",
+    "forgotPassword": "Şifremi unuttum?",
+    "confirmEmailHint": "Sana bir e-posta onayı göndereceğiz",
+    "acceptTerms": "Kabul ediyorum:",
+    "terms": "Şartlar",
+    "privacy": "Gizlilik",
+    "legal": "Yasal",
+    "legalSub": "Şartlar, Gizlilik, Künye",
+    "notifications": "Bildirimler",
+    "notifsOn": "Açık",
+    "language": "Dil",
+    "pleaseWait": "Lütfen bekle…",
+    "deleteConfirm": "Hesap silinsin mi?",
+    "roleKunde": "Müşteri",
+    "roleAnbieter": "Sağlayıcı",
+    "roleMieter": "Kiracı",
+    "roleVermieter": "Kiraya veren"
+  },
+  "subLogo": {
+    "title": "Logo",
+    "subtitle": "Logonu ayarla. Müşterilerin ilk gördüğü şey.",
+    "tippsTitle": "İpuçları",
+    "tip1": "Kare görüntü (min. 512×512 px)",
+    "tip2": "Şeffaf arka plan en iyisi",
+    "tip3": "Net okunabilir, karışık değil",
+    "tip4": "Altın veya koyu renkler en iyi"
+  },
+  "subGalerie": {
+    "title": "Galeri",
+    "subtitle": "Salon atmosferini resimlerle göster.",
+    "tippsTitle": "İpuçları",
+    "tip1": "En az 4 fotoğraf yükle",
+    "tip2": "İyi aydınlatılmış, net",
+    "tip3": "Tedavi odalarını da göster",
+    "tip4": "Resimleri düzenli olarak güncelle"
+  },
+  "subBeschreibung": {
+    "title": "Açıklama",
+    "subtitle": "Müşterilere seni özel kılan şeyi anlat.",
+    "placeholder": "Örn. Şehir merkezinde 15 yıllık deneyime sahip premium berber…",
+    "tippsTitle": "İpuçları",
+    "tip1": "Min. 50, maks. 500 karakter",
+    "tip2": "Deneyimini belirt",
+    "tip3": "Özellikler: organik ürünler, ödül, helal vb."
+  },
+  "subServices": {
+    "title": "Hizmetler",
+    "subtitle": "Hangi hizmetleri sunuyorsun?",
+    "activeLbl": "Aktif",
+    "addBtn": "Hizmet ekle",
+    "noneYet": "Henüz hizmet yok",
+    "tippsTitle": "İpuçları",
+    "tip1": "Net hizmet adları kullan",
+    "tip2": "Fiyatı şeffaf belirt",
+    "tip3": "Süreyi gerçekçi tahmin et",
+    "tip4": "Popüler hizmetler üstte"
+  },
+  "subZeiten": {
+    "title": "Açılış saatleri",
+    "subtitle": "Salon ne zaman açık?"
+  },
+  "subBewertungen": {
+    "title": "Değerlendirmeler",
+    "subtitle": "Müşterilerinin söyledikleri.",
+    "fromCount": "{count} üzerinden",
+    "totalLbl": "Toplam"
+  },
+  "subAuszahlung": {
+    "title": "Ödeme",
+    "subtitle": "Ödemen nasıl yapılır?",
+    "ibanLbl": "IBAN",
+    "ibanHint": "Doğrudan hesabına ödeme yaparız",
+    "statusLbl": "Durum",
+    "notSetup": "Henüz ayarlanmadı",
+    "tippsTitle": "Güvenlik",
+    "tip1": "IBAN şifreli saklanır",
+    "tip2": "IBAN'ı sadece sen görürsün",
+    "tip3": "Ödemeler ayda 1×",
+    "tip4": "Ücretsiz · gizli ücret yok"
+  },
+  "subFotos": {
+    "title": "Fotoğraflar",
+    "subtitle": "Koltuğunun / kabinin resimleri.",
+    "tippsTitle": "İpuçları",
+    "tip1": "Min. 3 fotoğraf: geniş, yakın, detay",
+    "tip2": "Gün ışığı en iyisi",
+    "tip3": "Temiz, düzenli çek"
+  },
+  "subAusstattung": {
+    "title": "Ekipman",
+    "subtitle": "Koltuk / kabin ile birlikte ne var?"
+  },
+  "subPreise": {
+    "title": "Fiyatlar",
+    "subtitle": "Gün / Hafta / Ay — ne kadar?"
+  },
+  "subVerfuegbarkeit": {
+    "title": "Müsaitlik",
+    "subtitle": "Koltuğun ne zaman boş?",
+    "daysLbl": "Günler",
+    "timesLbl": "Saatler"
+  },
+  "subVorschau": {
+    "title": "Önizleme",
+    "subtitle": "Kiracılar ilanını böyle görür.",
+    "previewLbl": "Önizleme",
+    "openBtn": "Tarayıcıda aç",
+    "hint": "Güncel verilerini yansıtır."
+  },
+  "subSuchen": {
+    "title": "Ara",
+    "subtitle": "Mükemmel koltuğunu bul."
+  },
+  "subFavoriten": {
+    "title": "Favoriler",
+    "subtitle": "Kaydedilen yerlerin.",
+    "favorites": "Favoriler",
+    "savedLbl": "Kaydedildi",
+    "emptyHint": "Henüz favori yok"
+  },
+  "subAnfragen": {
+    "title": "Talepler",
+    "subtitle": "Koltuğunu kim kiralamak istiyor?"
+  },
+  "subMieterAnfragen": {
+    "title": "Taleplerim",
+    "subtitle": "Taleplerinin durumu."
+  },
+  "subProfil": {
+    "title": "Profil",
+    "subtitle": "Kişisel verilerin."
+  },
+  "subVerlauf": {
+    "title": "Geçmiş",
+    "subtitle": "Geçmiş rezervasyonlar ve kiralamalar."
+  },
+  "subRadius": {
+    "title": "Yarıçap",
+    "subtitle": "Ne kadar uzaklıkta aramak istiyorsun?"
+  },
+  "subAngebote": {
+    "title": "Teklifler",
+    "subtitle": "Güncel kampanyalar ve indirimler."
+  },
+  "subZertifikate": {
+    "title": "Hijyen & Sertifikalar",
+    "subtitle": "Medikal Güzellik için zorunlu.",
+    "tippsTitle": "Gerekenler",
+    "tip1": "Hijyen sertifikası (sağlık müdürlüğü)",
+    "tip2": "Doktorluk ruhsatı",
+    "tip3": "Medikal Güzellik lisansı"
+  },
+  "buttons": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "continue": "Devam",
+    "back": "Geri",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "confirm": "Onayla",
+    "close": "Kapat",
+    "retry": "Tekrar dene"
+  },
+  "toast": {
+    "saved": "Kaydedildi ✓",
+    "error": "Hata — lütfen tekrar dene",
+    "uploading": "Yükleniyor…",
+    "uploaded": "Başarıyla yüklendi"
+  },
+  "upload": {
+    "dragDrop": "Resmi buraya sürükle veya tıkla",
+    "maxSize": "Maks. 5 MB",
+    "remove": "Kaldır",
+    "change": "Değiştir",
+    "tooLarge": "Dosya çok büyük (Maks. 5 MB)"
+  },
+  "wizard": {
+    "step": "Adım {current} / {total}",
+    "next": "İleri →",
+    "back": "← Geri",
+    "finish": "Bitir",
+    "skip": "Atla"
+  },
+  "wizAnbieter": {
+    "title": "Sağlayıcı ol",
+    "subtitle": "4 adımda kendi salon profilin",
+    "categoriesTitle": "Ne sunuyorsun?",
+    "servicesTitle": "Hangi hizmetler?",
+    "profileTitle": "Profilin",
+    "legalTitle": "Yasal"
+  },
+  "wizMieter": {
+    "title": "Kiracı ol",
+    "subtitle": "Mükemmel koltuğunu bul",
+    "locationTitle": "Nerede arıyorsun?",
+    "typeTitle": "Neye ihtiyacın var?",
+    "budgetTitle": "Bütçe"
+  },
+  "wizVermieter": {
+    "title": "Kiraya veren ol",
+    "subtitle": "Koltuğunu veya kabini kiraya ver",
+    "locationTitle": "Koltuğun nerede?",
+    "equipmentTitle": "Ekipman",
+    "priceTitle": "Fiyatlar"
   }
 }
