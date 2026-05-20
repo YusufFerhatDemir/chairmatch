@@ -539,5 +539,26 @@
     "locationTitle": "Koltuğun nerede?",
     "equipmentTitle": "Ekipman",
     "priceTitle": "Fiyatlar"
+  },
+  "reviews": {
+    "writeTitle": "Değerlendirme yaz",
+    "headline": "Randevun nasıldı?",
+    "headlineSub": "Değerlendirmen diğer müşterilere yardımcı olur",
+    "starsLabel": "Yıldız ver",
+    "starsAria": "yıldız",
+    "sentimentPerfect": "Mükemmel!",
+    "sentimentVeryGood": "Çok iyi",
+    "sentimentOk": "Tamam",
+    "sentimentMeh": "İdare eder",
+    "sentimentBad": "İyi değil",
+    "experienceLabel": "Deneyimin",
+    "placeholder": "En çok ne hoşuna gitti? Hizmet, atmosfer, fiyat-performans nasıldı?",
+    "fairTitle": "Adil ol:",
+    "fairText": "Dürüst, kibar ve net yaz. Kişisel saldırılar veya hakaretler silinir.",
+    "submitBtn": "Değerlendirmeyi gönder ✓",
+    "submitting": "Gönderiliyor…",
+    "errStars": "Lütfen yıldız seç",
+    "errMinChars": "Lütfen en az 10 karakter yaz",
+    "errSubmit": "Değerlendirme kaydedilemedi. Lütfen tekrar dene."
   }
 }
