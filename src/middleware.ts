@@ -150,6 +150,7 @@ const publicPrefixes = [
   '/konto',             // Konto-Seite (Login/Register/Profil)
   '/inserat/',          // Inserat-Detail + Mietanfrage
   '/nachrichten',       // Chat-Liste + Chat-Detail
+  '/termine',           // Kunde-Termine
   '/auth/',
   '/api/auth/',
   '/api/analytics/',
