@@ -215,6 +215,18 @@
     "anbieterRowSub": "أقدّم خدمات وأقبل الحجوزات",
     "mieterRowSub": "أريد استئجار كرسي أو مقصورة",
     "vermieterRowSub": "أؤجّر كرسيي، مقصورتي أو استوديوي",
-    "kundeRowSub": "أبحث عن موعد"
+    "kundeRowSub": "أبحث عن موعد",
+    "roleKunde": "عميل",
+    "roleAnbieter": "مزوّد",
+    "roleMieter": "مستأجر",
+    "roleVermieter": "مؤجّر",
+    "kundeSub1": "أبحث عن",
+    "kundeSub2": "مواعيد",
+    "anbieterSub1": "أقدّم",
+    "anbieterSub2": "خدمات",
+    "mieterSub1": "كرسي / مقصورة",
+    "mieterSub2": "للإيجار",
+    "vermieterSub1": "كرسي / مقصورة",
+    "vermieterSub2": "أؤجّر"
   }
 }
