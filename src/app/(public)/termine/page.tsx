@@ -193,6 +193,11 @@ export default function TermineKundePage() {
                           style={{ marginTop: 8, fontSize: 11, color: '#FF8888', background: 'transparent', border: '1px solid rgba(232,80,64,0.3)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontFamily: 'inherit' }}
                         >✕ Absagen</button>
                       )}
+                      {filter === 'past' && b.slug && (
+                        <button onClick={() => router.push(\ as never)}
+                          style={{ marginTop: 8, fontSize: 11, color: 'var(--gold2)', background: 'transparent', border: '1px solid rgba(196,168,106,0.3)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontFamily: 'inherit' }}
+                        >★ Bewerten</button>
+                      )}
                     </div>
                   </div>
                 ))}
