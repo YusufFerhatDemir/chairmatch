@@ -560,5 +560,21 @@
     "errStars": "Please select stars",
     "errMinChars": "Please write at least 10 characters",
     "errSubmit": "Review could not be saved. Please try again."
+  },
+  "search": {
+    "title": "Chair search",
+    "subtitle": "Find your perfect chair",
+    "filter": "Filter",
+    "reset": "Reset",
+    "apply": "Apply",
+    "cityLabel": "City",
+    "priceLabel": "Max. price/day",
+    "equipLabel": "Equipment",
+    "searchPlaceholder": "Search…",
+    "emptyTitle": "No chairs found",
+    "emptyHint": "Try different filters or another city.",
+    "sendRequest": "Send request",
+    "perDay": "/day",
+    "perHour": "/hr"
   }
 }
