@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
+import { useTranslations } from '@/i18n/client'
 
 interface Anfrage {
   id: string
@@ -32,6 +33,7 @@ const MOCK_ANFRAGEN: Anfrage[] = [
 export default function VermieterAnfragenPage() {
   const router = useRouter()
   const [filter, setFilter] = useState<'new' | 'confirmed' | 'rejected' | 'all'>('new')
+  const t = useTranslations()
   const [anfragen, setAnfragen] = useState<Anfrage[]>(MOCK_ANFRAGEN)
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export default function VermieterAnfragenPage() {
           <button onClick={() => router.push('/vermieter/mein-inserat')}
             style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 18, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}
           >‹</button>
-          <span style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>Mietanfragen</span>
+          <span style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>{t('requests.title')}</span>
         </div>
 
         <div style={{ padding: '4px 20px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -88,33 +90,33 @@ export default function VermieterAnfragenPage() {
         </div>
 
         <div style={{ padding: '0 20px 16px' }}>
-          <h2 className="cinzel text-gold-metallic" style={{ fontSize: 24, fontWeight: 500, letterSpacing: 0.5, lineHeight: 1.15, marginBottom: 5 }}>Mietanfragen</h2>
-          <p style={{ fontSize: 13, color: 'var(--stone)' }}>Verwalte eingehende Anfragen</p>
+          <h2 className="cinzel text-gold-metallic" style={{ fontSize: 24, fontWeight: 500, letterSpacing: 0.5, lineHeight: 1.15, marginBottom: 5 }}>{t('requests.title')}</h2>
+          <p style={{ fontSize: 13, color: 'var(--stone)' }}>{t('requests.subtitle')}</p>
         </div>
 
         {/* KPIs */}
         <div style={{ margin: '0 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
           <div style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: '12px 6px', textAlign: 'center' }}>
             <div className="cinzel" style={{ fontSize: 19, fontWeight: 600, background: 'linear-gradient(135deg,#FF8888,#E85040)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{newCount}</div>
-            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>Neu</div>
+            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>{t('requests.kpiNew')}</div>
           </div>
           <div style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: '12px 6px', textAlign: 'center' }}>
             <div className="cinzel" style={{ fontSize: 19, fontWeight: 600, background: 'linear-gradient(135deg,#6ABF80,#4A8A5A)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{confirmedCount}</div>
-            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>Bestätigt</div>
+            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>{t('requests.kpiConfirmed')}</div>
           </div>
           <div style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: '12px 6px', textAlign: 'center' }}>
             <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>€{weekRevenue}</div>
-            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>Diese Woche</div>
+            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>{t('requests.kpiWeek')}</div>
           </div>
         </div>
 
         {/* Filter */}
         <div style={{ padding: '0 16px 14px', display: 'flex', gap: 6, overflowX: 'auto' }}>
           {[
-            { k: 'new', l: `Neu (${newCount})` },
-            { k: 'confirmed', l: 'Bestätigt' },
-            { k: 'rejected', l: 'Abgelehnt' },
-            { k: 'all', l: 'Alle' },
+            { k: 'new', l: `${t('requests.filterNew')} (${newCount})` },
+            { k: 'confirmed', l: t('requests.filterConfirmed') },
+            { k: 'rejected', l: t('requests.filterRejected') },
+            { k: 'all', l: t('requests.filterAll') },
           ].map(({ k, l }) => (
             <button key={k} onClick={() => setFilter(k as 'new' | 'confirmed' | 'rejected' | 'all')}
               style={{
@@ -133,8 +135,8 @@ export default function VermieterAnfragenPage() {
         <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {filtered.length === 0 ? (
             <div style={{ padding: 40, textAlign: 'center', background: 'rgba(176,144,96,0.04)', border: '1px dashed rgba(176,144,96,0.25)', borderRadius: 18 }}>
-              <p className="cinzel" style={{ fontSize: 18, color: 'var(--gold2)', marginBottom: 8 }}>Keine Anfragen</p>
-              <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6 }}>In dieser Kategorie ist gerade nichts.</p>
+              <p className="cinzel" style={{ fontSize: 18, color: 'var(--gold2)', marginBottom: 8 }}>{t('requests.emptyTitle')}</p>
+              <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6 }}>{t('requests.emptyText')}</p>
             </div>
           ) : filtered.map(a => {
             const isNew = a.status === 'new'
@@ -154,30 +156,30 @@ export default function VermieterAnfragenPage() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 14, fontWeight: 700 }}>{a.customerName}</p>
-                    <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 2 }}>{a.customerJob} · {a.yearsExp} Jahre</p>
-                    {isNew && <span style={{ display: 'inline-block', background: '#E85040', color: '#fff', fontSize: 9, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: 1, marginTop: 3 }}>NEU · UNGESEHEN</span>}
-                    {isConfirmed && <span style={{ display: 'inline-block', background: 'rgba(74,138,90,0.18)', color: '#6ABF80', fontSize: 9, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: 1, marginTop: 3 }}>✓ BESTÄTIGT</span>}
-                    {isRejected && <span style={{ display: 'inline-block', background: 'rgba(232,80,64,0.15)', color: '#FF8888', fontSize: 9, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: 1, marginTop: 3 }}>✕ ABGELEHNT</span>}
+                    <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 2 }}>{a.customerJob} · {a.yearsExp} {t('requests.years')}</p>
+                    {isNew && <span style={{ display: 'inline-block', background: '#E85040', color: '#fff', fontSize: 9, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: 1, marginTop: 3 }}>{t('requests.tagNew')}</span>}
+                    {isConfirmed && <span style={{ display: 'inline-block', background: 'rgba(74,138,90,0.18)', color: '#6ABF80', fontSize: 9, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: 1, marginTop: 3 }}>{t('requests.tagConfirmed')}</span>}
+                    {isRejected && <span style={{ display: 'inline-block', background: 'rgba(232,80,64,0.15)', color: '#FF8888', fontSize: 9, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: 1, marginTop: 3 }}>{t('requests.tagRejected')}</span>}
                   </div>
                   <span style={{ fontSize: 10, color: 'var(--stone)', textAlign: 'right', flexShrink: 0 }}>{a.receivedAt}</span>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10, padding: 10, background: 'rgba(196,168,106,0.04)', borderRadius: 10 }}>
                   <div>
-                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>Datum</div>
+                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>{t('requests.lblDate')}</div>
                     <div style={{ color: 'var(--cream)', fontWeight: 600, marginTop: 2, fontSize: 11.5 }}>{a.dateRange}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>Dauer</div>
+                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>{t('requests.lblDuration')}</div>
                     <div style={{ color: 'var(--cream)', fontWeight: 600, marginTop: 2, fontSize: 11.5 }}>{a.duration}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>Gesamt</div>
+                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>{t('requests.lblTotal')}</div>
                     <div className="cinzel text-gold-metallic" style={{ fontWeight: 700, marginTop: 2, fontSize: 14 }}>{a.totalPrice} €</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>Lizenz</div>
-                    <div style={{ color: a.hasLicense ? '#6ABF80' : 'var(--stone)', fontWeight: 600, marginTop: 2, fontSize: 11.5 }}>{a.hasLicense ? '✓ Verifiziert' : 'Keine'}</div>
+                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>{t('requests.lblLicense')}</div>
+                    <div style={{ color: a.hasLicense ? '#6ABF80' : 'var(--stone)', fontWeight: 600, marginTop: 2, fontSize: 11.5 }}>{a.hasLicense ? t('requests.licenseYes') : t('requests.licenseNo')}</div>
                   </div>
                 </div>
 
@@ -188,20 +190,20 @@ export default function VermieterAnfragenPage() {
                 )}
 
                 {isRejected && a.rejectReason && (
-                  <p style={{ fontSize: 11, color: 'var(--stone)', marginBottom: 6 }}>Grund: {a.rejectReason}</p>
+                  <p style={{ fontSize: 11, color: 'var(--stone)', marginBottom: 6 }}>{t('requests.reasonPrefix')} {a.rejectReason}</p>
                 )}
 
                 {isNew && (
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => updateStatus(a.id, 'confirmed')}
                       style={{ flex: 1, padding: 11, borderRadius: 10, background: 'linear-gradient(135deg,#6ABF80,#4A8A5A)', color: '#0B0B0F', border: 'none', fontFamily: 'inherit', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-                    >✓ Bestätigen</button>
+                    >✓ {t('requests.btnConfirm')}</button>
                     <button onClick={() => router.push('/nachrichten' as never)}
                       style={{ flex: 1, padding: 11, borderRadius: 10, background: 'rgba(196,168,106,0.1)', color: 'var(--gold2)', border: '1px solid rgba(196,168,106,0.3)', fontFamily: 'inherit', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
-                    >💬 Chat</button>
-                    <button onClick={() => { const reason = prompt('Grund (optional)') || 'Termin belegt'; updateStatus(a.id, 'rejected', reason) }}
+                    >💬 {t('requests.btnChat')}</button>
+                    <button onClick={() => { const reason = prompt(t('requests.reasonPrompt')) || t('requests.defaultReason'); updateStatus(a.id, 'rejected', reason) }}
                       style={{ flex: 1, padding: 11, borderRadius: 10, background: 'transparent', color: '#FF8888', border: '1px solid rgba(232,80,64,0.3)', fontFamily: 'inherit', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
-                    >✕ Ablehnen</button>
+                    >✕ {t('requests.btnReject')}</button>
                   </div>
                 )}
 
@@ -209,10 +211,10 @@ export default function VermieterAnfragenPage() {
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => router.push('/nachrichten' as never)}
                       style={{ flex: 2, padding: 11, borderRadius: 10, background: 'rgba(196,168,106,0.1)', color: 'var(--gold2)', border: '1px solid rgba(196,168,106,0.3)', fontFamily: 'inherit', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
-                    >💬 Chat öffnen</button>
+                    >💬 {t('requests.btnChatOpen')}</button>
                     <button onClick={() => updateStatus(a.id, 'rejected', 'Storniert')}
                       style={{ flex: 1, padding: 11, borderRadius: 10, background: 'transparent', color: '#FF8888', border: '1px solid rgba(232,80,64,0.3)', fontFamily: 'inherit', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
-                    >✕ Stornieren</button>
+                    >✕ {t('requests.btnCancel')}</button>
                   </div>
                 )}
               </div>
