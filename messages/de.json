@@ -283,7 +283,7 @@
     "hygieneTag": "PFLICHT"
   },
   "meinBereich": {
-    "title": "Mein Bereich",
+    "title": "Meine Suche",
     "subtitle": "Finde deinen perfekten Stuhl",
     "stat1": "Anfragen offen",
     "stat2": "Bestätigt",
@@ -304,7 +304,7 @@
     "offersSub": "Aktuelle Specials"
   },
   "meinInserat": {
-    "title": "Mein Inserat",
+    "title": "Mein Angebot",
     "subtitle": "Verwalte dein Stuhl-Inserat",
     "stat1": "Anfragen offen",
     "stat2": "Buchungen Monat",
