@@ -539,5 +539,26 @@
     "locationTitle": "Where is your chair?",
     "equipmentTitle": "Equipment",
     "priceTitle": "Prices"
+  },
+  "reviews": {
+    "writeTitle": "Write a review",
+    "headline": "How was your appointment?",
+    "headlineSub": "Your review helps other customers",
+    "starsLabel": "Give stars",
+    "starsAria": "stars",
+    "sentimentPerfect": "Perfect!",
+    "sentimentVeryGood": "Very good",
+    "sentimentOk": "OK",
+    "sentimentMeh": "So-so",
+    "sentimentBad": "Not good",
+    "experienceLabel": "Your experience",
+    "placeholder": "What did you like best? How was service, atmosphere, value for money?",
+    "fairTitle": "Stay fair:",
+    "fairText": "Write honestly, politely and concretely. Personal attacks or insults will be removed.",
+    "submitBtn": "Send review ✓",
+    "submitting": "Sending…",
+    "errStars": "Please select stars",
+    "errMinChars": "Please write at least 10 characters",
+    "errSubmit": "Review could not be saved. Please try again."
   }
 }
