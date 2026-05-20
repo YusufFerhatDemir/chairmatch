@@ -539,5 +539,26 @@
     "locationTitle": "Wo ist dein Stuhl?",
     "equipmentTitle": "Ausstattung",
     "priceTitle": "Preise"
+  },
+  "reviews": {
+    "writeTitle": "Bewertung schreiben",
+    "headline": "Wie war dein Termin?",
+    "headlineSub": "Deine Bewertung hilft anderen Kunden",
+    "starsLabel": "Sterne vergeben",
+    "starsAria": "Sterne",
+    "sentimentPerfect": "Perfekt!",
+    "sentimentVeryGood": "Sehr gut",
+    "sentimentOk": "OK",
+    "sentimentMeh": "Geht so",
+    "sentimentBad": "Nicht gut",
+    "experienceLabel": "Deine Erfahrung",
+    "placeholder": "Was hat dir besonders gefallen? Wie war Service, Atmosphäre, Preis-Leistung?",
+    "fairTitle": "Fair bleiben:",
+    "fairText": "Schreibe ehrlich, höflich und konkret. Persönliche Angriffe oder Beleidigungen werden gelöscht.",
+    "submitBtn": "Bewertung senden ✓",
+    "submitting": "Wird gesendet…",
+    "errStars": "Bitte Sterne wählen",
+    "errMinChars": "Bitte schreibe mindestens 10 Zeichen",
+    "errSubmit": "Bewertung konnte nicht gespeichert werden. Bitte erneut versuchen."
   }
 }
