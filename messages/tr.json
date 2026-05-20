@@ -215,6 +215,18 @@
     "anbieterRowSub": "Hizmet sunuyorum ve rezervasyon kabul ediyorum",
     "mieterRowSub": "Koltuk veya kabin kiralamak istiyorum",
     "vermieterRowSub": "Koltuğumu, kabinemi veya stüdyomu kiraya veriyorum",
-    "kundeRowSub": "Randevu arıyorum"
+    "kundeRowSub": "Randevu arıyorum",
+    "roleKunde": "Müşteri",
+    "roleAnbieter": "Sağlayıcı",
+    "roleMieter": "Kiracı",
+    "roleVermieter": "Kiraya veren",
+    "kundeSub1": "Arıyorum",
+    "kundeSub2": "Randevu",
+    "anbieterSub1": "Sunuyorum",
+    "anbieterSub2": "Hizmet",
+    "mieterSub1": "Koltuk / Kabin",
+    "mieterSub2": "kirala",
+    "vermieterSub1": "Koltuk / Kabin",
+    "vermieterSub2": "kiraya ver"
   }
 }
