@@ -215,6 +215,18 @@
     "anbieterRowSub": "I offer services & take bookings",
     "mieterRowSub": "I want to rent a chair or cabin",
     "vermieterRowSub": "I let my chair, cabin or studio",
-    "kundeRowSub": "I'm looking for an appointment"
+    "kundeRowSub": "I'm looking for an appointment",
+    "roleKunde": "Customer",
+    "roleAnbieter": "Provider",
+    "roleMieter": "Renter",
+    "roleVermieter": "Landlord",
+    "kundeSub1": "I'm looking for",
+    "kundeSub2": "Appointments",
+    "anbieterSub1": "I offer",
+    "anbieterSub2": "Services",
+    "mieterSub1": "Chair / Cabin",
+    "mieterSub2": "rent",
+    "vermieterSub1": "Chair / Cabin",
+    "vermieterSub2": "let"
   }
 }
