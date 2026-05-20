@@ -123,7 +123,9 @@ export default function MeinInseratPage() {
               {a.badge && (
                 <span style={{ position: 'absolute', top: 8, right: 8, background: '#E85040', color: '#fff', fontSize: 9.5, fontWeight: 700, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>{a.badge}</span>
               )}
-              <div style={{ width: a.wide ? 46 : 56, height: a.wide ? 46 : 56, borderRadius: a.wide ? 12 : 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%)', border: '1px solid rgba(212,175,55,0.14)', flexShrink: 0 }}>{a.icon}</div>
+              <div style={{ width: a.wide ? 56 : 72, height: a.wide ? 56 : 72, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <BrandLogo size={a.wide ? 56 : 72} variant="dark" animateStar={false} priority={false} />
+              </div>
               <div style={{ flex: a.wide ? 1 : undefined, display: 'flex', flexDirection: 'column', gap: 2, textAlign: a.wide ? 'left' : 'center' }}>
                 <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--cream)', lineHeight: 1.2 }}>{a.lbl}</span>
                 <span style={{ fontSize: 10, color: 'var(--stone)', lineHeight: 1.3 }}>{a.sub}</span>
