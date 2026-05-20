@@ -45,21 +45,21 @@ const ROLES: RoleCard[] = [
     icon: Scissors,
     titleKey: 'welcomeSplitter.roleAnbieterTitle',
     subtitleKey: 'welcomeSplitter.anbieterRowSub',
-    href: '/anbieter/wie-es-funktioniert',
+    href: '/anbieter/mein-salon',
   },
   {
     id: 'mieter',
     icon: Armchair,
     titleKey: 'welcomeSplitter.roleMieterTitle',
     subtitleKey: 'welcomeSplitter.mieterRowSub',
-    href: '/mieter/wie-es-funktioniert',
+    href: '/mieter/mein-bereich',
   },
   {
     id: 'vermieter',
     icon: Building2,
     titleKey: 'welcomeSplitter.roleVermieterTitle',
     subtitleKey: 'welcomeSplitter.vermieterRowSub',
-    href: '/vermieter/wie-es-funktioniert',
+    href: '/vermieter/mein-inserat',
   },
 ]
 
@@ -524,9 +524,9 @@ function WelcomeSplitterV11() {
   const t = useTranslations()
   const SPLITTER_ROLES: { id: string; titleKey: string; sub1Key: string; sub2Key: string; href: string }[] = [
     { id: 'kunde',     titleKey: 'welcomeSplitter.roleKundeTitle',     sub1Key: 'welcomeSplitter.roleKundeSub1',     sub2Key: 'welcomeSplitter.roleKundeSub2',     href: '/explore' },
-    { id: 'anbieter',  titleKey: 'welcomeSplitter.roleAnbieterTitle',  sub1Key: 'welcomeSplitter.roleAnbieterSub1',  sub2Key: 'welcomeSplitter.roleAnbieterSub2',  href: '/anbieter/wie-es-funktioniert' },
-    { id: 'mieter',    titleKey: 'welcomeSplitter.roleMieterTitle',    sub1Key: 'welcomeSplitter.roleMieterSub1',    sub2Key: 'welcomeSplitter.roleMieterSub2',    href: '/mieter/wie-es-funktioniert' },
-    { id: 'vermieter', titleKey: 'welcomeSplitter.roleVermieterTitle', sub1Key: 'welcomeSplitter.roleVermieterSub1', sub2Key: 'welcomeSplitter.roleVermieterSub2', href: '/vermieter/wie-es-funktioniert' },
+    { id: 'anbieter',  titleKey: 'welcomeSplitter.roleAnbieterTitle',  sub1Key: 'welcomeSplitter.roleAnbieterSub1',  sub2Key: 'welcomeSplitter.roleAnbieterSub2',  href: '/anbieter/mein-salon' },
+    { id: 'mieter',    titleKey: 'welcomeSplitter.roleMieterTitle',    sub1Key: 'welcomeSplitter.roleMieterSub1',    sub2Key: 'welcomeSplitter.roleMieterSub2',    href: '/mieter/mein-bereich' },
+    { id: 'vermieter', titleKey: 'welcomeSplitter.roleVermieterTitle', sub1Key: 'welcomeSplitter.roleVermieterSub1', sub2Key: 'welcomeSplitter.roleVermieterSub2', href: '/vermieter/mein-inserat' },
   ]
 
   return (
