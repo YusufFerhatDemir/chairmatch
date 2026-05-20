@@ -560,5 +560,21 @@
     "errStars": "Lütfen yıldız seç",
     "errMinChars": "Lütfen en az 10 karakter yaz",
     "errSubmit": "Değerlendirme kaydedilemedi. Lütfen tekrar dene."
+  },
+  "search": {
+    "title": "Koltuk arama",
+    "subtitle": "Mükemmel koltuğunu bul",
+    "filter": "Filtrele",
+    "reset": "Sıfırla",
+    "apply": "Uygula",
+    "cityLabel": "Şehir",
+    "priceLabel": "Maks. fiyat/gün",
+    "equipLabel": "Ekipman",
+    "searchPlaceholder": "Ara…",
+    "emptyTitle": "Koltuk bulunamadı",
+    "emptyHint": "Farklı filtreler veya başka bir şehir dene.",
+    "sendRequest": "Talep gönder",
+    "perDay": "/gün",
+    "perHour": "/sa"
   }
 }
