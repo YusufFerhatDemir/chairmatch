@@ -67,20 +67,20 @@ export default function BuchenPage() {
   }
 
   function submit() {
+    // Weiterleitung zur Bezahl-Seite (Schritt 3 wird auf /zahlen erweitert).
+    // Buchung wird erst nach Bezahlen gespeichert. Service/Datum/Slot/Preis via Query.
+    if (!service || !date || !timeSlot) return
     setSubmitting(true)
-    setTimeout(() => {
-      // Mock booking - in echtem System würde hier API-Call passieren
-      try {
-        const booking = {
-          slug, service, date, timeSlot,
-          bookedAt: new Date().toISOString(),
-        }
-        const existing = JSON.parse(localStorage.getItem('cm_bookings') || '[]')
-        existing.unshift(booking)
-        localStorage.setItem('cm_bookings', JSON.stringify(existing.slice(0, 20)))
-      } catch {}
-      router.push(`/salon/${slug}?booked=1` as never)
-    }, 800)
+    const priceCents = Math.round(service.price * 100)
+    const params = new URLSearchParams({
+      service: service.name,
+      price: String(priceCents),
+      y: String(date.y),
+      m: String(date.m),
+      d: String(date.d),
+      t: timeSlot,
+    })
+    router.push(`/salon/${slug}/buchen/zahlen?${params.toString()}` as never)
   }
 
   function changeMonth(delta: number) {
