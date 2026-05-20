@@ -593,6 +593,31 @@ body {
   .dashboard-main { padding-bottom: 72px; }
 }
 
+
+/* ═══ EDGE-TO-EDGE · NATIVE-APP-MODUS (User-Wunsch 2026-05-20) ═══
+   Auf Handy/Tablet: kein künstlicher App-Frame, kein Card-Rahmen,
+   kein max-width-Container. Content läuft fullscreen edge-to-edge
+   wie bei Uber / Airbnb / Instagram im App-Modus. */
+@media (max-width: 768px) {
+  /* Shell ohne seitliche Border-Linien */
+  .shell {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  /* Inline-App-Frame-Container (maxWidth:430 + borderRadius + border + shadow):
+     React rendert inline-styles als style="max-width:430px;..." —
+     diese Container werden auf Mobile flach (edge-to-edge). */
+  [style*="max-width:430px"],
+  [style*="max-width: 430px"] {
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    min-height: 100dvh !important;
+  }
+}
+
 /* ═══ PRINT ═══ */
 @media print {
   .bottom-nav, .nav, .overlay, .sheet { display: none !important; }
