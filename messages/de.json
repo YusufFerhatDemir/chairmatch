@@ -228,5 +228,293 @@
     "mieterSub2": "mieten",
     "vermieterSub1": "Stuhl / Kabine",
     "vermieterSub2": "vermieten"
+  },
+  "bottomNav": {
+    "account": "Konto",
+    "start": "Start"
+  },
+  "meinSalon": {
+    "title": "Mein Salon",
+    "subtitle": "Verwalte dein Profil und deine Buchungen",
+    "stat1": "Termine heute",
+    "stat2": "Bewertung",
+    "stat3": "Umsatz Monat",
+    "logo": "Logo",
+    "logoSub": "Dein Salon-Logo setzen",
+    "galerie": "Galerie",
+    "galerieSub": "Fotos deines Salons",
+    "description": "Beschreibung",
+    "descriptionSub": "Was dich besonders macht",
+    "services": "Services",
+    "servicesActive": "{count} aktiv",
+    "hours": "Öffnungszeiten",
+    "hoursSub": "Wann ist dein Salon offen",
+    "reviews": "Bewertungen",
+    "reviewsNew": "{count} neu",
+    "payout": "Auszahlung",
+    "payoutSub": "Wie du bezahlt wirst",
+    "preview": "Vorschau",
+    "previewSub": "Wie Kunden dich sehen",
+    "hygiene": "Hygiene & Zertifikate",
+    "hygieneSub": "Pflicht für Medical Beauty",
+    "hygieneTag": "PFLICHT"
+  },
+  "meinBereich": {
+    "title": "Mein Bereich",
+    "subtitle": "Finde deinen perfekten Stuhl",
+    "stat1": "Anfragen offen",
+    "stat2": "Bestätigt",
+    "stat3": "Ø Tag",
+    "search": "Suchen",
+    "searchSub": "Stuhl oder Kabine finden",
+    "favorites": "Favoriten",
+    "favoritesSub": "Gespeicherte Orte",
+    "requests": "Anfragen",
+    "requestsNew": "{count} neu",
+    "profile": "Profil",
+    "profileSub": "Deine Daten",
+    "history": "Verlauf",
+    "historySub": "Vergangene Mieten",
+    "radius": "Radius",
+    "radiusSub": "Suchgebiet einstellen",
+    "offers": "Angebote",
+    "offersSub": "Aktuelle Specials"
+  },
+  "meinInserat": {
+    "title": "Mein Inserat",
+    "subtitle": "Verwalte dein Stuhl-Inserat",
+    "stat1": "Anfragen offen",
+    "stat2": "Buchungen Monat",
+    "stat3": "Umsatz Monat",
+    "photos": "Fotos",
+    "photosSub": "Bilder deines Stuhls",
+    "equipment": "Ausstattung",
+    "equipmentSub": "Was ist dabei",
+    "prices": "Preise",
+    "pricesSub": "Tag / Woche / Monat",
+    "availability": "Verfügbarkeit",
+    "availabilitySub": "Wann frei",
+    "requests": "Anfragen",
+    "requestsOpen": "{count} offen",
+    "payout": "Auszahlung",
+    "payoutSub": "Wie du bezahlt wirst",
+    "preview": "Vorschau",
+    "previewSub": "Wie Mieter dich sehen"
+  },
+  "konto": {
+    "title": "Konto",
+    "subtitle": "Verwalte deine Daten",
+    "welcomeBack": "Willkommen zurück",
+    "signInOrCreate": "Anmelden oder Konto erstellen",
+    "registerSubtitle": "Erstelle dein kostenloses Konto",
+    "yourName": "Dein Name",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "passwordPlaceholder": "Mind. 10 Zeichen",
+    "passwordSec": "Sicheres Passwort",
+    "passwordChange": "Passwort ändern",
+    "forgotPassword": "Passwort vergessen?",
+    "confirmEmailHint": "Wir senden dir eine Bestätigung per E-Mail",
+    "acceptTerms": "Ich akzeptiere die",
+    "terms": "AGB",
+    "privacy": "Datenschutz",
+    "legal": "Rechtliches",
+    "legalSub": "AGB, Datenschutz, Impressum",
+    "notifications": "Benachrichtigungen",
+    "notifsOn": "Aktiv",
+    "language": "Sprache",
+    "pleaseWait": "Bitte warten…",
+    "deleteConfirm": "Konto wirklich löschen?",
+    "roleKunde": "Kunde",
+    "roleAnbieter": "Anbieter",
+    "roleMieter": "Mieter",
+    "roleVermieter": "Vermieter"
+  },
+  "subLogo": {
+    "title": "Logo",
+    "subtitle": "Setze dein Logo. Erstes was Kunden sehen.",
+    "tippsTitle": "Tipps",
+    "tip1": "Quadratisches Bild (min. 512×512 px)",
+    "tip2": "Transparenter Hintergrund am besten",
+    "tip3": "Klar lesbar, nicht überladen",
+    "tip4": "Gold oder dunkle Farben passen am besten"
+  },
+  "subGalerie": {
+    "title": "Galerie",
+    "subtitle": "Zeig dein Salon-Ambiente in Bildern.",
+    "tippsTitle": "Tipps",
+    "tip1": "Mindestens 4 Fotos hochladen",
+    "tip2": "Gut beleuchtet, scharf",
+    "tip3": "Auch Behandlungsräume zeigen",
+    "tip4": "Bilder regelmäßig aktualisieren"
+  },
+  "subBeschreibung": {
+    "title": "Beschreibung",
+    "subtitle": "Erzähl Kunden was dich besonders macht.",
+    "placeholder": "z. B. Premium-Barber mit 15 Jahren Erfahrung in der Altstadt…",
+    "tippsTitle": "Tipps",
+    "tip1": "Mind. 50, max. 500 Zeichen",
+    "tip2": "Erwähne deine Erfahrung",
+    "tip3": "Besonderheiten: Bio-Produkte, Award, Halal etc."
+  },
+  "subServices": {
+    "title": "Services",
+    "subtitle": "Welche Services bietest du?",
+    "activeLbl": "Aktiv",
+    "addBtn": "Service hinzufügen",
+    "noneYet": "Noch keine Services",
+    "tippsTitle": "Tipps",
+    "tip1": "Klare Servicenamen verwenden",
+    "tip2": "Preis transparent angeben",
+    "tip3": "Dauer realistisch einschätzen",
+    "tip4": "Beliebte Services oben"
+  },
+  "subZeiten": {
+    "title": "Öffnungszeiten",
+    "subtitle": "Wann ist dein Salon offen?"
+  },
+  "subBewertungen": {
+    "title": "Bewertungen",
+    "subtitle": "Was deine Kunden sagen.",
+    "fromCount": "von {count}",
+    "totalLbl": "Gesamt"
+  },
+  "subAuszahlung": {
+    "title": "Auszahlung",
+    "subtitle": "Wie wirst du bezahlt?",
+    "ibanLbl": "IBAN",
+    "ibanHint": "Wir zahlen direkt auf dein Konto",
+    "statusLbl": "Status",
+    "notSetup": "Noch nicht eingerichtet",
+    "tippsTitle": "Sicherheit",
+    "tip1": "IBAN ist verschlüsselt gespeichert",
+    "tip2": "Nur du siehst deine IBAN",
+    "tip3": "Auszahlung erfolgt 1×/Monat",
+    "tip4": "Kostenlos · keine versteckten Gebühren"
+  },
+  "subFotos": {
+    "title": "Fotos",
+    "subtitle": "Bilder deines Stuhls / Kabine.",
+    "tippsTitle": "Tipps",
+    "tip1": "Min. 3 Fotos: weit, nah, Detail",
+    "tip2": "Tageslicht ist am besten",
+    "tip3": "Sauber, aufgeräumt fotografieren"
+  },
+  "subAusstattung": {
+    "title": "Ausstattung",
+    "subtitle": "Was ist beim Stuhl / Kabine dabei?"
+  },
+  "subPreise": {
+    "title": "Preise",
+    "subtitle": "Tag / Woche / Monat — wie viel kostet's?"
+  },
+  "subVerfuegbarkeit": {
+    "title": "Verfügbarkeit",
+    "subtitle": "Wann ist dein Stuhl frei?",
+    "daysLbl": "Tage",
+    "timesLbl": "Zeiten"
+  },
+  "subVorschau": {
+    "title": "Vorschau",
+    "subtitle": "So sehen Mieter dein Inserat.",
+    "previewLbl": "Vorschau",
+    "openBtn": "Im Browser öffnen",
+    "hint": "Spiegelt deine aktuellen Daten."
+  },
+  "subSuchen": {
+    "title": "Suchen",
+    "subtitle": "Finde deinen perfekten Stuhl."
+  },
+  "subFavoriten": {
+    "title": "Favoriten",
+    "subtitle": "Deine gespeicherten Orte.",
+    "favorites": "Favoriten",
+    "savedLbl": "Gespeichert",
+    "emptyHint": "Noch keine Favoriten"
+  },
+  "subAnfragen": {
+    "title": "Anfragen",
+    "subtitle": "Wer will deinen Stuhl mieten?"
+  },
+  "subMieterAnfragen": {
+    "title": "Meine Anfragen",
+    "subtitle": "Status deiner Anfragen."
+  },
+  "subProfil": {
+    "title": "Profil",
+    "subtitle": "Deine persönlichen Daten."
+  },
+  "subVerlauf": {
+    "title": "Verlauf",
+    "subtitle": "Vergangene Buchungen und Mieten."
+  },
+  "subRadius": {
+    "title": "Radius",
+    "subtitle": "Wie weit willst du suchen?"
+  },
+  "subAngebote": {
+    "title": "Angebote",
+    "subtitle": "Aktuelle Specials & Rabatte."
+  },
+  "subZertifikate": {
+    "title": "Hygiene & Zertifikate",
+    "subtitle": "Pflicht für Medical Beauty.",
+    "tippsTitle": "Was du brauchst",
+    "tip1": "Hygiene-Zertifikat (Gesundheitsamt)",
+    "tip2": "Approbationsurkunde (Ärzte)",
+    "tip3": "Medical-Beauty-Lizenz"
+  },
+  "buttons": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "continue": "Weiter",
+    "back": "Zurück",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "confirm": "Bestätigen",
+    "close": "Schließen",
+    "retry": "Erneut versuchen"
+  },
+  "toast": {
+    "saved": "Gespeichert ✓",
+    "error": "Fehler — bitte erneut versuchen",
+    "uploading": "Lade hoch…",
+    "uploaded": "Erfolgreich hochgeladen"
+  },
+  "upload": {
+    "dragDrop": "Bild hierher ziehen oder klicken",
+    "maxSize": "Max. 5 MB",
+    "remove": "Entfernen",
+    "change": "Ändern",
+    "tooLarge": "Datei zu groß (Max. 5 MB)"
+  },
+  "wizard": {
+    "step": "Schritt {current} / {total}",
+    "next": "Weiter →",
+    "back": "← Zurück",
+    "finish": "Fertig",
+    "skip": "Überspringen"
+  },
+  "wizAnbieter": {
+    "title": "Anbieter werden",
+    "subtitle": "In 4 Schritten zum eigenen Salon-Profil",
+    "categoriesTitle": "Was bietest du an?",
+    "servicesTitle": "Welche Services?",
+    "profileTitle": "Dein Profil",
+    "legalTitle": "Rechtliches"
+  },
+  "wizMieter": {
+    "title": "Mieter werden",
+    "subtitle": "Finde deinen perfekten Stuhl",
+    "locationTitle": "Wo suchst du?",
+    "typeTitle": "Was brauchst du?",
+    "budgetTitle": "Budget"
+  },
+  "wizVermieter": {
+    "title": "Vermieter werden",
+    "subtitle": "Vermiete deinen Stuhl oder Kabine",
+    "locationTitle": "Wo ist dein Stuhl?",
+    "equipmentTitle": "Ausstattung",
+    "priceTitle": "Preise"
   }
 }
