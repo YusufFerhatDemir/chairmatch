@@ -663,22 +663,22 @@ export default function OnboardingGate({ slides, children }: Props) {
     ] as const
 
     const V14_USPS = [
-      { t1: 'Termine',   t2: 'buchen',    sub: 'Friseur, Kosmetik, Massage, Medical' },
-      { t1: 'Workspace', t2: 'teilen',    sub: 'Stuhl, Liege, Kabine — flexibel' },
-      { t1: '0 %',       t2: 'Provision', sub: 'Fair zu Anbietern, transparent zu Kunden' },
+      { t1: t('welcomeSplitter.uspBookT1'),  t2: t('welcomeSplitter.uspBookT2'),  sub: t('welcomeSplitter.uspBookSub') },
+      { t1: t('welcomeSplitter.uspWorkT1'),  t2: t('welcomeSplitter.uspWorkT2'),  sub: t('welcomeSplitter.uspWorkSub') },
+      { t1: t('welcomeSplitter.uspProvT1'),  t2: t('welcomeSplitter.uspProvT2'),  sub: t('welcomeSplitter.uspProvSub') },
     ]
 
     const V14_TRUST = [
-      { title: 'Sichere',  sub1: 'Buchung &',   sub2: 'Bezahlung' },
-      { title: 'Geprüfte', sub1: 'Anbieter &',  sub2: 'Kliniken' },
-      { title: 'Flexible', sub1: 'Vermietung &',sub2: 'Termine' },
+      { title: t('welcomeSplitter.trustSafeTitle'),     sub1: t('welcomeSplitter.trustSafeLine1'),     sub2: t('welcomeSplitter.trustSafeLine2') },
+      { title: t('welcomeSplitter.trustVerifiedTitle'), sub1: t('welcomeSplitter.trustVerifiedLine1'), sub2: t('welcomeSplitter.trustVerifiedLine2') },
+      { title: t('welcomeSplitter.trustFlexTitle'),     sub1: t('welcomeSplitter.trustFlexLine1'),     sub2: t('welcomeSplitter.trustFlexLine2') },
     ]
 
     const V14_FAQ = [
-      'Was kostet ChairMatch für Anbieter?',
-      'Wie melde ich meinen Salon an?',
-      'Kann ich Stühle vermieten und Termine anbieten?',
-      'Wie funktioniert die Auszahlung?',
+      t('welcomeSplitter.faqQ1'),
+      t('welcomeSplitter.faqQ2'),
+      t('welcomeSplitter.faqQ3'),
+      t('welcomeSplitter.faqQ4'),
     ]
 
     return (<div style={{maxWidth: 460, width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column'}}>
@@ -701,7 +701,7 @@ export default function OnboardingGate({ slides, children }: Props) {
           fontSize: 14, color: 'var(--cream)', lineHeight: 1.55,
           margin: 0, padding: '0 8px',
         }}>
-          <strong>Marketplace</strong> für Beauty-Termine, Medical-Behandlungen und die Vermietung von Stühlen &amp; Kabinen.
+          {t('welcomeSplitter.tagline')}
         </p>
       </div>
 
@@ -723,7 +723,7 @@ export default function OnboardingGate({ slides, children }: Props) {
         }}
       >
         <Sparkles size={18} color="#1A1308" strokeWidth={2.2} />
-        <span>Jetzt kostenlos registrieren</span>
+        <span>{t('welcomeSplitter.registerCta')}</span>
         <span style={{ marginLeft: 'auto', fontSize: 16, color: '#1A1308' }}>→</span>
       </Link>
 
@@ -743,7 +743,7 @@ export default function OnboardingGate({ slides, children }: Props) {
           marginBottom: 28,
         }}
       >
-        <span>Bereits Konto? Anmelden</span>
+        <span>{t('welcomeSplitter.loginCta')}</span>
       </Link>
 
       {/* 3) Ich bin */}
@@ -822,7 +822,7 @@ export default function OnboardingGate({ slides, children }: Props) {
           textDecoration: 'none', cursor: 'pointer', marginBottom: 28,
         }}
       >
-        <span>Ohne Anmeldung entdecken</span>
+        <span>{t('welcomeSplitter.discoverNoAccount')}</span>
         <span style={{ color: 'var(--gold2)', marginLeft: 4 }}>→</span>
       </Link>
 
@@ -836,13 +836,13 @@ export default function OnboardingGate({ slides, children }: Props) {
         <p className="cinzel text-gold-metallic" style={{
           fontSize: 22, fontWeight: 500, textAlign: 'center', margin: '0 0 14px',
         }}>
-          Was ist ChairMatch?
+          {t('welcomeSplitter.whatIsTitle')}
         </p>
         <p style={{
           fontSize: 14.5, color: 'var(--cream)', lineHeight: 1.65,
           textAlign: 'center', margin: '0 0 18px', padding: '0 4px',
         }}>
-          ChairMatch ist <strong>Deutschlands Marketplace</strong> für Beauty- und Medical-Termine sowie die flexible <strong>Vermietung von Stühlen, Liegen und Kabinen</strong>. Wir verbinden Kunden, Friseure, Kosmetik-Profis, Ärzte und Salons in einem System — mit 0% Provision, transparenten Preisen und Termin-Buchung in unter 60 Sekunden.
+          {t('welcomeSplitter.whatIsLong')}
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {V14_USPS.map((u, i) => (
@@ -899,7 +899,7 @@ export default function OnboardingGate({ slides, children }: Props) {
         <p className="cinzel text-gold-metallic" style={{
           fontSize: 20, fontWeight: 500, margin: '0 0 14px',
         }}>
-          Häufige Fragen für Anbieter
+          {t('welcomeSplitter.faqTitle')}
         </p>
         {V14_FAQ.map((q, idx) => (
           <Link key={idx} href={'/faq?role=anbieter'} style={{
@@ -919,7 +919,7 @@ export default function OnboardingGate({ slides, children }: Props) {
           border: '1px solid rgba(196,168,106,0.35)', borderRadius: 12,
           textDecoration: 'none', color: 'var(--gold2)',
         }}>
-          <span style={{ fontSize: 15 }}>Alle Fragen für Anbieter ansehen</span>
+          <span style={{ fontSize: 15 }}>{t('welcomeSplitter.allFaqsLink')}</span>
           <span>→</span>
         </Link>
       </div>
