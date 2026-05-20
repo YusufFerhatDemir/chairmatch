@@ -276,7 +276,10 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
             className="card"
             style={{ width: '100%', padding: 14, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', border: '1px solid rgba(176,144,96,.2)', background: 'rgba(176,144,96,.04)' }}
           >
-            <span style={{ fontSize: 20 }}>📍</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
             <div style={{ textAlign: 'left' }}>
               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>{t('home.salonsNearby')}</p>
               <p style={{ fontSize: 11, color: 'var(--stone)' }}>{t('home.shareLocation')}</p>
@@ -322,7 +325,10 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Inline Search */}
       <div style={{ padding: '0 var(--pad) 10px', position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(176,144,96,0.1)' }}>
-          <span>🔍</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
           <input
             type="text"
             placeholder={t('home.searchPlaceholder')}
@@ -336,7 +342,11 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
             <button onClick={() => setSearchQuery('')} aria-label={t('common.clearSearch')} style={{ background: 'none', border: 'none', color: 'var(--stone)', fontSize: 16, cursor: 'pointer', padding: 0 }}>✕</button>
           )}
           <button onClick={() => setShowFilter(!showFilter)} aria-label={t('common.showFilter')} aria-expanded={showFilter} style={{ background: 'none', border: 'none', color: showFilter ? 'var(--gold)' : 'var(--stone)', fontSize: 18, cursor: 'pointer', padding: 0 }}>
-            ☰
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="6" x2="20" y2="6"/>
+              <line x1="7" y1="12" x2="17" y2="12"/>
+              <line x1="10" y1="18" x2="14" y2="18"/>
+            </svg>
           </button>
         </div>
         {/* Search Suggestions */}
