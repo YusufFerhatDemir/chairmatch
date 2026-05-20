@@ -539,5 +539,26 @@
     "locationTitle": "أين كرسيك؟",
     "equipmentTitle": "المعدات",
     "priceTitle": "الأسعار"
+  },
+  "reviews": {
+    "writeTitle": "اكتب تقييماً",
+    "headline": "كيف كان موعدك؟",
+    "headlineSub": "تقييمك يساعد العملاء الآخرين",
+    "starsLabel": "أعطِ نجوماً",
+    "starsAria": "نجوم",
+    "sentimentPerfect": "ممتاز!",
+    "sentimentVeryGood": "جيد جداً",
+    "sentimentOk": "حسناً",
+    "sentimentMeh": "لا بأس",
+    "sentimentBad": "ليس جيداً",
+    "experienceLabel": "تجربتك",
+    "placeholder": "ما الذي أعجبك أكثر؟ كيف كانت الخدمة، الأجواء، القيمة مقابل المال؟",
+    "fairTitle": "كن عادلاً:",
+    "fairText": "اكتب بصدق وأدب وبشكل ملموس. الهجمات الشخصية أو الإهانات سيتم حذفها.",
+    "submitBtn": "إرسال التقييم ✓",
+    "submitting": "جارٍ الإرسال…",
+    "errStars": "يرجى اختيار النجوم",
+    "errMinChars": "يرجى كتابة 10 أحرف على الأقل",
+    "errSubmit": "تعذر حفظ التقييم. يرجى المحاولة مرة أخرى."
   }
 }
