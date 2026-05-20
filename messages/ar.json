@@ -228,5 +228,293 @@
     "mieterSub2": "للإيجار",
     "vermieterSub1": "كرسي / مقصورة",
     "vermieterSub2": "أؤجّر"
+  },
+  "bottomNav": {
+    "account": "حساب",
+    "start": "الرئيسية"
+  },
+  "meinSalon": {
+    "title": "صالوني",
+    "subtitle": "إدارة ملفك الشخصي وحجوزاتك",
+    "stat1": "مواعيد اليوم",
+    "stat2": "التقييم",
+    "stat3": "إيرادات الشهر",
+    "logo": "الشعار",
+    "logoSub": "ضع شعار الصالون",
+    "galerie": "المعرض",
+    "galerieSub": "صور الصالون",
+    "description": "الوصف",
+    "descriptionSub": "ما يميزك",
+    "services": "الخدمات",
+    "servicesActive": "{count} نشط",
+    "hours": "ساعات العمل",
+    "hoursSub": "متى يفتح صالونك",
+    "reviews": "التقييمات",
+    "reviewsNew": "{count} جديد",
+    "payout": "السحب",
+    "payoutSub": "كيف تتلقى الأموال",
+    "preview": "معاينة",
+    "previewSub": "كيف يراك العملاء",
+    "hygiene": "النظافة والشهادات",
+    "hygieneSub": "إلزامي للجمال الطبي",
+    "hygieneTag": "إلزامي"
+  },
+  "meinBereich": {
+    "title": "منطقتي",
+    "subtitle": "اعثر على كرسيك المثالي",
+    "stat1": "طلبات مفتوحة",
+    "stat2": "مؤكدة",
+    "stat3": "متوسط ​​اليوم",
+    "search": "ابحث",
+    "searchSub": "اعثر على كرسي أو مقصورة",
+    "favorites": "المفضلة",
+    "favoritesSub": "الأماكن المحفوظة",
+    "requests": "الطلبات",
+    "requestsNew": "{count} جديد",
+    "profile": "الملف الشخصي",
+    "profileSub": "بياناتك",
+    "history": "السجل",
+    "historySub": "إيجارات سابقة",
+    "radius": "نطاق",
+    "radiusSub": "ضبط منطقة البحث",
+    "offers": "العروض",
+    "offersSub": "العروض الحالية"
+  },
+  "meinInserat": {
+    "title": "إعلاني",
+    "subtitle": "إدارة إعلان كرسيك",
+    "stat1": "طلبات مفتوحة",
+    "stat2": "حجوزات الشهر",
+    "stat3": "إيرادات الشهر",
+    "photos": "الصور",
+    "photosSub": "صور كرسيك",
+    "equipment": "المعدات",
+    "equipmentSub": "ما هو مشمول",
+    "prices": "الأسعار",
+    "pricesSub": "يوم / أسبوع / شهر",
+    "availability": "التوفر",
+    "availabilitySub": "متى متاح",
+    "requests": "الطلبات",
+    "requestsOpen": "{count} مفتوح",
+    "payout": "السحب",
+    "payoutSub": "كيف تتلقى الأموال",
+    "preview": "معاينة",
+    "previewSub": "كيف يراك المستأجرون"
+  },
+  "konto": {
+    "title": "الحساب",
+    "subtitle": "إدارة بياناتك",
+    "welcomeBack": "أهلاً بعودتك",
+    "signInOrCreate": "سجل الدخول أو أنشئ حساباً",
+    "registerSubtitle": "أنشئ حسابك المجاني",
+    "yourName": "اسمك",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "10 أحرف على الأقل",
+    "passwordSec": "كلمة مرور آمنة",
+    "passwordChange": "تغيير كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "confirmEmailHint": "سنرسل لك رسالة تأكيد بالبريد الإلكتروني",
+    "acceptTerms": "أوافق على",
+    "terms": "الشروط",
+    "privacy": "الخصوصية",
+    "legal": "قانوني",
+    "legalSub": "الشروط، الخصوصية، البيانات",
+    "notifications": "الإشعارات",
+    "notifsOn": "مفعل",
+    "language": "اللغة",
+    "pleaseWait": "يرجى الانتظار…",
+    "deleteConfirm": "هل تريد حذف الحساب؟",
+    "roleKunde": "عميل",
+    "roleAnbieter": "مزوّد",
+    "roleMieter": "مستأجر",
+    "roleVermieter": "مؤجّر"
+  },
+  "subLogo": {
+    "title": "الشعار",
+    "subtitle": "ضع شعارك. أول ما يراه العملاء.",
+    "tippsTitle": "نصائح",
+    "tip1": "صورة مربعة (الحد الأدنى 512×512 بكسل)",
+    "tip2": "الخلفية الشفافة هي الأفضل",
+    "tip3": "واضح للقراءة، غير مزدحم",
+    "tip4": "الذهبي أو الألوان الداكنة هي الأفضل"
+  },
+  "subGalerie": {
+    "title": "المعرض",
+    "subtitle": "أظهر أجواء صالونك بالصور.",
+    "tippsTitle": "نصائح",
+    "tip1": "ارفع 4 صور على الأقل",
+    "tip2": "إضاءة جيدة، حادة",
+    "tip3": "أظهر غرف العلاج أيضاً",
+    "tip4": "حدّث الصور بانتظام"
+  },
+  "subBeschreibung": {
+    "title": "الوصف",
+    "subtitle": "أخبر العملاء بما يميزك.",
+    "placeholder": "مثال: حلاق متميز بخبرة 15 عاماً في وسط المدينة…",
+    "tippsTitle": "نصائح",
+    "tip1": "الحد الأدنى 50، الأقصى 500 حرف",
+    "tip2": "اذكر خبرتك",
+    "tip3": "المميزات: منتجات عضوية، جوائز، حلال إلخ"
+  },
+  "subServices": {
+    "title": "الخدمات",
+    "subtitle": "ما الخدمات التي تقدمها؟",
+    "activeLbl": "نشط",
+    "addBtn": "إضافة خدمة",
+    "noneYet": "لا توجد خدمات بعد",
+    "tippsTitle": "نصائح",
+    "tip1": "استخدم أسماء خدمات واضحة",
+    "tip2": "حدد السعر بشفافية",
+    "tip3": "قدّر المدة بواقعية",
+    "tip4": "الخدمات الشائعة في الأعلى"
+  },
+  "subZeiten": {
+    "title": "ساعات العمل",
+    "subtitle": "متى يفتح صالونك؟"
+  },
+  "subBewertungen": {
+    "title": "التقييمات",
+    "subtitle": "ما يقوله عملاؤك.",
+    "fromCount": "من {count}",
+    "totalLbl": "المجموع"
+  },
+  "subAuszahlung": {
+    "title": "السحب",
+    "subtitle": "كيف تتلقى الأموال؟",
+    "ibanLbl": "IBAN",
+    "ibanHint": "ندفع مباشرة إلى حسابك",
+    "statusLbl": "الحالة",
+    "notSetup": "لم يتم الإعداد بعد",
+    "tippsTitle": "الأمان",
+    "tip1": "IBAN محفوظ مشفّر",
+    "tip2": "أنت فقط ترى IBAN الخاص بك",
+    "tip3": "السحب مرة واحدة شهرياً",
+    "tip4": "مجاناً · بدون رسوم خفية"
+  },
+  "subFotos": {
+    "title": "الصور",
+    "subtitle": "صور كرسيك / مقصورتك.",
+    "tippsTitle": "نصائح",
+    "tip1": "الحد الأدنى 3 صور: عريضة، قريبة، تفصيلية",
+    "tip2": "ضوء النهار هو الأفضل",
+    "tip3": "نظف ورتب قبل التصوير"
+  },
+  "subAusstattung": {
+    "title": "المعدات",
+    "subtitle": "ما الذي يأتي مع الكرسي / المقصورة؟"
+  },
+  "subPreise": {
+    "title": "الأسعار",
+    "subtitle": "يوم / أسبوع / شهر — كم التكلفة؟"
+  },
+  "subVerfuegbarkeit": {
+    "title": "التوفر",
+    "subtitle": "متى يكون كرسيك متاحاً؟",
+    "daysLbl": "أيام",
+    "timesLbl": "أوقات"
+  },
+  "subVorschau": {
+    "title": "معاينة",
+    "subtitle": "هكذا يرى المستأجرون إعلانك.",
+    "previewLbl": "معاينة",
+    "openBtn": "افتح في المتصفح",
+    "hint": "يعكس بياناتك الحالية."
+  },
+  "subSuchen": {
+    "title": "ابحث",
+    "subtitle": "اعثر على كرسيك المثالي."
+  },
+  "subFavoriten": {
+    "title": "المفضلة",
+    "subtitle": "أماكنك المحفوظة.",
+    "favorites": "المفضلة",
+    "savedLbl": "محفوظ",
+    "emptyHint": "لا توجد مفضلة بعد"
+  },
+  "subAnfragen": {
+    "title": "الطلبات",
+    "subtitle": "من يريد استئجار كرسيك؟"
+  },
+  "subMieterAnfragen": {
+    "title": "طلباتي",
+    "subtitle": "حالة طلباتك."
+  },
+  "subProfil": {
+    "title": "الملف الشخصي",
+    "subtitle": "بياناتك الشخصية."
+  },
+  "subVerlauf": {
+    "title": "السجل",
+    "subtitle": "الحجوزات والإيجارات السابقة."
+  },
+  "subRadius": {
+    "title": "نطاق",
+    "subtitle": "كم تريد أن تبحث؟"
+  },
+  "subAngebote": {
+    "title": "العروض",
+    "subtitle": "العروض الحالية والخصومات."
+  },
+  "subZertifikate": {
+    "title": "النظافة والشهادات",
+    "subtitle": "إلزامي للجمال الطبي.",
+    "tippsTitle": "ما تحتاجه",
+    "tip1": "شهادة النظافة (قسم الصحة)",
+    "tip2": "ترخيص طبي",
+    "tip3": "ترخيص الجمال الطبي"
+  },
+  "buttons": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "continue": "متابعة",
+    "back": "رجوع",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "confirm": "تأكيد",
+    "close": "إغلاق",
+    "retry": "أعد المحاولة"
+  },
+  "toast": {
+    "saved": "تم الحفظ ✓",
+    "error": "خطأ — حاول مرة أخرى",
+    "uploading": "جارٍ الرفع…",
+    "uploaded": "تم الرفع بنجاح"
+  },
+  "upload": {
+    "dragDrop": "اسحب الصورة هنا أو انقر",
+    "maxSize": "الحد الأقصى 5 ميغابايت",
+    "remove": "إزالة",
+    "change": "تغيير",
+    "tooLarge": "الملف كبير جداً (الحد الأقصى 5 ميغابايت)"
+  },
+  "wizard": {
+    "step": "خطوة {current} / {total}",
+    "next": "التالي →",
+    "back": "← رجوع",
+    "finish": "إنهاء",
+    "skip": "تخطي"
+  },
+  "wizAnbieter": {
+    "title": "كن مزوّداً",
+    "subtitle": "ملف صالونك في 4 خطوات",
+    "categoriesTitle": "ماذا تقدم؟",
+    "servicesTitle": "أي خدمات؟",
+    "profileTitle": "ملفك الشخصي",
+    "legalTitle": "قانوني"
+  },
+  "wizMieter": {
+    "title": "كن مستأجراً",
+    "subtitle": "اعثر على كرسيك المثالي",
+    "locationTitle": "أين تبحث؟",
+    "typeTitle": "ماذا تحتاج؟",
+    "budgetTitle": "الميزانية"
+  },
+  "wizVermieter": {
+    "title": "كن مؤجّراً",
+    "subtitle": "أجّر كرسيك أو مقصورتك",
+    "locationTitle": "أين كرسيك؟",
+    "equipmentTitle": "المعدات",
+    "priceTitle": "الأسعار"
   }
 }
