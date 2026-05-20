@@ -560,5 +560,21 @@
     "errStars": "Bitte Sterne wählen",
     "errMinChars": "Bitte schreibe mindestens 10 Zeichen",
     "errSubmit": "Bewertung konnte nicht gespeichert werden. Bitte erneut versuchen."
+  },
+  "search": {
+    "title": "Stuhl-Suche",
+    "subtitle": "Finde deinen perfekten Stuhl",
+    "filter": "Filter",
+    "reset": "Zurücksetzen",
+    "apply": "Anwenden",
+    "cityLabel": "Stadt",
+    "priceLabel": "Max. Preis/Tag",
+    "equipLabel": "Ausstattung",
+    "searchPlaceholder": "Suchen…",
+    "emptyTitle": "Keine Stühle gefunden",
+    "emptyHint": "Versuche andere Filter oder eine andere Stadt.",
+    "sendRequest": "Anfrage senden",
+    "perDay": "/Tag",
+    "perHour": "/Std."
   }
 }
