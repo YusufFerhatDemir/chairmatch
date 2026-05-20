@@ -419,7 +419,10 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
             className="card"
             style={{ width: '100%', padding: 14, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', border: '1px solid rgba(176,144,96,.2)', background: 'rgba(176,144,96,.04)' }}
           >
-            <span style={{ fontSize: 20 }}>📍</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.7" style={{ flexShrink: 0 }}>
+              <path d="M12 21s-7-7.5-7-12a7 7 0 0 1 14 0c0 4.5-7 12-7 12z"/>
+              <circle cx="12" cy="9" r="2.5" fill="url(#caticon-gold)"/>
+            </svg>
             <div style={{ textAlign: 'left' }}>
               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>{t('home.salonsNearby')}</p>
               <p style={{ fontSize: 11, color: 'var(--stone)' }}>{t('home.shareLocation')}</p>
@@ -465,7 +468,10 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
       {/* Inline Search */}
       <div style={{ padding: '0 var(--pad) 10px', position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--c2)', borderRadius: 13, border: searchFocused ? '1px solid var(--gold)' : '1px solid rgba(176,144,96,0.1)' }}>
-          <span>🔍</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="url(#caticon-gold)" strokeWidth="1.8" strokeLinecap="round" style={{ flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="7"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
           <input
             type="text"
             placeholder={t('home.searchPlaceholder')}
