@@ -194,7 +194,7 @@ export default function TermineKundePage() {
                         >✕ Absagen</button>
                       )}
                       {filter === 'past' && b.slug && (
-                        <button onClick={() => router.push(\ as never)}
+                        <button onClick={() => router.push(('/salon/' + b.slug + '/bewerten') as never)}
                           style={{ marginTop: 8, fontSize: 11, color: 'var(--gold2)', background: 'transparent', border: '1px solid rgba(196,168,106,0.3)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontFamily: 'inherit' }}
                         >★ Bewerten</button>
                       )}
