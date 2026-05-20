@@ -283,7 +283,7 @@
     "hygieneTag": "REQUIRED"
   },
   "meinBereich": {
-    "title": "My Area",
+    "title": "My Search",
     "subtitle": "Find your perfect chair",
     "stat1": "Open requests",
     "stat2": "Confirmed",
@@ -304,7 +304,7 @@
     "offersSub": "Current specials"
   },
   "meinInserat": {
-    "title": "My Listing",
+    "title": "My Offer",
     "subtitle": "Manage your chair listing",
     "stat1": "Open requests",
     "stat2": "Monthly bookings",
