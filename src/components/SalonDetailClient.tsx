@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { PROVS, getProviderSpecs, type DemoProvider, type DemoSpec } from '@/lib/demo-data'
-import SalonMap from '@/components/SalonMap'
+import { useRouter } from 'next/navigation'
+import { BrandLogo } from '@/components/BrandLogo'
+import BottomNav from '@/components/BottomNav'
 
 interface SalonData {
   id: string
@@ -62,402 +63,296 @@ interface Props {
   rentals: SalonRental[]
 }
 
-type TabId = 'info' | 'services' | 'team' | 'bewertungen' | 'galerie' | 'vermietung' | 'produkte'
-
-function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
-  return (
-    <span style={{ display: 'inline-flex', gap: 1 }} role="img" aria-label={`${rating.toFixed(1)} von 5 Sternen`}>
-      {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: 'var(--gold)', fontSize: size }} aria-hidden="true">★</span>
-      ))}
-    </span>
-  )
+const CATEGORY_FALLBACK_BG: Record<string, string> = {
+  barber: 'linear-gradient(135deg,#5C4A28,#2A1F10)',
+  friseur: 'linear-gradient(135deg,#3A3025,#1F1A0F)',
+  kosmetik: 'linear-gradient(135deg,#4A3A28,#241910)',
+  aesthetik: 'linear-gradient(135deg,#5C4A30,#2A1F15)',
+  nail: 'linear-gradient(135deg,#4A3025,#241510)',
+  massage: 'linear-gradient(135deg,#3A2818,#1A1208)',
+  lash: 'linear-gradient(135deg,#4A2A20,#241510)',
+  arzt: 'linear-gradient(135deg,#3A4A28,#1F2A10)',
+  opraum: 'linear-gradient(135deg,#2A3A4A,#101F2A)',
 }
 
-function ReviewCard({ review: r }: { review: SalonReview }) {
-  const [reported, setReported] = useState(false)
-  const isDemoId = typeof r.id === 'string' && r.id.startsWith('dr')
-  async function handleReport() {
-    if (reported || isDemoId) return
-    const res = await fetch(`/api/reviews/${r.id}/report`, { method: 'POST' })
-    if (res.ok) setReported(true)
-  }
-  return (
-    <div style={{ padding: '13px 15px', background: 'var(--c2)', borderRadius: 13, marginBottom: 8, border: '1px solid var(--border)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>{r.customer?.full_name || 'Gast'}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, color: 'var(--stone)' }}>{new Date(r.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-          {!isDemoId && (
-            <button
-              onClick={handleReport}
-              disabled={reported}
-              style={{ fontSize: 10, color: reported ? 'var(--stone)' : 'var(--stone)', background: 'none', border: 'none', cursor: reported ? 'default' : 'pointer', textDecoration: 'underline' }}
-            >
-              {reported ? 'Gemeldet' : 'Melden'}
-            </button>
-          )}
-        </div>
-      </div>
-      <Stars rating={r.rating} />
-      {r.comment && <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6, marginTop: 5 }}>{r.comment}</p>}
-      {r.reply && (
-        <div style={{ marginTop: 8, paddingLeft: 12, borderLeft: '2px solid var(--border)' }}>
-          <p style={{ fontSize: 12, color: 'var(--stone)', fontStyle: 'italic' }}>Antwort: {r.reply}</p>
-        </div>
-      )}
-    </div>
-  )
+function formatYears(salonCreatedYear = 2023): string {
+  const years = new Date().getFullYear() - salonCreatedYear
+  return years > 0 ? `${years} J` : 'NEU'
+}
+
+function formatDate(iso: string): string {
+  try {
+    const d = new Date(iso)
+    const diff = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24))
+    if (diff < 1) return 'heute'
+    if (diff < 2) return 'gestern'
+    if (diff < 7) return `vor ${diff} Tagen`
+    if (diff < 30) return `vor ${Math.floor(diff / 7)} Wochen`
+    return d.toLocaleDateString('de-DE')
+  } catch { return '' }
 }
 
 export default function SalonDetailClient({ salon, services, staff, reviews, rentals }: Props) {
-  const [tab, setTab] = useState<TabId>('info')
+  const router = useRouter()
   const [isFav, setIsFav] = useState(false)
-
-  // Salon products
-  interface SalonProduct { id: string; name: string; slug: string; price_cents: number; brand: string | null; images: { url: string; alt: string }[]; description: string | null }
-  const [salonProducts, setSalonProducts] = useState<SalonProduct[]>([])
-  const [productsLoaded, setProductsLoaded] = useState(false)
+  const [activeImg, setActiveImg] = useState(0)
 
   useEffect(() => {
-    if (tab === 'produkte' && !productsLoaded) {
-      fetch(`/api/products?salonId=${salon.id}&limit=20`)
-        .then(r => r.ok ? r.json() : [])
-        .then(d => { setSalonProducts(d); setProductsLoaded(true) })
-        .catch(() => setProductsLoaded(true))
-    }
-  }, [tab, productsLoaded, salon.id])
-
-  // Try to find matching demo provider for richer data
-  const demoP = PROVS.find(p => p.id === salon.id || p.nm === salon.name)
-  const demoSpecs = demoP ? getProviderSpecs(demoP) : []
-
-  // Use demo data if DB data is sparse
-  const displayServices = services.length > 0 ? services : (demoP?.svs || []).map(s => ({
-    id: s.id, name: s.nm, duration_minutes: s.dur, price_cents: s.pr * 100,
-  }))
-  const displayReviews = reviews.length > 0 ? reviews : (demoP?.revs || []).map((r, i) => ({
-    id: `dr${i}`, rating: r.s, comment: r.t, reply: null, customer: { full_name: r.u }, created_at: r.d,
-  }))
-  const displayRentals = rentals.length > 0 ? rentals : (demoP?.rental || []).map((r, i) => ({
-    id: `rl${i}`, type: r.type, name: r.type === 'stuhl' ? 'Stuhl' : r.type === 'liege' ? 'Liege' : r.type === 'opraum' ? 'OP-Raum' : 'Raum',
-    price_per_day_cents: r.pr * 100, description: null,
-  }))
-  const displayStaff = staff.length > 0 ? staff : demoSpecs.map(s => ({
-    id: s.id, name: s.nm, title: s.role, avatar_url: null,
-  }))
-
-  const displayRating = demoP ? demoP.rt : Number(salon.avg_rating)
-  const displayReviewCount = demoP ? demoP.rc : salon.review_count
-  const displayTags = demoP?.tags || salon.tags || []
-  const displayTagline = demoP?.tl || salon.tagline || salon.description || ''
-
-  const isB2B = typeof window !== 'undefined' && sessionStorage.getItem('cm_role') === 'B2B'
-  const baseTabs: TabId[] = ['info', 'services', 'team', 'bewertungen', 'galerie', 'produkte']
-  if (isB2B && displayRentals.length > 0) baseTabs.splice(1, 0, 'vermietung')
-
-  const tabLabels: Record<TabId, string> = {
-    info: 'Info', services: 'Services', team: 'Team',
-    bewertungen: 'Bewertungen', galerie: 'Galerie', vermietung: 'Vermietung', produkte: 'Produkte',
-  }
-
-  useEffect(() => {
-    const favs = JSON.parse(localStorage.getItem('cm_favorites') || '[]')
-    setIsFav(favs.includes(salon.id) || favs.includes(demoP?.id))
-  }, [salon.id, demoP?.id])
+    try {
+      const favs = JSON.parse(localStorage.getItem('cm_favorites') || '[]')
+      setIsFav(favs.includes(salon.id))
+    } catch {}
+  }, [salon.id])
 
   function toggleFav() {
-    const favs: string[] = JSON.parse(localStorage.getItem('cm_favorites') || '[]')
-    const id = demoP?.id || salon.id
-    const adding = !favs.includes(id)
-    const next = adding ? [...favs, id] : favs.filter(f => f !== id)
-    localStorage.setItem('cm_favorites', JSON.stringify(next))
-    setIsFav(!isFav)
-    // Sync to DB via API (non-blocking)
-    fetch('/api/favorites', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ salonId: salon.id, action: adding ? 'add' : 'remove' }),
-    }).catch(() => {})
+    try {
+      const favs = JSON.parse(localStorage.getItem('cm_favorites') || '[]')
+      const next = favs.includes(salon.id)
+        ? favs.filter((x: string) => x !== salon.id)
+        : [...favs, salon.id]
+      localStorage.setItem('cm_favorites', JSON.stringify(next))
+      setIsFav(next.includes(salon.id))
+    } catch {}
   }
 
-  const dayLabels: Record<string, string> = { mo: 'Mo', di: 'Di', mi: 'Mi', do: 'Do', fr: 'Fr', sa: 'Sa', so: 'So' }
-  const openingHours = salon.opening_hours || {}
-
-  const demoGal = demoP?.gal || []
+  const bgGradient = CATEGORY_FALLBACK_BG[salon.category] || 'linear-gradient(135deg,#3A3025,#1F1A0F)'
+  const initials = salon.name.slice(0, 2).toUpperCase()
+  const minPrice = services.length > 0 ? Math.min(...services.map(s => s.price_cents)) / 100 : null
+  const cityLine = salon.street ? `${salon.street}, ${salon.city || ''}` : salon.city || ''
 
   return (
-    <div className="shell">
-      <div className="screen">
-        {/* Header */}
-        <div style={{ padding: '20px var(--pad)', background: 'var(--c1)' }}>
-          <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>← Zurück</Link>
-          <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 12 }}>{salon.name}</h1>
-          {displayTagline && <p style={{ color: 'var(--stone)', fontSize: 'var(--font-md)', marginTop: 4 }}>{displayTagline}</p>}
-          <div style={{ display: 'flex', gap: 12, marginTop: 12, alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Stars rating={displayRating} size={14} />
-              <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{displayRating.toFixed(1)}</span>
-            </div>
-            <span style={{ color: 'var(--stone2)', fontSize: 'var(--font-sm)' }}>{displayReviewCount} Bewertungen</span>
-            <span style={{ color: 'var(--stone2)', fontSize: 'var(--font-sm)' }}>{salon.city}</span>
+    <div style={{
+      minHeight: '100vh', background: 'var(--bg)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      padding: '22px 14px 0',
+    }}>
+      <div style={{
+        width: '100%', maxWidth: 430, background: 'var(--bg)',
+        borderRadius: 38, overflow: 'hidden',
+        border: '1px solid rgba(196,168,106,0.12)',
+        boxShadow: '0 50px 120px rgba(0,0,0,0.78)',
+        marginBottom: 24,
+      }}>
+        {/* Hero */}
+        <div style={{
+          width: '100%', aspectRatio: '5/4', background: bgGradient,
+          position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(196,168,106,0.4)" strokeWidth="1" style={{ opacity: 0.5 }}>
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="9" cy="9" r="2"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          <button
+            onClick={() => router.back()}
+            style={{
+              position: 'absolute', top: 20, left: 20,
+              width: 42, height: 42, borderRadius: '50%',
+              background: 'rgba(11,11,15,0.7)', backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(196,168,106,0.3)',
+              color: 'var(--cream)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+            }}
+          >‹</button>
+          <button
+            onClick={toggleFav}
+            style={{
+              position: 'absolute', top: 20, right: 74,
+              width: 42, height: 42, borderRadius: '50%',
+              background: 'rgba(11,11,15,0.7)', backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(196,168,106,0.3)',
+              color: isFav ? '#E85040' : 'var(--cream)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+            }}
+          >{isFav ? '♥' : '♡'}</button>
+          <button
+            onClick={async () => {
+              if (navigator.share) {
+                try { await navigator.share({ title: salon.name, url: window.location.href }) } catch {}
+              } else {
+                try { await navigator.clipboard.writeText(window.location.href) } catch {}
+              }
+            }}
+            style={{
+              position: 'absolute', top: 20, right: 20,
+              width: 42, height: 42, borderRadius: '50%',
+              background: 'rgba(11,11,15,0.7)', backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(196,168,106,0.3)',
+              color: 'var(--cream)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+            }}
+          >↗</button>
+        </div>
+
+        {/* Avatar Card */}
+        <div style={{
+          margin: '-32px 20px 0', position: 'relative',
+          background: 'linear-gradient(145deg, rgba(191,149,63,0.08) 0%, var(--c2) 50%, rgba(179,135,40,0.05) 100%)',
+          border: '1px solid rgba(191,149,63,0.25)',
+          borderRadius: 20, padding: 16,
+          display: 'flex', gap: 14, alignItems: 'center',
+          boxShadow: '0 0 20px rgba(191,149,63,0.15), 0 14px 32px rgba(0,0,0,0.5)',
+        }}>
+          <div style={{
+            width: 58, height: 58, borderRadius: '50%',
+            border: '2px solid var(--gold2)',
+            background: 'linear-gradient(135deg,#2A2418,#161210)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <span className="cinzel text-gold-metallic" style={{ fontSize: 22, fontWeight: 600 }}>
+              {initials}
+            </span>
           </div>
-          {/* Tags */}
-          {displayTags.length > 0 && (
-            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 10 }}>
-              {displayTags.map(t => (
-                <span key={t} className="badge badge-gold" style={{ fontSize: 10, padding: '3px 8px' }}>{t}</span>
-              ))}
-            </div>
-          )}
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-            {salon.phone && (
-              <a href={`https://wa.me/${salon.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 14px', borderRadius: 12, background: '#25D366', color: '#fff', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
-                💬 WhatsApp
-              </a>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--cream)' }}>{salon.name}</p>
+            {cityLine && <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 2 }}>{cityLine}</p>}
+            {salon.is_verified && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                fontSize: 9, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: 1,
+                background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
+                color: '#1a1000', marginTop: 6,
+              }}>✓ VERIFIZIERT</span>
             )}
-            <button onClick={toggleFav} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 14px', borderRadius: 12, background: 'var(--c2)', border: '1px solid var(--border)', color: isFav ? 'var(--red)' : 'var(--cream)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-              {isFav ? '♥ Gespeichert' : '♡ Merken'}
-            </button>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div style={{ padding: '12px var(--pad)', display: 'flex', gap: 6, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          {baseTabs.map(tb => (
-            <button key={tb} onClick={() => setTab(tb)} style={{
-              padding: '7px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, flexShrink: 0,
-              background: tab === tb ? 'var(--gold)' : 'var(--c3)',
-              color: tab === tb ? '#080706' : 'var(--stone)',
-              border: tab === tb ? '1px solid var(--gold)' : '1px solid var(--border)',
-              cursor: 'pointer',
-            }}>
-              {tabLabels[tb]}
-            </button>
-          ))}
+        {/* KPI Strip */}
+        <div style={{ display: 'flex', gap: 8, padding: '16px 20px 0' }}>
+          <div style={{ flex: 1, background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: 10, textAlign: 'center' }}>
+            <div className="cinzel text-gold-metallic" style={{ fontSize: 17, fontWeight: 600 }}>{salon.avg_rating.toFixed(1)}★</div>
+            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 2, textTransform: 'uppercase' }}>{salon.review_count} Bewertungen</div>
+          </div>
+          <div style={{ flex: 1, background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: 10, textAlign: 'center' }}>
+            <div className="cinzel text-gold-metallic" style={{ fontSize: 17, fontWeight: 600 }}>{services.length}</div>
+            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 2, textTransform: 'uppercase' }}>Services</div>
+          </div>
+          <div style={{ flex: 1, background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: 10, textAlign: 'center' }}>
+            <div className="cinzel text-gold-metallic" style={{ fontSize: 17, fontWeight: 600 }}>{formatYears()}</div>
+            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 2, textTransform: 'uppercase' }}>Auf ChairMatch</div>
+          </div>
         </div>
 
-        {/* Tab Content */}
-        <div style={{ padding: '0 var(--pad) 16px' }}>
-          {/* INFO TAB */}
-          {tab === 'info' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Opening Hours */}
-              <div className="card" style={{ padding: 14 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)', marginBottom: 8 }}>Öffnungszeiten</p>
-                {Object.entries(dayLabels).map(([key, label]) => {
-                  const h = openingHours[key] as { open: string; close: string } | null | undefined
-                  return (
-                    <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                      <span style={{ color: 'var(--cream)' }}>{label}</span>
-                      <span style={{ color: 'var(--stone)' }}>{h ? `${h.open} – ${h.close}` : 'Geschlossen'}</span>
-                    </div>
-                  )
-                })}
-              </div>
+        {/* About */}
+        {salon.description && (
+          <div style={{ padding: '18px 20px 0' }}>
+            <h3 className="cinzel text-gold-metallic" style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Über den Salon</h3>
+            <p style={{ fontSize: 13, color: 'var(--cream)', lineHeight: 1.6 }}>{salon.description}</p>
+          </div>
+        )}
 
-              {/* Map */}
-              <div className="card" style={{ padding: 14 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)', marginBottom: 8 }}>Standort</p>
-                <SalonMap
-                  address={[salon.street, salon.city].filter(Boolean).join(', ')}
-                  salonName={salon.name}
-                />
-              </div>
-
-              {/* Top 4 Services Preview */}
-              {displayServices.length > 0 && (
-                <div className="card" style={{ padding: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>Services</p>
-                    <button onClick={() => setTab('services')} style={{ fontSize: 12, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>Alle →</button>
-                  </div>
-                  {displayServices.slice(0, 4).map(s => (
-                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                      <span style={{ color: 'var(--cream)' }}>{s.name}</span>
-                      <span style={{ color: 'var(--gold2)', fontWeight: 700 }}>{(s.price_cents / 100).toFixed(0)} €</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Rental */}
-              {displayRentals.length > 0 && (
-                <div className="card" style={{ padding: 14 }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)', marginBottom: 8 }}>Vermietung</p>
-                  {displayRentals.map(r => (
-                    <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
-                      <span style={{ fontSize: 13, color: 'var(--cream)' }}>
-                        {r.type === 'stuhl' ? '💺' : r.type === 'liege' ? '🛏' : r.type === 'opraum' ? '🏥' : '🚪'} {r.name}
-                      </span>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)' }}>{(r.price_per_day_cents / 100).toFixed(0)}€/Tag</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Warum ChairMatch */}
-              <div className="card" style={{ padding: 14 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold2)', marginBottom: 10 }}>Warum ChairMatch?</p>
-                {[
-                  ['Faire Konditionen', 'Beste Preise garantiert'],
-                  ['Direktbuchung', 'Kein Umweg'],
-                  ['Verifiziert', 'Gewerbeschein geprüft'],
-                ].map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                    <span style={{ fontWeight: 700, color: 'var(--gold2)' }}>{k}</span>
-                    <span style={{ color: 'var(--stone)', fontSize: 12 }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Book Button */}
-              <Link href={`/booking/${salon.id}`} className="bgold" style={{ display: 'block', textDecoration: 'none', textAlign: 'center' }}>
-                Termin buchen
-              </Link>
-            </div>
-          )}
-
-          {/* SERVICES TAB */}
-          {tab === 'services' && (
+        {/* Services */}
+        {services.length > 0 && (
+          <div style={{ padding: '18px 20px 0' }}>
+            <h3 className="cinzel text-gold-metallic" style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Services &amp; Preise</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {displayServices.map(s => (
-                <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 15px', background: 'var(--c2)', borderRadius: 13, border: '1px solid var(--border)' }}>
+              {services.map((s) => (
+                <div key={s.id} style={{
+                  background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)',
+                  borderRadius: 12, padding: '12px 14px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, cursor: 'pointer',
+                }}>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--cream)' }}>{s.name}</p>
+                    <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 2 }}>{s.duration_minutes} Min</p>
+                  </div>
+                  <span className="cinzel text-gold-metallic" style={{ fontSize: 16, fontWeight: 700, flexShrink: 0 }}>
+                    {(s.price_cents / 100).toFixed(0)} €
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Opening Hours */}
+        {salon.opening_hours && (
+          <div style={{ padding: '18px 20px 0' }}>
+            <h3 className="cinzel text-gold-metallic" style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Öffnungszeiten</h3>
+            <div style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 12, padding: '12px 14px', fontSize: 12.5, lineHeight: 2, color: 'var(--cream)' }}>
+              {[
+                { id: 'mon', l: 'Montag' }, { id: 'tue', l: 'Dienstag' }, { id: 'wed', l: 'Mittwoch' },
+                { id: 'thu', l: 'Donnerstag' }, { id: 'fri', l: 'Freitag' }, { id: 'sat', l: 'Samstag' }, { id: 'sun', l: 'Sonntag' },
+              ].map(d => {
+                const h = salon.opening_hours?.[d.id]
+                return (
+                  <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', opacity: h ? 1 : 0.5 }}>
+                    <span>{d.l}</span>
+                    <span style={{ color: h ? 'var(--gold2)' : undefined, fontWeight: h ? 700 : undefined }}>
+                      {h ? `${h.open} – ${h.close}` : 'Ruhetag'}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Reviews */}
+        {reviews.length > 0 && (
+          <div style={{ padding: '18px 20px 0' }}>
+            <h3 className="cinzel text-gold-metallic" style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Aktuelle Bewertungen</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {reviews.slice(0, 3).map((r) => (
+                <div key={r.id} style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 12, padding: '12px 14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700 }}>{r.customer?.full_name || 'Kunde'}</span>
+                    <span style={{ fontSize: 10, color: 'var(--stone)' }}>{formatDate(r.created_at)}</span>
+                  </div>
+                  <div style={{ color: 'var(--gold)', fontSize: 12, letterSpacing: 1, marginBottom: 5 }}>
+                    {'★'.repeat(Math.round(r.rating))}
+                  </div>
+                  {r.comment && <p style={{ fontSize: 11.5, color: 'var(--stone)', lineHeight: 1.5 }}>{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Rentals (Vermietungen falls vorhanden) */}
+        {rentals.length > 0 && (
+          <div style={{ padding: '18px 20px 0' }}>
+            <h3 className="cinzel text-gold-metallic" style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Auch zum Mieten</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {rentals.slice(0, 3).map((r) => (
+                <div key={r.id} style={{
+                  background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)',
+                  borderRadius: 12, padding: '12px 14px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+                }}>
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--cream)' }}>{s.name}</p>
-                    <p style={{ fontSize: 12, color: 'var(--stone)' }}>{s.duration_minutes} min</p>
+                    <p style={{ fontSize: 13.5, fontWeight: 700 }}>{r.name}</p>
+                    {r.description && <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 2 }}>{r.description.slice(0, 50)}</p>}
                   </div>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--gold2)' }}>{(s.price_cents / 100).toFixed(0)} €</span>
-                    <Link href={`/booking/${salon.id}`} className="bgold" style={{ padding: '8px 14px', fontSize: 12, textDecoration: 'none' }}>Buchen</Link>
-                  </div>
+                  <span className="cinzel text-gold-metallic" style={{ fontSize: 15, fontWeight: 700 }}>{(r.price_per_day_cents / 100).toFixed(0)} €/Tag</span>
                 </div>
               ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* TEAM TAB */}
-          {tab === 'team' && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-              {(demoSpecs.length > 0 ? demoSpecs : displayStaff.map(m => ({ id: m.id, nm: m.name, role: m.title || '', rt: 0, cat: '', ini: m.name.split(' ').map(n => n[0]).join('').slice(0, 2), col: 'var(--c3)' }))).map(s => (
-                <div key={s.id} style={{ flex: '1 1 calc(50% - 5px)', padding: 14, background: 'var(--c2)', borderRadius: 16, textAlign: 'center', border: '1px solid var(--border)' }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: s.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, margin: '0 auto 8px', color: 'var(--cream)' }}>
-                    {s.ini}
-                  </div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)' }}>{s.nm}</p>
-                  <p style={{ fontSize: 11, color: 'var(--stone)', marginBottom: 5 }}>{s.role}</p>
-                  {s.rt > 0 && <Stars rating={s.rt} />}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* BEWERTUNGEN TAB */}
-          {tab === 'bewertungen' && (
-            <div>
-              {/* Rating Overview */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, background: 'var(--c2)', borderRadius: 14, border: '1px solid var(--border)', marginBottom: 14 }}>
-                <p className="cinzel" style={{ fontSize: 36, fontWeight: 700, color: 'var(--gold2)' }}>{displayRating.toFixed(1)}</p>
-                <div>
-                  <Stars rating={displayRating} size={16} />
-                  <p style={{ fontSize: 12, color: 'var(--stone)', marginTop: 4 }}>{displayReviewCount} Bewertungen</p>
-                </div>
-              </div>
-              {/* Review Cards */}
-              {displayReviews.map(r => (
-                <ReviewCard key={r.id} review={r} />
-              ))}
-            </div>
-          )}
-
-          {/* GALERIE TAB */}
-          {tab === 'galerie' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {demoGal.length > 0 ? demoGal.map((g, i) => (
-                <div key={i} className="card" style={{ padding: 14 }}>
-                  <div style={{ marginBottom: 8 }}>
-                    <span className="badge badge-gold" style={{ fontSize: 10 }}>{g.sv}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ flex: 1, textAlign: 'center' }}>
-                      <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--stone)', marginBottom: 6 }}>Vorher</p>
-                      <div style={{ height: 120, borderRadius: 12, background: `linear-gradient(135deg,${g.b},${g.b}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, opacity: .7 }}>📷</div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 16, color: 'var(--gold)' }}>→</div>
-                    <div style={{ flex: 1, textAlign: 'center' }}>
-                      <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--stone)', marginBottom: 6 }}>Nachher</p>
-                      <div style={{ height: 120, borderRadius: 12, background: `linear-gradient(135deg,${g.a},${g.a}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>✨</div>
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <p style={{ color: 'var(--stone)', textAlign: 'center', padding: 40 }}>Keine Galerie-Bilder vorhanden.</p>
-              )}
-            </div>
-          )}
-
-          {/* PRODUKTE TAB */}
-          {tab === 'produkte' && (
-            <div>
-              {!productsLoaded ? (
-                <p style={{ color: 'var(--stone)', textAlign: 'center', padding: 24 }}>Laden...</p>
-              ) : salonProducts.length === 0 ? (
-                <p style={{ color: 'var(--stone)', textAlign: 'center', padding: 24 }}>Keine Produkte verfügbar.</p>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                  {salonProducts.map(p => (
-                    <a key={p.id} href={`/shop/${p.slug}`} style={{ textDecoration: 'none' }}>
-                      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                        {p.images?.[0]?.url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={p.images[0].url} alt={p.name} style={{ width: '100%', height: 120, objectFit: 'cover' }} />
-                        ) : (
-                          <div style={{ width: '100%', height: 120, background: 'var(--c3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--stone)' }}>
-                            🛍️
-                          </div>
-                        )}
-                        <div style={{ padding: '10px 12px' }}>
-                          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--cream)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
-                          {p.brand && <p style={{ fontSize: 10, color: 'var(--stone)' }}>{p.brand}</p>}
-                          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--gold2)', marginTop: 4 }}>{(p.price_cents / 100).toFixed(2)} €</p>
-                        </div>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* VERMIETUNG TAB */}
-          {tab === 'vermietung' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {displayRentals.map(r => (
-                <div key={r.id} className="card" style={{ padding: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 24 }}>{r.type === 'stuhl' ? '💺' : r.type === 'liege' ? '🛏' : r.type === 'opraum' ? '🏥' : '🚪'}</span>
-                      <div>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--cream)' }}>{r.name}</p>
-                        {r.description && <p style={{ fontSize: 12, color: 'var(--stone)' }}>{r.description}</p>}
-                      </div>
-                    </div>
-                    <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--gold2)' }}>{(r.price_per_day_cents / 100).toFixed(0)}€/Tag</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <a href={salon.phone ? `https://wa.me/${salon.phone.replace(/[^0-9]/g, '')}` : '#'} target="_blank" rel="noopener noreferrer" className="bgold" style={{ flex: 1, textAlign: 'center', textDecoration: 'none', padding: '10px', fontSize: 12 }}>
-                      💬 WhatsApp
-                    </a>
-                    <a href={`mailto:info@chairmatch.de?subject=Mietanfrage: ${salon.name} – ${r.name || r.type}&body=Hallo,%0A%0Aich interessiere mich für die Miete von: ${r.name || r.type} (${(r.price_per_day_cents / 100).toFixed(0)}€/Tag)%0A%0ASalon: ${salon.name}%0A%0AMit freundlichen Grüßen`} className="boutline" style={{ flex: 1, fontSize: 12, cursor: 'pointer', textAlign: 'center', textDecoration: 'none' }}>Jetzt mieten</a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* CTA */}
+        <div style={{ padding: '20px 20px 0' }}>
+          <button
+            onClick={() => router.push(`/salon/${salon.slug || salon.id}/buchen` as never)}
+            style={{
+              width: '100%', padding: 16, borderRadius: 14,
+              background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
+              color: '#1a1000', border: 'none',
+              fontFamily: 'inherit', fontWeight: 700, fontSize: 15, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              boxShadow: '0 0 22px rgba(196,168,106,0.3)',
+            }}
+          >
+            <span>Termin buchen</span>
+            <span className="cinzel" style={{ fontWeight: 700 }}>
+              {minPrice ? `ab ${minPrice} € →` : '→'}
+            </span>
+          </button>
         </div>
 
-        <div style={{ height: 40 }} />
+        <BottomNav role="mieter" />
       </div>
     </div>
   )
