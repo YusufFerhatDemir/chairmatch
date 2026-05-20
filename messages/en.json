@@ -228,5 +228,293 @@
     "mieterSub2": "rent",
     "vermieterSub1": "Chair / Cabin",
     "vermieterSub2": "let"
+  },
+  "bottomNav": {
+    "account": "Account",
+    "start": "Start"
+  },
+  "meinSalon": {
+    "title": "My Salon",
+    "subtitle": "Manage your profile and bookings",
+    "stat1": "Today's appointments",
+    "stat2": "Rating",
+    "stat3": "Monthly revenue",
+    "logo": "Logo",
+    "logoSub": "Set your salon logo",
+    "galerie": "Gallery",
+    "galerieSub": "Photos of your salon",
+    "description": "Description",
+    "descriptionSub": "What makes you special",
+    "services": "Services",
+    "servicesActive": "{count} active",
+    "hours": "Opening hours",
+    "hoursSub": "When is your salon open",
+    "reviews": "Reviews",
+    "reviewsNew": "{count} new",
+    "payout": "Payout",
+    "payoutSub": "How you get paid",
+    "preview": "Preview",
+    "previewSub": "How customers see you",
+    "hygiene": "Hygiene & Certificates",
+    "hygieneSub": "Required for Medical Beauty",
+    "hygieneTag": "REQUIRED"
+  },
+  "meinBereich": {
+    "title": "My Area",
+    "subtitle": "Find your perfect chair",
+    "stat1": "Open requests",
+    "stat2": "Confirmed",
+    "stat3": "Avg. day",
+    "search": "Search",
+    "searchSub": "Find chair or cabin",
+    "favorites": "Favorites",
+    "favoritesSub": "Saved places",
+    "requests": "Requests",
+    "requestsNew": "{count} new",
+    "profile": "Profile",
+    "profileSub": "Your data",
+    "history": "History",
+    "historySub": "Past rentals",
+    "radius": "Radius",
+    "radiusSub": "Set search area",
+    "offers": "Offers",
+    "offersSub": "Current specials"
+  },
+  "meinInserat": {
+    "title": "My Listing",
+    "subtitle": "Manage your chair listing",
+    "stat1": "Open requests",
+    "stat2": "Monthly bookings",
+    "stat3": "Monthly revenue",
+    "photos": "Photos",
+    "photosSub": "Pictures of your chair",
+    "equipment": "Equipment",
+    "equipmentSub": "What's included",
+    "prices": "Prices",
+    "pricesSub": "Day / Week / Month",
+    "availability": "Availability",
+    "availabilitySub": "When free",
+    "requests": "Requests",
+    "requestsOpen": "{count} open",
+    "payout": "Payout",
+    "payoutSub": "How you get paid",
+    "preview": "Preview",
+    "previewSub": "How renters see you"
+  },
+  "konto": {
+    "title": "Account",
+    "subtitle": "Manage your data",
+    "welcomeBack": "Welcome back",
+    "signInOrCreate": "Sign in or create an account",
+    "registerSubtitle": "Create your free account",
+    "yourName": "Your name",
+    "email": "Email",
+    "password": "Password",
+    "passwordPlaceholder": "At least 10 characters",
+    "passwordSec": "Secure password",
+    "passwordChange": "Change password",
+    "forgotPassword": "Forgot password?",
+    "confirmEmailHint": "We'll send you a confirmation email",
+    "acceptTerms": "I accept the",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "legal": "Legal",
+    "legalSub": "Terms, Privacy, Imprint",
+    "notifications": "Notifications",
+    "notifsOn": "On",
+    "language": "Language",
+    "pleaseWait": "Please wait…",
+    "deleteConfirm": "Really delete account?",
+    "roleKunde": "Customer",
+    "roleAnbieter": "Provider",
+    "roleMieter": "Renter",
+    "roleVermieter": "Landlord"
+  },
+  "subLogo": {
+    "title": "Logo",
+    "subtitle": "Set your logo. First thing customers see.",
+    "tippsTitle": "Tips",
+    "tip1": "Square image (min. 512×512 px)",
+    "tip2": "Transparent background works best",
+    "tip3": "Clearly readable, not cluttered",
+    "tip4": "Gold or dark colors work best"
+  },
+  "subGalerie": {
+    "title": "Gallery",
+    "subtitle": "Show your salon atmosphere in pictures.",
+    "tippsTitle": "Tips",
+    "tip1": "Upload at least 4 photos",
+    "tip2": "Well lit, sharp",
+    "tip3": "Show treatment rooms too",
+    "tip4": "Update pictures regularly"
+  },
+  "subBeschreibung": {
+    "title": "Description",
+    "subtitle": "Tell customers what makes you special.",
+    "placeholder": "e.g. Premium barber with 15 years of experience downtown…",
+    "tippsTitle": "Tips",
+    "tip1": "Min. 50, max. 500 characters",
+    "tip2": "Mention your experience",
+    "tip3": "Specialties: organic products, awards, halal etc."
+  },
+  "subServices": {
+    "title": "Services",
+    "subtitle": "What services do you offer?",
+    "activeLbl": "Active",
+    "addBtn": "Add service",
+    "noneYet": "No services yet",
+    "tippsTitle": "Tips",
+    "tip1": "Use clear service names",
+    "tip2": "State price transparently",
+    "tip3": "Estimate duration realistically",
+    "tip4": "Popular services on top"
+  },
+  "subZeiten": {
+    "title": "Opening hours",
+    "subtitle": "When is your salon open?"
+  },
+  "subBewertungen": {
+    "title": "Reviews",
+    "subtitle": "What your customers say.",
+    "fromCount": "of {count}",
+    "totalLbl": "Total"
+  },
+  "subAuszahlung": {
+    "title": "Payout",
+    "subtitle": "How do you get paid?",
+    "ibanLbl": "IBAN",
+    "ibanHint": "We pay directly to your account",
+    "statusLbl": "Status",
+    "notSetup": "Not set up yet",
+    "tippsTitle": "Security",
+    "tip1": "IBAN stored encrypted",
+    "tip2": "Only you see your IBAN",
+    "tip3": "Payouts 1×/month",
+    "tip4": "Free · no hidden fees"
+  },
+  "subFotos": {
+    "title": "Photos",
+    "subtitle": "Pictures of your chair / cabin.",
+    "tippsTitle": "Tips",
+    "tip1": "Min. 3 photos: wide, close, detail",
+    "tip2": "Daylight works best",
+    "tip3": "Clean and tidy when shooting"
+  },
+  "subAusstattung": {
+    "title": "Equipment",
+    "subtitle": "What's included with the chair / cabin?"
+  },
+  "subPreise": {
+    "title": "Prices",
+    "subtitle": "Day / Week / Month — how much?"
+  },
+  "subVerfuegbarkeit": {
+    "title": "Availability",
+    "subtitle": "When is your chair free?",
+    "daysLbl": "Days",
+    "timesLbl": "Times"
+  },
+  "subVorschau": {
+    "title": "Preview",
+    "subtitle": "This is how renters see your listing.",
+    "previewLbl": "Preview",
+    "openBtn": "Open in browser",
+    "hint": "Reflects your current data."
+  },
+  "subSuchen": {
+    "title": "Search",
+    "subtitle": "Find your perfect chair."
+  },
+  "subFavoriten": {
+    "title": "Favorites",
+    "subtitle": "Your saved places.",
+    "favorites": "Favorites",
+    "savedLbl": "Saved",
+    "emptyHint": "No favorites yet"
+  },
+  "subAnfragen": {
+    "title": "Requests",
+    "subtitle": "Who wants to rent your chair?"
+  },
+  "subMieterAnfragen": {
+    "title": "My requests",
+    "subtitle": "Status of your requests."
+  },
+  "subProfil": {
+    "title": "Profile",
+    "subtitle": "Your personal data."
+  },
+  "subVerlauf": {
+    "title": "History",
+    "subtitle": "Past bookings and rentals."
+  },
+  "subRadius": {
+    "title": "Radius",
+    "subtitle": "How far do you want to search?"
+  },
+  "subAngebote": {
+    "title": "Offers",
+    "subtitle": "Current specials & discounts."
+  },
+  "subZertifikate": {
+    "title": "Hygiene & Certificates",
+    "subtitle": "Required for Medical Beauty.",
+    "tippsTitle": "What you need",
+    "tip1": "Hygiene certificate (health department)",
+    "tip2": "Medical license",
+    "tip3": "Medical Beauty license"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "back": "Back",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "retry": "Retry"
+  },
+  "toast": {
+    "saved": "Saved ✓",
+    "error": "Error — please try again",
+    "uploading": "Uploading…",
+    "uploaded": "Successfully uploaded"
+  },
+  "upload": {
+    "dragDrop": "Drag image here or click",
+    "maxSize": "Max. 5 MB",
+    "remove": "Remove",
+    "change": "Change",
+    "tooLarge": "File too large (Max. 5 MB)"
+  },
+  "wizard": {
+    "step": "Step {current} / {total}",
+    "next": "Next →",
+    "back": "← Back",
+    "finish": "Finish",
+    "skip": "Skip"
+  },
+  "wizAnbieter": {
+    "title": "Become a provider",
+    "subtitle": "Your own salon profile in 4 steps",
+    "categoriesTitle": "What do you offer?",
+    "servicesTitle": "Which services?",
+    "profileTitle": "Your profile",
+    "legalTitle": "Legal"
+  },
+  "wizMieter": {
+    "title": "Become a renter",
+    "subtitle": "Find your perfect chair",
+    "locationTitle": "Where are you looking?",
+    "typeTitle": "What do you need?",
+    "budgetTitle": "Budget"
+  },
+  "wizVermieter": {
+    "title": "Become a landlord",
+    "subtitle": "Rent out your chair or cabin",
+    "locationTitle": "Where is your chair?",
+    "equipmentTitle": "Equipment",
+    "priceTitle": "Prices"
   }
 }
