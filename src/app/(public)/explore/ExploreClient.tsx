@@ -19,20 +19,29 @@ type SortMode = 'rating' | 'nearest'
 export default function ExploreClient({ salons: dbSalons }: { salons: Salon[] }) {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [sortMode, setSortMode] = useState<SortMode>('rating')
+  const [locationAsking, setLocationAsking] = useState(false)
 
   useEffect(() => {
+    // KEIN Auto-Geo-Prompt — User-Trust-Killer. Nur localStorage lesen.
     const saved = localStorage.getItem('cm_user_location')
     if (saved) {
-      try { setUserLocation(JSON.parse(saved)) } catch {}
-    } else {
-      requestUserLocation().then(loc => {
-        if (loc) {
-          setUserLocation(loc)
-          localStorage.setItem('cm_user_location', JSON.stringify(loc))
-        }
-      })
+      try { setUserLocation(JSON.parse(saved)) } catch { /* ignore */ }
     }
   }, [])
+
+  async function askLocation() {
+    setLocationAsking(true)
+    try {
+      const loc = await requestUserLocation()
+      if (loc) {
+        setUserLocation(loc)
+        localStorage.setItem('cm_user_location', JSON.stringify(loc))
+        setSortMode('nearest')
+      }
+    } finally {
+      setLocationAsking(false)
+    }
+  }
 
   // Merge DB salons with demo data for display
   const allSalons = dbSalons.length > 0
@@ -64,9 +73,27 @@ export default function ExploreClient({ salons: dbSalons }: { salons: Salon[] })
     <div className="shell">
       <div className="screen">
         <div className="sticky">
-          <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)' }}>
-            Entdecken
-          </h1>
+          {/* Zurück-Button für Kunde-Flow (User-Request 2026-05-20) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+            <a
+              href="/auth"
+              aria-label="Zurück zur Rollen-Auswahl"
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 36, height: 36, borderRadius: 10,
+                background: 'rgba(196,168,106,0.10)',
+                border: '1px solid rgba(196,168,106,0.30)',
+                color: 'var(--gold2)',
+                fontSize: 18, fontWeight: 600, lineHeight: 1,
+                textDecoration: 'none', flexShrink: 0,
+              }}
+            >
+              ‹
+            </a>
+            <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', margin: 0 }}>
+              Entdecken
+            </h1>
+          </div>
         </div>
 
         <section style={{ padding: '0 var(--pad)' }}>
@@ -93,19 +120,34 @@ export default function ExploreClient({ salons: dbSalons }: { salons: Salon[] })
             >
               Beste Bewertung
             </button>
-            <button
-              onClick={() => setSortMode('nearest')}
-              disabled={!userLocation}
-              style={{
-                padding: '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: userLocation ? 'pointer' : 'default',
-                background: sortMode === 'nearest' ? 'var(--gold)' : 'var(--c3)',
-                color: sortMode === 'nearest' ? '#080706' : 'var(--stone)',
-                border: 'none',
-                opacity: userLocation ? 1 : 0.4,
-              }}
-            >
-              Nächste zuerst
-            </button>
+            {userLocation ? (
+              <button
+                onClick={() => setSortMode('nearest')}
+                style={{
+                  padding: '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                  background: sortMode === 'nearest' ? 'var(--gold)' : 'var(--c3)',
+                  color: sortMode === 'nearest' ? '#080706' : 'var(--stone)',
+                  border: 'none',
+                }}
+              >
+                Nächste zuerst
+              </button>
+            ) : (
+              <button
+                onClick={askLocation}
+                disabled={locationAsking}
+                style={{
+                  padding: '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                  cursor: locationAsking ? 'wait' : 'pointer',
+                  background: 'var(--c3)',
+                  color: 'var(--gold2)',
+                  border: '1px solid var(--gold)',
+                  opacity: locationAsking ? 0.5 : 1,
+                }}
+              >
+                📍 {locationAsking ? 'Frage Standort an…' : 'Nähe nutzen'}
+              </button>
+            )}
           </div>
 
           {/* Salon list */}
