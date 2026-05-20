@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
+import { useTranslations } from '@/i18n/client'
+import { supabase } from '@/lib/supabase'
 
 interface Inserat {
   id: string
@@ -32,12 +34,14 @@ const ALL_EQUIPMENT = ['Spiegel','Föhn','Glätteisen','Sterilisator','WLAN','Kl
 
 export default function SuchenPage() {
   const router = useRouter()
+  const t = useTranslations()
   const [showFilter, setShowFilter] = useState(false)
   const [city, setCity] = useState('')
   const [maxPrice, setMaxPrice] = useState(100)
   const [equipFilter, setEquipFilter] = useState<Set<string>>(new Set())
   const [query, setQuery] = useState('')
   const [favs, setFavs] = useState<string[]>([])
+  const [dbInserate, setDbInserate] = useState<Inserat[]>([])
 
   useEffect(() => {
     try {
@@ -47,6 +51,43 @@ export default function SuchenPage() {
       if (draft.city) setCity(draft.city)
       if (draft.maxPrice) setMaxPrice(Number(draft.maxPrice) || 100)
     } catch {}
+
+    // DB-Fetch: rental_equipment + zugehöriger Salon (Name + Stadt)
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data } = await supabase
+          .from('rental_equipment')
+          .select('id, type, name, description, price_per_day_cents, salon:salons(name, city)')
+          .eq('is_available', true)
+          .limit(50)
+        if (cancelled || !data) return
+        const mapped: Inserat[] = (data as unknown as Array<{
+          id: string; type: string; name: string; description: string | null;
+          price_per_day_cents: number;
+          salon: { name: string; city: string } | { name: string; city: string }[] | null;
+        }>).map(r => {
+          const s = Array.isArray(r.salon) ? r.salon[0] : r.salon
+          const pricePerDay = Math.round(r.price_per_day_cents / 100)
+          const safeType = (['stuhl','liege','raum','kabine'] as const).includes(r.type as never)
+            ? (r.type as 'stuhl'|'liege'|'raum'|'kabine')
+            : 'stuhl'
+          return {
+            id: r.id, name: r.name,
+            city: s?.city || '—',
+            district: s?.name || '—',
+            distance: 0, verified: true,
+            pricePerHour: Math.round(pricePerDay / 8),
+            pricePerDay,
+            equipment: ['Spiegel','WLAN','Wasser'],
+            available: 'Verfügbar',
+            type: safeType,
+          }
+        })
+        setDbInserate(mapped)
+      } catch { /* fallback bleibt MOCK */ }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   function toggleFav(id: string, e: React.MouseEvent) {
@@ -63,7 +104,8 @@ export default function SuchenPage() {
     setEquipFilter(n)
   }
 
-  const filtered = MOCK_INSERATE.filter(i => {
+  const ALL_INSERATE = dbInserate.length > 0 ? [...dbInserate, ...MOCK_INSERATE] : MOCK_INSERATE
+  const filtered = ALL_INSERATE.filter(i => {
     if (city && !i.city.toLowerCase().includes(city.toLowerCase()) && !i.district.toLowerCase().includes(city.toLowerCase())) return false
     if (query && !i.name.toLowerCase().includes(query.toLowerCase())) return false
     if (i.pricePerDay > maxPrice) return false
@@ -120,7 +162,7 @@ export default function SuchenPage() {
             style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--cream)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
           <button onClick={() => setShowFilter(!showFilter)}
             style={{ background: 'rgba(196,168,106,0.1)', border: '1px solid rgba(196,168,106,0.25)', color: 'var(--gold2)', padding: '6px 10px', borderRadius: 8, fontSize: 11, letterSpacing: 1, fontWeight: 700, textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}
-          >Filter</button>
+          >{t('search.filter')}</button>
         </div>
 
         {/* Quick Chips */}
@@ -146,7 +188,7 @@ export default function SuchenPage() {
         {/* Filter Sheet */}
         {showFilter && (
           <div style={{ margin: '0 16px 14px', background: 'var(--c1)', border: '1px solid rgba(196,168,106,0.18)', borderRadius: 14, padding: 14 }}>
-            <h3 className="cinzel" style={{ fontSize: 13, color: 'var(--gold2)', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>Filter</h3>
+            <h3 className="cinzel" style={{ fontSize: 13, color: 'var(--gold2)', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>{t('search.filter')}</h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
               <label style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>Stadt</label>
@@ -195,7 +237,7 @@ export default function SuchenPage() {
           {filtered.length === 0 ? (
             <div style={{ padding: 40, textAlign: 'center', background: 'rgba(176,144,96,0.04)', border: '1px dashed rgba(176,144,96,0.25)', borderRadius: 18 }}>
               <p className="cinzel" style={{ fontSize: 18, color: 'var(--gold2)', marginBottom: 8 }}>Nichts gefunden</p>
-              <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6 }}>Versuche andere Filter oder eine andere Stadt.</p>
+              <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6 }}>{t('search.emptyHint')}</p>
             </div>
           ) : (
             filtered.map(i => (
