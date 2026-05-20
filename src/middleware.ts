@@ -148,6 +148,8 @@ const publicPrefixes = [
   '/mieter/',           // NEU: Mieter-Funnel-Pages
   '/vermieter/',        // NEU: Vermieter-Onboarding (Public-Whitelist)
   '/konto',             // Konto-Seite (Login/Register/Profil)
+  '/inserat/',          // Inserat-Detail + Mietanfrage
+  '/nachrichten',       // Chat-Liste + Chat-Detail
   '/auth/',
   '/api/auth/',
   '/api/analytics/',
