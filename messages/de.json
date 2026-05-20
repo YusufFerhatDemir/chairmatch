@@ -215,6 +215,18 @@
     "anbieterRowSub": "Ich biete Services & nehme Buchungen entgegen",
     "mieterRowSub": "Ich möchte einen Stuhl oder Kabine mieten",
     "vermieterRowSub": "Ich vermiete meinen Stuhl, Kabine oder Studio",
-    "kundeRowSub": "Ich suche einen Termin"
+    "kundeRowSub": "Ich suche einen Termin",
+    "roleKunde": "Kunde",
+    "roleAnbieter": "Anbieter",
+    "roleMieter": "Mieter",
+    "roleVermieter": "Vermieter",
+    "kundeSub1": "Ich suche",
+    "kundeSub2": "Termine",
+    "anbieterSub1": "Ich biete",
+    "anbieterSub2": "Services",
+    "mieterSub1": "Stuhl / Kabine",
+    "mieterSub2": "mieten",
+    "vermieterSub1": "Stuhl / Kabine",
+    "vermieterSub2": "vermieten"
   }
 }
