@@ -283,7 +283,7 @@
     "hygieneTag": "ZORUNLU"
   },
   "meinBereich": {
-    "title": "Alanım",
+    "title": "Aramam",
     "subtitle": "Mükemmel koltuğunu bul",
     "stat1": "Açık talepler",
     "stat2": "Onaylandı",
@@ -304,7 +304,7 @@
     "offersSub": "Güncel kampanyalar"
   },
   "meinInserat": {
-    "title": "İlanım",
+    "title": "Teklifim",
     "subtitle": "Koltuk ilanını yönet",
     "stat1": "Açık talepler",
     "stat2": "Aylık rezervasyon",
