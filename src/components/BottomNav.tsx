@@ -20,7 +20,7 @@ const ICONS = {
 const NAVS: Record<NavRole, NavItem[]> = {
   anbieter: [
     { labelKey: 'bottomNav.start',       href: '/anbieter/mein-salon',              svg: ICONS.home },
-    { labelKey: 'bottomNav.appointment', href: '/anbieter/mein-salon/zeiten',       svg: ICONS.cal },
+    { labelKey: 'bottomNav.appointment', href: '/anbieter/mein-salon/termine',      svg: ICONS.cal },
     { labelKey: 'bottomNav.messages',    href: '/anbieter/mein-salon/bewertungen',  svg: ICONS.msg },
     { labelKey: 'bottomNav.account',     href: '/konto',                            svg: ICONS.user },
   ],
