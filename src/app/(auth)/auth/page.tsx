@@ -272,7 +272,7 @@ export default function AuthPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              minLength={tab === 'register' ? 10 : 1}
+              minLength={tab === 'register' ? 8 : 1}
               autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
             />
           </label>
@@ -303,32 +303,13 @@ export default function AuthPage() {
               </label>
             </>
           )}
-          {tab === 'register' && password.length > 0 && (() => {
-            const checks = [
-              { ok: password.length >= 10, label: '10+ Zeichen' },
-              { ok: /[A-Z]/.test(password), label: 'Großbuchstabe' },
-              { ok: /[0-9]/.test(password), label: 'Zahl' },
-              { ok: /[^A-Za-z0-9]/.test(password), label: 'Sonderzeichen' },
-            ]
-            const passed = checks.filter(c => c.ok).length
-            const color = passed <= 1 ? 'var(--red)' : passed <= 2 ? '#D4A020' : passed <= 3 ? '#C8A84B' : 'var(--green)'
-            return (
-              <div style={{ marginTop: -4 }} role="status" aria-live="polite" aria-label={`Passwortstärke: ${passed} von 4`}>
-                <div style={{ display: 'flex', gap: 3, marginBottom: 4 }}>
-                  {[0, 1, 2, 3].map(i => (
-                    <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < passed ? color : 'var(--c3)' }} />
-                  ))}
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px' }}>
-                  {checks.map(c => (
-                    <span key={c.label} style={{ fontSize: 10, color: c.ok ? 'var(--green)' : 'var(--stone2)' }}>
-                      {c.ok ? '✓' : '○'} {c.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )
-          })()}
+          {tab === 'register' && password.length > 0 && (
+            <div style={{ marginTop: -4 }} role="status" aria-live="polite">
+              <span style={{ fontSize: 10, color: password.length >= 8 ? 'var(--green)' : 'var(--stone2)' }}>
+                {password.length >= 8 ? '✓' : '○'} Mindestens 8 Zeichen
+              </span>
+            </div>
+          )}
           {tab === 'login' && (
             <Link href="/auth/forgot-password" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline', alignSelf: 'flex-end' }}>
               {t('auth.forgotPassword')}

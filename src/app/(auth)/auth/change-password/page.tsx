@@ -53,15 +53,8 @@ export default function ChangePasswordPage() {
     }
   }
 
-  const checks = [
-    { ok: pw.length >= 10, label: '10+ Zeichen' },
-    { ok: /[A-Z]/.test(pw), label: 'Großbuchstabe' },
-    { ok: /[0-9]/.test(pw), label: 'Zahl' },
-    { ok: /[^A-Za-z0-9]/.test(pw), label: 'Sonderzeichen' },
-  ]
-  const passed = checks.filter(c => c.ok).length
-  const strengthColor = passed <= 1 ? 'var(--red)' : passed <= 2 ? '#D4A020' : passed <= 3 ? '#C8A84B' : 'var(--green)'
-  const canSubmit = passed === 4 && pw === pw2 && !loading
+  const pwOk = pw.length >= 8
+  const canSubmit = pwOk && pw === pw2 && !loading
 
   return (
     <div className="shell">
@@ -91,10 +84,10 @@ export default function ChangePasswordPage() {
           <input
             className="inp"
             type="password"
-            placeholder="Neues Passwort (min. 10 Zeichen)"
+            placeholder="Neues Passwort (min. 8 Zeichen)"
             value={pw}
             onChange={e => setPw(e.target.value)}
-            minLength={10}
+            minLength={8}
             autoComplete="new-password"
             required
           />
@@ -109,19 +102,10 @@ export default function ChangePasswordPage() {
           />
 
           {pw.length > 0 && (
-            <div style={{ marginTop: -4 }} role="status" aria-live="polite" aria-label={`Passwortstärke: ${passed} von 4`}>
-              <div style={{ display: 'flex', gap: 3, marginBottom: 4 }}>
-                {[0, 1, 2, 3].map(i => (
-                  <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < passed ? strengthColor : 'var(--c3)' }} />
-                ))}
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px' }}>
-                {checks.map(c => (
-                  <span key={c.label} style={{ fontSize: 10, color: c.ok ? 'var(--green)' : 'var(--stone2)' }}>
-                    {c.ok ? '✓' : '○'} {c.label}
-                  </span>
-                ))}
-              </div>
+            <div style={{ marginTop: -4 }} role="status" aria-live="polite">
+              <span style={{ fontSize: 10, color: pwOk ? 'var(--green)' : 'var(--stone2)' }}>
+                {pwOk ? '✓' : '○'} Mindestens 8 Zeichen
+              </span>
             </div>
           )}
 

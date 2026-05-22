@@ -56,8 +56,8 @@ export default function ResetPasswordPage() {
       setError('Passwörter stimmen nicht überein.')
       return
     }
-    if (password.length < 10) {
-      setError('Mindestens 10 Zeichen, 1 Großbuchstabe, 1 Zahl, 1 Sonderzeichen.')
+    if (password.length < 8) {
+      setError('Mindestens 8 Zeichen.')
       return
     }
     setLoading(true)
@@ -100,11 +100,11 @@ export default function ResetPasswordPage() {
                 <input
                   className="inp"
                   type="password"
-                  placeholder="Neues Passwort (min. 10 Zeichen)"
+                  placeholder="Neues Passwort (min. 8 Zeichen)"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
-                  minLength={10}
+                  minLength={8}
                 />
                 <input
                   className="inp"

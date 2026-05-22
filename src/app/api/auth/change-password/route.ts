@@ -17,10 +17,7 @@ import { logger } from '@/lib/logger'
 const schema = z.object({
   newPassword: z
     .string()
-    .min(10, 'Mindestens 10 Zeichen')
-    .regex(/[A-Z]/, 'Mindestens 1 Großbuchstabe')
-    .regex(/[0-9]/, 'Mindestens 1 Zahl')
-    .regex(/[^A-Za-z0-9]/, 'Mindestens 1 Sonderzeichen'),
+    .min(8, 'Mindestens 8 Zeichen'),
 })
 
 export const POST = withApi(async (req: Request) => {

@@ -1,12 +1,9 @@
 import { z } from 'zod'
 
-/** Passwort-Policy: min 10 Zeichen, 1 Großbuchstabe, 1 Zahl, 1 Sonderzeichen */
+/** Passwort-Policy: min 8 Zeichen (Normalfall) */
 const passwordSchema = z
   .string()
-  .min(10, 'Mindestens 10 Zeichen')
-  .regex(/[A-Z]/, 'Mindestens 1 Großbuchstabe')
-  .regex(/[0-9]/, 'Mindestens 1 Zahl')
-  .regex(/[^A-Za-z0-9]/, 'Mindestens 1 Sonderzeichen')
+  .min(8, 'Mindestens 8 Zeichen')
 
 export const loginSchema = z.object({
   email: z.string().email('Ungültige E-Mail-Adresse'),
