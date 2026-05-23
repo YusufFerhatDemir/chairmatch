@@ -1,217 +1,325 @@
-# ChairMatch IA + URL + Phasenmodell — v2.0 (Stand 23.05.2026)
+# ChairMatch IA + URL + Phasenmodell — v3.0 (Stand 23.05.2026)
 
-Architektur-Dokument für SEO-konforme Skalierung. Vorbedingung: Module 0 (Recon
-inkl. Update 2026-05-22) + 1 (Audit v2, Stand 23.05.2026) gelesen.
+Architektur-Dokument für SEO-konforme Skalierung als **Multi-Vertical-Marktplatz**.
+Vorbedingung: Module 0 (Recon inkl. Update 2026-05-22) + 1 (Audit v2, Stand
+23.05.2026) gelesen.
 
-> **Was hat sich gegenüber v1.0 (14.05.2026) geändert?**
-> - Phase 1 ist faktisch zu ~70% live (alle Vertical-DE-Hubs, alle Phase-1-Stadt-Hubs, Stadt × Vertical, 13 Categories, 5 Medical-Money-Pages, Magazin mit 10 Artikel-Skeletten, FAQ-Page, was-ist-chairmatch, provisionsmodell).
-> - „Stuhlmiete"-Sprachgebrauch aus Recon 22.05 ist eingearbeitet (§2.6, §4.6).
-> - Drei neue Page-Typen-Cluster: Shop/Products, Medical-Money, Tools (Freelancer-Rechner).
-> - **F-144 Anbieter/Vermieter/Mieter-Rollen-Konflikt** ist als Blocker markiert (§9 Q-A).
-> - Phase 1 wird in **Phase 1a (Live), Phase 1b (Lücken-Schließung)** unterteilt.
+> **Was hat sich gegenüber v2.0 (23.05.2026 vormittags) geändert?**
+>
+> - **Plattform-Modell explizit dokumentiert**: ChairMatch ist eine reine Vermittler-Plattform nach Airbnb-Prinzip — betreibt nichts selbst, verkauft nichts selbst, behandelt nichts selbst. Einnahmen ausschließlich aus Abo + Provision + Vermittlungsmarge.
+> - **5 Geschäftsbereiche** sind jetzt vollständig in der IA: Vermietung, Drittanbieter, Shop/Affiliate, Beauty-Tourismus, Versicherung.
+> - **Risiko-gestaffeltes Launch-Modell** (Wellen 🟢/🟡/🔴) statt monolithischer „Phase 1".
+> - **Rollen-Modell finalisiert** (siehe §0): Mieter = Freelancer, Vermieter = Betreiber, Anbieter = Dienstleister-Rolle (kann jeder haben).
+> - **Beauty-Tourismus-Bereich** ist im Code anzulegen, aber per `noindex` + Sitemap-Exclude + nicht in Navigation **gated** bis Medizinrecht-/HWG-Anwalt freigegeben hat.
+> - Neue Seitentypen-Cluster: Drittanbieter (P-50..P-54), Versicherung (P-60..P-62), Beauty-Tourismus (P-70..P-74), Affiliate-Shop-Vendor-Profile (P-49).
 
 ---
 
-## 1. Seitentypen-Inventar (aktualisiert)
+## 0. Rollen-Modell (verbindlich, vom Gründer bestätigt)
 
-Status-Spalte: ✅ live in Code | 🟡 teilweise live | ❌ fehlt | ⛔ explizit ausgeschlossen
+| Rolle | Definition | URL-Namespace | Indexierbares öffentliches Profil? |
+|---|---|---|---|
+| **Mieter** | Freelancer / Selbstständiger, der einen Stuhl, Platz oder Raum mietet | `/mieter/*` | ❌ nein (Privatsphäre) — Profile nur intern sichtbar |
+| **Vermieter** | Betreiber, der einen Salon / Räume besitzt und Stühle/Plätze/Räume vermietet | `/vermieter/*` | ✅ ja (Salon-Detail-Page als „Marketplace-Schaufenster") |
+| **Anbieter** | Dienstleister-Rolle. Freelancer ist IMMER Anbieter. Vermieter KANN Anbieter sein. Externe Drittanbieter ebenfalls. | `/anbieter/[slug]` | ✅ ja (öffentliches Dienstleister-Profil) |
+
+**Wichtig**: „Anbieter" ist **keine eigene User-Rolle**, sondern ein **Status / Feature-Flag** für jeden Account, der öffentlich Dienstleistungen anbietet. Im Code: `user.has_provider_profile = true`.
+
+**Redirects zu setzen** (Modul 3):
+
+```
+/anbieter/wie-es-funktioniert  →  bleibt (öffentliche Erklärseite für die Rolle)
+/anbieter/onboarding           →  bleibt (Setup-Flow für Dienstleister)
+/vermieter/wie-es-funktioniert →  Phase 1b neu anlegen
+```
+
+**F-144 aufgelöst** durch dieses Modell: Drei Pfade nebeneinander sind OK, weil drei semantisch unterschiedliche Konzepte (Mieter-Flow, Vermieter-Flow, Anbieter-Profil).
+
+---
+
+## 0a. Die 5 Geschäftsbereiche (Multi-Vertical-Marktplatz)
+
+Plattform-Prinzip: **Airbnb-Modell** — ChairMatch besitzt nichts, verkauft nichts, behandelt nichts. Sämtliche Verträge laufen zwischen den Marktplatz-Teilnehmern; ChairMatch ist nur Vermittler.
+
+| # | Bereich | Was wird vermittelt? | Einnahmequelle ChairMatch | Risiko-Welle |
+|---|---|---|---|---|
+| 1 | **Vermietung** | Stuhl / Platz / Raum zwischen Vermieter und Mieter | Abo (Vermieter) + Vermittlungsmarge | 🟢 Welle 1 |
+| 2 | **Drittanbieter** | Externe Dienstleister (z.B. Haartransplantations-Anbieter) mieten Räume über die App. Optionaler Zusatzservice: **reine Bearbeitungsgebühr** für Dokumenten-Anträge beim Gesundheitsamt (KEINE Genehmigungs-Garantie). | Abo + Vermittlungsmarge + ggf. Bearbeitungs-Pauschale | 🟡 Welle 2 |
+| 3 | **Shop / Affiliate** | Beauty-Produkte (Wax, Gel, Kosmetik). ChairMatch verkauft **nichts selbst**, hat **keine** Eigenmarke, **keine** Vertriebspartnerschaften. Verkäufer bieten an, tragen die Produkthaftung. | Abo (Verkäufer) + Marge pro Transaktion | 🟢 Welle 1 (Grundstruktur) |
+| 4 | **Beauty-Tourismus** | Anbieter — überwiegend Türkei — bewerben Behandlungen (Haartransplantation, Zähne, Augen, ästhetische Eingriffe). Vermittlung an deutsche Endkunden. | Vermittlungsprovision pro Kunde | 🔴 Welle 3 (gated bis Anwalt) |
+| 5 | **Versicherung** | Versicherungs-Vermittlung (Berufshaftpflicht für Freelancer, Inhalts-Versicherung für Vermieter usw.). Nur Marktplatz, keine eigene Vermittler-Lizenz aktivieren bis geklärt. | Vermittlungsprovision | 🟡 Welle 2 |
+
+**Glasklare Formulierungs-Regeln** (für ALLE Bereiche):
+
+- Bereich 2 (Gesundheitsamt-Bearbeitung): **„Bearbeitungsgebühr für die Antragsstellung — KEINE Garantie für Genehmigung, KEINE Rechtsberatung, KEINE Erfolgshaftung."** Muss auf jeder relevanten Page als Disclaimer erscheinen.
+- Bereich 3 (Shop): **„ChairMatch betreibt einen Marktplatz. Verkäufer tragen die Produkthaftung gemäß § 1 ProdHaftG. Wir verkaufen nichts selbst und führen keine Qualitätsprüfung durch."**
+- Bereich 4 (Beauty-Tourismus): **„ChairMatch ist Vermittler nach § 312k BGB analog, kein medizinischer Dienstleister. Wir geben keine medizinische Empfehlung, keine Wirksamkeits-Garantie. Behandlungen erfolgen ausschließlich beim ausgewählten Anbieter unter dessen alleiniger Verantwortung."** — UND HWG-konforme Restriktion bei Vorher/Nachher-Bildern bis Anwalt-Freigabe.
+- Bereich 5 (Versicherung): **„ChairMatch ist Vermittler nach § 34d GewO und vermittelt ausschließlich zwischen Nutzern und lizenzierten Versicherungsunternehmen. Eigene Vertragspartner werden wir erst, wenn die Lizenz beantragt wurde — siehe RECHTLICHES_SETUP.md."**
+
+---
+
+## 0b. Risiko-gestaffeltes Wellen-Launch-Modell
+
+Statt einer monolithischen „Phase 1" wird der Launch in **drei Wellen** gestaffelt — orientiert am rechtlichen Risiko, NICHT am Code-Aufwand.
+
+### 🟢 Welle 1 — sofort live, geringes Risiko
+
+**Inhalt**:
+- Vermietung (Bereich 1): vollständig (Vermieter/Mieter-Flows, Salon-Detail, Stadt × Vertical, Anbieter-Profile)
+- Shop / Affiliate (Bereich 3): Grundstruktur (`/shop`, `/produkte/...`, Vendor-Profile) — Verkäufer-Onboarding manuell + AGB mit klarer Produkthaftungs-Verlagerung
+
+**Voraussetzung Launch**: Generator-erstellte Pflicht-Rechtstexte (siehe `RECHTLICHES_SETUP.md`), funktionierende Melde-/Reporting-Funktion (DSA), Cookie-Consent.
+
+**Indexierung**: `index, follow` für alle Hub- und Money-Pages.
+
+### 🟡 Welle 2 — nach Stabilisierung Welle 1 (4–8 Wochen)
+
+**Inhalt**:
+- Drittanbieter (Bereich 2): Raum-Vermietung an externe Dienstleister + optionale Bearbeitungsgebühr für Gesundheitsamts-Anträge mit klar formulierten Disclaimern
+- Versicherungs-Vermittlung (Bereich 5): nur als Markt­platz-Listing-Funktion (kein eigener Vertrieb)
+
+**Voraussetzung**:
+- Welle 1 läuft stabil (≥4 Wochen Live ohne Major-Incident)
+- AGB-Ergänzung für Drittanbieter (Generator-Vorlage + interne Review)
+- Versicherungs-Welle braucht Klarstellung: NUR Vermittlung. Kein Eigenvertrieb.
+
+**Indexierung**: `index, follow` mit erhöhter Disclaimer-Sichtbarkeit (Sticky-Banner auf den Page-Templates).
+
+### 🔴 Welle 3 — gated, NICHT öffentlich, NICHT indexiert
+
+**Inhalt**:
+- Beauty-Tourismus (Bereich 4): vollständige Code-Struktur (URLs, Templates, DB-Schema), aber:
+  - `<meta name="robots" content="noindex, nofollow">` hart in der Page-Metadata
+  - **NICHT in `sitemap.ts` enthalten**
+  - **NICHT in Navigation, Footer, internen Links**
+  - Zugang nur via Direct-Link + ggf. Token (z.B. `/beauty-reisen?token=...`)
+  - Klarer „Pre-Launch / Anwalt-Review läuft"-Banner
+
+**Voraussetzung Freigabe → Welle 3 live**:
+1. Schriftliche Freigabe durch Medizinrecht-/HWG-Anwalt (`docs/legal/HWG-FREIGABE.md` als Hash-Hinterlegung)
+2. Vermittler-Disclaimer rechtsverbindlich abgenommen
+3. Anbieter-Vetting-Prozess (Lizenz-Check) dokumentiert
+4. Vorher/Nachher-Bilder-Policy HWG-konform (§ 11 HWG)
+5. „Sterilität/Klinik-Standard"-Aussagen entfernt oder fachärztlich verifiziert
+
+Erst dann: `robots: { index: true }`, Sitemap-Aufnahme, Navigation-Link.
+
+**Wichtig für Modul 3**: Welle-3-Routen werden **gebaut**, aber die Sitemap-Logik schließt sie standardmäßig per Feature-Flag aus:
+
+```typescript
+// src/lib/seo-data/wellen.ts (NEU, Modul 3)
+export const WELLEN_FREIGABE = {
+  vermietung: true,        // Welle 1
+  shop: true,              // Welle 1
+  drittanbieter: false,    // Welle 2 — aktivieren wenn AGB-Ergänzung live
+  versicherung: false,     // Welle 2
+  beauty_reisen: false,    // Welle 3 — aktivieren NACH Anwalt-Freigabe
+} as const
+```
+
+`sitemap.ts` und `robots.ts` lesen diesen Flag.
+
+---
+
+## 1. Seitentypen-Inventar (Multi-Vertical-Vollausbau)
+
+Status-Spalte: ✅ live in Code | 🟡 teilweise live | ❌ fehlt | ⛔ explizit ausgeschlossen | 🆕 NEU in v3.0
+
+### 1.1 Bereich 1 — Vermietung (Welle 🟢 1)
 
 | ID | Seitentyp | URL-Pattern | Indexieren? | Status | Phase |
 |---|---|---|---|---|---|
-| P-01 | Home | `/` | ✅ | ✅ live (`app/page.tsx`) | 1a |
+| P-01 | Home | `/` | ✅ | ✅ live | 1a |
 | P-02 | Was-ist-ChairMatch | `/was-ist-chairmatch` | ✅ | ✅ live | 1a |
 | P-03a | Wie-es-funktioniert (Anbieter) | `/anbieter/wie-es-funktioniert` | ✅ | ✅ live | 1a |
 | P-03b | Wie-es-funktioniert (Mieter) | `/mieter/wie-es-funktioniert` | ✅ | ✅ live | 1a |
-| P-03c | Wie-es-funktioniert (Vermieter) | `/vermieter/wie-es-funktioniert` | ⚠️ siehe Q-A | ❌ fehlt | 1b |
+| P-03c | Wie-es-funktioniert (Vermieter) | `/vermieter/wie-es-funktioniert` | ✅ | ❌ fehlt | 1b |
 | P-04 | Provisionsmodell | `/provisionsmodell` | ✅ | ✅ live | 1a |
-| P-05 | FAQ | `/faq` | ✅ | ✅ live mit FAQPage-Schema | 1a |
-| P-06 | Stadt-Hub | `/[stadt]` | ⚠️ bei ≥3 Salons (`shouldIndex`) | ✅ live (5 Phase-1-Städte) | 1a |
+| P-05 | FAQ | `/faq` | ✅ | ✅ live | 1a |
+| P-06 | Stadt-Hub | `/[stadt]` | ⚠️ bei ≥3 Salons | ✅ live (5 Phase-1-Städte) | 1a |
 | P-07 | Stadt × Vertical | `/[stadt]/[vertical]` | ⚠️ bei ≥3 Salons | ✅ live | 1a |
-| P-08 | Stadt × Vertical × Asset | `/[stadt]/[vertical]/[asset]-mieten` | ⚠️ bei ≥3 Salons | ❌ fehlt | 2 (verschoben aus 1) |
+| P-08 | Stadt × Vertical × Asset | `/[stadt]/[vertical]/[asset]-mieten` | ⚠️ bei ≥3 Salons | ❌ fehlt | 1b |
 | P-09 | Vertical-Deutschland-Hub | `/[vertical]-deutschland` | ✅ | ✅ live (5 Pages) | 1a |
 | P-10 | Lexikon-Eintrag | `/lexikon/[term]` | ✅ | ❌ fehlt | 1b |
-| P-11 | Listing-Detail | `/listings/[slug]` | ✅ | ✅ live (mit OG-Image) | 1b |
-| P-12 | Salon-Detail | `/salon/[slug]` | ✅ | ✅ live (ISR 300s) | 1a |
-| P-13 | Freelancer/Mieter-Profil | `/freelancer/[slug]` | ⛔ Privatsphäre | ❌ bewusst weg | — |
+| P-11 | Listing-Detail | `/listings/[slug]` | ✅ | ✅ live | 1b |
+| P-12 | Salon-Detail | `/salon/[slug]` | ✅ | ✅ live | 1a |
+| P-13 | Mieter-Profil (intern) | `/mieter/mein-bereich` | ⛔ noindex | ✅ live | — |
 | P-14 | Magazin-Übersicht | `/magazin` | ✅ | ✅ live | 1a |
-| P-15 | Magazin-Artikel | `/magazin/[slug]` | ✅ | ✅ live (10 Skelette) | 1a |
+| P-15 | Magazin-Artikel | `/magazin/[slug]` | ✅ | ✅ live | 1a |
 | P-16 | Help-Center-Übersicht | `/hilfe` | ✅ | ❌ fehlt | 2 |
 | P-17 | Help-Center-Artikel | `/hilfe/[slug]` | ✅ | ❌ fehlt | 2 |
+| P-32 | Explore (Discovery) | `/explore` | ✅ | ✅ live | 1a |
+| P-33 | Offers | `/offers` | ✅ | ✅ live | 1a |
+| P-34 | Rentals | `/rentals` | ✅ | ✅ live | 1a |
+| P-37 | Statistik (Trust) | `/statistik` | ✅ | ✅ live | 1a |
+| P-38 | Kategorie-Hub | `/category/[categoryId]` | ✅ | ✅ live | 1a |
+| P-43 | Freelancer-Rechner (Tool) | `/freelancer-rechner` | ✅ | ✅ live | 1a |
+| P-90 🆕 | Anbieter-Profil (öffentlich) | `/anbieter/[slug]` | ✅ | ❌ fehlt | 1b |
+| P-91 🆕 | Anbieter-Übersicht | `/anbieter` (Verzeichnis) | ✅ | ❌ fehlt | 1b |
+
+### 1.2 Bereich 3 — Shop / Affiliate (Welle 🟢 1)
+
+| ID | Seitentyp | URL-Pattern | Indexieren? | Status | Phase |
+|---|---|---|---|---|---|
+| P-41 | Shop-Übersicht | `/produkte` (Konsolidierung von `/products`) | ✅ | 🟡 als `/products` live | 1a |
+| P-42 | Produkt-Detail | `/produkte/[slug]` (statt `/shop/[slug]`) | ✅ | 🟡 als `/shop/[slug]` live | 1a |
+| P-49 🆕 | Verkäufer-Profil | `/verkaeufer/[slug]` | ✅ | ❌ fehlt | 1b |
+| P-92 🆕 | Produkt-Kategorie | `/produkte/[kategorie]` (z.B. `/produkte/wax`, `/produkte/gel`, `/produkte/kosmetik`) | ✅ | ❌ fehlt | 1b |
+| P-93 🆕 | Verkäufer werden | `/verkaeufer/onboarding` | ⛔ noindex | ❌ fehlt | 1b |
+| P-94 🆕 | Verkäufer-AGB | `/agb-verkaeufer` | ✅ | ❌ fehlt | 1a (vor Launch Welle 1) |
+
+**Wichtig**: Bisherige `/products` und `/shop/[slug]` bleiben mit 301-Redirect erhalten — neue Canonical-URLs sind `/produkte` und `/produkte/[slug]`. Begründung: deutsche Slugs konsistent zum Rest der Plattform.
+
+### 1.3 Bereich 2 — Drittanbieter (Welle 🟡 2)
+
+| ID | Seitentyp | URL-Pattern | Indexieren? | Status | Phase |
+|---|---|---|---|---|---|
+| P-50 🆕 | Drittanbieter-Übersicht | `/drittanbieter` | ✅ (nach Freigabe Welle 2) | ❌ fehlt | 2 |
+| P-51 🆕 | Drittanbieter „Wie es funktioniert" | `/drittanbieter/wie-es-funktioniert` | ✅ | ❌ fehlt | 2 |
+| P-52 🆕 | Raum-Vermietung für Externe | `/drittanbieter/raum-mieten` | ✅ | ❌ fehlt | 2 |
+| P-53 🆕 | Antragsservice Gesundheitsamt | `/drittanbieter/antragsservice` | ✅ mit Disclaimer-Sticky | ❌ fehlt | 2 |
+| P-54 🆕 | Drittanbieter-AGB | `/agb-drittanbieter` | ✅ | ❌ fehlt | 2 (vor Launch Welle 2) |
+
+**Disclaimer-Pflicht P-53**:
+> „Diese Bearbeitungsgebühr deckt ausschließlich die formale Antragsstellung beim zuständigen Gesundheitsamt ab. ChairMatch garantiert KEINE Genehmigung, übernimmt KEINE Rechtsberatung, übernimmt KEINE Erfolgshaftung. Der Anbieter trägt die volle Verantwortung für die Richtigkeit der Antragsunterlagen und die Einhaltung aller gesundheits- und gewerberechtlichen Vorgaben."
+
+### 1.4 Bereich 5 — Versicherung (Welle 🟡 2)
+
+| ID | Seitentyp | URL-Pattern | Indexieren? | Status | Phase |
+|---|---|---|---|---|---|
+| P-60 🆕 | Versicherung-Übersicht | `/versicherung` | ✅ (nach Freigabe Welle 2) | ❌ fehlt | 2 |
+| P-61 🆕 | Versicherungs-Angebote | `/versicherung/[produkt]` (z.B. `/versicherung/berufshaftpflicht`, `/versicherung/inhaltsversicherung`) | ✅ | ❌ fehlt | 2 |
+| P-62 🆕 | Versicherungs-Vermittler-Hinweis | `/versicherung/vermittler-hinweis` (§ 34d GewO Pflicht-Info, sobald Lizenz vorhanden) | ✅ | ❌ fehlt | 2 |
+
+**Wichtig**: Welle 2 startet zunächst als reine **Vergleichs-/Vermittler-Listings-Page** ohne Provision (Affiliate-Modell). Provisions-Vermittlung erst, sobald § 34d GewO-Lizenz vorliegt.
+
+### 1.5 Bereich 4 — Beauty-Tourismus (Welle 🔴 3 — GATED)
+
+| ID | Seitentyp | URL-Pattern | Indexieren? | Status | Phase |
+|---|---|---|---|---|---|
+| P-70 🆕 | Beauty-Tourismus-Hub | `/beauty-reisen` | ⛔ **noindex bis Anwalt** | ❌ fehlt | 3 |
+| P-71 🆕 | Behandlungs-Übersicht | `/beauty-reisen/[behandlung]` (z.B. `/beauty-reisen/haartransplantation`) | ⛔ noindex bis Anwalt | ❌ fehlt | 3 |
+| P-72 🆕 | Anbieter-Detail | `/beauty-reisen/anbieter/[slug]` | ⛔ noindex bis Anwalt | ❌ fehlt | 3 |
+| P-73 🆕 | Standort-Hub | `/beauty-reisen/[land]/[stadt]` (z.B. `/beauty-reisen/tuerkei/istanbul`) | ⛔ noindex bis Anwalt | ❌ fehlt | 3 |
+| P-74 🆕 | Beauty-Reisen-Disclaimer | `/beauty-reisen/disclaimer` | ⛔ noindex bis Anwalt | ❌ fehlt | 3 |
+
+**Gating-Mechanik (Modul 3 Implementation)**:
+1. Alle Routen existieren im Code unter `(public)/beauty-reisen/...`
+2. Layout-File `(public)/beauty-reisen/layout.tsx` setzt **hart** `export const metadata = { robots: { index: false, follow: false } }`
+3. `sitemap.ts` schließt `/beauty-reisen/*` per Feature-Flag aus (`WELLEN_FREIGABE.beauty_reisen`)
+4. Keine internen Links aus Navigation, Footer, anderen Pages
+5. Optional: Mittlere-Sicherheit-Token in URL (`?preview={{TOKEN}}`)
+6. **Banner-Komponente** „🔴 Pre-Launch — Anwalt-Review läuft" auf jeder Welle-3-Page
+
+**HWG-spezifische Content-Regeln** (für Modul 5 / Content-Team):
+- Keine Heilversprechen, keine Vorher/Nachher-Bilder ohne Aufklärung gemäß § 11 HWG
+- Keine Preise als Marketing-Hook
+- Reisemedizinische Risiken müssen genannt sein
+- Sprache: Niemals „garantiert", „risikofrei", „100% sicher"
+
+### 1.6 Pflicht-Rechtsseiten (alle Wellen)
+
+| ID | Seitentyp | URL-Pattern | Indexieren? | Status | Phase |
+|---|---|---|---|---|---|
 | P-18 | Impressum | `/impressum` | ✅ (TMG-Pflicht) | ✅ live | 1a |
 | P-19 | Datenschutz | `/datenschutz` | ✅ (DSGVO-Pflicht) | ✅ live | 1a |
 | P-20 | AGB (Kunde) | `/agb` | ✅ | ✅ live | 1a |
 | P-21 | AGB (Provider) | `/agb-provider` | ✅ | ✅ live | 1a |
 | P-22 | Widerruf | `/widerruf` | ✅ | ✅ live | 1a |
-| P-23 | Cookie-Settings | `/cookie-settings` | ⛔ noindex (UX-Page) | ✅ live | — |
-| P-24 | Auth | `/auth`, `/auth/*` | ⛔ noindex | 🟡 live aber in Sitemap (Bug, siehe Modul 1 F-140) | — |
-| P-25 | Account-Dashboard | `/account/*` | ⛔ noindex (`(protected)`) | ✅ live (in robots disallowed) | — |
-| P-26 | Provider-Dashboard | `/provider/*` | ⛔ noindex | ✅ live (in robots disallowed) | — |
-| P-27 | Owner-Bereich | `/owner/*` | ⛔ noindex | ✅ live (in robots disallowed) | — |
-| P-28 | Investor-Bereich | `/investor/*` | ⛔ noindex | ✅ live (in robots disallowed) | — |
-| P-29 | Admin-Panel | `/admin/*` | ⛔ noindex | ✅ live (in robots disallowed) | — |
-| P-30 | API-Routes | `/api/*` | ⛔ (kein Crawl) | ✅ disallowed in robots.ts | — |
-| P-31 | Search | `/search` | ⛔ noindex (Modul 1 F-133) | 🟡 live, aber indexierbar (Bug) | — |
-| P-32 | Explore (Discovery) | `/explore` | ✅ index (Hub mit Mehrwert) | ✅ live (Metadata fehlt) | 1a |
-| P-33 | Offers | `/offers` | ✅ | ✅ live (Metadata fehlt) | 1a |
-| P-34 | Rentals | `/rentals` | ✅ | ✅ live (Metadata fehlt) | 1a |
-| P-35 | Landing (Marketing) | `/landing` | ✅ | ✅ live | 1a |
-| P-36 | Pitch (Investor) | `/pitch` | ⚠️ bisher indexiert | 🟡 live (siehe Q-G) | — |
-| P-37 | Statistik (Trust) | `/statistik` | ✅ | ✅ live | 1a |
-| P-38 | Kategorie-Hub | `/category/[categoryId]` | ✅ | ✅ live (13 Kategorien) | 1a |
-| P-39 | Medical-Money Page | `/{thema}` (5 Pages) | ✅ | ✅ live | 1a |
-| P-40 | Premium (Money-Hub) | `/premium` | ✅ | ✅ live | 1a |
-| P-41 | Products / Shop-Übersicht | `/products` | ⚠️ siehe Q-E | ✅ live | 1a |
-| P-42 | Produkt-Detail | `/shop/[slug]` | ⚠️ siehe Q-E | ✅ live | 1a |
-| P-43 | Freelancer-Rechner (Tool) | `/freelancer-rechner` | ✅ | ✅ live | 1a |
-| P-44 | Empfehlungen | `/empfehlungen` | ⚠️ siehe Q-F | ✅ live, Status unklar | 1b |
-| P-45 | Konto | `/konto` | ⚠️ siehe Q-F | ✅ live, Status unklar | 1b |
-| P-46 | Inserat | `/inserat` | ⚠️ siehe Q-F | ✅ live, Status unklar | 1b |
-| P-47 | Nachrichten | `/nachrichten` | ⛔ noindex (User-spezifisch) | ✅ live, Status unklar | — |
-| P-48 | Termine | `/termine` | ⛔ noindex | ✅ live, Status unklar | — |
+| P-23 | Cookie-Settings | `/cookie-settings` | ⛔ noindex | ✅ live | — |
+| P-95 🆕 | DSA-Melde-Funktion (Trusted Flagger) | `/melden` | ✅ | ❌ fehlt | 1a (vor Launch) |
+| P-94 🆕 | Verkäufer-AGB | `/agb-verkaeufer` | ✅ | ❌ fehlt | 1a (vor Welle 1 Shop) |
+| P-54 🆕 | Drittanbieter-AGB | `/agb-drittanbieter` | ✅ | ❌ fehlt | 2 |
+| P-96 🆕 | Beauty-Reisen-AGB | `/agb-beauty-reisen` | ⛔ noindex bis Anwalt | ❌ fehlt | 3 |
 
-**5 Medical-Money-Pages (Detail P-39)**: `/haartransplantation`, `/zahnimplantate`, `/augenlasern`, `/longevity`, `/iv-infusionen`.
+### 1.7 Account / Geschützte Bereiche (unverändert)
 
-**5 Vertical-Deutschland-Hubs (Detail P-09)**: `/barbershop-deutschland`, `/friseur-deutschland`, `/kosmetik-deutschland`, `/nagelstudio-deutschland`, `/lash-brows-deutschland`.
+| ID | Seitentyp | URL-Pattern | Indexieren? | Status | Phase |
+|---|---|---|---|---|---|
+| P-24 | Auth | `/auth`, `/auth/*` | ⛔ noindex | 🟡 Bug F-140 | — |
+| P-25 | Account-Dashboard | `/account/*` | ⛔ noindex | ✅ | — |
+| P-26 | Provider-Dashboard | `/provider/*` | ⛔ noindex | ✅ | — |
+| P-27 | Owner-Bereich | `/owner/*` | ⛔ noindex | ✅ | — |
+| P-28 | Investor-Bereich | `/investor/*` | ⛔ noindex | ✅ | — |
+| P-29 | Admin-Panel | `/admin/*` | ⛔ noindex | ✅ | — |
+| P-30 | API-Routes | `/api/*` | ⛔ | ✅ | — |
+| P-31 | Search | `/search` | ⛔ noindex | 🟡 Bug F-133 | — |
+| P-47 | Nachrichten | `/nachrichten` | ⛔ noindex | ✅ | — |
+| P-48 | Termine | `/termine` | ⛔ noindex | ✅ | — |
 
-**13 Category-Slugs (P-38)**: `barber, friseur, kosmetik, aesthetik, haartransplantation, zahnimplantate, augenlasern, longevity, infusion, nail, massage, lash, arzt, opraum`.
+### 1.8 Medical-Money-Pages (Bestand, Welle 🟢 1 — als Vermietungs-Vertical, NICHT Beauty-Reisen)
+
+> **Abgrenzung Welle 1 vs. Welle 3**: Die existierenden Medical-Money-Pages (`/haartransplantation`, `/zahnimplantate`, `/augenlasern`, `/longevity`, `/iv-infusionen`) sind **DE-Standorte für Stuhl-/Raum-Vermietung an Fachärzte** — also Bereich 1 (Vermietung), NICHT Bereich 4 (Beauty-Tourismus). Sie bleiben indexiert.
+>
+> Beauty-Tourismus = grenzüberschreitende Behandlungsvermittlung (Patient reist ins Ausland). Das ist eine andere Sache und bleibt in Welle 3 gated.
+>
+> **Action für Modul 5**: Content der Medical-Money-Pages prüfen — Begriffe wie „beste Klinik", „Anbieter-Empfehlung" entfernen. Pure SEO-Hubs für Salon-/Raumvermietung in dieser Branche.
+
+| ID | URL | Status |
+|---|---|---|
+| P-39a | `/haartransplantation` | ✅ live |
+| P-39b | `/zahnimplantate` | ✅ live |
+| P-39c | `/augenlasern` | ✅ live |
+| P-39d | `/longevity` | ✅ live |
+| P-39e | `/iv-infusionen` | ✅ live |
+| P-40 | `/premium` (Money-Hub) | ✅ live |
 
 ---
 
 ## 2. URL-Konventionen
 
-### 2.1 Pflicht-Regeln (unverändert zu v1.0)
+### 2.1 Pflicht-Regeln (unverändert)
 
-1. **Sprache**: Phase 1 ohne Sprach-Prefix (`/koeln/friseur`). Phase 2 mit 301 auf `/de/koeln/friseur` wenn EN/TR/FR aktiviert. Entscheidung steht (Q-D).
-2. **Slug-Stil**: `kebab-case`, ASCII-only — Umlaut-Mapping in `cityToSlug()` (`src/lib/seo.ts:362-371`):
-   - ä → ae, ö → oe, ü → ue, ß → ss
-   - kein Leerzeichen, kein Underscore
-   - Stop-Words raus: „in", „der", „die", „das", „bei"
-3. **Trailing-Slash**: KEIN trailing slash (`/koeln` nicht `/koeln/`). Next.js Default.
-4. **Case-Sensitivity**: lowercase. Middleware-Redirect für uppercase-Varianten.
+1. **Sprache**: Phase 1 ohne Sprach-Prefix. Phase 2 mit `/de/...` 301.
+2. **Slug-Stil**: `kebab-case`, ASCII-only, Umlaut-Mapping (`ae`, `oe`, `ue`, `ss`).
+3. **Trailing-Slash**: KEIN trailing slash.
+4. **Case-Sensitivity**: lowercase. Middleware-Redirect für uppercase.
 5. **Stabilität**: Einmal ausgegeben, NIE wieder ändern. Bei Bedarf 301.
 
-### 2.2 Stadt-Slug-Whitelist (live in Code)
+### 2.2 Stadt-Slug-Whitelist (unverändert)
 
-`PHASE_1_CITIES` (`src/lib/seo-data/cities.ts`): **berlin, hamburg, muenchen, koeln, frankfurt**.
+`PHASE_1_CITIES`: **berlin, hamburg, muenchen, koeln, frankfurt**.
+`PHASE_2_CITIES`: `duesseldorf, stuttgart, leipzig, dresden, hannover, nuernberg, bremen, dortmund, essen, bonn`.
 
-Erweiterung Phase 2: `duesseldorf, stuttgart, leipzig, dresden, hannover, nuernberg, bremen, dortmund, essen, bonn`.
-Phase 3: `mainz, mannheim, karlsruhe, wiesbaden, augsburg` + Top-50.
+### 2.3 Vertical-Slug-Whitelist (Welle 1)
 
-### 2.3 Vertical-Slug-Whitelist (live in Code)
+`VERTICALS`: **barbershop, friseur, kosmetik, nagelstudio, lash-brows**.
 
-`VERTICALS` (`src/lib/seo-data/verticals.ts`): **barbershop, friseur, kosmetik, nagelstudio, lash-brows** (5 für Vertical-Deutschland-Hubs).
-
-Category-Slug-Liste ist breiter (13 Kategorien): siehe P-38.
-
-### 2.4 Asset-Slug-Vorschlag (für P-08, noch nicht implementiert)
+### 2.4 Asset-Slug (Welle 1 / 1b)
 
 ```
-stuhl, liege, kabine, salonplatz, behandlungsraum,
-op-raum, beauty-workspace
+stuhl, liege, kabine, salonplatz, behandlungsraum, op-raum, beauty-workspace, raum
 ```
 
-URL-Pattern: `/[stadt]/[vertical]/[asset]-mieten` (z.B. `/koeln/friseur/stuhl-mieten`).
+### 2.5 Neue Namespaces v3.0 (Multi-Vertical)
 
-### 2.5 Beispiel-URLs
-
-```
-✅ Gut (live):
-  /koeln                             — Stadt-Hub (noindex bis 3 Salons)
-  /koeln/friseur                     — Stadt × Vertical
-  /friseur-deutschland               — Vertical-DE-Hub
-  /magazin/wie-funktioniert-stuhl-miete
-  /salon/maison-haarwerk-duesseldorf
-  /haartransplantation               — Medical-Money
-
-✅ Geplant (Phase 1b / 2):
-  /koeln/friseur/stuhl-mieten        — P-08
-  /lexikon/chair-rental              — P-10
-  /vermieter/wie-es-funktioniert     — P-03c
-  /tools/stuhlmietvertrag-vorlage    — neu aus Recon 22.05
-
-❌ Schlecht:
-  /Koeln/Friseur/                    — Case + Trailing Slash
-  /salons/maison-haarwerk?lang=de    — Sprache via Query
-  /city/koeln                        — überflüssige Zwischenebene
-  /salons/123-maison-haarwerk        — ID + Slug doppelt
-```
-
-### 2.6 „Stuhlmiete" vs. „Stuhl mieten" — URL-Entscheidung
-
-Recon-Update vom 22.05 zeigt klar: „Stuhlmiete" ist das dominante Branchenwort.
-
-**Drei Optionen** (aus Modul 1 F-146):
-
-| Option | Beschreibung | Risiko | Aufwand |
+| Namespace | Bereich | Welle | Beispiele |
 |---|---|---|---|
-| A | Neue URL `/stuhlmiete/[stadt]/[vertical]` mit 301 von alter | Hoch (URL-Churn) | Hoch |
-| B | Beide URLs parallel, eine canonical auf die andere — A/B-Test | Mittel | Mittel |
-| C | URL bleibt `/[stadt]/[vertical]`, ABER H1/Body/Keywords nutzen BEIDE Varianten | Niedrig | Niedrig (Quick Win) |
+| `/produkte/*` | Shop | 🟢 1 | `/produkte/wax`, `/produkte/gel-xy-12345` |
+| `/verkaeufer/*` | Shop | 🟢 1 | `/verkaeufer/beauty-store-mueller` |
+| `/anbieter/[slug]` | Vermietung | 🟢 1 (1b) | `/anbieter/maria-friseurmeisterin-koeln` |
+| `/drittanbieter/*` | Drittanbieter | 🟡 2 | `/drittanbieter/raum-mieten` |
+| `/versicherung/*` | Versicherung | 🟡 2 | `/versicherung/berufshaftpflicht` |
+| `/beauty-reisen/*` | Beauty-Tourismus | 🔴 3 (gated) | `/beauty-reisen/tuerkei/istanbul` |
 
-**Empfehlung Phase 1**: **C**. Beispiel-H1: „Friseurstuhl mieten in Köln — Stuhlmiete & Salonplatz".
+### 2.6 „Stuhlmiete" vs. „Stuhl mieten" — URL-Entscheidung (unverändert)
 
-**Phase 2 Re-Eval**: Wenn nach 6 Wochen die Money-Keywords nicht Top-10 ranken → Option B testen.
-
----
-
-## 3. Phasenmodell (v2)
-
-### 3.1 Phase 1a — Lighthouses Live (0–50 Anbieter, Stand JETZT)
-
-**Erreicht**:
-- 5 Vertical-Deutschland-Hubs indexiert
-- 5 Stadt-Hubs angelegt (noindex bis 3 Salons via `shouldIndex`)
-- 25 Stadt × Vertical-Pages dynamisch (noindex bis 3 Salons)
-- 13 Category-Pages indexiert
-- 5 Medical-Money-Pages indexiert (Premium-Track)
-- 10 Magazin-Artikel-Skelette (Publishing-Status siehe Modul 1 F-128)
-- FAQ-Page, was-ist-chairmatch, provisionsmodell, anbieter-wie, mieter-wie live
-- Demo-Salons (PROVS) in Sitemap → Crawler findet Inhalte trotz 0 echter Provider
-
-**Phase-Gate zu 1b**: F-144 entschieden (Rollen-Konflikt) + Modul 1 Quick-Wins QW-1–QW-10 umgesetzt.
-
-### 3.2 Phase 1b — Lücken schließen (0–50 Anbieter, NEXT 2 Wochen)
-
-**To-Do**:
-- `/vermieter/wie-es-funktioniert` (P-03c) — nach Rollen-Entscheidung
-- `/lexikon/[term]` mit 5 Initial-Einträgen (P-10)
-- `/tools/stuhlmietvertrag-vorlage` (Lead-Magnet aus Recon 22.05)
-- Magazin-Artikel #11 Scheinselbstständigkeit (Modul 1 F-129)
-- Magazin-Artikel #12 Was kostet Stuhlmiete (Calculator-Style)
-- Stadt × Vertical × Asset Routes (P-08): nur 5 Top-Kombinationen vorbereiten
-- Quick-Win-Sprint aus Modul 1 §4 abarbeiten
-
-**Threshold zu Phase 2**:
-- ≥50 aktive Anbieter UND
-- ≥3 Anbieter in mind. 5 Stadt+Vertical-Kombinationen UND
-- ≥3 Stadt-Hubs auf Position 1-10 für die Top-3 Money-Keywords
-
-### 3.3 Phase 2 — Selective Programmatic (50–500 Anbieter)
-
-**Aktivieren**:
-- 10 weitere Städte (Phase 2 city-list: Düsseldorf, Stuttgart, Leipzig, Dresden, Hannover, Nürnberg, Bremen, Dortmund, Essen, Bonn)
-- Stadt × Vertical × Asset (P-08) automatisch ab Threshold
-- Help-Center (P-16, P-17)
-- 20 weitere Magazin-Artikel
-- hreflang aktivieren für DE→EN (Modul 1 F-118)
-- ggf. Option B Stuhlmiete-URLs aktivieren (siehe §2.6)
-
-**Threshold zu Phase 3**:
-- ≥500 aktive Anbieter UND
-- ≥20 Städte mit ≥3 Anbietern UND
-- Aggregate-Traffic > 50k organic visits/Monat
-
-### 3.4 Phase 3 — Full Skalierung (500+ Anbieter)
-
-- Top-50-Städte automatisch indexiert
-- Mikro-Standorte: `/koeln/ehrenfeld/friseur` (Stadtteil-Ebene)
-- Asset-Typ-Differenzierung: `/koeln/friseur/stuhl` vs. `/koeln/friseur/kabine`
-- i18n-Rollout: TR, EN zuerst, dann FR/ES/IT/PL/AR
-- Programmatic Magazin-Generation (mit human-curated Review-Loop)
+Empfehlung: **Option C** (H1/Body, URL bleibt). Phase 2 ggf. Re-Eval.
 
 ---
 
-## 4. URL-Map Phase 1 (Stand-Inventar + Geplant)
+## 3. Wellen-zu-Sub-Phasen-Mapping
+
+| Welle | Bereiche | Sub-Phasen | Zielmetrik |
+|---|---|---|---|
+| 🟢 1 | Vermietung, Shop | 1a (live, ~70%), 1b (Lücken nächste 2 Wochen) | 50 Anbieter, 5 Stadt-Hubs Top-10 |
+| 🟡 2 | Drittanbieter, Versicherung | 2 (4–8 Wochen nach Welle 1 stabil) | 10 Drittanbieter, 3 Versicherungs-Partner |
+| 🔴 3 | Beauty-Tourismus | 3 (gated, Anwalt-Freigabe) | Erste 5 vertraute Anbieter, manuell vetted |
+| ⚪ 4 | Programmatic-Skalierung (alle Bereiche) | „Phase 3" — wie v2.0 §3.4 | 500+ Anbieter, Top-50-Städte |
+
+---
+
+## 4. URL-Map Welle 1 (Stand-Inventar + Geplant)
 
 ### 4.1 Statische Pflicht-Pages (alle live)
 
@@ -220,6 +328,7 @@ Recon-Update vom 22.05 zeigt klar: „Stuhlmiete" ist das dominante Branchenwort
 /was-ist-chairmatch                      (P-02)
 /anbieter/wie-es-funktioniert            (P-03a)
 /mieter/wie-es-funktioniert              (P-03b)
+/vermieter/wie-es-funktioniert           (P-03c, fehlt — Phase 1b)
 /provisionsmodell                        (P-04)
 /faq                                     (P-05)
 /magazin                                 (P-14)
@@ -227,14 +336,16 @@ Recon-Update vom 22.05 zeigt klar: „Stuhlmiete" ist das dominante Branchenwort
 /datenschutz                             (P-19)
 /agb                                     (P-20)
 /agb-provider                            (P-21)
+/agb-verkaeufer                          (P-94, fehlt — vor Welle-1-Shop-Launch)
 /widerruf                                (P-22)
 /landing                                 (P-35)
 /statistik                               (P-37)
 /freelancer-rechner                      (P-43)
 /premium                                 (P-40)
+/melden                                  (P-95, fehlt — DSA-Pflicht)
 ```
 
-### 4.2 Vertical-Deutschland-Hubs (alle live, alle indexiert)
+### 4.2 Vertical-Deutschland-Hubs (alle live)
 
 ```
 /barbershop-deutschland
@@ -244,458 +355,374 @@ Recon-Update vom 22.05 zeigt klar: „Stuhlmiete" ist das dominante Branchenwort
 /lash-brows-deutschland
 ```
 
-### 4.3 Medical-Money-Pages (alle live, alle indexiert)
+### 4.3 Medical-Money-Pages (Welle 1, alle live)
 
 ```
-/haartransplantation     (Premium-Track)
-/zahnimplantate          (Premium-Track)
-/augenlasern             (Premium-Track)
-/longevity               (Premium-Track)
-/iv-infusionen           (Premium-Track)
+/haartransplantation     (Bereich 1 — DE-Standort-Vermietung)
+/zahnimplantate
+/augenlasern
+/longevity
+/iv-infusionen
 ```
 
-### 4.4 Stadt-Hubs Phase 1 (live, noindex bis 3 Salons)
+### 4.4 Stadt-Hubs Welle 1
 
 ```
-/berlin
-/hamburg
-/muenchen
-/koeln
-/frankfurt
+/berlin    /hamburg    /muenchen    /koeln    /frankfurt
 ```
 
-### 4.5 Stadt × Vertical Phase 1 (25 Pages dynamisch, noindex bis 3 Salons)
+### 4.5 Stadt × Vertical Welle 1 (25 Pages dynamisch)
+
+(Siehe v2.0 §4.5 — unverändert)
+
+### 4.6 Stadt × Vertical × Asset Welle 1b (Top-10 priorisiert)
+
+(Siehe v2.0 §4.6 — unverändert)
+
+### 4.7 Shop-Bereich Welle 1 (NEU)
 
 ```
-/berlin/barbershop    /berlin/friseur    /berlin/kosmetik    /berlin/nagelstudio    /berlin/lash-brows
-/hamburg/barbershop   /hamburg/friseur   /hamburg/kosmetik   /hamburg/nagelstudio   /hamburg/lash-brows
-/muenchen/barbershop  /muenchen/friseur  /muenchen/kosmetik  /muenchen/nagelstudio  /muenchen/lash-brows
-/koeln/barbershop     /koeln/friseur     /koeln/kosmetik     /koeln/nagelstudio     /koeln/lash-brows
-/frankfurt/barbershop /frankfurt/friseur /frankfurt/kosmetik /frankfurt/nagelstudio /frankfurt/lash-brows
+/produkte                              (P-41, Übersicht)
+/produkte/wax                          (P-92, Kategorie)
+/produkte/gel                          (P-92, Kategorie)
+/produkte/kosmetik                     (P-92, Kategorie)
+/produkte/werkzeug                     (P-92, Kategorie)
+/produkte/[product-slug]               (P-42, Detail)
+/verkaeufer                            (P-91 analog, Verzeichnis)
+/verkaeufer/[seller-slug]              (P-49, Profil)
+/verkaeufer/onboarding                 (P-93, intern)
 ```
 
-### 4.6 Stadt × Vertical × Asset Phase 1b — NEU PRIORISIERT (basierend auf Recon 22.05 Top-10)
+### 4.8 Anbieter-Bereich Welle 1b (NEU)
 
 ```
-1. /berlin/friseur/stuhl-mieten             — größter Markt
-2. /koeln/friseur/stuhl-mieten              — Yusufs lokales Netz
-3. /frankfurt/friseur/stuhl-mieten          — Yusufs lokales Netz
-4. /berlin/kosmetik/raum-mieten             — Coworking-Konkurrenz schwach
-5. /muenchen/kosmetik/raum-mieten           — Dollea ist Single-Location
-6. /berlin/barbershop/stuhl-mieten          — Volumen
-7. /hamburg/friseur/stuhl-mieten            — Volumen
-8. /muenchen/friseur/stuhl-mieten           — Volumen
-9. /koeln/kosmetik/raum-mieten              — Coworking-Lücke
-10. /frankfurt/op-raum-mieten               — Premium-Nische
+/anbieter                              (P-91, Verzeichnis aller Dienstleister)
+/anbieter/[slug]                       (P-90, öffentliches Profil)
 ```
 
-Hinweis: URL-Slug der Asset-Ebene angepasst — „raum-mieten" statt „kabine-mieten" für Kosmetik, weil Recon zeigt dass „Raum" der natürlichere Term ist (Schönheitsloft, Beauty Coworking nutzen alle „Raum").
-
-### 4.7 Magazin-Artikel Phase 1 (10 Skelette live, Content-Status siehe Modul 1 F-128)
-
-`MAGAZIN_ARTIKEL[]` in `src/lib/seo-data/magazin.ts:21+`:
+### 4.9 Drittanbieter Welle 2 (gebaut, aber via Flag ein/aus)
 
 ```
-/magazin/wie-funktioniert-stuhl-miete          ✅ Skelett
-+ 9 weitere Slugs (zu verifizieren)
+/drittanbieter                         (P-50)
+/drittanbieter/wie-es-funktioniert     (P-51)
+/drittanbieter/raum-mieten             (P-52)
+/drittanbieter/antragsservice          (P-53, mit Disclaimer-Sticky)
+/agb-drittanbieter                     (P-54)
 ```
 
-**NEU Phase 1b (aus Recon 22.05)**:
+### 4.10 Versicherung Welle 2 (gebaut, aber via Flag ein/aus)
 
 ```
-/magazin/scheinselbststaendigkeit-stuhlmiete   — #1 PAA-Pain (Modul 1 F-129)
-/magazin/was-kostet-stuhlmiete                 — Calculator-Anker
-/magazin/stuhlmietvertrag-was-rein-muss        — verlinkt auf Vorlage-Tool
+/versicherung                          (P-60)
+/versicherung/berufshaftpflicht        (P-61)
+/versicherung/inhaltsversicherung      (P-61)
+/versicherung/vermittler-hinweis       (P-62)
 ```
 
-### 4.8 Lexikon Phase 1b — NEU (aktuell nicht im Code)
+### 4.11 Beauty-Tourismus Welle 3 (gebaut, HART noindex, NICHT in Sitemap)
 
 ```
-/lexikon/chair-rental
-/lexikon/salon-coworking
-/lexikon/stuhlmiete
-/lexikon/freelancer-friseur
-/lexikon/op-raum-vermietung
+/beauty-reisen                         (P-70, noindex)
+/beauty-reisen/haartransplantation     (P-71, noindex)
+/beauty-reisen/zaehne                  (P-71, noindex)
+/beauty-reisen/augen                   (P-71, noindex)
+/beauty-reisen/aesthetik               (P-71, noindex)
+/beauty-reisen/tuerkei                 (P-73, noindex)
+/beauty-reisen/tuerkei/istanbul        (P-73, noindex)
+/beauty-reisen/anbieter/[slug]         (P-72, noindex)
+/beauty-reisen/disclaimer              (P-74, noindex)
+/agb-beauty-reisen                     (P-96, noindex)
 ```
 
-### 4.9 Category-Pages Phase 1 (alle live)
-
-```
-/category/barber     /category/friseur     /category/kosmetik     /category/aesthetik
-/category/nail       /category/massage     /category/lash         /category/arzt
-/category/opraum     /category/haartransplantation
-/category/zahnimplantate /category/augenlasern /category/longevity /category/infusion
-```
-
-### 4.10 Shop & Tools (Phase 1)
-
-```
-/products              — Übersicht (in Sitemap mit Priority 0.85)
-/shop/[slug]           — Produkt-Detail (dynamisch aus DB)
-/freelancer-rechner    — Lead-Magnet Tool
-```
-
-**Phase 1 Total**: ~65 indexierbare URLs in 1a + ~15 zusätzlich in 1b = ~80 sichtbare Launch-URLs.
+**Total Welle 1 indexierbar**: ~80 Pages (wie v2.0) + ~10 Shop-/Anbieter-Pages = ~90 URLs.
+**Total Welle 2 indexierbar nach Freigabe**: +10 Pages = ~100 URLs.
+**Total Welle 3 gated (gebaut, nicht indexiert)**: ~10 Pages.
 
 ---
 
-## 5. Interne Verlinkungs-Architektur
+## 5. Interne Verlinkungs-Architektur (erweitert um Multi-Vertical)
 
-### 5.1 Hub-and-Spoke pro Stadt
-
-```
-                  /koeln (Stadt-Hub)
-                 /  |  |  |  \
-                /   |  |  |   \
-   /koeln/barbershop  /koeln/friseur  /koeln/kosmetik  /koeln/nagelstudio  /koeln/lash-brows
-        |                  |                |                |                  |
-   3-5 Salons          3-5 Salons      3-5 Salons      3-5 Salons         3-5 Salons
-```
-
-Die Stadt-Hub-Page enthält (laut existierender Implementierung `/[stadt]/page.tsx`):
-- 5 große Vertical-Cards mit jeweils Top-Salons (aus DB)
-- serviceAreaSchema-LD
-- breadcrumbSchema-LD
-- FAQ-Komponente (Modul 1 F-114)
-- **Offen** (Modul 1 F-136): 300+ Wörter Stadt-Marktinfo („Warum ist Köln ein Markt für Stuhlmiete?")
-
-### 5.2 Vertical-Hub-Cross-Linking
-
-`/friseur-deutschland` → linkt zu allen `/[stadt]/friseur`-Pages.
-`/koeln/friseur` → linkt zurück zu `/friseur-deutschland` UND seitlich zu `/koeln/barbershop` (verwandte Kategorie).
-
-### 5.3 Footer-Mega-Links (`SeoFooter`-Komponente)
-
-Bereits implementiert: `src/app/(public)/layout.tsx` rendert `<SeoFooter />`. Inhalt muss verifiziert werden — Empfehlung Layout:
+### 5.1 Footer-Mega-Links (Multi-Vertical-Layout)
 
 ```
-Spalte 1 — Vermieter:        Spalte 2 — Städte:         Spalte 3 — Kategorien:
+Spalte 1 — Vermietung:        Spalte 2 — Städte:         Spalte 3 — Kategorien:
 - Vermieter werden            - Stuhlmiete Köln          - Friseur Deutschland
-- Provisionsmodell            - Stuhlmiete Berlin        - Barbershop Deutschland
-- Provider-AGB                - Kosmetikraum Berlin      - Kosmetik Deutschland
-- Help-Center                 - Stuhlmiete Frankfurt     - Nagelstudio Deutschland
-- Magazin                     - Lash-Studio Berlin       - Lash & Brows Deutschland
+- Mieter werden               - Stuhlmiete Berlin        - Barbershop Deutschland
+- Anbieter-Verzeichnis        - Kosmetikraum Berlin      - Kosmetik Deutschland
+- Provisionsmodell            - Stuhlmiete Frankfurt     - Nagelstudio Deutschland
+- Provider-AGB                - Lash-Studio Berlin       - Lash & Brows Deutschland
 
-Spalte 4 — Mieter:            Spalte 5 — Tools:          Spalte 6 — Premium:
-- Mieter werden               - Freelancer-Rechner       - Haartransplantation
-- FAQ                         - Stuhlmietvertrag-Vorlage - Zahnimplantate
-- Magazin                     - Lexikon                  - Longevity
-- Was ist ChairMatch?         - Statistik                - Augenlasern
+Spalte 4 — Shop:              Spalte 5 — Tools:          Spalte 6 — Premium / Vertical:
+- Produkte                    - Freelancer-Rechner       - Haartransplantation (DE-Standorte)
+- Verkäufer werden            - Stuhlmietvertrag-Vorlage - Zahnimplantate
+- Verkäufer-Verzeichnis       - Lexikon                  - Longevity
+- Verkäufer-AGB               - Statistik                - Augenlasern
+
+Spalte 7 — Welle 2 (nach Freigabe):    Spalte 8 — Rechtliches:
+- Drittanbieter (Räume)                - Impressum
+- Versicherung-Vergleich               - Datenschutz
+- Antragsservice                       - AGB
+                                       - Widerruf
+                                       - Inhalt melden (DSA)
+
+(Welle 3 / Beauty-Reisen erscheint NICHT im Footer bis Freigabe.)
 ```
 
-20-30 Links, alle in Phase-1-Inventar.
+### 5.2 Hub-and-Spoke pro Bereich (unverändert in der Logik, erweitert)
 
-### 5.4 Magazin → Money-Page Internal Links
+(Siehe v2.0 §5.1–5.5 — übernommen)
 
-Jeder Magazin-Artikel: 3-5 kontextuelle Anchor-Texts zu Money-Pages.
+### 5.3 Cross-Vertical-Linking
 
-Beispiel `/magazin/wie-funktioniert-stuhl-miete`:
-> „Wer in Köln einen [Friseurstuhl mieten](/koeln/friseur) will, hat aktuell zwei Optionen..."
-
-Beispiel `/magazin/scheinselbststaendigkeit-stuhlmiete`:
-> „Bevor du einen [Stuhlmietvertrag unterschreibst](/tools/stuhlmietvertrag-vorlage), prüfe die [Checkliste der Pflichten](/magazin/stuhlmietvertrag-was-rein-muss)."
-
-### 5.5 „Ähnliche Salons"-Modul
-
-Auf Salon-Detail-Pages: 4 Boxen mit:
-- Salons gleicher Kategorie in derselben Stadt
-- Salons in benachbarter Stadt mit gleicher Kategorie
-
-Implementierung: noch nicht im Code verifiziert — Open in Modul 3.
+Beispiel: `/anbieter/[slug]` (Friseur in Köln) → linkt zu:
+- Salon der/die er gerade vermietet (Vermietung-Bereich)
+- Produkte, die er nutzt (Shop, wenn Affiliate-Link konfiguriert)
+- ⛔ KEIN Auto-Link zu Beauty-Reisen (auch nach Welle 3 — nur opt-in)
 
 ---
 
-## 6. Indexierungs-Strategie pro Seitentyp (komplett aktualisiert)
+## 6. Indexierungs-Strategie pro Seitentyp (Multi-Vertical-Vollausbau)
 
-| Seitentyp | robots-Meta | Canonical | Sitemap | Implementierungs-Status |
+Zusätzlich zur v2.0-Tabelle:
+
+| Seitentyp | robots-Meta | Canonical | Sitemap | Welle |
 |---|---|---|---|---|
-| Home `/` | index,follow | self | ✅ | ✅ live |
-| Was-ist | index,follow | self | ✅ | ✅ live |
-| Anbieter/Mieter-Funkt. | index,follow | self | ✅ | ✅ live |
-| Vermieter-Funkt. | index,follow | self | ✅ | ❌ fehlt (siehe Q-A) |
-| Provisionsmodell | index,follow | self | ✅ | ✅ live |
-| FAQ | index,follow | self | ✅ | ✅ live + FAQ-Schema |
-| Stadt-Hub | bedingt (≥3) via `robotsForListingPage` | self | bedingt | ✅ live |
-| Stadt × Vertical | bedingt (≥3) | self | bedingt | ✅ live |
-| Stadt × Vertical × Asset | bedingt | self | bedingt | ❌ fehlt (Phase 1b) |
-| Vertical-DE-Hub | index,follow | self | ✅ (immer) | ✅ live |
-| Salon-Detail | index,follow | self | ✅ | ✅ live |
-| Magazin-Übersicht | index,follow | self | ✅ | ✅ live |
-| Magazin-Artikel | index,follow | self | ✅ | ✅ live + Article-Schema |
-| Listings-Detail | index,follow | self | ✅ | ✅ live + dyn. OG-Image |
-| Lexikon | index,follow | self | ✅ | ❌ fehlt |
-| Impressum/AGB/etc | index,follow | self | ✅ | ✅ live |
-| Cookie-Settings | noindex,follow | self | ❌ | ✅ |
-| Auth | noindex,follow | self | ❌ | 🟡 Bug: in Sitemap, kein robots:noindex (Modul 1 F-140) |
-| `/account/*` | noindex,nofollow | n/a | ❌ | ✅ disallowed via robots.ts |
-| `/provider/*` | noindex,nofollow | n/a | ❌ | ✅ disallowed |
-| `/owner/*` | noindex,nofollow | n/a | ❌ | ✅ disallowed |
-| `/investor/*` | noindex,nofollow | n/a | ❌ | ✅ disallowed |
-| `/admin/*` | noindex,nofollow | n/a | ❌ | ✅ disallowed |
-| `/api/*` | n/a (robots-only) | n/a | ❌ | ✅ |
-| `/search` | noindex,follow | `/search` | ❌ | 🟡 Bug: in Sitemap, kein robots:noindex (Modul 1 F-133) |
-| `/explore` | index,follow | `/explore` | ✅ | 🟡 Metadata fehlt |
-| `/offers` | index,follow | self | ✅ | 🟡 Metadata fehlt |
-| `/rentals` | index,follow | self | ✅ | 🟡 Metadata fehlt |
-| `/landing` | index,follow | self | ✅ | ✅ |
-| `/pitch` | siehe Q-G | n/a | ⚠️ Priority 0.5 | 🟡 |
-| `/statistik` | index,follow | self | n/a | ✅ |
-| `/category/*` | index,follow | self | ✅ | ✅ live |
-| Medical-Money (5) | index,follow | self | ✅ Priority 0.95 | ✅ live |
-| `/premium` | index,follow | self | ✅ | ✅ live |
-| `/products`, `/shop/*` | siehe Q-E | self | ✅ | ✅ live |
-| `/freelancer-rechner` | index,follow | self | ✅ | ✅ live |
-| `/empfehlungen`, `/inserat`, `/konto` | siehe Q-F | n/a | ❌ | 🟡 unklar |
-| `/nachrichten`, `/termine` | noindex,nofollow | n/a | ❌ | 🟡 unklar |
+| **Vermietung (Bereich 1)** | | | | |
+| `/anbieter/[slug]` (P-90) | index,follow | self | ✅ | 1b |
+| `/anbieter` (P-91) | index,follow | self | ✅ | 1b |
+| **Shop (Bereich 3)** | | | | |
+| `/produkte` (P-41) | index,follow | self | ✅ Priority 0.85 | 1 |
+| `/produkte/[slug]` (P-42) | index,follow | self | ✅ | 1 |
+| `/produkte/[kategorie]` (P-92) | index,follow | self | ✅ | 1b |
+| `/verkaeufer/[slug]` (P-49) | index,follow | self | ✅ | 1b |
+| `/verkaeufer/onboarding` (P-93) | noindex,nofollow | n/a | ❌ | 1b |
+| **Drittanbieter (Bereich 2)** | | | | |
+| `/drittanbieter` (P-50) | bedingt: `WELLEN_FREIGABE.drittanbieter` | self | bedingt | 2 |
+| `/drittanbieter/wie-es-funktioniert` (P-51) | bedingt | self | bedingt | 2 |
+| `/drittanbieter/raum-mieten` (P-52) | bedingt | self | bedingt | 2 |
+| `/drittanbieter/antragsservice` (P-53) | bedingt + Sticky-Disclaimer | self | bedingt | 2 |
+| **Versicherung (Bereich 5)** | | | | |
+| `/versicherung` (P-60) | bedingt: `WELLEN_FREIGABE.versicherung` | self | bedingt | 2 |
+| `/versicherung/[produkt]` (P-61) | bedingt | self | bedingt | 2 |
+| **Beauty-Tourismus (Bereich 4) — HART GATED** | | | | |
+| `/beauty-reisen` (P-70) | **noindex,nofollow** (hart) bis `WELLEN_FREIGABE.beauty_reisen=true` | self | ❌ ausschließen | 3 |
+| `/beauty-reisen/*` (P-71..P-74) | **noindex,nofollow** | self | ❌ | 3 |
+| `/agb-beauty-reisen` (P-96) | **noindex** | self | ❌ | 3 |
+| **DSA / Compliance** | | | | |
+| `/melden` (P-95) | index,follow | self | ✅ | 1 |
 
 ---
 
-## 7. Faceted-Search-Handling
+## 7. Faceted-Search-Handling (unverändert v2.0 §7)
 
-### 7.1 Problem
-
-`/explore?category=barber&city=koeln&priceMin=20&priceMax=80` ergibt beliebige Kombinationen — kombinatorische Explosion ist SEO-Gift.
-
-### 7.2 Aktuelle Implementation
-
-`src/app/robots.ts` blockt:
-- `/search?` (Disallow-Pattern)
-- `/explore?` (Disallow-Pattern)
-- `/*?_rsc=*`, `/*?_next=*` (Next.js intern)
-
-**Lücke**: Kein Canonical-Tag der Filter-URLs auf die Basis kanonisiert (Modul 1 F-135). Crawler die robots.txt ignorieren würden Duplicate sehen.
-
-### 7.3 Soll-Strategie
-
-**Whitelist-Strategie** + Canonical:
-
-1. `/explore` mit Filter-Query: `<meta name="robots" content="noindex,follow">` + `<link rel="canonical" href="/explore">` (oder wenn Filter-Kombination einer indexierbaren Page entspricht → canonical zu der Page).
-2. `/search` analog mit `canonical="/search"` ABER zusätzlich `noindex` auch für die Base-URL (Modul 1 F-133).
-
-### 7.4 Wann ist eine Filter-URL indexierbar?
-
-Nur bei diesen Filter-Kombinationen — alle haben EIGENE Pretty-URL als Ziel:
-
-- City-Only: `/explore?city=koeln` → canonical zu `/koeln`
-- Category-Only: `/explore?category=friseur` → canonical zu `/friseur-deutschland`
-- City + Category: → canonical zu `/koeln/friseur`
-- Sonst: `noindex` + canonical zur Basis
+Whitelist + Canonical für `/explore?...`, `/search?...`. (Detail siehe v2.0 §7)
 
 ---
 
-## 8. Next.js App Router File-Tree (aktualisiert für Stand 23.05.2026)
+## 8. Next.js App Router File-Tree (Multi-Vertical-Vollausbau)
 
-Tatsächlicher Ist-Stand:
+Erweitert um Welle-1/2/3-Strukturen. **Welle-3-Pfade EXISTIEREN, sind aber per Layout-`robots`-Meta und Feature-Flag-Sitemap-Exclude inaktiv.**
 
 ```
 src/app/
 ├── layout.tsx                                # Root-Layout + Org-LD + WebSite-LD
-├── page.tsx                                  # P-01 Home (force-dynamic, statisches Metadata)
-├── sitemap.ts                                # P-30 Sitemap-Generator
-├── robots.ts                                 # Robots-Generator
-├── opengraph-image.tsx                       # Default OG-Image (Edge)
-├── (auth)/                                   # Auth-Flows (4 Pages, noindex)
-│   ├── auth/
-│   ├── auth/forgot-password/
-│   ├── auth/reset-password/
-│   └── auth/change-password/
-├── (protected)/                              # 5 Pages, noindex via Middleware
-│   ├── account/
-│   ├── favorites/
-│   └── booking/[salonId]/
-├── (provider)/provider/                      # noindex
-├── (owner)/owner/                            # noindex + 3 Subpages
-├── (investor)/investor/                      # noindex + 2 Subpages
-├── (admin)/                                  # noindex (23 Pages)
-├── (public)/                                 # SEO-relevante Route-Group, layout.tsx mit SeoFooter
-│   ├── layout.tsx                            # rendert SeoFooter
-│   ├── [stadt]/                              # P-06 Stadt-Hub (ISR 3600s)
-│   │   ├── page.tsx                          
-│   │   └── [vertical]/page.tsx               # P-07 Stadt × Vertical
-│   │   # FEHLT: [asset]-mieten/page.tsx      # P-08 Phase 1b
-│   ├── [vertical]-deutschland/page.tsx       # P-09 (5 statische via generateStaticParams)
+├── page.tsx                                  # P-01 Home
+├── sitemap.ts                                # liest WELLEN_FREIGABE für Filter
+├── robots.ts
+├── opengraph-image.tsx
+├── (auth)/...                                # noindex
+├── (protected)/...                           # noindex
+├── (provider)/provider/...                   # noindex
+├── (owner)/owner/...                         # noindex
+├── (investor)/investor/...                   # noindex
+├── (admin)/...                               # noindex
+├── (public)/
+│   ├── layout.tsx                            # SeoFooter
+│   │
+│   # ── Bereich 1: Vermietung (Welle 🟢 1) ──────────────────────────
+│   ├── [stadt]/
+│   │   ├── page.tsx                          # P-06
+│   │   ├── [vertical]/page.tsx               # P-07
+│   │   └── [vertical]/[asset]-mieten/page.tsx # P-08 (Welle 1b)
+│   ├── [vertical]-deutschland/page.tsx       # P-09
 │   ├── was-ist-chairmatch/page.tsx           # P-02
-│   ├── anbieter/wie-es-funktioniert/page.tsx # P-03a
-│   ├── mieter/wie-es-funktioniert/page.tsx   # P-03b
-│   # FEHLT: vermieter/wie-es-funktioniert/page.tsx  # P-03c
+│   ├── anbieter/
+│   │   ├── page.tsx                          # P-91 NEU (Verzeichnis)
+│   │   ├── [slug]/page.tsx                   # P-90 NEU (Profil)
+│   │   ├── wie-es-funktioniert/page.tsx      # P-03a
+│   │   └── onboarding/page.tsx               # intern
+│   ├── mieter/
+│   │   ├── wie-es-funktioniert/page.tsx      # P-03b
+│   │   ├── onboarding/page.tsx
+│   │   └── mein-bereich/page.tsx
+│   ├── vermieter/
+│   │   ├── wie-es-funktioniert/page.tsx      # P-03c NEU (fehlt)
+│   │   ├── onboarding/page.tsx
+│   │   └── mein-inserat/page.tsx
 │   ├── provisionsmodell/page.tsx             # P-04
-│   ├── faq/page.tsx                          # P-05 + FAQPage-Schema
-│   ├── magazin/                              # P-14, P-15
+│   ├── faq/page.tsx                          # P-05
+│   ├── lexikon/                              # P-10 (Welle 1b) NEU
 │   │   ├── page.tsx
-│   │   └── [slug]/
-│   │       ├── page.tsx                      # + articleSchema
-│   │       └── opengraph-image.tsx           # ❌ FEHLT (Modul 1 F-137)
-│   ├── salon/[slug]/                         # P-12 (ISR 300s)
-│   │   ├── page.tsx                          # + Inline-BeautySalon-LD (Modul 1 F-112)
-│   │   └── opengraph-image.tsx               # ❌ FEHLT
-│   ├── listings/[slug]/                      # P-11
-│   │   ├── page.tsx
-│   │   └── opengraph-image.tsx               # ✅ live
-│   ├── category/[categoryId]/page.tsx        # P-38 (13 Slugs)
-│   ├── shop/[slug]/page.tsx                  # P-42
-│   ├── products/page.tsx                     # P-41
-│   ├── premium/page.tsx                      # P-40
-│   ├── haartransplantation/page.tsx          # P-39
-│   ├── zahnimplantate/page.tsx               # P-39
-│   ├── augenlasern/page.tsx                  # P-39
-│   ├── longevity/page.tsx                    # P-39
-│   ├── iv-infusionen/page.tsx                # P-39
+│   │   └── [term]/page.tsx
+│   ├── magazin/
+│   │   ├── page.tsx                          # P-14
+│   │   └── [slug]/page.tsx                   # P-15
+│   ├── salon/[slug]/page.tsx                 # P-12
+│   ├── listings/[slug]/page.tsx              # P-11
+│   ├── category/[categoryId]/page.tsx        # P-38
 │   ├── freelancer-rechner/page.tsx           # P-43
-│   ├── barbershop-deutschland/page.tsx       # P-09 (alternative explizite Route?)
-│   ├── friseur-deutschland/page.tsx
-│   ├── kosmetik-deutschland/page.tsx
-│   ├── nagelstudio-deutschland/page.tsx
-│   ├── lash-brows-deutschland/page.tsx
-│   ├── explore/page.tsx                      # P-32 (Metadata fehlt)
-│   ├── search/page.tsx                       # P-31 (noindex fehlt)
-│   ├── offers/page.tsx                       # P-33 (Metadata fehlt)
-│   ├── rentals/page.tsx                      # P-34 (Metadata fehlt)
-│   ├── landing/page.tsx                      # P-35
-│   ├── pitch/page.tsx                        # P-36
 │   ├── statistik/page.tsx                    # P-37
-│   ├── empfehlungen/page.tsx                 # P-44 (Status klären, Q-F)
-│   ├── konto/page.tsx                        # P-45 (Status klären)
-│   ├── inserat/page.tsx                      # P-46 (Status klären)
-│   ├── nachrichten/page.tsx                  # P-47 (Status klären)
-│   ├── termine/page.tsx                      # P-48 (Status klären)
-│   ├── anbieter/onboarding/
-│   ├── anbieter/mein-salon/
-│   ├── mieter/onboarding/
-│   ├── mieter/mein-bereich/
-│   ├── vermieter/onboarding/
-│   ├── vermieter/mein-inserat/
+│   ├── explore/page.tsx                      # P-32
+│   ├── offers/page.tsx                       # P-33
+│   ├── rentals/page.tsx                      # P-34
+│   ├── premium/page.tsx                      # P-40
+│   ├── haartransplantation/page.tsx          # P-39a
+│   ├── zahnimplantate/page.tsx               # P-39b
+│   ├── augenlasern/page.tsx                  # P-39c
+│   ├── longevity/page.tsx                    # P-39d
+│   ├── iv-infusionen/page.tsx                # P-39e
+│   │
+│   # ── Bereich 3: Shop / Affiliate (Welle 🟢 1) ───────────────────
+│   ├── produkte/                             # P-41, P-42, P-92 NEU
+│   │   ├── page.tsx                          # P-41 Übersicht
+│   │   ├── [slug]/page.tsx                   # P-42 Detail
+│   │   └── (kategorie-routes)/...            # P-92 (wax, gel, kosmetik)
+│   ├── verkaeufer/                           # P-49, P-91, P-93 NEU
+│   │   ├── page.tsx                          # Verzeichnis
+│   │   ├── [slug]/page.tsx                   # Profil
+│   │   └── onboarding/page.tsx               # noindex
+│   ├── agb-verkaeufer/page.tsx               # P-94 NEU
+│   │
+│   # ── Bereich 2: Drittanbieter (Welle 🟡 2, Feature-Flag) ────────
+│   ├── drittanbieter/                        # NEU (Welle 2)
+│   │   ├── layout.tsx                        # NEU: liest WELLEN_FREIGABE.drittanbieter
+│   │   ├── page.tsx                          # P-50
+│   │   ├── wie-es-funktioniert/page.tsx      # P-51
+│   │   ├── raum-mieten/page.tsx              # P-52
+│   │   └── antragsservice/page.tsx           # P-53 (mit Sticky-Disclaimer)
+│   ├── agb-drittanbieter/page.tsx            # P-54 NEU
+│   │
+│   # ── Bereich 5: Versicherung (Welle 🟡 2, Feature-Flag) ─────────
+│   ├── versicherung/                         # NEU (Welle 2)
+│   │   ├── layout.tsx                        # NEU: liest WELLEN_FREIGABE.versicherung
+│   │   ├── page.tsx                          # P-60
+│   │   ├── [produkt]/page.tsx                # P-61
+│   │   └── vermittler-hinweis/page.tsx       # P-62
+│   │
+│   # ── Bereich 4: Beauty-Tourismus (Welle 🔴 3, HART GATED) ────────
+│   ├── beauty-reisen/                        # NEU (Welle 3)
+│   │   ├── layout.tsx                        # NEU: hart `robots: { index: false }`
+│   │   ├── page.tsx                          # P-70
+│   │   ├── [behandlung]/page.tsx             # P-71
+│   │   ├── [land]/[stadt]/page.tsx           # P-73
+│   │   ├── anbieter/[slug]/page.tsx          # P-72
+│   │   └── disclaimer/page.tsx               # P-74
+│   ├── agb-beauty-reisen/page.tsx            # P-96 NEU (noindex)
+│   │
+│   # ── Pflicht-Rechtsseiten (alle Wellen) ─────────────────────────
 │   ├── impressum/page.tsx                    # P-18
 │   ├── datenschutz/page.tsx                  # P-19
 │   ├── agb/page.tsx                          # P-20
 │   ├── agb-provider/page.tsx                 # P-21
 │   ├── widerruf/page.tsx                     # P-22
 │   ├── cookie-settings/page.tsx              # P-23
-│   ├── test-i18n-check/page.tsx              # ⚠️ Dev-Page, sollte noindex sein
+│   ├── melden/page.tsx                       # P-95 NEU (DSA-Pflicht)
+│   │
+│   ├── nachrichten/page.tsx                  # P-47 (noindex)
+│   ├── termine/page.tsx                      # P-48 (noindex)
+│   ├── konto/page.tsx                        # P-45
+│   ├── inserat/page.tsx                      # P-46
+│   ├── empfehlungen/page.tsx                 # P-44
+│   ├── search/page.tsx                       # P-31 (noindex, Bug F-133)
+│   ├── landing/page.tsx                      # P-35
+│   ├── pitch/page.tsx                        # P-36
+│   ├── register/page.tsx
+│   ├── test-i18n-check/page.tsx              # ⚠️ Dev-Page → löschen
 │   ├── error.tsx
 │   └── loading.tsx
-└── api/                                      # Server-Endpoints (alle disallowed)
+└── api/...                                   # disallowed
 ```
 
-**Inkonsistenz beobachtet**: Es gibt sowohl `/[vertical]-deutschland/page.tsx` (dynamische Route) als auch explizite `/barbershop-deutschland/page.tsx` etc. Eine der beiden Implementierungen sollte gewinnen — sonst Risiko von Routing-Konflikt. **Action für Modul 3**: verifizieren welche aktiv ist.
+**Wichtig**: Die Welle-2/3-Routen sind **explizit anzulegen** mit Stub-Content + `robots: { index: false }` + Banner „Pre-Launch — Welle X — Anwalt-Review läuft" (Welle 3) bzw. „Pre-Launch — AGB-Review läuft" (Welle 2). Damit ist die Plattform-Architektur sichtbar im Code und einfach scharfschalten.
 
 ---
 
-## 9. Open Questions an Yusuf (Pflicht vor Modul 3)
+## 9. Feature-Flag-Schema für Wellen
 
-### Q-A: Anbieter vs. Vermieter (BLOCKER für Phase 1b)
+Neuer Modul-3-Auftrag: `src/lib/seo-data/wellen.ts`:
 
-Aktuell drei Rollen-Namen parallel:
-- `/anbieter/*` (Anbieter = Salon der Stuhl vermietet?)
-- `/mieter/*` (Mieter = Freelancer der Stuhl mietet)
-- `/vermieter/*` (Vermieter = ?)
+```typescript
+/**
+ * Welle 1: aktiv ab Launch
+ * Welle 2: aktiviert nach AGB-Ergänzung + 4 Wochen stabile Welle 1
+ * Welle 3: aktiviert NUR nach schriftlicher Anwalt-Freigabe (siehe docs/legal/HWG-FREIGABE.md)
+ */
+export const WELLEN_FREIGABE = {
+  vermietung: true,         // Welle 1
+  shop: true,               // Welle 1
+  drittanbieter: false,     // Welle 2 — manuell aktivieren
+  versicherung: false,      // Welle 2 — manuell aktivieren
+  beauty_reisen: false,     // Welle 3 — manuell aktivieren NUR nach Anwalt
+} as const
 
-**Vorschlag**: 2 Rollen.
-- **„Vermieter"** = Marketplace-Salon (vermietet Stühle/Räume)
-- **„Mieter"** = Freelancer (mietet Stuhl/Raum)
-- 301-Redirect: `/anbieter/*` → `/vermieter/*`
-- Konsistenz-Update: llms.txt, SeoFooter, alle Schema-Texte, FAQ-Antworten
+export type WellenBereich = keyof typeof WELLEN_FREIGABE
+```
 
-**Alternative**: „Anbieter" + „Mieter" behalten, `/vermieter/*` löschen. Aber „Anbieter" ist weniger eindeutig.
-
-**Entscheidung erforderlich**.
-
-### Q-B: Stuhlmiete-URL-Pattern
-
-Empfehlung Phase 1: **Option C** (H1/Body, URL bleibt). Phase 2 ggf. Re-Eval mit A/B-Test.
-
-**OK so?**
-
-### Q-C: MedicalBusiness-Schema für 5 Medical-Pages
-
-Empfehlung: **MedicalBusiness**, nicht MedicalClinic (Marketplace listet keine eigene Klinik).
-
-**OK?**
-
-### Q-D: Sprach-Prefix (`/de/...`)
-
-Phase 1 ohne, Phase 2 mit 301-Redirect — wie ursprünglich.
-
-**Bestätigung erforderlich**.
-
-### Q-E: Products vs. Salonplatz — Strategie
-
-`/products` und `/shop/[slug]` sind im Code aber unklar:
-- B2B-Equipment-Verkauf (Kassen, Stühle, Werkzeuge)? → indexieren ✅
-- Inventar-Listings (Stühle die vermietet werden)? → dann mit `/listings/[slug]` konsolidieren
-
-**Entscheidung beeinflusst Sitemap-Priorität und Internal-Linking.**
-
-### Q-F: `/empfehlungen`, `/inserat`, `/konto`, `/nachrichten`, `/termine` — Public oder Account?
-
-Diese Pages liegen in `(public)/` aber Naming suggeriert Account-Tools. Klären:
-- Wenn Public-Pages mit echtem SEO-Wert → in IA aufnehmen, Sitemap-Entry erstellen
-- Wenn Account-Tools → nach `(protected)` verschieben + `noindex`
-
-**Action**: Yusuf entscheidet pro Page.
-
-### Q-G: `/pitch` (Investor-Pitch-Page) — index oder noindex?
-
-Aktuell in Sitemap mit Priority 0.5 → indexiert. Investor-Pitch öffentlich indexiert ist normalerweise unüblich.
-
-**Vorschlag**: noindex, mit Token-basiertem Share-Link für Investoren.
-
-### Q-H: Threshold per Vertical
-
-Empfehlung: Für `op-raum`, `longevity` Threshold auf 1 setzen (Premium-Nischen mit wenigen aber wertvollen Listings).
-
-Konkret: `INDEX_THRESHOLDS = { default: 3, 'op-raum': 1, 'longevity': 1, 'iv-infusionen': 1 }` (in `src/lib/seo.ts`).
-
-**OK?**
-
-### Q-I: hreflang für Phase 1
-
-Nur DE Phase 1 → kein hreflang nötig. Bei Phase-2-Migration nach `/de/`-Prefix kommen hreflang-Tags automatisch.
-
-**OK?**
-
-### Q-J: `/test-i18n-check` Dev-Page
-
-Existiert in `(public)/`. Sollte `noindex` oder gelöscht werden.
-
-**Confirmation**: kann gelöscht werden?
+Konsumiert von:
+- `src/app/sitemap.ts` — schließt nicht-freigegebene Bereiche aus
+- `src/app/(public)/{drittanbieter,versicherung,beauty-reisen}/layout.tsx` — setzt `robots: { index: WELLEN_FREIGABE[...] }`
+- Navigation/Footer-Komponenten — rendert Welle-2/3-Links nur bei `true`
 
 ---
 
-## 10. Übergabe-Status an Modul 3 (Tech-SEO-Implementation)
+## 10. Open Questions an Yusuf — v3.0 Update
 
-Modul 3 kann jetzt:
+Bestehende offene Fragen aus v2.0 (Q-A bis Q-J) bleiben relevant. NEU dazu:
 
-1. **Quick-Win-Sprint** aus `01-audit-prio-matrix.md §4` abarbeiten (QW-1 bis QW-10, ~5,5h Gesamtaufwand)
-2. Nach Yusufs Entscheidung Q-A: **Rollen-Refactor** (URL-Redirects + Content-Anpassungen)
-3. **Phase 1b URL-Implementierung**: Stadt × Vertical × Asset (5 Top-Kombinationen), Lexikon (5 Einträge), Vermieter-wie-Page, Stuhlmietvertrag-Tool
-4. **Salon-Detail-Schema-Refactor** (F-112)
-5. **Sitemap-Bugs fixen** (F-133, F-140, F-141)
+### Q-K (NEU): Drittanbieter-Bereich — Bearbeitungsgebühr-Modell
+- Pauschal pro Antrag oder erfolgsbasiert? **Erfolgshaftung explizit AUS.**
+- Wer ist Vertragspartner: Drittanbieter ↔ Gesundheitsamt oder Drittanbieter ↔ ChairMatch ↔ Gesundheitsamt?
+- **Empfehlung**: Drittanbieter ist immer Vertragspartner des Amts; ChairMatch erbringt nur Bearbeitungsdienstleistung (analog Steuerberater-Modell, aber explizit OHNE Steuerberatungs-Eigenschaft).
 
-Module 4 (Schema-Tiefe), 5 (Content), 6 (CRO) können parallel zu Modul 3 starten — siehe `docs/seo/PROMPT_LIBRARY.md` für die Prompts. **Hinweis**: Module 3–7 sind in `PROMPT_LIBRARY.md` (Stand 23.05.2026) noch NICHT spezifiziert — yusuf muss die noch liefern.
+### Q-L (NEU): Shop-Produktkategorien
+- Welche 4–6 Top-Kategorien für Welle-1-Launch? Empfehlung: `wax, gel, kosmetik, werkzeug, hygiene, accessoires`.
+- Wie wird Produkthaftung in den Verkäufer-AGB verlagert? (Generator-Standardtext + Plattform-Disclaimer reicht für Lean-Start; bei Skalierung Anwalt.)
+
+### Q-M (NEU): Versicherung — Eigenlizenz oder Affiliate?
+- Welle-2-Start als reine **Affiliate-Vergleichsseite** (kein § 34d nötig) — OK?
+- Eigenvermittlung erst nach Lizenz-Antrag — Roadmap in 6+ Monaten.
+
+### Q-N (NEU): Beauty-Tourismus — Anwalts-Auftragsverfahren
+- Wann holt yusuf den Medizinrecht-/HWG-Anwalt ein? Empfehlung: **bevor** Welle 1 Traffic aufbaut (Bot-Crawl von gated URLs ist trotz `noindex` nicht 100% vermeidbar; lieber NIE versehentlich live).
+- Anwalts-Budget? Realistisch € 3.000–8.000 für initiale Freigabe inkl. AGB-Beauty-Reisen + Vorher/Nachher-Bild-Policy.
+
+### Q-O (NEU): DSA-Melde-Funktion (`/melden`)
+- Soll das eine eigene Page mit Formular werden ODER nur ein E-Mail-Link (`melden@chairmatch.de`)?
+- **Empfehlung**: Formular mit Kategorien (Fake-Bewertung / falscher Anbieter / unrechtmäßige Inhalte / sonstiges) + Pflicht-Antwort-Zeit 24h.
 
 ---
 
-## 11. Anhang — Mappings zu Modul 0 / Modul 1
+## 11. Übergabe-Status an Modul 3
 
-### 11.1 Wo wurden Recon-Findings (Modul 0) eingearbeitet?
+Modul 3 (Tech-SEO-Implementation) kann sofort:
 
-| Recon-Finding | Wo in diesem Doc |
+1. `src/lib/seo-data/wellen.ts` mit Feature-Flag-Schema erstellen.
+2. Welle-2- und Welle-3-Routen anlegen (Stub-Pages mit Pre-Launch-Banner + `robots:noindex`).
+3. `sitemap.ts` um Welle-Filter erweitern.
+4. Welle-1-Lücken (P-03c, P-90, P-91, P-95, P-94) implementieren.
+5. Quick-Win-Sprint aus Modul 1.
+
+---
+
+## 12. Anhang — Verweise auf Schwester-Dokumente
+
+| Dokument | Inhalt |
 |---|---|
-| §0.1 „Stuhlmiete" Sprachgebrauch | §2.6, §4.6, §4.7 |
-| §0.2 Wettbewerber-Liste | §3.4 (Phase-3-Skalierung gegen Konkurrenten), Modul 5 |
-| §0.4 PAA-Topthemen | §4.7 (Magazin), §4.8 (Lexikon), §4.10 (Tools) |
-| §0.6 Top-10 Quick-Win-Targets | §4.6 (alle in URL-Map integriert) |
-
-### 11.2 Wo wurden Audit-Findings (Modul 1) eingearbeitet?
-
-| Audit-Finding | Wo in diesem Doc |
-|---|---|
-| F-112 Salon-Schema | §10 (Phase 1b) |
-| F-118 hreflang | §3.3 Phase 2 |
-| F-133 Search noindex | §1 P-31, §6, §7 |
-| F-140 Auth aus Sitemap | §1 P-24, §6 |
-| F-144 Rollen-Klärung | §1 P-03a/b/c, §9 Q-A |
-| F-146 Stuhlmiete-URL | §2.6 |
-| F-147 Products-Strategie | §1 P-41/P-42, §9 Q-E |
-| F-148 Medical-Schema | §9 Q-C |
-| F-150 Unklare Public-Routes | §1 P-44–P-48, §9 Q-F |
+| `docs/seo/00-recon-briefing.md` | Wettbewerbs- und Keyword-Recon |
+| `docs/seo/01-audit-prio-matrix.md` | Tech-SEO-Audit, Quick-Wins |
+| **`docs/seo/02-ia-url-phasen.md` (dieses)** | IA + URL + Wellen-Modell |
+| `docs/seo/03-04-05-implementation.md` | Module-3/4/5-Implementation |
+| `docs/seo/06-cro-trust.md` | CRO + Trust-Elemente |
+| `docs/seo/07-execution-plan.md` | Sprint-Plan |
+| **`RECHTLICHES_SETUP.md`** (Root) | Lean-Legal-Guide (Generator-Anleitung) |
+| `docs/legal/HWG-FREIGABE.md` (zu erstellen) | Anwalts-Freigabe für Welle 3 (Hash-Hinterlegung) |
