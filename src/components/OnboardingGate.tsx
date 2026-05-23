@@ -47,10 +47,11 @@ function isValidEmail(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
 export default function OnboardingGate({ slides, children }: Props) {
   const t = useTranslations()
   const { data: session } = useSession()
-  const [done, setDone] = useState<boolean | null>(() => {
-    if (typeof window === 'undefined') return null
-    try { return sessionStorage.getItem('cm_onboarded') === '1' ? true : null } catch { return null }
-  })
+  // SEO-fix: initial true → SSR rendert children (Marketplace + SEO-Landing).
+  // Nach Mount prüfen wir sessionStorage; für First-Time-Visitors flippt es
+  // auf false → Onboarding-Overlay erscheint clientseitig.
+  const [done, setDone] = useState<boolean>(true)
+  const [mounted, setMounted] = useState(false)
 
   // Onboarding state
   const [step, setStep] = useState(0)
@@ -85,9 +86,14 @@ export default function OnboardingGate({ slides, children }: Props) {
   const [toast, setToast] = useState('')
 
   useEffect(() => {
+    setMounted(true)
     if (session) { setDone(true); return }
-    const v = sessionStorage.getItem('cm_onboarded')
-    setDone(v === '1')
+    try {
+      const v = sessionStorage.getItem('cm_onboarded')
+      if (v !== '1') setDone(false)
+    } catch {
+      // sessionStorage kann in Inkognito-Modi geblockt sein → einfach children zeigen
+    }
   }, [session])
 
   // Scroll to top on phase/step change (must be before early returns — Rules of Hooks)
@@ -96,40 +102,9 @@ export default function OnboardingGate({ slides, children }: Props) {
     if (el) el.scrollTop = 0
   }, [phase, provStep, step])
 
-  // Timeout: if session check takes >3s, assume not logged in
-  useEffect(() => {
-    if (done !== null) return
-    const t = setTimeout(() => {
-      try { setDone(sessionStorage.getItem('cm_onboarded') === '1') } catch { setDone(false) }
-    }, 800)
-    return () => clearTimeout(t)
-  }, [done])
-
-  if (done === null) return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: 'var(--bg)',
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      width: '100%', maxWidth: 'var(--shell-max)', margin: '0 auto',
-    }}>
-      <div style={{
-        animation: 'logoFloat 3s ease-in-out infinite, logoGlow 3s ease-in-out infinite',
-        marginBottom: 24,
-      }}>
-        <BrandLogo size={96} variant="glow" priority={true} />
-      </div>
-      <p className="cinzel" style={{ fontSize: 18, fontWeight: 700, letterSpacing: 3, color: 'var(--gold2)' }}>
-        CHAIRMATCH
-      </p>
-      <div style={{
-        marginTop: 20, width: 32, height: 3, borderRadius: 2,
-        background: 'var(--gold)', opacity: 0.4,
-        animation: 'pulse 1.5s ease-in-out infinite',
-      }} />
-    </div>
-  )
-  if (done) return <>{children}</>
+  // SSR + pre-mount: rendere immer children (SEO crawlable + returning user sieht Marketplace sofort).
+  // Nach Mount: für First-Time-Visitors switcht done auf false → Onboarding-Overlay erscheint als Fixed-Overlay.
+  if (!mounted || done) return <>{children}</>
 
   function showToast(msg: string) {
     setToast(msg)

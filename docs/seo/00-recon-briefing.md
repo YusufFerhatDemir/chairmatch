@@ -1,11 +1,163 @@
-# ChairMatch SEO Recon — Stand 14. Mai 2026
+# ChairMatch SEO Recon — Stand 22. Mai 2026
 
-> **Hinweis zur Methodik:** Dieses Recon-Briefing kombiniert öffentlich
-> bekannte Marktkenntnis mit fundierter Hypothesenbildung. Echte Suchvolumina
-> und SERP-Rankings müssen durch ein Keyword-Tool (Ahrefs / SEMrush /
-> Google Keyword Planner) bestätigt werden, bevor produktive
-> Marketing-Entscheidungen fallen. **Verifikations-Pflichtfelder sind mit
-> `[VERIFY]` markiert.**
+> **Update 2026-05-22 (Web-Recon-Sweep):** Sektion 0 ergänzt mit echten
+> SERP-Findings (Live-Web-Recherche). Hypothesen aus Sektion 2–9 bleiben
+> bestehen, sind aber durch die Funde teilweise widerlegt — siehe
+> "Korrekturen gegen Original-Hypothesen" unten. Volumina müssen weiterhin
+> durch Ahrefs / SEMrush / Google Keyword Planner bestätigt werden.
+> Sektionen mit `[VERIFY]` zeigen wo das nötig ist.
+
+---
+
+## 0. REAL-DATA UPDATE 2026-05-22 (Live-Web-Recherche)
+
+### 0.1 Wichtigstes Keyword-Finding: "Stuhlmiete" > "Stuhl mieten"
+
+Die Web-Recon zeigt klar: Das eingebürgerte deutsche Branchen-Wort ist
+**"Stuhlmiete"** (zusammengeschrieben, ein Substantiv), nicht
+"Stuhl mieten" (Verb-Phrase). Praktisch alle Branchen-Content-Sites,
+Anbieter und Foren-Threads nutzen "Stuhlmiete" als Term.
+
+**Implikation für ChairMatch SEO:**
+- Money-Keywords umpriorisieren: `friseur stuhlmiete berlin` statt
+  `friseurstuhl mieten berlin`
+- Hub-Pages müssen beide Varianten in H1/Body abdecken:
+  "Friseurstuhl mieten — Stuhlmiete in Berlin"
+- URL-Slugs: `/stuhlmiete-friseur-berlin` ist näher am User-Intent
+  als `/berlin/friseur/stuhl-mieten`. Empfehlung Modul 2: BEIDE testen,
+  302-Redirect von der schwächeren auf die stärkere Variante.
+
+### 0.2 KORREKTUR gegen Original-Hypothese — Wettbewerb ist da
+
+Der Original-Recon ging davon aus: "Es existiert kein dominanter
+B2B-Marktplatz". **Das stimmt nur teilweise.** Live-Recherche zeigt:
+
+| Anbieter | Modell | Geo-Reichweite | Bedrohungsgrad |
+|---|---|---|---|
+| [TGTHR Coworking](https://www.esteticahairmagazine.de/2026/03/16/tgthr-coworking/) | Beauty-Coworking, Online-Buchung | DACH, wachsend | Mittel |
+| [SHEAR Collective](https://www.shearcollective.de) | Stuhlmiete-Salon Mitte/PB | Berlin only | Niedrig (Single-Location) |
+| [Dollea](https://dollea.de/) | Beauty Coworking München | München | Niedrig (Single-Location) |
+| [Beauty Coworking Berlin](https://beautycoworking.de) | Coworking-Studio | Berlin | Niedrig |
+| [Workstation24-7](https://www.workstation24-7.com) | Marktplatz-Listing, Online-Buchung | DE national, schmale Inventory | **Direkter Wettbewerber** |
+| [Schönheitsloft](https://schoenheitsloft.de) | Raum-Vermietung Kosmetik | Berlin | Niedrig (Single-Location) |
+| [Peerspace](https://www.peerspace.com/de/) | Generischer Raum-Marktplatz, hat Beauty-Kat. | International | Mittel (US-Player) |
+| [Salonkee](https://salonkee.de/) | B2B Salon-Software (Booking-Fokus, kein Stuhlmiete) | CH→DE | Niedrig für unsere Nische |
+| [Treatwell DE](https://www.treatwell.de/) | C2B Beauty-Booking, KEIN Stuhlmiete | DACH | Niedrig für unsere Nische |
+| [Kleinanzeigen.de](https://www.kleinanzeigen.de/s-friseur-stuhlmiete/k0) | Generisches Kleinanzeigen-Portal | DE national | **Hoch** (rankt für fast alle Stuhlmiete-Money-Keywords) |
+
+**Take-Away:**
+- Workstation24-7 ist der **einzige echte Marktplatz-Wettbewerber** für
+  Stuhlmiete mit Online-Buchung und nationaler Reichweite. Inventory
+  scheint aktuell <20 Listings — angreifbar.
+- Coworking-Konzepte (TGTHR, Dollea) sind **physische Locations**, kein
+  Marktplatz. Sie konkurrieren aber um die gleichen Money-Keywords
+  ("kosmetikraum mieten münchen" etc.).
+- ChairMatch's USP bleibt valide: bundesweiter Marktplatz +
+  Stuhlmiete + Termin-Buchung + Vermieter/Mieter-Trennung. Aber
+  "First Mover" ist nicht mehr ehrlich behauptbar — eher "First
+  Full-Stack Marketplace".
+
+### 0.3 Bestätigte Preisspanne (für Conversion-Copy)
+
+Aus mehreren Quellen ([orderbird](https://www.orderbird.com/blog/friseur-stuhlmiete/),
+[helloumsatz](https://www.helloumsatz.com/stuhlmiete-friseur/),
+[friseur-unternehmer](https://www.friseur-unternehmer.de/)):
+
+- **Friseur-Stuhlmiete**: 25–75 €/Tag (Schnitt ~40 €/Tag)
+- **Kosmetik-Raum Berlin**: ~82 €/Stunde Durchschnitt
+- **Make-Up-Platz (SHEAR Berlin)**: 25 €/Stunde
+- **Monatliche Stuhlmiete-Pauschale**: 85–1.000+ € (Spreizung nach Lage)
+
+→ Diese Zahlen können in Homepage-Copy als ehrliche Marktrange genannt
+werden, OHNE konkrete Listings zu erfinden.
+
+### 0.4 Top-Themen die in AI/PAA für Stuhlmiete dominieren
+
+Die Live-SERPs für Stuhlmiete-Keywords zeigen massive Content-Cluster
+zu rechtlich-organisatorischen Themen — das sind die echten
+People-Also-Ask-Themen:
+
+1. **Scheinselbstständigkeit-Risiko** (DAS Topthema — bei fast jeder
+   Branchen-Quelle Top 1 Sektion). Nachzahlungsrisiko 4 Jahre, mit
+   Vorsatz bis 30 Jahre Sozialabgaben + Steuern. → Pflicht-Content
+   im Magazin + FAQ.
+2. **Stuhlmietvertrag-Vorlage** (sehr hohe Nachfrage, [Friseur-Unternehmer
+   bietet Vorlage zum Download an](https://www.friseur-unternehmer.de/stuhlmietvertrag-friseur-vorlage-zum-download/))
+   → Lead-Magnet-Chance für ChairMatch.
+3. **Preisberechnung Stuhlmiete** ("Wie berechne ich den fairen
+   Stuhlmietpreis?") → Calculator-Tool als Content-Magnet möglich.
+4. **Meisterbrief-Pflicht** (Friseur-Spezifika)
+5. **Steuern als Stuhlmieter** (Gewerbe vs. Freiberufler)
+6. **Eigene Kasse, eigene Buchhaltung, eigenes Telefon** —
+   Abgrenzungs-Pflichten
+
+Diese 6 Themen sollten in der Homepage-FAQ und als Magazin-Artikel
+abgedeckt werden — das ist der direkte AI-Citation-Pfad.
+
+### 0.5 SERP-Snapshot der echten Top-Quellen
+
+Folgende Domains tauchen wiederholt in den Top 10 für Stuhlmiete-
+Keywords auf — das ist die Konkurrenz im Content-/Authority-Layer
+(nicht im Marketplace-Layer):
+
+- **kleinanzeigen.de** — dominiert Listings-Suchen
+- **friseur-unternehmer.de** — Branchen-Content-Authority,
+  Vertrags-Vorlagen
+- **imsalon.de** — Branchen-Magazin (DE/AT)
+- **orderbird.com/blog** — Kassen-Hersteller mit starkem Friseur-Blog
+- **helloumsatz.com** — Coaching-Site mit Stuhlmiete-Content
+- **tophair.de** — Friseur-Magazin
+- **menschenimsalon.de** — Branchen-Magazin
+
+→ Diese Sites sind **keine Marketplace-Konkurrenten**, aber sie ranken
+für die Money-Keywords besser als jeder Anbieter. ChairMatch muss mit
+eigenem Magazin-Content (Modul 5) auf Augenhöhe kommen.
+
+### 0.6 Aktualisierte Top-10 Quick-Win-Targets
+
+Auf Basis der echten Daten priorisiere ich Phase 1 neu:
+
+1. `/stuhlmiete-friseur` (national Hub) — höchstes Volumen Term
+2. `/stuhlmiete-friseur-berlin` — größter Markt, Workstation24-7
+   ist schwach
+3. `/stuhlmiete-friseur-frankfurt` — Yusufs lokales Netzwerk
+4. `/kosmetikraum-mieten-berlin` — Coworking-Anbieter sind
+   Single-Location, kein Marktplatz
+5. `/kosmetikraum-mieten-muenchen` — Dollea ist Single-Location
+6. `/stuhlmietvertrag-vorlage` (Tool/Lead-Magnet) — direkter
+   PAA-Volltreffer
+7. `/scheinselbststaendigkeit-stuhlmiete` (Magazin) — höchste
+   Pain-Frequenz, schwacher Wettbewerb (Friseur-Unternehmer
+   dominiert noch)
+8. `/was-kostet-stuhlmiete` (Calculator) — direkter PAA
+9. `/barbershop-stuhl-mieten` — Vertical-Hub, niedriger Wettbewerb
+10. `/stuhlmiete-koeln` — Yusufs lokales Netzwerk
+
+### 0.7 Was die Original-Sektionen 2–9 weiterhin gültig sind
+
+- ✅ Stadt × Vertical Matrix (5×5) als Programmatic-SEO-Struktur
+- ✅ "Bald verfügbar"-Falle vermeiden (noindex ohne Listings)
+- ✅ Magazin mit 20 Artikeln aus PAA — bestätigt durch echte
+  Content-Cluster
+- ✅ llms.txt + Schema.org als GEO-Pflicht
+- ⚠ "First Mover" — präziser als "Erster Full-Stack-Marktplatz"
+- ⚠ Volumina bleiben Hypothesen bis Ahrefs/SEMrush
+
+### 0.8 Web-Recon-Quellen (2026-05-22)
+
+- [TGTHR Coworking](https://www.esteticahairmagazine.de/2026/03/16/tgthr-coworking/)
+- [Workstation24-7 Hamburg](https://www.workstation24-7.com/listing/ein-arbeitsplatz-in-einem-friseur-salon-3/)
+- [orderbird Stuhlmiete-Guide](https://www.orderbird.com/blog/friseur-stuhlmiete/)
+- [Friseur-Unternehmer Vertrag-Vorlage](https://www.friseur-unternehmer.de/stuhlmietvertrag-friseur-vorlage-zum-download/)
+- [Friseur-Unternehmer Scheinselbstständigkeit](https://www.friseur-unternehmer.de/stuhlmiete-vertrag-und-scheinselbstaendigkeit/)
+- [imsalon Mieter-Leitfaden](https://imsalon.de/de/article/stuhlmiete-leitfaden-fuer-mieterinnen--34747)
+- [helloumsatz Stuhlmiete](https://www.helloumsatz.com/stuhlmiete-friseur/)
+- [SHEAR Collective Berlin](https://www.shearcollective.de)
+- [Dollea München](https://dollea.de/en/beauty-coworking-munich/)
+- [Beauty Coworking Berlin](https://beautycoworking.de/deu)
+- [Schönheitsloft Berlin](https://schoenheitsloft.de/raumvermietung/)
+- [Capterra Salonkee vs Treatwell 2026](https://www.capterra.com.de/compare/179980/181827/salonkee/vs/treatwell)
+- [Kleinanzeigen Friseur-Stuhlmiete](https://www.kleinanzeigen.de/s-friseur-stuhlmiete/k0)
 
 ---
 
