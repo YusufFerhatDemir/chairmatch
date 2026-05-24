@@ -69,21 +69,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { stadt, vertical } = await params
   const { city, vertical: v, salonCount } = await loadCombo(stadt, vertical)
 
-  const title = `${v.name}-${v.assetLabel} mieten in ${city.name} | ChairMatch`
+  const title = `${v.assetLabel} mieten in ${city.name} — ${v.name}-Stuhlmiete | ChairMatch`
   const description = salonCount > 0
-    ? `${salonCount} ${v.pluralName.toLowerCase()} in ${city.name} vermieten ${v.assetLabel}. Tagespreise ${city.priceRange.stuhl}. 0% Provision für dich als Mieter.`
-    : `Bald: ${v.name}-${v.assetLabel} in ${city.name} mieten. Werde der erste Anbieter — 0% Provision in den ersten 3 Monaten.`
+    ? `${salonCount} ${v.pluralName.toLowerCase()} in ${city.name} vermieten ${v.assetLabel} tageweise. Stuhlmiete ab ${city.priceRange.stuhl}. Verifiziert, Stripe-gesichert, 0 % Provision für dich als Mieter.`
+    : `${v.name}-Stuhlmiete in ${city.name}: ${v.assetLabel} tageweise mieten. Werde Gründungsmitglied — 0 % Provision in den ersten 3 Monaten.`
 
+  const cityLower = city.name.toLowerCase()
+  const vName = v.name.toLowerCase()
   return {
     title,
     description,
     keywords: [
-      `${v.assetLabel.toLowerCase()} mieten ${city.name.toLowerCase()}`,
-      `${v.name.toLowerCase()} ${city.name.toLowerCase()}`,
-      `${v.name.toLowerCase()} platz ${city.name.toLowerCase()}`,
-      `${v.name.toLowerCase()} stuhl miete`,
-      `salonplatz ${city.name.toLowerCase()}`,
-      `chair rental ${city.name.toLowerCase()}`,
+      `${vName} stuhlmiete ${cityLower}`,
+      `stuhlmiete ${vName} ${cityLower}`,
+      `${v.assetLabel.toLowerCase()} mieten ${cityLower}`,
+      `${vName} stuhl mieten ${cityLower}`,
+      `${vName} ${cityLower}`,
+      `${vName} platz ${cityLower}`,
+      `salonplatz ${cityLower}`,
+      `chair rental ${cityLower}`,
     ].join(', '),
     alternates: { canonical: `https://chairmatch.de/${stadt}/${vertical}` },
     robots: robotsForListingPage(salonCount),
@@ -158,24 +162,25 @@ export default async function CityVerticalPage({ params }: Props) {
 
         {/* Hero */}
         <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
-          {v.assetLabel} mieten in {city.name}
+          {v.assetLabel} mieten in {city.name} — {v.name}-Stuhlmiete
         </h1>
         <p style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
           {salonCount > 0
-            ? `${salonCount} ${v.pluralName} in ${city.name} vermieten ${v.assetLabel} tageweise. Tagespreise ${city.priceRange.stuhl}. 0% Provision auf deine Behandlungs-Umsätze.`
-            : `Aktuell noch keine ${v.pluralName} in ${city.name} verifiziert. Werde der erste — 0% Provision in den ersten 3 Monaten.`}
+            ? `${salonCount} ${v.pluralName} in ${city.name} vermieten ${v.assetLabel} tageweise. Stuhlmiete-Tagespreise ${city.priceRange.stuhl}. 0 % Provision auf deine Behandlungs-Umsätze, Stripe-gesicherte Zahlung, klare Mietverträge.`
+            : `${v.name}-Stuhlmiete in ${city.name}: aktuell noch keine verifizierten ${v.pluralName}. Werde Gründungsmitglied — 0 % Provision in den ersten 3 Monaten, lebenslange Founding-Auszeichnung.`}
         </p>
 
         {salonCount < 3 && (
           <div style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)', borderRadius: 10, padding: 14, marginBottom: 24 }}>
             <p style={{ fontSize: 13, color: 'var(--gold2)', margin: '0 0 6px', fontWeight: 700 }}>
-              Werde der erste {v.name}-Anbieter in {city.name}
+              Jetzt als Gründungsmitglied dabei — {v.name}-Stuhlmiete in {city.name}
             </p>
             <p style={{ fontSize: 12, color: 'var(--stone)', margin: 0, lineHeight: 1.5 }}>
-              Diese Seite wird in Google sichtbar sobald wir 3 verifizierte Anbieter haben. Melde dich jetzt an — kostenlos.
+              Diese Seite wird in Google sichtbar, sobald 3 verifizierte Vermieter gelistet sind.
+              Werde Gründungsmitglied: 0 % Provision in den ersten 3 Monaten, Concierge-Onboarding kostenlos.
             </p>
-            <Link href="/anbieter/wie-es-funktioniert" className="bgold" style={{ display: 'inline-block', marginTop: 12, padding: '8px 18px', fontSize: 13, textDecoration: 'none' }}>
-              Anbieter werden →
+            <Link href="/vermieter/wie-es-funktioniert" className="bgold" style={{ display: 'inline-block', marginTop: 12, padding: '8px 18px', fontSize: 13, textDecoration: 'none' }}>
+              Stuhl inserieren →
             </Link>
           </div>
         )}

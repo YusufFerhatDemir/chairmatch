@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import SalonDetailClient from '@/components/SalonDetailClient'
 import { PROVS } from '@/lib/demo-data'
+import { salonSchema } from '@/lib/seo'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -102,15 +103,17 @@ export default async function SalonDetailPage({ params }: Props) {
       price_per_day_cents: r.pr * 100, description: null,
     }))
 
-    const jsonLd = {
-      '@context': 'https://schema.org',
-      '@type': 'BeautySalon',
+    const jsonLd = salonSchema({
+      id: demoProvider.id,
       name: demoProvider.nm,
+      slug: demoProvider.id,
       description: demoProvider.tl,
-      address: { '@type': 'PostalAddress', streetAddress: demoProvider.st, addressLocality: demoProvider.city, addressCountry: 'DE' },
-      aggregateRating: { '@type': 'AggregateRating', ratingValue: demoProvider.rt, reviewCount: demoProvider.rc, bestRating: 5 },
-      url: `https://chairmatch.de/salon/${slug}`,
-    }
+      category: demoProvider.cat,
+      street: demoProvider.st,
+      city: demoProvider.city,
+      avg_rating: demoProvider.rt,
+      review_count: demoProvider.rc,
+    })
 
     return (
       <>
@@ -170,16 +173,23 @@ export default async function SalonDetailPage({ params }: Props) {
       opening_hours: salon.opening_hours as Record<string, { open: string; close: string } | null> | null,
     }
 
-    const dbJsonLd = {
-      '@context': 'https://schema.org',
-      '@type': 'BeautySalon',
+    const dbJsonLd = salonSchema({
+      id: salon.id,
       name: salon.name,
-      description: salon.description || '',
-      address: { '@type': 'PostalAddress', streetAddress: salon.street || '', addressLocality: salon.city || '', addressCountry: 'DE' },
-      aggregateRating: salon.review_count > 0 ? { '@type': 'AggregateRating', ratingValue: salon.avg_rating, reviewCount: salon.review_count, bestRating: 5 } : undefined,
-      telephone: salon.phone || undefined,
-      url: `https://chairmatch.de/salon/${salon.slug || salon.id}`,
-    }
+      slug: salon.slug || salon.id,
+      description: salon.description,
+      category: salon.category,
+      street: salon.street,
+      postal_code: salon.postal_code,
+      city: salon.city,
+      phone: salon.phone,
+      avg_rating: salon.avg_rating,
+      review_count: salon.review_count,
+      price_range: salon.price_range,
+      opening_hours: salon.opening_hours as Record<string, string> | null,
+      latitude: salon.latitude,
+      longitude: salon.longitude,
+    })
 
     return (
       <>

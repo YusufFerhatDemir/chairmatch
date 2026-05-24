@@ -6,8 +6,18 @@ import type { Metadata } from 'next'
 import { getTranslations } from '@/i18n/server'
 
 export const metadata: Metadata = {
-  title: 'Stuhlvermietung & OP-Raum mieten — ChairMatch',
-  description: 'Stuhl, Liege, Kabine oder OP-Raum tageweise mieten. Für Friseure, Barber, Kosmetiker, Ärzte. Ab 25€/Tag.',
+  title: 'Stuhlmiete, Kabine & OP-Raum tageweise mieten | ChairMatch',
+  description: 'Stuhlmiete in Deutschland: Friseurstuhl, Barberstuhl, Kosmetik-Kabine, Lash-Workstation, Behandlungsraum oder OP-Raum tageweise mieten. Verifizierte Vermieter, Stripe-gesicherte Zahlung, ab 25 €/Tag. 0 % Provision für dich als Mieter.',
+  keywords: 'stuhlmiete, friseurstuhl mieten, barberstuhl mieten, kosmetikkabine mieten, lash platz mieten, op raum mieten, behandlungsraum mieten, beauty workspace tageweise, chair rental, salonplatz miete',
+  alternates: { canonical: 'https://chairmatch.de/rentals' },
+  openGraph: {
+    title: 'Stuhlmiete & Beauty-Workspace tageweise | ChairMatch',
+    description: 'Friseurstuhl, Kosmetik-Kabine oder OP-Raum tageweise mieten — bundesweit, verifiziert, Stripe-gesichert.',
+    url: 'https://chairmatch.de/rentals',
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'ChairMatch',
+  },
 }
 
 interface Rental {

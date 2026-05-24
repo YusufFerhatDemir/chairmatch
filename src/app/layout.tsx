@@ -120,7 +120,7 @@ export default async function RootLayout({
                 description: 'Deutschlands Beauty-Booking-Plattform. Buche Termine bei Top-Salons, Barbershops & Kosmetikstudios. 0% Provision.',
                 foundingDate: '2026',
                 areaServed: { '@type': 'Country', name: 'Germany' },
-                sameAs: [],
+                sameAs: ['https://www.linkedin.com/company/chairmatch', 'https://www.instagram.com/chairmatch.de'],
                 contactPoint: { '@type': 'ContactPoint', email: 'legal@chairmatch.de', contactType: 'customer service', availableLanguage: ['German', 'English', 'Turkish'] },
               },
               {

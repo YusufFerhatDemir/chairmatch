@@ -1,7 +1,23 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Beauty-Angebote & Rabatte — Stuhlmiete, Termine, Behandlungen | ChairMatch',
+  description: 'Aktuelle Angebote von verifizierten Salons, Studios und Praxen: rabattierte Stuhlmiete, Erstkunden-Rabatte auf Behandlungen, Launch-Aktionen für neue Beauty-Workspace-Anbieter. Bundesweit, ohne Provision für Kunden.',
+  keywords: 'beauty angebote, stuhlmiete rabatt, salon angebot, friseur rabatt, kosmetik gutschein, behandlungs-aktionen, erstkunden bonus, beauty workspace deal',
+  alternates: { canonical: 'https://chairmatch.de/offers' },
+  openGraph: {
+    title: 'Beauty- und Stuhlmiete-Angebote | ChairMatch',
+    description: 'Aktuelle Rabatte und Aktionen rund um Stuhlmiete, Behandlungen und Beauty-Workspace.',
+    url: 'https://chairmatch.de/offers',
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'ChairMatch',
+  },
+}
 
 interface Offer {
   id: string

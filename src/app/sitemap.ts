@@ -4,6 +4,7 @@ import { PROVS } from '@/lib/demo-data'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { VERTICALS } from '@/lib/seo-data/verticals'
 import { MAGAZIN_ARTIKEL } from '@/lib/seo-data/magazin'
+import { PHASE_1B_ASSET_COMBOS } from '@/lib/seo-data/assets'
 import { shouldIndex } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
@@ -23,7 +24,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/explore`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${base}/offers`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${base}/rentals`, changeFrequency: 'weekly', priority: 0.6 },
-    { url: `${base}/search`, changeFrequency: 'daily', priority: 0.8 },
+    // /search bewusst nicht in Sitemap — noindex,follow (interne Suche, kein SEO-Wert).
+    // /auth bewusst nicht in Sitemap — Login-Page hat keinen SEO-Wert.
     { url: `${base}/landing`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${base}/was-ist-chairmatch`, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${base}/anbieter/wie-es-funktioniert`, changeFrequency: 'monthly', priority: 0.85 },
@@ -31,8 +33,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/provisionsmodell`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${base}/magazin`, changeFrequency: 'weekly', priority: 0.85 },
     { url: `${base}/pitch`, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${base}/auth`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/register/anbieter`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${base}/vermieter/wie-es-funktioniert`, changeFrequency: 'monthly', priority: 0.85 },
     { url: `${base}/datenschutz`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/impressum`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/agb`, changeFrequency: 'monthly', priority: 0.3 },
@@ -120,6 +122,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
+    // Stadt × Vertical × Asset (Welle-1 Phase-1b Top-Kombinationen aus Modul 2 §4.6)
+    const assetPages: MetadataRoute.Sitemap = []
+    for (const combo of PHASE_1B_ASSET_COMBOS) {
+      const city = PHASE_1_CITIES.find((c) => c.slug === combo.stadt)
+      if (!city) continue
+      const { count: cvCount } = await supabase
+        .from('salons')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .ilike('city', city.name)
+        .eq('category', combo.vertical)
+      if (shouldIndex(cvCount ?? 0)) {
+        assetPages.push({
+          url: `${base}/${combo.stadt}/${combo.vertical}/${combo.asset}`,
+          changeFrequency: 'weekly',
+          priority: 0.8,
+        })
+      }
+    }
+
     // Magazin-Artikel
     const magazinPages: MetadataRoute.Sitemap = MAGAZIN_ARTIKEL.map((a) => ({
       url: `${base}/magazin/${a.slug}`,
@@ -173,7 +195,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }]
 
-    return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages, ...magazinPages, ...listingPages, ...productPages, ...toolPages]
+    return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages, ...assetPages, ...magazinPages, ...listingPages, ...productPages, ...toolPages]
   } catch {
     const demoPages: MetadataRoute.Sitemap = PROVS.map(p => ({
       url: `${base}/salon/${p.id}`,

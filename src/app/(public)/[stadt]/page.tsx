@@ -52,23 +52,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!city) return { title: 'Nicht gefunden' }
   const { salonCount } = await loadCityData(stadt)
 
+  const cityLower = city.name.toLowerCase()
   return {
-    title: `Beauty Workspace mieten in ${city.name} | ChairMatch`,
-    description: `Stuhl, Liege oder Kabine in ${city.name} mieten. ${salonCount}+ verifizierte Anbieter. Friseur, Barber, Kosmetik, Nail, Lash. 0% Provision für Kunden.`,
+    title: `Stuhlmiete in ${city.name} — Friseurstuhl, Kosmetik-Kabine & Raum mieten | ChairMatch`,
+    description: `Stuhlmiete in ${city.name}: Friseurstuhl, Barberstuhl, Kosmetik-Kabine, Lash-Workstation oder Behandlungsraum tageweise mieten. ${salonCount}+ verifizierte Vermieter, Stripe-gesichert, 0 % Provision für dich als Mieter.`,
     keywords: [
-      `stuhl mieten ${city.name}`,
-      `friseurstuhl ${city.name}`,
-      `barberstuhl ${city.name}`,
-      `kosmetikraum ${city.name}`,
-      `salonplatz ${city.name}`,
+      `stuhlmiete ${cityLower}`,
+      `friseur stuhlmiete ${cityLower}`,
+      `friseurstuhl mieten ${cityLower}`,
+      `barberstuhl mieten ${cityLower}`,
+      `kosmetikraum mieten ${cityLower}`,
+      `kosmetik kabine ${cityLower}`,
+      `salonplatz ${cityLower}`,
+      `beauty workspace ${cityLower}`,
       'beauty coworking',
-      'chair rental',
+      'chair rental deutschland',
     ].join(', '),
     alternates: { canonical: `https://chairmatch.de/${stadt}` },
     robots: robotsForListingPage(salonCount),
     openGraph: {
-      title: `Beauty-Workspace mieten in ${city.name} | ChairMatch`,
-      description: `${salonCount}+ Salons in ${city.name} vermieten Stühle, Kabinen und Räume tageweise.`,
+      title: `Stuhlmiete in ${city.name} — Friseurstuhl, Kabine & Raum mieten | ChairMatch`,
+      description: `${salonCount}+ verifizierte Vermieter in ${city.name} bieten Stuhlmiete, Kosmetik-Kabine und Behandlungsraum tageweise an.`,
       url: `https://chairmatch.de/${stadt}`,
       type: 'website',
       locale: 'de_DE',
@@ -120,23 +124,25 @@ export default async function CityHubPage({ params }: Props) {
 
         {/* Hero */}
         <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
-          Beauty Workspace mieten in {city.name}
+          Stuhlmiete in {city.name} — Friseurstuhl, Kabine & Raum mieten
         </h1>
         <p style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
-          Stuhl, Liege, Kabine oder Raum tageweise mieten — flexibel, ohne langfristige Verträge.
-          {salonCount > 0 && ` ${salonCount} verifizierte Anbieter in ${city.name}.`}
+          Friseurstuhl, Barberstuhl, Kosmetik-Kabine oder Behandlungsraum tageweise mieten —
+          flexibel, ohne langfristige Verträge, Stripe-gesichert.
+          {salonCount > 0 && ` ${salonCount} verifizierte Vermieter in ${city.name}.`}
         </p>
 
         {!indexed && (
           <div style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.25)', borderRadius: 10, padding: 14, marginBottom: 20 }}>
             <p style={{ fontSize: 13, color: 'var(--gold2)', margin: '0 0 6px', fontWeight: 700 }}>
-              Werde der erste Anbieter in {city.name}
+              Jetzt als Gründungsmitglied dabei — Stuhlmiete in {city.name}
             </p>
             <p style={{ fontSize: 12, color: 'var(--stone)', margin: 0 }}>
-              Aktuell sind noch keine Plätze verifiziert. Melde dich jetzt als Anbieter an — kostenlos, 0 % Provision in den ersten 3 Monaten.
+              Aktuell sind noch keine Plätze verifiziert. Werde Gründungs-Vermieter:
+              0 % Provision in den ersten 3 Monaten, Concierge-Onboarding kostenlos.
             </p>
-            <Link href="/anbieter/wie-es-funktioniert" className="bgold" style={{ display: 'inline-block', marginTop: 12, padding: '8px 18px', fontSize: 13, textDecoration: 'none' }}>
-              Anbieter werden →
+            <Link href="/vermieter/wie-es-funktioniert" className="bgold" style={{ display: 'inline-block', marginTop: 12, padding: '8px 18px', fontSize: 13, textDecoration: 'none' }}>
+              Stuhl inserieren →
             </Link>
           </div>
         )}

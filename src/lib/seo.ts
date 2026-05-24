@@ -66,10 +66,9 @@ export function organizationSchema() {
       name: 'Germany',
     },
     sameAs: [
-      // TODO: Yusuf — bitte aktuelle URLs eintragen sobald vorhanden:
-      // 'https://www.linkedin.com/company/chairmatch',
-      // 'https://www.instagram.com/chairmatch',
-      // 'https://twitter.com/chairmatch_de',
+      'https://www.linkedin.com/company/chairmatch',
+      'https://www.instagram.com/chairmatch.de',
+      // weitere Profile (X/Twitter, Facebook, YouTube, TikTok) bitte hier eintragen sobald live.
     ],
     contactPoint: {
       '@type': 'ContactPoint',
