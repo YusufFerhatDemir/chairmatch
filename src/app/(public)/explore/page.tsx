@@ -5,7 +5,8 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import ExploreClient from './ExploreClient'
 
 export const metadata: Metadata = {
-  title: 'Salons, Studios & Praxen entdecken — Stuhlmiete, Termine, Beauty-Workspace | ChairMatch',
+  // Layout-Template fügt "| ChairMatch" auto an.
+  title: 'Salons, Studios & Praxen entdecken — Stuhlmiete, Termine, Beauty-Workspace',
   description: 'Entdecke verifizierte Salons, Barbershops, Kosmetikstudios, Nail- und Lash-Studios in Deutschland. Tageweise Stuhlmiete, Behandlungsraum oder direkt online Termin buchen. Friseurstuhl mieten, Kosmetik-Kabine, OP-Raum — bundesweit gefiltert nach Stadt, Kategorie, Preis und Bewertung.',
   keywords: 'salons entdecken, stuhlmiete deutschland, beauty workspace, friseurstuhl mieten, kosmetik kabine mieten, barbershop finden, salonplatz, chair rental deutschland, beauty coworking, termine online buchen',
   alternates: { canonical: 'https://chairmatch.de/explore' },

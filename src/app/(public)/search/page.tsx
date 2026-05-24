@@ -22,7 +22,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const { q, city } = await searchParams
   const title = q ? `Suche: ${q}` : city ? `Salons in ${city}` : 'Suche'
   return {
-    title: `${title} — ChairMatch`,
+    // Layout-Template fügt "| ChairMatch" auto an.
+    title,
     description: 'Suche Salons, Studios und Praxen auf ChairMatch. Diese Seite ist als interne Suche nicht für Suchmaschinen indexiert — nutze stattdessen unsere Stadt- und Kategorie-Seiten.',
     robots: { index: false, follow: true },
     alternates: { canonical: 'https://chairmatch.de/search' },

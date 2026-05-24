@@ -5,7 +5,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
 export const metadata: Metadata = {
-  title: 'Vermieter werden — Stuhl, Kabine oder Raum vermieten | ChairMatch',
+  // Layout-Template fügt "| ChairMatch" auto an — daher hier ohne Suffix.
+  title: 'Vermieter werden — Stuhl, Kabine oder Raum vermieten',
   description: 'Du betreibst einen Salon, ein Studio oder eine Praxis? Vermiete deinen freien Friseurstuhl, deine Kosmetik-Kabine oder deinen Behandlungsraum tageweise. Stuhlmiete planbar, Stripe-gesichert, 0 % Provision in den ersten 3 Monaten.',
   keywords: 'vermieter werden, stuhlmiete anbieten, friseurstuhl vermieten, kosmetikraum vermieten, salonplatz vermieten, untervermietung salon, beauty workspace vermieten, betreiber chairmatch',
   alternates: { canonical: 'https://chairmatch.de/vermieter/wie-es-funktioniert' },

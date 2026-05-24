@@ -69,7 +69,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { stadt, vertical } = await params
   const { city, vertical: v, salonCount } = await loadCombo(stadt, vertical)
 
-  const title = `${v.assetLabel} mieten in ${city.name} — ${v.name}-Stuhlmiete | ChairMatch`
+  // Layout-Template fügt "| ChairMatch" auto an.
+  const title = `${v.assetLabel} mieten in ${city.name} — ${v.name}-Stuhlmiete`
   const description = salonCount > 0
     ? `${salonCount} ${v.pluralName.toLowerCase()} in ${city.name} vermieten ${v.assetLabel} tageweise. Stuhlmiete ab ${city.priceRange.stuhl}. Verifiziert, Stripe-gesichert, 0 % Provision für dich als Mieter.`
     : `${v.name}-Stuhlmiete in ${city.name}: ${v.assetLabel} tageweise mieten. Werde Gründungsmitglied — 0 % Provision in den ersten 3 Monaten.`

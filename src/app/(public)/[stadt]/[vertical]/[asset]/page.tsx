@@ -77,14 +77,31 @@ async function loadCombo(citySlug: string, verticalSlug: string, assetSlug: stri
   return { city, vertical, asset, salons, salonCount: salons.length }
 }
 
+/**
+ * Asset-Display: wenn der angefragte Asset-Slug der kanonische Asset-Typ
+ * des Verticals ist → kompaktes Label (z.B. "Friseurstuhl"). Sonst
+ * `Vertical-Asset` (z.B. "Kosmetik-Raum") um die Stadt-Bedeutung
+ * sichtbar zu halten ohne Wortverdoppelung.
+ */
+function getAssetDisplay(
+  verticalAssetType: string,
+  verticalAssetLabel: string,
+  verticalName: string,
+  assetSlug: string,
+  assetLabel: string,
+): string {
+  return verticalAssetType === assetSlug ? verticalAssetLabel : `${verticalName}-${assetLabel}`
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { stadt, vertical, asset } = await params
   const { city, vertical: v, asset: a, salonCount } = await loadCombo(stadt, vertical, asset)
 
-  const title = `${v.assetLabel} ${a.label.toLowerCase()} mieten in ${city.name} — Stuhlmiete | ChairMatch`
+  const assetDisplay = getAssetDisplay(v.assetType, v.assetLabel, v.name, a.slug, a.label)
+  const title = `${assetDisplay} mieten in ${city.name} — Stuhlmiete`
   const description = salonCount > 0
     ? `${salonCount} ${v.pluralName} in ${city.name} vermieten ${a.pluralLabel} tageweise. Stuhlmiete ab ${city.priceRange.stuhl}, Stripe-gesichert, 0 % Provision für dich als Mieter.`
-    : `${v.name}-Stuhlmiete in ${city.name}: ${v.assetLabel} ${a.label.toLowerCase()} tageweise mieten. Jetzt als Gründungsmitglied dabei — 0 % Provision in den ersten 3 Monaten.`
+    : `${v.name}-Stuhlmiete in ${city.name}: ${assetDisplay} tageweise mieten. Jetzt als Gründungsmitglied dabei — 0 % Provision in den ersten 3 Monaten.`
 
   const cityLower = city.name.toLowerCase()
   const vName = v.name.toLowerCase()
@@ -93,7 +110,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     keywords: [
       `${vName} stuhlmiete ${cityLower}`,
-      `${vName} ${a.label.toLowerCase()} mieten ${cityLower}`,
+      `${assetDisplay.toLowerCase()} mieten ${cityLower}`,
       `stuhlmiete ${vName} ${cityLower}`,
       `${v.assetLabel.toLowerCase()} mieten ${cityLower}`,
       `${a.label.toLowerCase()} mieten ${cityLower}`,
@@ -116,10 +133,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CityVerticalAssetPage({ params }: Props) {
   const { stadt, vertical, asset } = await params
   const { city, vertical: v, asset: a, salons, salonCount } = await loadCombo(stadt, vertical, asset)
+  const assetDisplay = getAssetDisplay(v.assetType, v.assetLabel, v.name, a.slug, a.label)
+  const breadcrumbLabel = `${assetDisplay} mieten`
 
   const FAQS = [
     {
-      question: `Was kostet ein ${v.assetLabel} ${a.label.toLowerCase()} in ${city.name} pro Tag?`,
+      question: `Was kostet ein ${assetDisplay} in ${city.name} pro Tag?`,
       answer: `In ${city.name} liegen die Tagespreise für ${v.assetLabel}-Stuhlmiete typischerweise bei ${city.priceRange.stuhl}. Wochenpakete sind oft 10–15 % günstiger, Monatspauschalen bei längerer Bindung verhandelbar.`,
     },
     {
@@ -146,7 +165,7 @@ export default async function CityVerticalAssetPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Service',
-            name: `${v.assetLabel} ${a.label} mieten in ${city.name}`,
+            name: `${assetDisplay} mieten in ${city.name}`,
             provider: { '@id': 'https://chairmatch.de/#organization' },
             areaServed: {
               '@type': 'City',
@@ -154,7 +173,7 @@ export default async function CityVerticalAssetPage({ params }: Props) {
               containedInPlace: { '@type': 'Country', name: 'Germany' },
             },
             serviceType: `${v.name} ${a.label} Rental`,
-            description: `Tageweise Stuhlmiete eines ${v.assetLabel} (${a.label}) in ${city.name}.`,
+            description: `Tageweise Stuhlmiete eines ${assetDisplay} in ${city.name}.`,
             offers: salons.length > 0 ? {
               '@type': 'AggregateOffer',
               priceCurrency: 'EUR',
@@ -171,7 +190,7 @@ export default async function CityVerticalAssetPage({ params }: Props) {
             { name: 'Start', url: '/' },
             { name: city.name, url: `/${stadt}` },
             { name: v.name, url: `/${stadt}/${vertical}` },
-            { name: `${v.assetLabel} ${a.label.toLowerCase()} mieten`, url: `/${stadt}/${vertical}/${asset}` },
+            { name: breadcrumbLabel, url: `/${stadt}/${vertical}/${asset}` },
           ])) }}
         />
         <script
@@ -194,17 +213,17 @@ export default async function CityVerticalAssetPage({ params }: Props) {
         <Breadcrumbs items={[
           { name: city.name, url: `/${stadt}` },
           { name: v.name, url: `/${stadt}/${vertical}` },
-          { name: `${v.assetLabel} ${a.label.toLowerCase()} mieten`, url: `/${stadt}/${vertical}/${asset}` },
+          { name: breadcrumbLabel, url: `/${stadt}/${vertical}/${asset}` },
         ]} />
 
         {/* Hero */}
         <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
-          {v.assetLabel} {a.label.toLowerCase()} mieten in {city.name} — Stuhlmiete
+          {assetDisplay} mieten in {city.name} — Stuhlmiete
         </h1>
         <p style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
           {salonCount > 0
-            ? `${salonCount} verifizierte ${v.pluralName} in ${city.name} bieten ${v.assetLabel}-Stuhlmiete tageweise an — ab ${city.priceRange.stuhl}. Stripe-gesicherte Zahlung, klare Mietverträge, 0 % Provision auf deine Behandlungs-Umsätze.`
-            : `${v.name}-Stuhlmiete in ${city.name} startet bei ${city.priceRange.stuhl}. Aktuell noch keine verifizierten Plätze — jetzt als Gründungsmitglied dabei und 0 % Provision in den ersten 3 Monaten sichern.`}
+            ? `${salonCount} verifizierte ${v.pluralName} in ${city.name} bieten ${assetDisplay}-Stuhlmiete tageweise an — ab ${city.priceRange.stuhl}. Stripe-gesicherte Zahlung, klare Mietverträge, 0 % Provision auf deine Behandlungs-Umsätze.`
+            : `${v.name}-Stuhlmiete in ${city.name} startet bei ${city.priceRange.stuhl}. Aktuell noch keine verifizierten ${assetDisplay}-Plätze — jetzt als Gründungsmitglied dabei und 0 % Provision in den ersten 3 Monaten sichern.`}
         </p>
 
         {/* Gründungsmitglied-CTA wenn unter Threshold */}
@@ -232,7 +251,7 @@ export default async function CityVerticalAssetPage({ params }: Props) {
         {salons.length > 0 && (
           <section style={{ marginBottom: 32 }}>
             <h2 className="cinzel" style={{ fontSize: 20, color: 'var(--gold2)', marginBottom: 12 }}>
-              Verfügbare {v.pluralName} mit {a.label}-Stuhlmiete in {city.name}
+              Verfügbare {v.pluralName} mit {assetDisplay}-Stuhlmiete in {city.name}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {salons.map((s) => (
@@ -271,7 +290,7 @@ export default async function CityVerticalAssetPage({ params }: Props) {
         {/* Preisspanne */}
         <section style={{ marginBottom: 32 }}>
           <h2 className="cinzel" style={{ fontSize: 18, color: 'var(--gold2)', marginBottom: 12 }}>
-            Preisspanne {a.label}-Stuhlmiete in {city.name}
+            Preisspanne {assetDisplay}-Stuhlmiete in {city.name}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             <div style={{ background: 'var(--c2)', borderRadius: 12, padding: 14, textAlign: 'center' }}>

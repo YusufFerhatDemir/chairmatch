@@ -54,7 +54,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const cityLower = city.name.toLowerCase()
   return {
-    title: `Stuhlmiete in ${city.name} — Friseurstuhl, Kosmetik-Kabine & Raum mieten | ChairMatch`,
+    // Layout-Template fügt "| ChairMatch" auto an.
+    title: `Stuhlmiete in ${city.name} — Friseurstuhl, Kosmetik-Kabine & Raum mieten`,
     description: `Stuhlmiete in ${city.name}: Friseurstuhl, Barberstuhl, Kosmetik-Kabine, Lash-Workstation oder Behandlungsraum tageweise mieten. ${salonCount}+ verifizierte Vermieter, Stripe-gesichert, 0 % Provision für dich als Mieter.`,
     keywords: [
       `stuhlmiete ${cityLower}`,
@@ -71,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: `https://chairmatch.de/${stadt}` },
     robots: robotsForListingPage(salonCount),
     openGraph: {
-      title: `Stuhlmiete in ${city.name} — Friseurstuhl, Kabine & Raum mieten | ChairMatch`,
+      title: `Stuhlmiete in ${city.name} — Friseurstuhl, Kabine & Raum mieten`,
       description: `${salonCount}+ verifizierte Vermieter in ${city.name} bieten Stuhlmiete, Kosmetik-Kabine und Behandlungsraum tageweise an.`,
       url: `https://chairmatch.de/${stadt}`,
       type: 'website',
