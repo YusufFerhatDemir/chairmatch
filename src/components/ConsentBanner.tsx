@@ -3,50 +3,40 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslations } from '@/i18n/client'
-
-const STORAGE_KEY = 'cm_cookie_consent'
-const SESSION_KEY = 'cm_session_id'
-
-type ConsentChoices = {
-  necessary: boolean
-  statistics: boolean
-  marketing: boolean
-}
-
-function getSessionId(): string {
-  if (typeof window === 'undefined') return ''
-  let id = sessionStorage.getItem(SESSION_KEY)
-  if (!id) {
-    id = 's_' + Date.now() + '_' + Math.random().toString(36).slice(2, 11)
-    sessionStorage.setItem(SESSION_KEY, id)
-  }
-  return id
-}
+import {
+  applyConsent,
+  choicesToConsentState,
+  consentStateToChoices,
+  emitConsentChanged,
+  getSessionId,
+  readStoredConsent,
+  type ConsentChoicesUI,
+} from '@/lib/consent'
 
 export default function ConsentBanner() {
   const t = useTranslations('consent')
   const [visible, setVisible] = useState(false)
   const [expanded, setExpanded] = useState(false)
-  const [choices, setChoices] = useState<ConsentChoices>({
+  const [choices, setChoices] = useState<ConsentChoicesUI>({
     necessary: true,
     statistics: false,
     marketing: false,
   })
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) setVisible(true)
-    else {
-      try {
-        const parsed = JSON.parse(stored) as ConsentChoices
-        setChoices(parsed)
-      } catch {
-        setVisible(true)
-      }
+    const stored = readStoredConsent()
+    if (!stored) {
+      setVisible(true)
+    } else {
+      setChoices(consentStateToChoices(stored))
     }
   }, [])
 
-  async function save(selected: ConsentChoices) {
+  async function save(selected: ConsentChoicesUI) {
+    const consentState = choicesToConsentState(selected)
+    applyConsent(consentState)
+    emitConsentChanged(consentState)
+
     const sessionId = getSessionId()
     try {
       await fetch('/api/cookies/consent', {
@@ -55,20 +45,19 @@ export default function ConsentBanner() {
         body: JSON.stringify({ sessionId, choices: selected }),
       })
     } catch {
-      /* ignore */
+      /* server-side persistence ist best-effort */
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(selected))
     setVisible(false)
   }
 
   function acceptAll() {
-    const all: ConsentChoices = { necessary: true, statistics: true, marketing: true }
+    const all: ConsentChoicesUI = { necessary: true, statistics: true, marketing: true }
     setChoices(all)
     save(all)
   }
 
   function acceptNecessaryOnly() {
-    const necessary: ConsentChoices = { necessary: true, statistics: false, marketing: false }
+    const necessary: ConsentChoicesUI = { necessary: true, statistics: false, marketing: false }
     setChoices(necessary)
     save(necessary)
   }
