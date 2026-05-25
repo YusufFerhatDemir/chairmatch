@@ -699,7 +699,6 @@ export default function OnboardingGate({ slides, children }: Props) {
       >
         <Sparkles size={18} color="#1A1308" strokeWidth={2.2} />
         <span>{t('welcomeSplitter.registerCta')}</span>
-        <span style={{ marginLeft: 'auto', fontSize: 16, color: '#1A1308' }}>→</span>
       </Link>
 
       {/* Secondary Outline CTA */}

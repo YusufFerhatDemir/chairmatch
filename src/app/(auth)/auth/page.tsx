@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   CalendarCheck, Scissors, Armchair, Building2,
-  ShieldCheck, BadgeCheck, Eye, Sparkles, User, ArrowRight,
+  ShieldCheck, BadgeCheck, Eye, Sparkles, User,
   type LucideIcon,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
@@ -556,7 +556,6 @@ function WelcomeSplitterV11() {
           >
             <Sparkles size={18} color="#1A1308" strokeWidth={2.2} />
             <span>{t('welcomeSplitter.registerCta')}</span>
-            <ArrowRight size={18} color="#1A1308" strokeWidth={2.4} style={{ marginLeft: 'auto' }} />
           </Link>
 
           {/* Outline-Secondary-CTA */}
