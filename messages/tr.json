@@ -607,5 +607,25 @@
     "years": "yıl",
     "reasonPrompt": "Sebep (isteğe bağlı)",
     "defaultReason": "Tarih dolu"
+  },
+  "chat": {
+    "title": "Mesajlar",
+    "assistantName": "ChairMatch Asistanı",
+    "assistantTagline": "Sorularında yardımcı",
+    "openChat": "Sohbeti aç",
+    "back": "Geri",
+    "close": "Kapat",
+    "send": "Gönder",
+    "loading": "Yükleniyor …",
+    "inputPlaceholder": "Mesaj yaz …",
+    "assistantInputPlaceholder": "Soru yaz …",
+    "emptyTitle": "Henüz görüşme yok",
+    "emptyText": "Asistana sor — ya da salonlara göz at.",
+    "browseSalons": "Salonları keşfet",
+    "noMessages": "Henüz mesaj yok",
+    "unknownUser": "Bilinmiyor",
+    "yesterday": "Dün",
+    "assistantGreeting": "Merhaba! Burada olmana sevindim. ChairMatch hakkında ne merak ediyorsan sor — yardımcı olmaktan memnunum.",
+    "assistantNoAnswer": "Bunu henüz tam bilmiyorum. Farklı şekilde sor — ya da bir salon sayfasından gerçek bir sohbet başlat."
   }
 }

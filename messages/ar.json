@@ -607,5 +607,25 @@
     "years": "سنوات",
     "reasonPrompt": "السبب (اختياري)",
     "defaultReason": "الموعد محجوز"
+  },
+  "chat": {
+    "title": "الرسائل",
+    "assistantName": "مساعد ChairMatch",
+    "assistantTagline": "هنا لمساعدتك",
+    "openChat": "فتح المحادثة",
+    "back": "رجوع",
+    "close": "إغلاق",
+    "send": "إرسال",
+    "loading": "جارٍ التحميل …",
+    "inputPlaceholder": "اكتب رسالة …",
+    "assistantInputPlaceholder": "اكتب سؤالًا …",
+    "emptyTitle": "لا توجد محادثات بعد",
+    "emptyText": "اسأل المساعد — أو تصفّح الصالونات.",
+    "browseSalons": "اكتشف الصالونات",
+    "noMessages": "لا توجد رسائل بعد",
+    "unknownUser": "غير معروف",
+    "yesterday": "أمس",
+    "assistantGreeting": "مرحبًا! سعيد بوجودك هنا. اسألني أي شيء عن ChairMatch — يسعدني مساعدتك.",
+    "assistantNoAnswer": "لست متأكدًا من ذلك بعد. حاول صياغته بشكل مختلف — أو ابدأ محادثة حقيقية من صفحة صالون."
   }
 }

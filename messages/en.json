@@ -607,5 +607,25 @@
     "years": "years",
     "reasonPrompt": "Reason (optional)",
     "defaultReason": "Slot taken"
+  },
+  "chat": {
+    "title": "Messages",
+    "assistantName": "ChairMatch Assistant",
+    "assistantTagline": "Here to help with questions",
+    "openChat": "Open chat",
+    "back": "Back",
+    "close": "Close",
+    "send": "Send",
+    "loading": "Loading …",
+    "inputPlaceholder": "Write a message …",
+    "assistantInputPlaceholder": "Type a question …",
+    "emptyTitle": "No conversations yet",
+    "emptyText": "Ask the assistant — or browse through salons.",
+    "browseSalons": "Discover salons",
+    "noMessages": "No messages yet",
+    "unknownUser": "Unknown",
+    "yesterday": "Yesterday",
+    "assistantGreeting": "Hi! Good to have you here. Just ask me anything about ChairMatch — happy to help.",
+    "assistantNoAnswer": "I'm not sure about that yet. Try rephrasing — or start a real chat from a salon page."
   }
 }

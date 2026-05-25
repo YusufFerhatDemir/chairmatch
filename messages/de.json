@@ -607,5 +607,25 @@
     "years": "Jahre",
     "reasonPrompt": "Grund (optional)",
     "defaultReason": "Termin belegt"
+  },
+  "chat": {
+    "title": "Nachrichten",
+    "assistantName": "ChairMatch Assistent",
+    "assistantTagline": "Hilft dir bei Fragen",
+    "openChat": "Chat öffnen",
+    "back": "Zurück",
+    "close": "Schließen",
+    "send": "Senden",
+    "loading": "Laden …",
+    "inputPlaceholder": "Nachricht schreiben …",
+    "assistantInputPlaceholder": "Frage eingeben …",
+    "emptyTitle": "Noch keine Gespräche",
+    "emptyText": "Frag den Assistenten — oder stöbere durch Salons.",
+    "browseSalons": "Salons entdecken",
+    "noMessages": "Noch keine Nachrichten",
+    "unknownUser": "Unbekannt",
+    "yesterday": "Gestern",
+    "assistantGreeting": "Hi! Schön, dass du da bist. Frag mich einfach, was du über ChairMatch wissen willst — ich helf dir gern weiter.",
+    "assistantNoAnswer": "Das weiß ich noch nicht genau. Formuliere es gern anders — oder starte über eine Salon-Seite einen echten Chat."
   }
 }
