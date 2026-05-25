@@ -21,7 +21,12 @@ if [ -z "$STAGED" ]; then
   exit 0
 fi
 
-FORBIDDEN=$(echo "$STAGED" | grep -E '(^|/)\.env($|\.)|(^|/)node_modules/' || true)
+ENV_MATCHES=$(echo "$STAGED" | grep -E '(^|/)\.env($|\.)' || true)
+# Whitelist: .env.example / .template / .sample sind Vorlagen ohne Secrets,
+# explizit committable.
+FORBIDDEN_ENV=$(echo "$ENV_MATCHES" | grep -v -E '\.(example|template|sample)$' || true)
+FORBIDDEN_NM=$(echo "$STAGED" | grep -E '(^|/)node_modules/' || true)
+FORBIDDEN=$(printf '%s\n%s\n' "$FORBIDDEN_ENV" "$FORBIDDEN_NM" | grep -v '^$' || true)
 if [ -n "$FORBIDDEN" ]; then
   echo "❌ Versuche .env-Files oder node_modules zu committen:"
   echo "$FORBIDDEN" | sed 's/^/   - /'

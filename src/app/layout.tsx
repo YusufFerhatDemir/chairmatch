@@ -4,6 +4,10 @@ import { Providers } from './providers'
 import DynamicTheme from '@/components/DynamicTheme'
 import ConsentBanner from '@/components/ConsentBanner'
 import VisitTracker from '@/components/VisitTracker'
+import ConsentModeBootstrap from '@/components/analytics/ConsentModeBootstrap'
+import GA4 from '@/components/analytics/GA4'
+import MetaPixel from '@/components/analytics/MetaPixel'
+import WebVitalsReporter from '@/components/analytics/WebVitalsReporter'
 import ChatWidget from '@/components/ChatWidget'
 import FloatingLanguageSwitcher from '@/components/FloatingLanguageSwitcher'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -38,7 +42,13 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://chairmatch.de'),
   alternates: {
     canonical: 'https://chairmatch.de',
-    languages: { 'de-DE': 'https://chairmatch.de' },
+    languages: {
+      'de-DE': 'https://chairmatch.de',
+      'en-US': 'https://chairmatch.de',
+      'tr-TR': 'https://chairmatch.de',
+      'ar-SA': 'https://chairmatch.de',
+      'x-default': 'https://chairmatch.de',
+    },
   },
   openGraph: {
     title: 'ChairMatch — Beauty Booking Deutschland',
@@ -104,6 +114,9 @@ export default async function RootLayout({
   const htmlLang = LOCALE_META[locale].htmlLang
   return (
     <html lang={htmlLang} dir={dir} className={`${dmSans.variable} ${cinzel.variable}`}>
+      <head>
+        <ConsentModeBootstrap />
+      </head>
       <body className={dmSans.className}>
         <script
           type="application/ld+json"
@@ -145,12 +158,15 @@ export default async function RootLayout({
         <Providers initialLocale={locale}>
           <ErrorBoundary>
             <VisitTracker />
+            <WebVitalsReporter />
             {children}
             <ChatWidget />
             <FloatingLanguageSwitcher />
             <ConsentBanner />
           </ErrorBoundary>
         </Providers>
+        <GA4 />
+        <MetaPixel />
         <script dangerouslySetInnerHTML={{ __html: `
           /* SERVICE WORKER KILL-SWITCH
              Ehemals registrierte SWs werden deinstalliert + alle Caches geleert.

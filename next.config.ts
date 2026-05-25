@@ -56,11 +56,11 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.sentry.io",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://vitals.vercel-insights.com https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io https://*.sentry.io",
+              "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.sentry.io https://www.google-analytics.com https://www.googletagmanager.com https://*.facebook.com https://*.facebook.net",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://vitals.vercel-insights.com https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io https://*.sentry.io https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://connect.facebook.net https://*.facebook.com",
               "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
               // frame-ancestors blockt Einbettung in Iframes (Clickjacking-Schutz; moderner als X-Frame-Options)
               "frame-ancestors 'none'",

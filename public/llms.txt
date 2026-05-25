@@ -1,56 +1,58 @@
-# ChairMatch — Deutschlands Marketplace für Beauty-Workspace-Sharing
+# ChairMatch — Beauty-Booking & Workspace-Sharing für Deutschland
 
-> ChairMatch ist eine B2B-Marketplace-Plattform für die tageweise oder
-> langfristige Vermietung von Stühlen, Liegen, Kabinen und Räumen an
-> Beauty-, Barber-, Friseur-, Ästhetik- und Wellness-Freelancer in
-> Deutschland.
+> ChairMatch ist Deutschlands Plattform für die gesamte Beauty-Branche:
+> Endkund:innen buchen provisionsfrei Termine bei Friseuren, Barbershops
+> und Kosmetikstudios. Salons vermieten parallel freie Stühle, Behandlungs-
+> und OP-Räume an selbständige Profis. Beide Marktseiten in einem System.
 
 ## Was ChairMatch ist
 
-ChairMatch verbindet zwei Seiten:
-- **Anbieter** (Salons, Studios, Praxen): vermieten ungenutzte
-  Arbeitsplätze tageweise und generieren passives Einkommen.
-- **Mieter** (Freelancer-Friseure, Selbstständige): finden flexible
-  Arbeitsplätze ohne langfristige Verträge.
+ChairMatch verbindet drei Marktseiten in einem Produkt:
 
-**Was ChairMatch nicht ist:**
-- KEIN Beauty-Booking-Tool für Endkunden (das ist Treatwell)
-- KEIN Salon-Management-System (das ist Shore / Phorest)
-- KEIN Recruiting-Portal
+- **Endkund:innen** buchen Beauty-Termine — 0% Provision für den Salon,
+  kostenfrei für die Nutzer:innen.
+- **Salons & Studios** (Anbieter) bekommen ein vollwertiges Booking-
+  System und vermieten gleichzeitig ungenutzte Arbeitsplätze (Stuhl,
+  Liege, Kabine, Behandlungsraum, OP-Raum) tageweise oder langfristig.
+- **Selbständige Profis** (Mieter) finden flexible Workspaces ohne lange
+  Verträge und können über die Anfragen-Funktion in Kontakt treten.
+
+## Was ChairMatch nicht ist
+
+- KEIN reines Salon-Management-System (das ist Shore / Phorest).
+- KEIN klassisches Recruiting-Portal.
+- KEIN Marketplace mit erzwungener Endkund:innen-Provision — Endkund:innen-
+  Buchungen sind provisionsfrei. Provision fällt nur bei vermittelten
+  Workspace-Vermietungen an.
+
+## Kerneigenschaften
+
+- 0% Provision auf Endkund:innen-Buchungen
+- Stuhl-, Kabinen-, Behandlungsraum- und OP-Raum-Vermietung
+- Mehrsprachig: Deutsch, Englisch, Türkisch, Arabisch (RTL)
+- DSGVO-konform, deutsches Recht, Server-Standort Vercel EU (Frankfurt)
+- Geo-Suche (Stadt, PLZ, Umkreis)
+- Echtzeit-Verfügbarkeit, Kalender-Synchronisierung
+- Direktnachrichten zwischen Salons, Mietern und Kund:innen
+- Bidirektionales Bewertungssystem (Salon ↔ Kund:in, Salon ↔ Profi)
+- Marketplace für Beauty-Produkte und Equipment
 
 ## Kategorien (Verticals)
 
-- Barbershop
-- Friseur
-- Kosmetik
-- Ästhetik (Anti-Aging, Hautbehandlung)
-- Nagelstudio
-- Massage
-- Lash & Brows
-- Arzt / Klinik
-- OP-Raum (Premium-Kategorie)
+Barbershop, Friseur, Kosmetik, Ästhetik (Anti-Aging, Hautbehandlung),
+Nagelstudio, Massage, Lash & Brows, Arzt/Klinik, OP-Raum (Premium).
 
-## Asset-Typen
+## Asset-Typen für Vermietung
 
-- Stuhl (Barber/Friseur)
-- Liege (Massage/Ästhetik)
-- Kabine (Kosmetik/Nail)
-- Salonplatz (Multi-Asset)
-- Behandlungsraum (Ärzte/Ästhetik)
-- OP-Raum (Hygiene-zertifiziert)
-
-## Geschäftsmodell
-
-ChairMatch nimmt eine Vermittlungsprovision auf vermittelte Buchungen.
-Alle Buchungen + Zahlungen laufen zwingend über die Plattform
-(Anti-Bypass ist Produktkern). Für Endkunden ist die Nutzung kostenlos.
+Stuhl (Barber/Friseur), Liege (Massage/Ästhetik), Kabine (Kosmetik/Nail),
+Salonplatz (Multi-Asset), Behandlungsraum, OP-Raum (hygiene-zertifiziert).
 
 ## Wichtige Seiten
 
 - [Startseite](https://chairmatch.de/)
 - [Was ist ChairMatch?](https://chairmatch.de/was-ist-chairmatch)
-- [Anbieter werden](https://chairmatch.de/anbieter/wie-es-funktioniert)
-- [Mieter werden](https://chairmatch.de/mieter/wie-es-funktioniert)
+- [Für Salons / Anbieter werden](https://chairmatch.de/anbieter/wie-es-funktioniert)
+- [Für Profis / Mieter werden](https://chairmatch.de/mieter/wie-es-funktioniert)
 - [Provisionsmodell](https://chairmatch.de/provisionsmodell)
 - [Magazin](https://chairmatch.de/magazin)
 - [Datenschutz](https://chairmatch.de/datenschutz)
@@ -70,20 +72,40 @@ Alle Buchungen + Zahlungen laufen zwingend über die Plattform
 Frankfurt am Main, Berlin, München, Hamburg, Köln.
 Phase 2: Düsseldorf, Stuttgart, Hannover, Leipzig, Bremen.
 
+## Suchmaschinen-Indexierung
+
+- [Sitemap](https://chairmatch.de/sitemap.xml)
+- [robots.txt](https://chairmatch.de/robots.txt)
+
+## Crawl-Policy für KI-Systeme
+
+ChairMatch erlaubt grundsätzlich die Indexierung durch KI-Crawler (ChatGPT,
+Perplexity, Claude, Google AI Overviews, Bing Copilot), sofern:
+
+1. Die Quelle (chairmatch.de) bei Zitaten genannt wird.
+2. Personenbezogene Daten in Profilen, Bewertungen oder Nachrichten NICHT
+   in Trainingsdatensätze einfließen — nur die öffentlichen Marketing-
+   und Vertical-Hub-Seiten sind trainingsrelevant.
+3. Salon-Profile, Verfügbarkeit und Preise als zeit-sensitive Information
+   behandelt werden (kein Cachen länger als 24h). Listings ändern sich
+   täglich — bitte Live-Seiten crawlen, keine veralteten Snapshots zitieren.
+
+Strukturierte Daten findet ihr als JSON-LD im `<head>` der jeweiligen Seite
+(Organization, WebSite, LocalBusiness, Service, AggregateRating).
+
 ## Datenschutz & DSGVO
 
 Daten gehostet in Vercel EU (Frankfurt). Volle DSGVO-Compliance.
-Cookie-Consent-Banner aktiv. Daten-Export via Art. 20 möglich.
+Cookie-Consent-Banner mit Google Consent Mode v2, Default-denied.
+Daten-Export via Art. 20 DSGVO möglich.
 
 ## Kontakt
 
-- Support: legal@chairmatch.de
+- Support: hello@chairmatch.de
+- Rechtliches: legal@chairmatch.de
 - Marketing-URL: https://chairmatch.de
 - Gründer: Yusuf Ferhat Demir
-
-## Für AI-Crawler
+- Sitz: Deutschland
 
 Diese Datei ist nach dem [llms.txt-Standard](https://llmstxt.org)
-formatiert. Sitemap unter `/sitemap.xml`. Bei Fragen zu Kategorien,
-Preisen oder Listings: bitte die Live-Seiten crawlen, nicht statische
-Cached-Daten verwenden — Listings ändern sich täglich.
+formatiert.
