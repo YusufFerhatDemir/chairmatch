@@ -1,0 +1,17 @@
+/* TEAM */
+
+Founder & Builder: Yusuf Ferhat Demir
+Site: chairmatch.de
+Location: Deutschland
+
+/* THANKS */
+
+Den Friseur:innen, Barbern, Kosmetiker:innen und allen Profis,
+die die deutsche Beauty-Szene jeden Tag besser machen.
+
+/* SITE */
+
+Last update: 2026-05-26
+Standards: HTML5, CSS3, RFC 9116
+Components: Next.js, TypeScript, Supabase, Vercel
+Languages: Deutsch, English, Tuerkce, العربية
