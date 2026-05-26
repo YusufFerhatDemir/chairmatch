@@ -184,10 +184,6 @@ const publicPrefixes = [
   '/robots',
   '/sitemap',
   '/llms',
-  '/opengraph-image',
-  '/twitter-image',
-  '/apple-icon',
-  '/.well-known/',
   '/og-image',
   '/icon',
   '/screenshots/',
@@ -245,6 +241,14 @@ export default auth((req) => {
   // ------ Öffentliche Routen ------
   if (publicPaths.includes(pathname)) return NextResponse.next()
   if (publicPrefixes.some(p => pathname.startsWith(p))) return NextResponse.next()
+
+  // AI-/Social-Crawler-Endpoints auf jeder Tiefe (Next.js Convention)
+  if (pathname.endsWith('/opengraph-image') ||
+      pathname.endsWith('/twitter-image') ||
+      pathname.endsWith('/apple-icon') ||
+      pathname.endsWith('/icon')) {
+    return NextResponse.next()
+  }
 
   // Vertical-Deutschland-Hubs (z.B. /barbershop-deutschland, /friseur-deutschland)
   if (pathname.match(/^\/[a-z-]+-deutschland\/?$/)) return NextResponse.next()
@@ -321,6 +325,6 @@ export const config = {
   // 200-500ms Latenz auf langsamen Mobilnetzen. Das fühlte sich an wie "App
   // hängt sofort beim Start".
   matcher: [
-    '/((?!_next/|icons/|brand/|screenshots/|favicon|apple-touch-icon|manifest|sw\.js|robots|sitemap|og-image|opengraph-image|twitter-image|apple-icon|icon-|llms|\.well-known).*)',
+    '/((?!_next/|icons/|brand/|screenshots/|favicon|apple-touch-icon|manifest|sw\.js|robots|sitemap|og-image|icon-|llms).*)',
   ],
 }
