@@ -183,6 +183,7 @@ const publicPrefixes = [
   '/sw.js',
   '/robots',
   '/sitemap',
+  '/llms',
   '/og-image',
   '/icon',
   '/screenshots/',
@@ -316,6 +317,6 @@ export const config = {
   // 200-500ms Latenz auf langsamen Mobilnetzen. Das fühlte sich an wie "App
   // hängt sofort beim Start".
   matcher: [
-    '/((?!_next/|icons/|brand/|screenshots/|favicon|apple-touch-icon|manifest|sw\.js|robots|sitemap|og-image|icon-).*)',
+    '/((?!_next/|icons/|brand/|screenshots/|favicon|apple-touch-icon|manifest|sw\.js|robots|sitemap|og-image|icon-|llms).*)',
   ],
 }
