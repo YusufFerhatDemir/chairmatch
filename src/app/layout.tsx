@@ -91,7 +91,7 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
-  verification: {},
+  verification: { google: "x1kL07ajESTjwOc_fqJDAgON2FkFqbCLB3owYNF5fmI" },
   category: 'beauty',
 }
 
