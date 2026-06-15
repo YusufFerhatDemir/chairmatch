@@ -8,7 +8,7 @@
  * Mobile-responsive, inline-styled (für Email-Clients).
  */
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://chairmatch.de'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chairmatch.de'
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')

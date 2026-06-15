@@ -7,11 +7,11 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 export const metadata: Metadata = {
   title: 'ChairMatch Magazin — Praxis-Wissen für Beauty-Selbstständige',
   description: 'Wie funktioniert Stuhl-Miete? Welche Steuern? Welche Verträge? Praktische Guides für Friseure, Barber, Kosmetikerinnen und Lash-Spezialistinnen.',
-  alternates: { canonical: 'https://chairmatch.de/magazin' },
+  alternates: { canonical: 'https://www.chairmatch.de/magazin' },
   openGraph: {
     title: 'ChairMatch Magazin',
     description: 'Praxis-Wissen für selbstständige Beauty-Profis.',
-    url: 'https://chairmatch.de/magazin',
+    url: 'https://www.chairmatch.de/magazin',
     locale: 'de_DE',
     siteName: 'ChairMatch',
   },

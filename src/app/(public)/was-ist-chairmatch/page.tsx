@@ -14,11 +14,11 @@ export const metadata: Metadata = {
   title: 'Was ist ChairMatch? — Deutschlands Marketplace für Beauty-Workspace-Sharing',
   description: 'ChairMatch ist eine B2B-Plattform für die tageweise Vermietung von Stühlen, Liegen, Kabinen und Räumen an Beauty-, Barber- und Ästhetik-Freelancer in Deutschland. Gegründet 2026.',
   keywords: 'chairmatch, beauty workspace sharing, chair rental deutschland, salonplatz mieten, friseurstuhl vermieten, was ist chairmatch',
-  alternates: { canonical: 'https://chairmatch.de/was-ist-chairmatch' },
+  alternates: { canonical: 'https://www.chairmatch.de/was-ist-chairmatch' },
   openGraph: {
     title: 'Was ist ChairMatch?',
     description: 'Deutschlands Marketplace für Beauty-Workspace-Sharing — Stühle, Liegen, Kabinen tageweise.',
-    url: 'https://chairmatch.de/was-ist-chairmatch',
+    url: 'https://www.chairmatch.de/was-ist-chairmatch',
     type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',

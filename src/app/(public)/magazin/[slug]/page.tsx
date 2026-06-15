@@ -20,11 +20,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${a.title} | ChairMatch Magazin`,
     description: a.description,
     keywords: a.keywords.join(', '),
-    alternates: { canonical: `https://chairmatch.de/magazin/${slug}` },
+    alternates: { canonical: `https://www.chairmatch.de/magazin/${slug}` },
     openGraph: {
       title: a.title,
       description: a.description,
-      url: `https://chairmatch.de/magazin/${slug}`,
+      url: `https://www.chairmatch.de/magazin/${slug}`,
       type: 'article',
       locale: 'de_DE',
       siteName: 'ChairMatch',

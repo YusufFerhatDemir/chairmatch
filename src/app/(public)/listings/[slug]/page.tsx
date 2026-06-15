@@ -142,11 +142,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       'beauty workspace',
       'ChairMatch',
     ].filter(Boolean).join(', '),
-    alternates: { canonical: `https://chairmatch.de/listings/${slug}` },
+    alternates: { canonical: `https://www.chairmatch.de/listings/${slug}` },
     openGraph: {
       title: `${listing.name} — ${priceEur} €/Tag in ${city}`,
       description,
-      url: `https://chairmatch.de/listings/${slug}`,
+      url: `https://www.chairmatch.de/listings/${slug}`,
       type: 'website',
       locale: 'de_DE',
       siteName: 'ChairMatch',

@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   title: 'Provisionsmodell — transparente Preise | ChairMatch',
   description: '10% auf Stuhl-Miete, 8% auf OP-Räume, 0% für Kunden. Vergleich zu eBay Kleinanzeigen, Facebook und Salonkee.',
   keywords: 'chairmatch provision, stuhl miete provision, salon vermietung gebühren, transparente preise marketplace',
-  alternates: { canonical: 'https://chairmatch.de/provisionsmodell' },
+  alternates: { canonical: 'https://www.chairmatch.de/provisionsmodell' },
   openGraph: {
     title: 'Provisionsmodell — transparente Preise',
     description: 'Klare Preise: 10% Stuhl-Miete, 8% OP-Räume, 0% für Kunden.',
-    url: 'https://chairmatch.de/provisionsmodell',
+    url: 'https://www.chairmatch.de/provisionsmodell',
     locale: 'de_DE',
     siteName: 'ChairMatch',
   },

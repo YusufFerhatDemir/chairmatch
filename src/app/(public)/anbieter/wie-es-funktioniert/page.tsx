@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   title: 'Anbieter werden — Stuhl, Liege oder Kabine vermieten | ChairMatch',
   description: 'Wie funktioniert ChairMatch für Salons, Studios und Praxen? In 4 Schritten dein Listing live — 0% Provision in den ersten 3 Monaten. Stripe-gesichert.',
   keywords: 'salon vermieten, friseurstuhl vermieten, stuhl-miete anbieter werden, salonplatz anbieten, untervermietung salon',
-  alternates: { canonical: 'https://chairmatch.de/anbieter/wie-es-funktioniert' },
+  alternates: { canonical: 'https://www.chairmatch.de/anbieter/wie-es-funktioniert' },
   openGraph: {
     title: 'Anbieter werden — Stuhl vermieten | ChairMatch',
     description: 'In 4 Schritten dein Salon-Listing live. 0% Provision in den ersten 3 Monaten.',
-    url: 'https://chairmatch.de/anbieter/wie-es-funktioniert',
+    url: 'https://www.chairmatch.de/anbieter/wie-es-funktioniert',
     type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',

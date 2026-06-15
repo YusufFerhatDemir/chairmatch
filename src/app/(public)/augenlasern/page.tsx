@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: 'Augen lasern in Deutschland — LASIK, Femto, ReLEx Smile | ChairMatch',
   description: 'Verifizierte Augenkliniken für LASIK, Femto-LASIK und ReLEx Smile. Endlich brillenfrei. Realistische Kosten ab 1.490 € pro Auge.',
   keywords: 'augen lasern kosten, lasik, femto lasik, relex smile, augenoperation, brillenfrei, augenklinik',
-  alternates: { canonical: 'https://chairmatch.de/augenlasern' },
+  alternates: { canonical: 'https://www.chairmatch.de/augenlasern' },
 }
 
 const FAQS = [

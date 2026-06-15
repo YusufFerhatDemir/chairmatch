@@ -34,11 +34,11 @@ export interface BookingConfirmationData {
   manageBookingUrl: string
   invoicePdfUrl: string
   helpUrl: string
-  logoUrl?: string          // absolute URL — z.B. https://chairmatch.de/brand/chairmatch_logo_pin_symbol_gradient_512.png
+  logoUrl?: string          // absolute URL — z.B. https://www.chairmatch.de/brand/chairmatch_logo_pin_symbol_gradient_512.png
 }
 
 export function renderBookingConfirmationEmail(d: BookingConfirmationData): string {
-  const logo = d.logoUrl || 'https://chairmatch.de/brand/chairmatch_logo_pin_symbol_gradient_512.png'
+  const logo = d.logoUrl || 'https://www.chairmatch.de/brand/chairmatch_logo_pin_symbol_gradient_512.png'
   const isPremium = d.salonTier === 'premium' || d.salonTier === 'enterprise'
 
   return `<!DOCTYPE html>

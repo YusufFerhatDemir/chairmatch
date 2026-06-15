@@ -1,7 +1,7 @@
 /**
  * Public IndexNow-Key-File-Endpoint.
  *
- * Bing/Yandex/Seznam fetchen https://chairmatch.de/<KEY>.txt zur
+ * Bing/Yandex/Seznam fetchen https://www.chairmatch.de/<KEY>.txt zur
  * Verifizierung. Wir stellen den Inhalt unter /api/indexnow/key bereit
  * und routen via next.config.ts oder middleware.
  *

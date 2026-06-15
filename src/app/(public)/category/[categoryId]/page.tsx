@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${meta?.title || categoryId} | ChairMatch`,
       description: meta?.desc || `Anbieter in der Kategorie ${categoryId} finden.`,
-      url: `https://chairmatch.de/category/${categoryId}`,
+      url: `https://www.chairmatch.de/category/${categoryId}`,
       type: 'website',
     },
   }

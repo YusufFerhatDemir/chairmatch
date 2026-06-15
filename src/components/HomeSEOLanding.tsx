@@ -179,11 +179,11 @@ export function HomeSEOFooterContent() {
       {
         '@context': 'https://schema.org',
         '@type': 'Service',
-        '@id': 'https://chairmatch.de/#service-rental',
+        '@id': 'https://www.chairmatch.de/#service-rental',
         name: 'Stuhlmiete & Workspace-Vermietung für Beauty-, Barber- und Medical-Freelancer',
         description:
           'Online-Marketplace zur tageweisen Vermietung von Friseurstühlen, Barberstühlen, Kosmetikkabinen, Lash-Plätzen, Behandlungsräumen und OP-Räumen in Deutschland.',
-        provider: { '@id': 'https://chairmatch.de/#organization' },
+        provider: { '@id': 'https://www.chairmatch.de/#organization' },
         areaServed: { '@type': 'Country', name: 'Germany' },
         serviceType: 'Workspace Rental Marketplace',
         offers: {

@@ -28,11 +28,11 @@ export const metadata: Metadata = {
   title: 'Haartransplantation in Deutschland — Kosten, Methoden, Vergleich | ChairMatch',
   description: 'Verifizierte Kliniken für Haartransplantation in deiner Nähe finden. FUE, DHI, Saphir im Vergleich. Realistische Kosten: 2.490-4.990 €. Kostenlose Erstberatung anfragen.',
   keywords: 'haartransplantation, haartransplantation kosten, fue haartransplantation, dhi methode, saphir fue, haartransplantation deutschland, eigenhaartransplantation, haarausfall behandlung',
-  alternates: { canonical: 'https://chairmatch.de/haartransplantation' },
+  alternates: { canonical: 'https://www.chairmatch.de/haartransplantation' },
   openGraph: {
     title: 'Haartransplantation — Verifizierte Kliniken in Deutschland',
     description: 'FUE, DHI, Saphir im Vergleich. Realistische Kosten + verifizierte Kliniken. Kostenlose Erstberatung.',
-    url: 'https://chairmatch.de/haartransplantation',
+    url: 'https://www.chairmatch.de/haartransplantation',
     locale: 'de_DE',
     siteName: 'ChairMatch',
   },

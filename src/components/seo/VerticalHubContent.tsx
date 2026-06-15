@@ -127,6 +127,6 @@ export function makeVerticalMetadata(verticalSlug: string) {
   return {
     title: `${v.name}-${v.assetLabel} mieten in Deutschland | ChairMatch`,
     description: `${v.name}-Chair-Rental in Deutschland: ${v.marketStats} Anbieter werden — 0% Provision in den ersten 3 Monaten.`,
-    alternates: { canonical: `https://chairmatch.de/${fullSlug}` },
+    alternates: { canonical: `https://www.chairmatch.de/${fullSlug}` },
   }
 }

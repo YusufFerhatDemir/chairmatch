@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: 'Longevity-Center Deutschland — Cryo, HBOT, HIFU | ChairMatch',
   description: 'Anti-Aging und Bio-Hacking: Kältekammer, Sauerstofftherapie, HIFU-Hautstraffung, EMS-Training. Verifizierte Longevity-Center in deiner Stadt.',
   keywords: 'longevity, anti aging, cryotherapie, hbot, sauerstofftherapie, hifu, biohacking, kältekammer, body contouring',
-  alternates: { canonical: 'https://chairmatch.de/longevity' },
+  alternates: { canonical: 'https://www.chairmatch.de/longevity' },
 }
 
 const FAQS = [

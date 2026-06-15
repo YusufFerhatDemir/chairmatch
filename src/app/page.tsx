@@ -30,14 +30,14 @@ export const metadata: Metadata = {
     'ChairMatch',
   ],
   alternates: {
-    canonical: 'https://chairmatch.de/',
-    languages: { 'de-DE': 'https://chairmatch.de/' },
+    canonical: 'https://www.chairmatch.de/',
+    languages: { 'de-DE': 'https://www.chairmatch.de/' },
   },
   openGraph: {
     title: 'Stuhlmiete & Beauty-Workspace mieten — ChairMatch Deutschland',
     description:
       'Deutschlands Marketplace für Stuhlmiete und Beauty-Workspace-Sharing. Tageweise Friseurstuhl, Barberstuhl, Kabine oder OP-Raum mieten — 0% Provision, sichere Online-Buchung.',
-    url: 'https://chairmatch.de/',
+    url: 'https://www.chairmatch.de/',
     siteName: 'ChairMatch',
     locale: 'de_DE',
     type: 'website',

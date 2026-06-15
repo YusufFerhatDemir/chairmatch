@@ -44,7 +44,7 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'CCBot', allow: '/', disallow: ['/api/', '/account/', '/admin/'] },
       { userAgent: 'anthropic-ai', allow: '/', disallow: ['/api/', '/account/', '/admin/'] },
     ],
-    sitemap: 'https://chairmatch.de/sitemap.xml',
-    host: 'https://chairmatch.de',
+    sitemap: 'https://www.chairmatch.de/sitemap.xml',
+    host: 'https://www.chairmatch.de',
   }
 }

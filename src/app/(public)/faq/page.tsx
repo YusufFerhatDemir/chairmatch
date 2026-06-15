@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   title: 'FAQ — Alle Fragen zu Stuhl-Miete & ChairMatch | ChairMatch',
   description: 'Antworten auf alle wichtigen Fragen zur Stuhl-Miete: Kosten, Steuern, Versicherungen, Plattform-Garantien. Über 20 detaillierte FAQs aus der Praxis.',
   keywords: 'stuhl miete faq, friseur selbstständig faq, chairmatch fragen, beauty stuhl mieten',
-  alternates: { canonical: 'https://chairmatch.de/faq' },
+  alternates: { canonical: 'https://www.chairmatch.de/faq' },
   openGraph: {
     title: 'FAQ — ChairMatch',
     description: 'Antworten auf alle Fragen rund um Stuhl-Miete.',
-    url: 'https://chairmatch.de/faq',
+    url: 'https://www.chairmatch.de/faq',
     locale: 'de_DE',
     siteName: 'ChairMatch',
   },

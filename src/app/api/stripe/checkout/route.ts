@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Buchung nicht gefunden' }, { status: 404 })
       }
 
-      const origin = req.headers.get('origin') || 'https://chairmatch.de'
+      const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
       const checkoutSession = await createBookingCheckout({
         bookingId,
         customerEmail: session.user.email || '',
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Ungültiger Tier' }, { status: 400 })
       }
 
-      const origin = req.headers.get('origin') || 'https://chairmatch.de'
+      const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
       const checkoutSession = await createSubscriptionCheckout({
         userId: session.user.id,
         email: session.user.email || '',
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
         quantity: i.quantity,
       }))
 
-      const origin = req.headers.get('origin') || 'https://chairmatch.de'
+      const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
       const checkoutSession = await createProductOrderCheckout({
         orderId,
         orderNumber: order.order_number,

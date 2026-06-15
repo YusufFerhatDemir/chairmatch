@@ -38,20 +38,20 @@ export function organizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    '@id': 'https://chairmatch.de/#organization',
+    '@id': 'https://www.chairmatch.de/#organization',
     name: 'ChairMatch',
     alternateName: ['Chair Match', 'Chairmatch', 'chairmatch.de'],
     slogan: 'Deutschlands #1 Marketplace für Beauty-Workspace-Sharing',
     brand: {
       '@type': 'Brand',
       name: 'ChairMatch',
-      logo: 'https://chairmatch.de/icons/chairmatch-pin-logo.png',
+      logo: 'https://www.chairmatch.de/icons/chairmatch-pin-logo.png',
     },
     legalName: 'ChairMatch GmbH (i. Gr.)',
-    url: 'https://chairmatch.de',
+    url: 'https://www.chairmatch.de',
     logo: {
       '@type': 'ImageObject',
-      url: 'https://chairmatch.de/icons/chairmatch-pin-logo.png',
+      url: 'https://www.chairmatch.de/icons/chairmatch-pin-logo.png',
       width: 512,
       height: 512,
     },
@@ -94,16 +94,16 @@ export function websiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    '@id': 'https://chairmatch.de/#website',
-    url: 'https://chairmatch.de',
+    '@id': 'https://www.chairmatch.de/#website',
+    url: 'https://www.chairmatch.de',
     name: 'ChairMatch',
-    publisher: { '@id': 'https://chairmatch.de/#organization' },
+    publisher: { '@id': 'https://www.chairmatch.de/#organization' },
     inLanguage: 'de-DE',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://chairmatch.de/search?q={search_term_string}',
+        urlTemplate: 'https://www.chairmatch.de/search?q={search_term_string}',
       },
       'query-input': 'required name=search_term_string',
     },
@@ -130,7 +130,7 @@ export interface SalonSchemaInput {
 }
 
 export function salonSchema(salon: SalonSchemaInput) {
-  const url = `https://chairmatch.de/salon/${salon.slug}`
+  const url = `https://www.chairmatch.de/salon/${salon.slug}`
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -213,7 +213,7 @@ export function breadcrumbSchema(items: BreadcrumbItem[]) {
       '@type': 'ListItem',
       position: idx + 1,
       name: item.name,
-      item: item.url.startsWith('http') ? item.url : `https://chairmatch.de${item.url}`,
+      item: item.url.startsWith('http') ? item.url : `https://www.chairmatch.de${item.url}`,
     })),
   }
 }
@@ -247,7 +247,7 @@ export function serviceAreaSchema(city: string, vertical?: string) {
     name: vertical
       ? `${vertical} Workspace mieten in ${city}`
       : `Beauty Workspace mieten in ${city}`,
-    provider: { '@id': 'https://chairmatch.de/#organization' },
+    provider: { '@id': 'https://www.chairmatch.de/#organization' },
     areaServed: {
       '@type': 'City',
       name: city,
@@ -276,7 +276,7 @@ export interface ArticleSchemaInput {
 }
 
 export function articleSchema(a: ArticleSchemaInput) {
-  const url = `https://chairmatch.de/magazin/${a.slug}`
+  const url = `https://www.chairmatch.de/magazin/${a.slug}`
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -289,9 +289,9 @@ export function articleSchema(a: ArticleSchemaInput) {
     author: {
       '@type': 'Person',
       name: 'Yusuf Ferhat Demir',
-      url: 'https://chairmatch.de/was-ist-chairmatch',
+      url: 'https://www.chairmatch.de/was-ist-chairmatch',
     },
-    publisher: { '@id': 'https://chairmatch.de/#organization' },
+    publisher: { '@id': 'https://www.chairmatch.de/#organization' },
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     keywords: a.keywords.join(', '),
     articleSection: a.category,
@@ -324,7 +324,7 @@ export interface ListingSchemaInput {
 }
 
 export function listingSchema(input: ListingSchemaInput) {
-  const url = `https://chairmatch.de/listings/${input.slug}`
+  const url = `https://www.chairmatch.de/listings/${input.slug}`
   return {
     '@context': 'https://schema.org',
     '@type': 'Service',
@@ -334,7 +334,7 @@ export function listingSchema(input: ListingSchemaInput) {
     serviceType: input.category,
     provider: {
       '@type': 'LocalBusiness',
-      '@id': `https://chairmatch.de/salon/${input.salon.slug}#localbusiness`,
+      '@id': `https://www.chairmatch.de/salon/${input.salon.slug}#localbusiness`,
       name: input.salon.name,
     },
     areaServed: input.salon.city
@@ -352,7 +352,7 @@ export function listingSchema(input: ListingSchemaInput) {
         unitText: 'DAY',
       },
       availability: `https://schema.org/${input.availability || 'InStock'}`,
-      seller: { '@id': 'https://chairmatch.de/#organization' },
+      seller: { '@id': 'https://www.chairmatch.de/#organization' },
     },
   }
 }

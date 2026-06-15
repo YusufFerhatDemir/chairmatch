@@ -9,7 +9,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  *   email.bounced, email.complained
  *
  * Konfiguration: in Resend-Dashboard -> Webhooks
- *   Endpoint: https://chairmatch.de/api/newsletter/webhook
+ *   Endpoint: https://www.chairmatch.de/api/newsletter/webhook
  *
  * Hinweis: Signatur-Verifikation (Svix) ist optional, hier weggelassen
  * — bei Bedarf via RESEND_WEBHOOK_SECRET nachrüsten.

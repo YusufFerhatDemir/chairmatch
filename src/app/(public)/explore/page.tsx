@@ -9,11 +9,11 @@ export const metadata: Metadata = {
   title: 'Salons, Studios & Praxen entdecken — Stuhlmiete, Termine, Beauty-Workspace',
   description: 'Entdecke verifizierte Salons, Barbershops, Kosmetikstudios, Nail- und Lash-Studios in Deutschland. Tageweise Stuhlmiete, Behandlungsraum oder direkt online Termin buchen. Friseurstuhl mieten, Kosmetik-Kabine, OP-Raum — bundesweit gefiltert nach Stadt, Kategorie, Preis und Bewertung.',
   keywords: 'salons entdecken, stuhlmiete deutschland, beauty workspace, friseurstuhl mieten, kosmetik kabine mieten, barbershop finden, salonplatz, chair rental deutschland, beauty coworking, termine online buchen',
-  alternates: { canonical: 'https://chairmatch.de/explore' },
+  alternates: { canonical: 'https://www.chairmatch.de/explore' },
   openGraph: {
     title: 'Salons & Stuhlmiete entdecken | ChairMatch',
     description: 'Bundesweit verifizierte Salons, Stuhlmiete-Angebote und Online-Termine. Filterbar nach Stadt, Kategorie und Preis.',
-    url: 'https://chairmatch.de/explore',
+    url: 'https://www.chairmatch.de/explore',
     type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',

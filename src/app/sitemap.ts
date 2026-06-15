@@ -16,7 +16,7 @@ const CATEGORY_SLUGS = [
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = 'https://chairmatch.de'
+  const base = 'https://www.chairmatch.de'
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

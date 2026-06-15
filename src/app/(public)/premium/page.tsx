@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: 'Medical Beauty Premium — Haartransplantation, Zähne, Augenlasern | ChairMatch',
   description: 'Verifizierte Premium-Kliniken in Deutschland: Haartransplantation, Zahnimplantate, Augenlasern, Longevity, IV-Infusionen, Ästhetik. Transparente Preise.',
   keywords: 'medical beauty deutschland, schönheitsklinik, haartransplantation, zahnimplantate, augenlasern, longevity, anti aging, biohacking',
-  alternates: { canonical: 'https://chairmatch.de/premium' },
+  alternates: { canonical: 'https://www.chairmatch.de/premium' },
 }
 
 interface PremiumService {

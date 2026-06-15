@@ -18,11 +18,11 @@ export const metadata: Metadata = {
   title: 'Zahnimplantate Deutschland — Kosten, All-on-4, Veneers | ChairMatch',
   description: 'Verifizierte Zahnkliniken für Implantate, All-on-4, Veneers und Invisalign. Realistische Preise ab 1.490 € pro Implantat. Erstberatung kostenlos.',
   keywords: 'zahnimplantat kosten, all-on-4, veneers, zahnersatz, invisalign, zahnklinik deutschland, implantologie',
-  alternates: { canonical: 'https://chairmatch.de/zahnimplantate' },
+  alternates: { canonical: 'https://www.chairmatch.de/zahnimplantate' },
   openGraph: {
     title: 'Zahnimplantate — Verifizierte Kliniken in Deutschland',
     description: 'Implantate, All-on-4, Veneers, Invisalign — verifizierte Preise + Kliniken.',
-    url: 'https://chairmatch.de/zahnimplantate',
+    url: 'https://www.chairmatch.de/zahnimplantate',
     locale: 'de_DE',
     siteName: 'ChairMatch',
   },

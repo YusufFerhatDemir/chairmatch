@@ -117,12 +117,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `${vName} platz ${cityLower}`,
       `salonplatz ${cityLower}`,
     ].join(', '),
-    alternates: { canonical: `https://chairmatch.de/${stadt}/${vertical}/${asset}` },
+    alternates: { canonical: `https://www.chairmatch.de/${stadt}/${vertical}/${asset}` },
     robots: robotsForListingPage(salonCount),
     openGraph: {
       title,
       description,
-      url: `https://chairmatch.de/${stadt}/${vertical}/${asset}`,
+      url: `https://www.chairmatch.de/${stadt}/${vertical}/${asset}`,
       type: 'website',
       locale: 'de_DE',
       siteName: 'ChairMatch',
@@ -166,7 +166,7 @@ export default async function CityVerticalAssetPage({ params }: Props) {
             '@context': 'https://schema.org',
             '@type': 'Service',
             name: `${assetDisplay} mieten in ${city.name}`,
-            provider: { '@id': 'https://chairmatch.de/#organization' },
+            provider: { '@id': 'https://www.chairmatch.de/#organization' },
             areaServed: {
               '@type': 'City',
               name: city.name,

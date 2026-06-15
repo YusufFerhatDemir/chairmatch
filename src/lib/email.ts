@@ -102,7 +102,7 @@ function baseLayout(title: string, content: string): string {
   <!-- Footer -->
   <tr><td style="padding:24px 32px;text-align:center;border-top:1px solid #333;font-size:12px;color:#777">
     <p style="margin:0">&copy; ${new Date().getFullYear()} ChairMatch Deutschland</p>
-    <p style="margin:4px 0 0"><a href="https://chairmatch.de" style="color:#D4AF37;text-decoration:none">chairmatch.de</a></p>
+    <p style="margin:4px 0 0"><a href="https://www.chairmatch.de" style="color:#D4AF37;text-decoration:none">chairmatch.de</a></p>
   </td></tr>
 </table>
 </td></tr>
@@ -175,7 +175,7 @@ export async function sendBookingConfirmation(to: string, details: BookingEmailD
           <td style="padding:12px 16px;color:#D4AF37;font-size:14px;font-weight:700">${formatPrice(details.priceCents)}</td></tr>
     </table>
     <p style="font-size:13px;color:#999">Buchungs-ID: ${details.bookingId}</p>
-    ${goldButton('Buchung ansehen', `https://chairmatch.de/booking/${details.bookingId}`)}
+    ${goldButton('Buchung ansehen', `https://www.chairmatch.de/booking/${details.bookingId}`)}
     <p style="font-size:13px;color:#777;margin-top:24px">Falls du Fragen hast, kontaktiere uns unter <a href="mailto:support@chairmatch.de" style="color:#D4AF37">support@chairmatch.de</a>.</p>
   `)
 
@@ -197,7 +197,7 @@ export async function sendBookingReminder(to: string, details: BookingEmailDetai
       <p style="margin:6px 0 0;color:#e0e0e0">${formatDate(details.date)} um ${details.startTime} Uhr</p>
       ${details.staffName ? `<p style="margin:6px 0 0;color:#999">Mitarbeiter: ${esc(details.staffName)}</p>` : ''}
     </div>
-    ${goldButton('Buchung ansehen', `https://chairmatch.de/booking/${details.bookingId}`)}
+    ${goldButton('Buchung ansehen', `https://www.chairmatch.de/booking/${details.bookingId}`)}
     <p style="font-size:13px;color:#777;margin-top:24px">Musst du umbuchen? Du kannst den Termin bis 24h vorher kostenlos stornieren.</p>
   `)
 
@@ -232,7 +232,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
         </tr>
       </table>
     </div>
-    ${goldButton('Jetzt entdecken', 'https://chairmatch.de')}
+    ${goldButton('Jetzt entdecken', 'https://www.chairmatch.de')}
     <p style="font-size:13px;color:#777;margin-top:24px">Nutze den Code <strong style="color:#D4AF37">WELCOME10</strong> für 10% auf deine erste Buchung!</p>
   `)
 
@@ -290,7 +290,7 @@ export async function sendProviderNotification(
     ${details.message ? `<div style="background:#1a1a1a;border-radius:8px;border-left:4px solid #D4AF37;padding:16px;margin:16px 0">
       <p style="margin:0;color:#e0e0e0">${esc(details.message)}</p>
     </div>` : ''}
-    ${details.bookingId ? goldButton('Details ansehen', `https://chairmatch.de/provider#booking-${details.bookingId}`) : goldButton('Dashboard öffnen', 'https://chairmatch.de/provider')}
+    ${details.bookingId ? goldButton('Details ansehen', `https://www.chairmatch.de/provider#booking-${details.bookingId}`) : goldButton('Dashboard öffnen', 'https://www.chairmatch.de/provider')}
     <p style="font-size:13px;color:#777;margin-top:24px">Du erhältst diese E-Mail, weil du als Anbieter bei ChairMatch registriert bist.</p>
   `)
 
@@ -353,7 +353,7 @@ export async function sendComplianceAlert(
       </table>
     </div>
     <p>${info.description}</p>
-    ${goldButton('Compliance-Dashboard öffnen', 'https://chairmatch.de/owner/compliance')}
+    ${goldButton('Compliance-Dashboard öffnen', 'https://www.chairmatch.de/owner/compliance')}
     <p style="font-size:13px;color:#777;margin-top:24px">Die Einhaltung der Vorschriften ist wichtig, um deinen Salon auf ChairMatch aktiv zu halten.</p>
   `)
 
@@ -379,7 +379,7 @@ const SERVICE_TO_AFFILIATE_CATEGORIES: Record<string, string[]> = {
   arzt:      ['Gesichtspflege'],
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://chairmatch.de'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chairmatch.de'
 
 interface AffiliateProductRow {
   id: string

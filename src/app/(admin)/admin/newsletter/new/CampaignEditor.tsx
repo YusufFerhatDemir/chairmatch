@@ -28,7 +28,7 @@ const DEFAULT_BODY = `<h2 style="color:#D4AF37;font-family:Georgia,serif;font-si
   <li>Beauty-Tipps der Woche</li>
 </ul>
 <p style="margin-top:24px">
-  <a href="https://chairmatch.de" style="background:linear-gradient(135deg,#D4AF37,#FCF6BA);color:#1A1000;padding:12px 24px;border-radius:8px;font-weight:700;text-decoration:none;display:inline-block">Jetzt entdecken</a>
+  <a href="https://www.chairmatch.de" style="background:linear-gradient(135deg,#D4AF37,#FCF6BA);color:#1A1000;padding:12px 24px;border-radius:8px;font-weight:700;text-decoration:none;display:inline-block">Jetzt entdecken</a>
 </p>
 <p>Bis bald,<br/>dein ChairMatch-Team</p>`
 

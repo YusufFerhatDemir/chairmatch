@@ -26,7 +26,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     title,
     description: 'Suche Salons, Studios und Praxen auf ChairMatch. Diese Seite ist als interne Suche nicht für Suchmaschinen indexiert — nutze stattdessen unsere Stadt- und Kategorie-Seiten.',
     robots: { index: false, follow: true },
-    alternates: { canonical: 'https://chairmatch.de/search' },
+    alternates: { canonical: 'https://www.chairmatch.de/search' },
   }
 }
 

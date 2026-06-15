@@ -90,12 +90,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `salonplatz ${cityLower}`,
       `chair rental ${cityLower}`,
     ].join(', '),
-    alternates: { canonical: `https://chairmatch.de/${stadt}/${vertical}` },
+    alternates: { canonical: `https://www.chairmatch.de/${stadt}/${vertical}` },
     robots: robotsForListingPage(salonCount),
     openGraph: {
       title,
       description,
-      url: `https://chairmatch.de/${stadt}/${vertical}`,
+      url: `https://www.chairmatch.de/${stadt}/${vertical}`,
       type: 'website',
       locale: 'de_DE',
       siteName: 'ChairMatch',
@@ -118,7 +118,7 @@ export default async function CityVerticalPage({ params }: Props) {
             '@context': 'https://schema.org',
             '@type': 'Service',
             name: `${v.name}-${v.assetLabel} mieten in ${city.name}`,
-            provider: { '@id': 'https://chairmatch.de/#organization' },
+            provider: { '@id': 'https://www.chairmatch.de/#organization' },
             areaServed: {
               '@type': 'City',
               name: city.name,

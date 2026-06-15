@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: 'IV-Infusionen Deutschland — NAD+, Vitamin-Drip, Glutathion | ChairMatch',
   description: 'Vitamin-Cocktails, NAD+ Anti-Aging, Glutathion-Glow, Detox-Drips. Verifizierte Ärzte in deiner Stadt. Bluttest-gestützte Therapie.',
   keywords: 'iv infusion, nad+, vitamin drip, glutathion, vitamin c hochdosis, anti aging infusion, biohacking',
-  alternates: { canonical: 'https://chairmatch.de/iv-infusionen' },
+  alternates: { canonical: 'https://www.chairmatch.de/iv-infusionen' },
 }
 
 const FAQS = [

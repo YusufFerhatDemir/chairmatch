@@ -49,23 +49,23 @@ Salonplatz (Multi-Asset), Behandlungsraum, OP-Raum (hygiene-zertifiziert).
 
 ## Wichtige Seiten
 
-- [Startseite](https://chairmatch.de/)
-- [Was ist ChairMatch?](https://chairmatch.de/was-ist-chairmatch)
-- [Für Salons / Anbieter werden](https://chairmatch.de/anbieter/wie-es-funktioniert)
-- [Für Profis / Mieter werden](https://chairmatch.de/mieter/wie-es-funktioniert)
-- [Provisionsmodell](https://chairmatch.de/provisionsmodell)
-- [Magazin](https://chairmatch.de/magazin)
-- [Datenschutz](https://chairmatch.de/datenschutz)
-- [AGB](https://chairmatch.de/agb)
-- [Impressum](https://chairmatch.de/impressum)
+- [Startseite](https://www.chairmatch.de/)
+- [Was ist ChairMatch?](https://www.chairmatch.de/was-ist-chairmatch)
+- [Für Salons / Anbieter werden](https://www.chairmatch.de/anbieter/wie-es-funktioniert)
+- [Für Profis / Mieter werden](https://www.chairmatch.de/mieter/wie-es-funktioniert)
+- [Provisionsmodell](https://www.chairmatch.de/provisionsmodell)
+- [Magazin](https://www.chairmatch.de/magazin)
+- [Datenschutz](https://www.chairmatch.de/datenschutz)
+- [AGB](https://www.chairmatch.de/agb)
+- [Impressum](https://www.chairmatch.de/impressum)
 
 ## Vertical-Hubs
 
-- [Barbershops Deutschland](https://chairmatch.de/barbershop-deutschland)
-- [Friseur-Stuhl Deutschland](https://chairmatch.de/friseur-deutschland)
-- [Kosmetik Deutschland](https://chairmatch.de/kosmetik-deutschland)
-- [Nagelstudio Deutschland](https://chairmatch.de/nagelstudio-deutschland)
-- [Lash & Brows Deutschland](https://chairmatch.de/lash-brows-deutschland)
+- [Barbershops Deutschland](https://www.chairmatch.de/barbershop-deutschland)
+- [Friseur-Stuhl Deutschland](https://www.chairmatch.de/friseur-deutschland)
+- [Kosmetik Deutschland](https://www.chairmatch.de/kosmetik-deutschland)
+- [Nagelstudio Deutschland](https://www.chairmatch.de/nagelstudio-deutschland)
+- [Lash & Brows Deutschland](https://www.chairmatch.de/lash-brows-deutschland)
 
 ## Top-Städte (Phase 1)
 
@@ -74,8 +74,8 @@ Phase 2: Düsseldorf, Stuttgart, Hannover, Leipzig, Bremen.
 
 ## Suchmaschinen-Indexierung
 
-- [Sitemap](https://chairmatch.de/sitemap.xml)
-- [robots.txt](https://chairmatch.de/robots.txt)
+- [Sitemap](https://www.chairmatch.de/sitemap.xml)
+- [robots.txt](https://www.chairmatch.de/robots.txt)
 
 ## Crawl-Policy für KI-Systeme
 
@@ -103,7 +103,7 @@ Daten-Export via Art. 20 DSGVO möglich.
 
 - Support: hello@chairmatch.de
 - Rechtliches: legal@chairmatch.de
-- Marketing-URL: https://chairmatch.de
+- Marketing-URL: https://www.chairmatch.de
 - Gründer: Yusuf Ferhat Demir
 - Sitz: Deutschland
 

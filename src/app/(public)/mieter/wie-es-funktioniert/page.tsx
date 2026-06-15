@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   title: 'Stuhl, Liege oder Raum mieten — so funktioniert es | ChairMatch',
   description: 'Wie findest du als Freelancer-Friseur, Kosmetikerin oder Lash-Specialist den perfekten Arbeitsplatz? In 4 Schritten zur ersten Buchung. 0% Provision für dich.',
   keywords: 'freelancer friseur platz suchen, selbstständig beauty, stuhl mieten anleitung, salonplatz finden, beauty workspace mieten',
-  alternates: { canonical: 'https://chairmatch.de/mieter/wie-es-funktioniert' },
+  alternates: { canonical: 'https://www.chairmatch.de/mieter/wie-es-funktioniert' },
   openGraph: {
     title: 'Stuhl mieten — so funktioniert es | ChairMatch',
     description: 'Als Beauty-Freelancer in 4 Schritten zum perfekten Arbeitsplatz. 0% Provision.',
-    url: 'https://chairmatch.de/mieter/wie-es-funktioniert',
+    url: 'https://www.chairmatch.de/mieter/wie-es-funktioniert',
     type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',

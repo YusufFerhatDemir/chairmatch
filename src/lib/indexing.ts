@@ -13,7 +13,7 @@
  *
  * Aufruf:
  *   import { notifyIndexers } from '@/lib/indexing'
- *   await notifyIndexers(['https://chairmatch.de/listings/abc'])
+ *   await notifyIndexers(['https://www.chairmatch.de/listings/abc'])
  *
  * Failure-Mode: alle Calls sind fire-and-forget mit Try/Catch.
  * Niemals einen Hot-Path blockieren wenn ein Indexer down ist.
@@ -21,7 +21,7 @@
 
 import { logger } from './logger'
 
-const INDEXNOW_HOST = 'chairmatch.de'
+const INDEXNOW_HOST = 'www.chairmatch.de'
 
 interface NotifyResult {
   indexnow: { ok: boolean; status?: number; error?: string }
@@ -31,7 +31,7 @@ interface NotifyResult {
 /**
  * IndexNow Protocol: https://www.indexnow.org/
  *
- * Key muss als File unter https://chairmatch.de/<INDEXNOW_KEY>.txt
+ * Key muss als File unter https://www.chairmatch.de/<INDEXNOW_KEY>.txt
  * erreichbar sein. Wir generieren ihn aus ENV.
  */
 async function pingIndexNow(urls: string[]): Promise<NotifyResult['indexnow']> {
@@ -158,7 +158,7 @@ export async function notifyIndexers(urls: string[]): Promise<NotifyResult> {
   const cleanUrls = Array.from(new Set(
     urls
       .map(u => u.trim())
-      .filter(u => u.startsWith('https://chairmatch.de/'))
+      .filter(u => u.startsWith('https://www.chairmatch.de/'))
   ))
 
   if (cleanUrls.length === 0) {

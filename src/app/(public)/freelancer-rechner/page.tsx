@@ -12,11 +12,11 @@ export const metadata: Metadata = {
   title: 'Freelancer-Rechner: Wie viel verdienst du als selbstständiger Friseur? | ChairMatch',
   description: 'Vergleiche dein Brutto-Gehalt als Angestellte(r) mit deinem realistischen Einkommen als Stuhl-Mieter. Mit Steuern, Versicherungen, allen Kosten.',
   keywords: 'freelancer friseur einkommen, selbstständig verdienst rechner, stuhl miete gehalt vergleich, beauty selbstständig kalkulation',
-  alternates: { canonical: 'https://chairmatch.de/freelancer-rechner' },
+  alternates: { canonical: 'https://www.chairmatch.de/freelancer-rechner' },
   openGraph: {
     title: 'Freelancer-Rechner: Selbstständig vs. Angestellt',
     description: 'Realistischer Einkommens-Vergleich für Beauty-Profis.',
-    url: 'https://chairmatch.de/freelancer-rechner',
+    url: 'https://www.chairmatch.de/freelancer-rechner',
     locale: 'de_DE',
     siteName: 'ChairMatch',
   },

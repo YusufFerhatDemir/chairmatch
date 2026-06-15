@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://chairmatch.de'}/auth/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.chairmatch.de'}/auth/reset-password`,
     })
 
     if (error) {

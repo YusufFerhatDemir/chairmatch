@@ -107,7 +107,7 @@ export function generateICS(booking: CalendarBooking): string {
     `DESCRIPTION:${escapeIcal(descriptionParts.join('\\n'))}`,
     location ? `LOCATION:${escapeIcal(location)}` : null,
     'STATUS:CONFIRMED',
-    `URL:https://chairmatch.de/booking/${booking.id}`,
+    `URL:https://www.chairmatch.de/booking/${booking.id}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].filter(Boolean)
@@ -130,7 +130,7 @@ export function generateGoogleCalendarUrl(booking: CalendarBooking): string {
   if (booking.service?.name) descriptionParts.push(`Service: ${booking.service.name}`)
   if (booking.salon?.name) descriptionParts.push(`Salon: ${booking.salon.name}`)
   if (booking.notes) descriptionParts.push(`Notizen: ${booking.notes}`)
-  descriptionParts.push('Gebucht über ChairMatch - https://chairmatch.de')
+  descriptionParts.push('Gebucht über ChairMatch - https://www.chairmatch.de')
 
   const params = new URLSearchParams({
     action: 'TEMPLATE',

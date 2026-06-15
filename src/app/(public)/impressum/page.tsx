@@ -34,7 +34,7 @@ export default function ImpressumPage() {
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>Kontakt</h2>
           <p>
             E-Mail: <a href="mailto:legal@chairmatch.de" style={{ color: 'var(--gold2)' }}>legal@chairmatch.de</a><br />
-            Web: <a href="https://chairmatch.de" style={{ color: 'var(--gold2)' }}>chairmatch.de</a>
+            Web: <a href="https://www.chairmatch.de" style={{ color: 'var(--gold2)' }}>chairmatch.de</a>
           </p>
 
           <h2 style={{ color: 'var(--cream)', fontSize: 'var(--font-lg)', marginBottom: 8, marginTop: 24 }}>Unternehmensform</h2>
