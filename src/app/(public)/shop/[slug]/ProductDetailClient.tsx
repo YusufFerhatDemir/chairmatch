@@ -79,7 +79,7 @@ export default function ProductDetailClient({ product: p }: Props) {
         <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: 'var(--c2)', overflow: 'hidden' }}>
           {images[imgIdx]?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={images[imgIdx].url} alt={images[imgIdx].alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={images[imgIdx].url} alt={images[imgIdx].alt || p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ShoppingBag size={64} style={{ color: 'var(--stone)' }} />
@@ -101,7 +101,7 @@ export default function ProductDetailClient({ product: p }: Props) {
                 padding: 0, background: 'none', cursor: 'pointer', flexShrink: 0,
               }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {img.url && <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                {img.url && <img src={img.url} alt={img.alt || `${p.name} — Bild ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </button>
             ))}
           </div>

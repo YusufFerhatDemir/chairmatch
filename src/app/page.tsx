@@ -1,4 +1,6 @@
-export const dynamic = 'force-dynamic'
+// ISR statt force-dynamic: Homepage ist die meistgecrawlte Seite — 5 Min Cache
+// senkt TTFB von ~5s auf Edge-Niveau. Greeting rechnet HomeClient client-seitig.
+export const revalidate = 300
 
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
@@ -6,7 +8,6 @@ import { getCachedOnboardingSlides } from '@/lib/settings'
 import OnboardingGate from '@/components/OnboardingGate'
 import HomeClient from '@/components/HomeClient'
 import { HomeHero, HomeSEOFooterContent } from '@/components/HomeSEOLanding'
-import { getTranslations } from '@/i18n/server'
 
 export const metadata: Metadata = {
   title: {
@@ -100,10 +101,6 @@ export default async function HomePage() {
     // DB connection failed — render with demo data
   }
 
-  const hour = new Date().getHours()
-  const tGreeting = await getTranslations('greeting')
-  const greeting = hour < 12 ? tGreeting('morning') : hour < 17 ? tGreeting('day') : tGreeting('evening')
-
   const onboardingSlides = slides.map(s => ({
     id: s.id,
     title: s.title,
@@ -122,7 +119,6 @@ export default async function HomePage() {
           <HomeClient
             categories={categories}
             dbSalons={salons}
-            greeting={greeting}
             topOfferPercent={topOfferPercent}
           />
 

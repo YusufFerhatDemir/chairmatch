@@ -7,7 +7,9 @@ import { MAGAZIN_ARTIKEL } from '@/lib/seo-data/magazin'
 import { PHASE_1B_ASSET_COMBOS } from '@/lib/seo-data/assets'
 import { shouldIndex } from '@/lib/seo'
 
-export const dynamic = 'force-dynamic'
+// 24h-Cache statt force-dynamic: die Sitemap lief sonst bei JEDEM Crawler-Hit
+// komplett gegen Supabase (gemessen ~9s TTFB). Inhalte ändern sich ~wöchentlich.
+export const revalidate = 86400
 
 const CATEGORY_SLUGS = [
   'barber', 'friseur', 'kosmetik', 'aesthetik',
@@ -193,12 +195,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // Falls services-Tabelle Schema-Mismatch hat — ignorieren
     }
 
-    // Freelancer-Rechner (Lead-Magnet)
-    const toolPages: MetadataRoute.Sitemap = [{
-      url: `${base}/freelancer-rechner`,
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    }]
+    // Tool-Seiten (Lead-Magnets & Differenzierungs-Features)
+    const toolPages: MetadataRoute.Sitemap = [
+      {
+        url: `${base}/freelancer-rechner`,
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      },
+      {
+        url: `${base}/match`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.9,
+      },
+      {
+        url: `${base}/karte`,
+        changeFrequency: 'daily' as const,
+        priority: 0.9,
+      },
+      {
+        url: `${base}/vertrag-generator`,
+        changeFrequency: 'monthly' as const,
+        priority: 0.8,
+      },
+      {
+        url: `${base}/preisvergleich`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      },
+    ]
 
     return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages, ...assetPages, ...magazinPages, ...listingPages, ...productPages, ...toolPages]
   } catch {

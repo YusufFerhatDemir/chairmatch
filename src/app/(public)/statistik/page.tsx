@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Aktuelle Zahlen und Statistiken der ChairMatch Beauty-Plattform: Salons, Buchungen, Nutzer und mehr.',
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR statt force-dynamic — Marketing-Seite, 1h Cache
 
 export default async function StatistikPage() {
   const supabase = getSupabaseAdmin()

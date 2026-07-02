@@ -19,6 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: `${demo.nm} — ${demo.city}`,
       description: `${demo.tl}. ★ ${demo.rt} (${demo.rc} Bewertungen). Jetzt Termin buchen bei ${demo.nm} in ${demo.city}.`,
+      alternates: { canonical: `https://www.chairmatch.de/salon/${slug}` },
       openGraph: {
         title: `${demo.nm} — Termin buchen | ChairMatch`,
         description: `${demo.tl}. ★ ${demo.rt} Bewertung. ${demo.city}.`,
@@ -41,6 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       return {
         title: `${salon.name} — ${salon.city || 'Deutschland'}`,
         description: `${salon.description || salon.name}. ★ ${salon.avg_rating} (${salon.review_count} Bewertungen). Jetzt Termin buchen.`,
+        alternates: { canonical: `https://www.chairmatch.de/salon/${slug}` },
         openGraph: {
           title: `${salon.name} — Termin buchen | ChairMatch`,
           description: `${salon.description || salon.name}. ★ ${salon.avg_rating} Bewertung.`,

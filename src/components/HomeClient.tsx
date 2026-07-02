@@ -48,7 +48,6 @@ interface DBSalon {
 interface Props {
   categories: Category[]
   dbSalons: DBSalon[]
-  greeting: string
   topOfferPercent: number | null
 }
 
@@ -106,8 +105,15 @@ function CategoryIcon({ slug, label }: { slug: string; label: string }) {
   return <Icon size={44} stroke="url(#caticon-gold)" aria-label={label} />
 }
 
-export default function HomeClient({ categories, dbSalons, greeting, topOfferPercent }: Props) {
+export default function HomeClient({ categories, dbSalons, topOfferPercent }: Props) {
   const t = useTranslations()
+  // Greeting client-seitig aus der LOKALEN Stunde des Users — die Page ist ISR
+  // (statisch gecacht), ein serverseitiges Greeting wäre eingefroren. Initial
+  // neutral "Guten Tag" (12), erst nach Mount die echte Stunde — sonst
+  // Hydration-Mismatch zwischen SSR-HTML und Client.
+  const [hour, setHour] = useState(12)
+  useEffect(() => setHour(new Date().getHours()), [])
+  const greeting = t(hour < 12 ? 'greeting.morning' : hour < 17 ? 'greeting.day' : 'greeting.evening')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
   const [favorites, setFavorites] = useState<string[]>([])

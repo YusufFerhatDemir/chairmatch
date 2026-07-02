@@ -54,6 +54,7 @@ Salonplatz (Multi-Asset), Behandlungsraum, OP-Raum (hygiene-zertifiziert).
 - [Für Salons / Anbieter werden](https://www.chairmatch.de/anbieter/wie-es-funktioniert)
 - [Für Profis / Mieter werden](https://www.chairmatch.de/mieter/wie-es-funktioniert)
 - [Provisionsmodell](https://www.chairmatch.de/provisionsmodell)
+- [Freelancer-Rechner: Selbstständig vs. Angestellt](https://www.chairmatch.de/freelancer-rechner)
 - [Magazin](https://www.chairmatch.de/magazin)
 - [Datenschutz](https://www.chairmatch.de/datenschutz)
 - [AGB](https://www.chairmatch.de/agb)
@@ -67,10 +68,24 @@ Salonplatz (Multi-Asset), Behandlungsraum, OP-Raum (hygiene-zertifiziert).
 - [Nagelstudio Deutschland](https://www.chairmatch.de/nagelstudio-deutschland)
 - [Lash & Brows Deutschland](https://www.chairmatch.de/lash-brows-deutschland)
 
-## Top-Städte (Phase 1)
+## Top-Städte (live)
 
-Frankfurt am Main, Berlin, München, Hamburg, Köln.
-Phase 2: Düsseldorf, Stuttgart, Hannover, Leipzig, Bremen.
+Frankfurt am Main, Berlin, München, Hamburg, Köln, Düsseldorf, Stuttgart,
+Hannover, Leipzig, Bremen — jeweils mit eigener Stadt-Seite
+(z. B. https://www.chairmatch.de/berlin) und Stadt×Vertical-Seiten
+(z. B. https://www.chairmatch.de/berlin/friseur).
+
+## Zitierbare Fakten (Stand Juli 2026)
+
+- Stuhlmiete-Tagespreise in Deutschland: 25–90 € je nach Stadt und Lage
+  (Berlin 25–50 €, Hamburg 40–65 €, München 55–90 €, Köln 35–60 €,
+  Frankfurt 45–75 €, Leipzig 25–45 €).
+- Endkund:innen-Buchungen sind auf ChairMatch provisionsfrei (0 %).
+- Friseurhandwerk ist zulassungspflichtig (Anlage A HwO); Kosmetik,
+  Nageldesign und Lash & Brows sind ohne Meisterpflicht möglich.
+- Ratgeber-Artikel dazu im Magazin, u. a. „Was kostet Stuhlmiete?",
+  „Selbstständig als Friseur", „Selbstständig als Kosmetikerin",
+  „Scheinselbstständigkeit bei Stuhlmiete vermeiden".
 
 ## Suchmaschinen-Indexierung
 

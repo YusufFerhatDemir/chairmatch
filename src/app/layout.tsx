@@ -13,12 +13,13 @@ import FloatingLanguageSwitcher from '@/components/FloatingLanguageSwitcher'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import NetworkBanner from '@/components/NetworkBanner'
 import PageReadyWatcher from '@/components/PageReadyWatcher'
-import { getLocale } from '@/i18n/server'
-import { isRTL, LOCALE_META } from '@/i18n/config'
 import './globals.css'
 
 
-export const dynamic = 'force-dynamic'
+// KEIN force-dynamic und KEIN cookies()-Zugriff im Root-Layout: beides würde
+// ISR/Static-Rendering für ALLE Routen deaktivieren (TTFB ~5s statt Edge-Cache).
+// Locale: SSR rendert Deutsch (SEO-Sprache); I18nProvider liest das Cookie
+// beim Mount client-seitig und korrigiert <html lang/dir> + Texte.
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-dm-sans',
@@ -43,9 +44,9 @@ export const metadata: Metadata = {
   // Kein hreflang: Sprache wird per Cookie umgeschaltet, es gibt keine
   // locale-spezifischen URLs — identische hreflang-Ziele wären ein
   // fehlerhaftes Signal für Google.
-  alternates: {
-    canonical: 'https://www.chairmatch.de',
-  },
+  // KEIN layout-weites alternates.canonical: Next.js vererbt Metadata an alle
+  // Pages ohne eigenes alternates — die würden dann die Homepage als Canonical
+  // deklarieren (Deindex-Risiko). Jede Page setzt ihr Canonical selbst.
   openGraph: {
     title: 'ChairMatch — Beauty Booking Deutschland',
     description: 'Buche Termine bei Top-Salons, Barbershops & Kosmetikstudios in ganz Deutschland. 0% Provision.',
@@ -100,16 +101,13 @@ export const viewport: Viewport = {
   themeColor: '#080706',
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const locale = await getLocale()
-  const dir = isRTL(locale) ? 'rtl' : 'ltr'
-  const htmlLang = LOCALE_META[locale].htmlLang
   return (
-    <html lang={htmlLang} dir={dir} className={`${dmSans.variable} ${cinzel.variable}`}>
+    <html lang="de" dir="ltr" className={`${dmSans.variable} ${cinzel.variable}`}>
       <head>
         <ConsentModeBootstrap />
       </head>
@@ -151,7 +149,7 @@ export default async function RootLayout({
         <DynamicTheme />
         <NetworkBanner />
         <PageReadyWatcher />
-        <Providers initialLocale={locale}>
+        <Providers>
           <ErrorBoundary>
             <VisitTracker />
             <WebVitalsReporter />

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // ISR statt force-dynamic — Marketing-Seite, 1h Cache
 
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
