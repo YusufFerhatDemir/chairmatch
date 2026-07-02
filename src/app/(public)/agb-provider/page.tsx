@@ -1,4 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'AGB für Anbieter (Provider-EULA)',
+  description: 'Allgemeine Geschäftsbedingungen für Anbieter, Studios und Standortbetreiber auf ChairMatch. P2B-konform.',
+  alternates: { canonical: 'https://www.chairmatch.de/agb-provider' },
+  robots: { index: false, follow: true },
+}
 
 export default function AGBProviderPage() {
   return (

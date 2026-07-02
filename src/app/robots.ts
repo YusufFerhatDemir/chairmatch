@@ -26,6 +26,18 @@ export default function robots(): MetadataRoute.Robots {
           '/booking/',
           '/auth/reset-password',
           '/auth/change-password',
+          // Interne App-Bereiche (noindex-Layouts vorhanden, hier zusätzlich Crawl sparen)
+          '/nachrichten/',
+          '/konto',
+          '/termine',
+          '/inserat/',
+          '/anbieter/mein-salon',
+          '/anbieter/onboarding',
+          '/mieter/mein-bereich',
+          '/mieter/onboarding',
+          '/vermieter/mein-inserat',
+          '/vermieter/onboarding',
+          '/test-i18n-check',
           // Filter-/Such-URLs: Faceted-Search-Falle vermeiden
           '/search?',
           '/explore?',

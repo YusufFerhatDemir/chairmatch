@@ -3,8 +3,18 @@ import Link from 'next/link'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'ChairMatch — Deutschlands Beauty-Booking-Plattform',
-  description: '0% Provision. Buche Termine bei Top-Salons, Barbershops & Kosmetikstudios. Stuhlvermietung, OP-Raum mieten, Compliance-Paket.',
+  title: 'ChairMatch — Deutschlands Marktplatz für Stuhlmiete & Beauty-Workspace',
+  description: '0% Provision. Friseurstuhl, Kosmetikkabine oder OP-Raum tageweise mieten — oder als Salon vermieten. Compliance-Paket, sichere Zahlung, verifizierte Anbieter.',
+  alternates: { canonical: 'https://www.chairmatch.de/landing' },
+  openGraph: {
+    title: 'ChairMatch — Deutschlands Marktplatz für Stuhlmiete & Beauty-Workspace',
+    description: '0% Provision. Friseurstuhl, Kosmetikkabine oder OP-Raum tageweise mieten — oder als Salon vermieten.',
+    url: 'https://www.chairmatch.de/landing',
+    siteName: 'ChairMatch',
+    locale: 'de_DE',
+    type: 'website',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Stuhlmiete & Beauty-Workspace Deutschland' }],
+  },
 }
 
 const FEATURES = [

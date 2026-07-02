@@ -15,11 +15,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('slug', slug)
     .single()
 
-  if (!data) return { title: 'Produkt nicht gefunden | ChairMatch' }
+  if (!data) return { title: 'Produkt nicht gefunden | ChairMatch', robots: { index: false, follow: true } }
+
+  const title = `${data.name}${data.brand ? ` – ${data.brand}` : ''} | ChairMatch Shop`
+  const description = data.description || `${data.name} – jetzt im ChairMatch Shop bestellen.`
+  const url = `https://www.chairmatch.de/shop/${slug}`
 
   return {
-    title: `${data.name}${data.brand ? ` – ${data.brand}` : ''} | ChairMatch Shop`,
-    description: data.description || `${data.name} – jetzt im ChairMatch Shop bestellen.`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'ChairMatch',
+      locale: 'de_DE',
+      type: 'website',
+    },
+    twitter: { card: 'summary', title, description },
   }
 }
 
@@ -44,5 +58,33 @@ export default async function ProductPage({ params }: Props) {
     )
   }
 
-  return <ProductDetailClient product={product} />
+  const priceEur = typeof product.price_cents === 'number' ? (product.price_cents / 100).toFixed(2) : null
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description || undefined,
+    brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
+    image: product.image_url || undefined,
+    sku: product.sku || product.id,
+    url: `https://www.chairmatch.de/shop/${slug}`,
+    offers: priceEur ? {
+      '@type': 'Offer',
+      price: priceEur,
+      priceCurrency: 'EUR',
+      availability: (product.stock_quantity ?? 1) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url: `https://www.chairmatch.de/shop/${slug}`,
+      seller: { '@type': 'Organization', name: product.sellers?.company_name || 'ChairMatch' },
+    } : undefined,
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <ProductDetailClient product={product} />
+    </>
+  )
 }
