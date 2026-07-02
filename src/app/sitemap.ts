@@ -89,16 +89,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     }))
 
-    // Stadt-Hubs + Stadt × Vertical — nur in Sitemap wenn >= Threshold Salons
+    // Stadt-Hubs + Stadt × Vertical + Asset-Kombis: alle Counts aus EINER
+    // Query aggregieren statt ~280 sequenzielle count-Queries pro Request
+    // (sitemap ist force-dynamic — das lief bei jedem Crawler-Hit).
+    const { data: activeSalons } = await supabase
+      .from('salons')
+      .select('city, category')
+      .eq('is_active', true)
+      .limit(20000)
+
+    const cityCounts = new Map<string, number>()
+    const cityVerticalCounts = new Map<string, number>()
+    for (const s of activeSalons ?? []) {
+      if (!s.city) continue
+      const cityKey = s.city.trim().toLowerCase()
+      cityCounts.set(cityKey, (cityCounts.get(cityKey) ?? 0) + 1)
+      if (s.category) {
+        const cvKey = `${cityKey}|${s.category}`
+        cityVerticalCounts.set(cvKey, (cityVerticalCounts.get(cvKey) ?? 0) + 1)
+      }
+    }
+
     const cityHubs: MetadataRoute.Sitemap = []
     const cityVerticalPages: MetadataRoute.Sitemap = []
     for (const c of PHASE_1_CITIES) {
-      const { count: cityCount } = await supabase
-        .from('salons')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
-        .ilike('city', c.name)
-      if (shouldIndex(cityCount ?? 0)) {
+      const cityKey = c.name.toLowerCase()
+      if (shouldIndex(cityCounts.get(cityKey) ?? 0)) {
         cityHubs.push({
           url: `${base}/${c.slug}`,
           changeFrequency: 'weekly',
@@ -106,13 +122,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
       }
       for (const v of VERTICALS) {
-        const { count: cvCount } = await supabase
-          .from('salons')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_active', true)
-          .ilike('city', c.name)
-          .eq('category', v.slug)
-        if (shouldIndex(cvCount ?? 0)) {
+        if (shouldIndex(cityVerticalCounts.get(`${cityKey}|${v.slug}`) ?? 0)) {
           cityVerticalPages.push({
             url: `${base}/${c.slug}/${v.slug}`,
             changeFrequency: 'weekly',
@@ -127,13 +137,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const combo of PHASE_1B_ASSET_COMBOS) {
       const city = PHASE_1_CITIES.find((c) => c.slug === combo.stadt)
       if (!city) continue
-      const { count: cvCount } = await supabase
-        .from('salons')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
-        .ilike('city', city.name)
-        .eq('category', combo.vertical)
-      if (shouldIndex(cvCount ?? 0)) {
+      const cvCount = cityVerticalCounts.get(`${city.name.toLowerCase()}|${combo.vertical}`) ?? 0
+      if (shouldIndex(cvCount)) {
         assetPages.push({
           url: `${base}/${combo.stadt}/${combo.vertical}/${combo.asset}`,
           changeFrequency: 'weekly',

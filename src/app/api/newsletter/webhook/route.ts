@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
@@ -11,8 +12,9 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  * Konfiguration: in Resend-Dashboard -> Webhooks
  *   Endpoint: https://www.chairmatch.de/api/newsletter/webhook
  *
- * Hinweis: Signatur-Verifikation (Svix) ist optional, hier weggelassen
- * — bei Bedarf via RESEND_WEBHOOK_SECRET nachrüsten.
+ * Signatur-Verifikation (Svix): aktiv sobald RESEND_WEBHOOK_SECRET
+ * gesetzt ist (Wert "whsec_..." aus dem Resend-Dashboard). Ohne Secret
+ * werden Events weiterhin unverifiziert akzeptiert (Übergangsmodus).
  */
 
 interface ResendEvent {
@@ -24,10 +26,44 @@ interface ResendEvent {
   }
 }
 
+/** Svix-Signatur prüfen: HMAC-SHA256 über "id.timestamp.body". */
+function verifySvixSignature(req: NextRequest, rawBody: string, secret: string): boolean {
+  const id = req.headers.get('svix-id')
+  const timestamp = req.headers.get('svix-timestamp')
+  const sigHeader = req.headers.get('svix-signature')
+  if (!id || !timestamp || !sigHeader) return false
+
+  // Replay-Schutz: Timestamp max. 5 Minuten alt
+  const ts = Number(timestamp)
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false
+
+  const key = Buffer.from(secret.replace(/^whsec_/, ''), 'base64')
+  const expected = createHmac('sha256', key).update(`${id}.${timestamp}.${rawBody}`).digest()
+
+  // Header-Format: "v1,<base64> v1,<base64> ..."
+  return sigHeader.split(' ').some((part) => {
+    const [, sig] = part.split(',')
+    if (!sig) return false
+    try {
+      const given = Buffer.from(sig, 'base64')
+      return given.length === expected.length && timingSafeEqual(given, expected)
+    } catch {
+      return false
+    }
+  })
+}
+
 export async function POST(req: NextRequest) {
+  const rawBody = await req.text()
+
+  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET
+  if (webhookSecret && !verifySvixSignature(req, rawBody, webhookSecret)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+  }
+
   let payload: ResendEvent
   try {
-    payload = await req.json() as ResendEvent
+    payload = JSON.parse(rawBody) as ResendEvent
   } catch {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }

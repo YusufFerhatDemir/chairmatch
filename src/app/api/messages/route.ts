@@ -37,68 +37,71 @@ export async function GET() {
       .order('updated_at', { ascending: false })
 
     if (convError) {
-      return NextResponse.json({ error: convError.message }, { status: 500 })
+      console.error('GET /api/messages:', convError)
+      return NextResponse.json({ error: 'Konversationen konnten nicht geladen werden' }, { status: 500 })
     }
 
-    // Build response with last message preview and unread count
-    const result = await Promise.all(
-      (conversations ?? []).map(async (conv) => {
-        const messages = conv.messages ?? []
+    // Profile + Salon-Namen gebatcht laden statt 2 Queries pro Konversation (N+1)
+    const otherIdByConv = new Map<string, string>()
+    const salonIds = new Set<string>()
+    for (const conv of conversations ?? []) {
+      const otherId = (conv.conversation_participants ?? [])
+        .map((p: { user_id: string }) => p.user_id)
+        .find((id: string) => id !== userId)
+      if (otherId) otherIdByConv.set(conv.id, otherId)
+      if (conv.salon_id) salonIds.add(conv.salon_id)
+    }
 
-        // Sort messages by created_at descending to get the latest
-        const sorted = [...messages].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-        const lastMessage = sorted[0] ?? null
-
-        // Count unread messages (not sent by current user and not read)
-        const unreadCount = messages.filter(
-          (m) => m.sender_id !== userId && !m.is_read
-        ).length
-
-        // Get the other participant(s) profile info
-        const participantIds = (conv.conversation_participants ?? [])
-          .map((p: { user_id: string }) => p.user_id)
-          .filter((id: string) => id !== userId)
-
-        let otherUser: { id: string; full_name: string | null; avatar_url: string | null } | null = null
-        if (participantIds.length > 0) {
-          const { data: profile } = await supabase
+    const [profilesRes, salonsRes] = await Promise.all([
+      otherIdByConv.size > 0
+        ? supabase
             .from('profiles')
             .select('id, full_name, avatar_url')
-            .eq('id', participantIds[0])
-            .single()
-          otherUser = profile
-        }
+            .in('id', [...new Set(otherIdByConv.values())])
+        : Promise.resolve({ data: [] as { id: string; full_name: string | null; avatar_url: string | null }[] }),
+      salonIds.size > 0
+        ? supabase.from('salons').select('id, name').in('id', [...salonIds])
+        : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+    ])
 
-        // Fetch salon name if linked
-        let salonName: string | null = null
-        if (conv.salon_id) {
-          const { data: salon } = await supabase
-            .from('salons')
-            .select('name')
-            .eq('id', conv.salon_id)
-            .single()
-          salonName = salon?.name ?? null
-        }
+    const profileById = new Map((profilesRes.data ?? []).map((p) => [p.id, p]))
+    const salonNameById = new Map((salonsRes.data ?? []).map((s) => [s.id, s.name]))
 
-        return {
-          id: conv.id,
-          salonId: conv.salon_id,
-          salonName,
-          otherUser,
-          lastMessage: lastMessage
-            ? {
-                content: lastMessage.content,
-                createdAt: lastMessage.created_at,
-                senderId: lastMessage.sender_id,
-              }
-            : null,
-          unreadCount,
-          updatedAt: conv.updated_at,
-        }
-      })
-    )
+    // Build response with last message preview and unread count
+    const result = (conversations ?? []).map((conv) => {
+      const messages = conv.messages ?? []
+
+      // Sort messages by created_at descending to get the latest
+      const sorted = [...messages].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      const lastMessage = sorted[0] ?? null
+
+      // Count unread messages (not sent by current user and not read)
+      const unreadCount = messages.filter(
+        (m) => m.sender_id !== userId && !m.is_read
+      ).length
+
+      const otherId = otherIdByConv.get(conv.id)
+      const otherUser = otherId ? profileById.get(otherId) ?? null : null
+      const salonName = conv.salon_id ? salonNameById.get(conv.salon_id) ?? null : null
+
+      return {
+        id: conv.id,
+        salonId: conv.salon_id,
+        salonName,
+        otherUser,
+        lastMessage: lastMessage
+          ? {
+              content: lastMessage.content,
+              createdAt: lastMessage.created_at,
+              senderId: lastMessage.sender_id,
+            }
+          : null,
+        unreadCount,
+        updatedAt: conv.updated_at,
+      }
+    })
 
     return NextResponse.json(result)
   } catch {

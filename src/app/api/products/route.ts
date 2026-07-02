@@ -11,8 +11,8 @@ export async function GET(req: NextRequest) {
       search: sp.get('q') || undefined,
       salonId: sp.get('salonId') || undefined,
       sellerId: sp.get('sellerId') || undefined,
-      limit: sp.get('limit') ? Number(sp.get('limit')) : 20,
-      offset: sp.get('offset') ? Number(sp.get('offset')) : 0,
+      limit: Math.min(Math.max(Number(sp.get('limit')) || 20, 1), 100),
+      offset: Math.max(Number(sp.get('offset')) || 0, 0),
     })
     if (error) return NextResponse.json({ error: 'Fehler beim Laden' }, { status: 500 })
     return NextResponse.json(data)

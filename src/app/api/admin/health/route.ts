@@ -41,14 +41,15 @@ export const GET = withApi(async () => {
                     'newsletter_subscribers', 'idempotency_keys', 'phone_verifications',
                     'login_attempts', 'audit_logs', 'error_logs']
     const counts: Record<string, number | string> = {}
-    for (const t of tables) {
+    const results = await Promise.all(tables.map(async (t) => {
       try {
         const { count } = await supabase.from(t).select('*', { count: 'exact', head: true })
-        counts[t] = count ?? 0
+        return [t, count ?? 0] as const
       } catch {
-        counts[t] = 'n/a'
+        return [t, 'n/a'] as const
       }
-    }
+    }))
+    for (const [t, c] of results) counts[t] = c
     health.db = counts
   } catch (e) {
     health.db = { error: String(e) }
