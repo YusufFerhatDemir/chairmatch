@@ -20,7 +20,11 @@
     "cap:run:ios": "npx cap run ios",
     "cap:run:android": "npx cap run android",
     "cap:assets": "npx capacitor-assets generate --iconBackgroundColor '#080706' --iconBackgroundColorDark '#080706' --splashBackgroundColor '#080706' --splashBackgroundColorDark '#080706'",
-    "ios:archive": "npx cap sync ios && npx cap open ios",
+    "ios:verify": "./scripts/ios-build.sh verify",
+    "ios:archive": "./scripts/ios-build.sh archive",
+    "ios:ipa": "./scripts/ios-build.sh ipa",
+    "ios:upload": "./scripts/ios-build.sh upload",
+    "ios:open": "npx cap sync ios && npx cap open ios",
     "android:bundle": "npx cap sync android && cd android && ./gradlew bundleRelease"
   },
   "author": "Yusuf Demir",

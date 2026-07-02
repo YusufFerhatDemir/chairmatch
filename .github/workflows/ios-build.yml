@@ -1,0 +1,138 @@
+name: iOS Build (Capacitor)
+
+# Analog zum Deploy-Flow, aber für die native iOS-App.
+#  - Bei jedem Push/PR: unsignierter Build als Gate (baut das Projekt sauber? -> braucht KEINE Secrets)
+#  - Tag `ios-v*` oder manueller Start: signierter Build + TestFlight-Upload (braucht Apple-Secrets)
+#
+# Warum so: Der unsignierte Build gibt sofort CI-Wert ohne Apple-Account-Setup.
+# Der Upload aktiviert sich automatisch, sobald die Secrets im Repo hinterlegt sind.
+
+on:
+  push:
+    branches: [main]
+    tags: ['ios-v*']
+    paths:
+      - 'ios/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - '.github/workflows/ios-build.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - 'capacitor.config.ts'
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 'Nach TestFlight hochladen (braucht Secrets)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Xcode-Version wählen
+        run: sudo xcode-select -s /Applications/Xcode_16.app || true
+
+      - name: NPM-Dependencies
+        run: npm ci
+
+      - name: Capacitor sync
+        run: npx cap sync ios
+
+      - name: CocoaPods
+        working-directory: ios/App
+        run: pod install
+
+      # --- IMMER: unsignierter Build als Gate (keine Secrets nötig) ---------
+      - name: Build verifizieren (unsigned)
+        run: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      # --- NUR bei Tag/Dispatch + vorhandenen Secrets: signieren + upload ---
+      - name: Signierter Build + TestFlight-Upload
+        if: >-
+          (startsWith(github.ref, 'refs/tags/ios-v') || github.event_name == 'workflow_dispatch')
+          && env.APPLE_TEAM_ID != ''
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          IOS_DIST_CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          # Distribution-Zertifikat in temporäre Keychain importieren
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PW="$(uuidgen)"
+          security create-keychain -p "$KEYCHAIN_PW" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PW" "$KEYCHAIN"
+          echo "$IOS_DIST_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" -k "$KEYCHAIN" \
+            -P "$IOS_DIST_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PW" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+
+          # App Store Connect API-Key für automatisches Provisioning + Upload
+          mkdir -p "$RUNNER_TEMP/keys"
+          KEY_PATH="$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8"
+          echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$KEY_PATH"
+
+          mkdir -p build/ios
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/ios/App.xcarchive \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            archive
+
+          sed "s/__TEAM_ID__/$APPLE_TEAM_ID/" ios/App/ExportOptions.plist > build/ios/ExportOptions.plist
+          xcodebuild -exportArchive \
+            -archivePath build/ios/App.xcarchive \
+            -exportOptionsPlist build/ios/ExportOptions.plist \
+            -exportPath build/ios/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+          IPA="$(ls build/ios/export/*.ipa | head -1)"
+          xcrun altool --upload-app -f "$IPA" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Artefakt hochladen (IPA)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: build/ios/export/*.ipa
+          if-no-files-found: ignore

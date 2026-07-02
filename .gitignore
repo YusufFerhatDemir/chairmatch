@@ -25,3 +25,10 @@ supabase/.temp/
 
 # graphify knowledge graph (lokal, wird bei Bedarf neu generiert)
 graphify-out/
+
+# iOS build output & CocoaPods (werden von scripts/ios-build.sh generiert)
+build/
+ios/App/Pods/
+ios/App/App.xcarchive/
+ios/App/ExportOptions.rendered.plist
+DerivedData/
