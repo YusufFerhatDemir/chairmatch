@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/modules/auth/auth.config'
 import { isProviderOrAbove, isBusinessOwnerOrAbove, isInvestorOrAbove, isAdminOrAbove } from '@/lib/rbac'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
+
+// SEO-Stadt-Slugs aus der zentralen Datenquelle — eine hartcodierte Liste hier
+// hatte Phase-2-Städte (/leipzig etc.) auf den Auth-Redirect laufen lassen.
+const SEO_CITY_SLUGS = new Set(PHASE_1_CITIES.map((c) => c.slug))
 
 // ---------------------------------------------------------------------------
 // Rate Limiting — In-Memory (pro Serverless-Instanz)
@@ -256,11 +261,10 @@ export default auth((req) => {
   // Vertical-Deutschland-Hubs (z.B. /barbershop-deutschland, /friseur-deutschland)
   if (pathname.match(/^\/[a-z-]+-deutschland\/?$/)) return NextResponse.next()
 
-  // Stadt-Hubs (z.B. /berlin, /muenchen, /berlin/friseur)
-  // Whitelist nur die Phase-1-Städte um nicht alle 2-Wort-Routes zu öffnen
-  const phase1Cities = ['berlin', 'hamburg', 'muenchen', 'koeln', 'frankfurt']
+  // Stadt-Hubs (z.B. /berlin, /leipzig, /berlin/friseur)
+  // Whitelist aus seo-data/cities.ts — nicht alle 2-Wort-Routes öffnen
   const firstSegment = pathname.split('/')[1]
-  if (firstSegment && phase1Cities.includes(firstSegment)) return NextResponse.next()
+  if (firstSegment && SEO_CITY_SLUGS.has(firstSegment)) return NextResponse.next()
 
   // ------ Auth-Prüfung ------
   const session = req.auth
