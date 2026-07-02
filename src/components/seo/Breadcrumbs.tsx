@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { Route } from 'next'
 import { breadcrumbSchema, type BreadcrumbItem } from '@/lib/seo'
 
 /**
@@ -49,7 +50,7 @@ export function Breadcrumbs({
                   {item.name}
                 </span>
               ) : (
-                <Link href={item.url} style={{ color: 'var(--stone)', textDecoration: 'none' }}>
+                <Link href={item.url as Route} style={{ color: 'var(--stone)', textDecoration: 'none' }}>
                   {item.name}
                 </Link>
               )}

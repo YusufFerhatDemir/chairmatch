@@ -10,6 +10,7 @@ import { RecommendationBanner } from '@/components/recommendations/Recommendatio
 import Footer from '@/components/Footer'
 import { Scissors, Paintbrush, Sparkles, Syringe, Hand, Heart, Eye, Stethoscope, Cross, Tag, CalendarCheck, Armchair, BedDouble, DoorOpen, Smile, Snowflake, type LucideIcon } from 'lucide-react'
 import { useTranslations } from '@/i18n/client'
+import { useSession } from 'next-auth/react'
 import { safeFetch, safeFetchJson } from '@/lib/safe-fetch'
 
 interface Category {
@@ -107,6 +108,7 @@ function CategoryIcon({ slug, label }: { slug: string; label: string }) {
 
 export default function HomeClient({ categories, dbSalons, topOfferPercent }: Props) {
   const t = useTranslations()
+  const { status: sessionStatus } = useSession()
   // Greeting client-seitig aus der LOKALEN Stunde des Users — die Page ist ISR
   // (statisch gecacht), ein serverseitiges Greeting wäre eingefroren. Initial
   // neutral "Guten Tag" (12), erst nach Mount die echte Stunde — sonst
@@ -146,8 +148,17 @@ export default function HomeClient({ categories, dbSalons, topOfferPercent }: Pr
   }
 
   useEffect(() => {
-    // Load favorites: try DB first, fallback to localStorage.
-    // safeFetchJson guarantees no hang and never throws.
+    // Load favorites: eingeloggt aus DB, sonst nur localStorage.
+    // Anonyme Besucher NICHT gegen /api/favorites laufen lassen —
+    // das gab für jeden Gast einen 401-Console-Error auf der Homepage.
+    if (sessionStatus === 'loading') return
+    if (sessionStatus !== 'authenticated') {
+      try {
+        const saved = localStorage.getItem('cm_favorites')
+        if (saved) setFavorites(JSON.parse(saved))
+      } catch {}
+      return
+    }
     let cancelled = false
     safeFetchJson<{ favorites?: string[] }>('/api/favorites', { timeoutMs: 6000, retries: 1 })
       .then((res) => {
@@ -163,7 +174,7 @@ export default function HomeClient({ categories, dbSalons, topOfferPercent }: Pr
         }
       })
     return () => { cancelled = true }
-  }, [])
+  }, [sessionStatus])
 
   function toggleFav(id: string, e: React.MouseEvent) {
     e.preventDefault()
@@ -172,14 +183,16 @@ export default function HomeClient({ categories, dbSalons, topOfferPercent }: Pr
       const isAdding = !prev.includes(id)
       const next = isAdding ? [...prev, id] : prev.filter(f => f !== id)
       try { localStorage.setItem('cm_favorites', JSON.stringify(next)) } catch {}
-      // Sync to DB (fire-and-forget, hardened against hangs)
-      safeFetch('/api/favorites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ salonId: id, action: isAdding ? 'add' : 'remove' }),
-        timeoutMs: 5000,
-        retries: 1,
-      }).catch(() => {})
+      // Sync to DB (fire-and-forget) — nur eingeloggt, Gäste nutzen localStorage
+      if (sessionStatus === 'authenticated') {
+        safeFetch('/api/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ salonId: id, action: isAdding ? 'add' : 'remove' }),
+          timeoutMs: 5000,
+          retries: 1,
+        }).catch(() => {})
+      }
       return next
     })
   }

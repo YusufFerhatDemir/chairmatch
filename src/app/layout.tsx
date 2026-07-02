@@ -95,8 +95,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Zoom NICHT blockieren — WCAG 1.4.4 (Text-Resize bis 200%); iOS ignoriert
+  // user-scalable=no ohnehin seit iOS 10, Android-User brauchen den Zoom.
   viewportFit: 'cover',
   themeColor: '#080706',
 }
@@ -112,6 +112,7 @@ export default function RootLayout({
         <ConsentModeBootstrap />
       </head>
       <body className={dmSans.className}>
+        <a href="#main" className="skip-link">Zum Inhalt springen</a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
@@ -153,7 +154,7 @@ export default function RootLayout({
           <ErrorBoundary>
             <VisitTracker />
             <WebVitalsReporter />
-            {children}
+            <main id="main">{children}</main>
             <ChatWidget />
             <FloatingLanguageSwitcher />
             <ConsentBanner />

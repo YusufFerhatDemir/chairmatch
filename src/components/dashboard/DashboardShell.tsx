@@ -103,8 +103,8 @@ export default function DashboardShell({ children, title, subtitle, navItems, br
         </div>
       </aside>
 
-      {/* Main content */}
-      <main style={{ flex: 1, minWidth: 0, minHeight: 0, height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehavior: 'contain' }} className="dashboard-main">
+      {/* Main content — section statt main: das Root-Layout stellt bereits das <main>-Landmark */}
+      <section style={{ flex: 1, minWidth: 0, minHeight: 0, height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y', overscrollBehavior: 'contain' }} className="dashboard-main">
         {/* Top bar */}
         <header style={{
           padding: '16px 28px',
@@ -134,7 +134,7 @@ export default function DashboardShell({ children, title, subtitle, navItems, br
         <div style={{ padding: '24px 28px' }}>
           {children}
         </div>
-      </main>
+      </section>
 
       {/* Mobile bottom nav */}
       <nav className="dashboard-mobile-nav" style={{

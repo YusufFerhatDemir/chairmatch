@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { Route } from 'next'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 
@@ -15,7 +16,9 @@ export default function ChangePasswordPage() {
   const router = useRouter()
   const params = useSearchParams()
   const forced = params.get('forced') === '1'
-  const callbackUrl = params.get('callbackUrl') || '/account'
+  // Nur interne Pfade zulassen — verhindert Open-Redirect via ?callbackUrl=https://…
+  const rawCallback = params.get('callbackUrl') || '/account'
+  const callbackUrl = (rawCallback.startsWith('/') && !rawCallback.startsWith('//') ? rawCallback : '/account') as Route
 
   const [pw, setPw] = useState('')
   const [pw2, setPw2] = useState('')

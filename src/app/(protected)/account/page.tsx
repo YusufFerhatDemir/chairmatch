@@ -97,9 +97,15 @@ interface Booking {
 }
 
 export default function AccountPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [bookings, setBookings] = useState<Booking[]>([])
+
+  // Redirect als Effect, nicht während des Renderns — router.push im Render-Body
+  // warf beim Prerender (keine Session) serverseitig "location is not defined".
+  useEffect(() => {
+    if (status === 'unauthenticated') router.push('/auth')
+  }, [status, router])
 
   useEffect(() => {
     if (!session?.user) return
@@ -113,7 +119,6 @@ export default function AccountPage() {
   }, [session])
 
   if (!session?.user) {
-    router.push('/auth')
     return null
   }
 

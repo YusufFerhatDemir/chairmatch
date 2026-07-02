@@ -7,6 +7,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Impressum',
   description: 'Impressum und Anbieterkennzeichnung gemäß § 5 TMG für ChairMatch — Deutschlands Beauty-Booking-Plattform.',
+  alternates: { canonical: 'https://www.chairmatch.de/impressum' },
   robots: { index: false, follow: false },
 }
 

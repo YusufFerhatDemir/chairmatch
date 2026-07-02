@@ -3,6 +3,7 @@
 
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
+import type { Route } from 'next'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, type ReactNode } from 'react'
 
@@ -55,7 +56,7 @@ export default function MeinBereichSubPage({
       setSavedToast(true)
       setTimeout(() => {
         setSavedToast(false)
-        router.push(parentHref)
+        router.push(parentHref as Route)
       }, 1100)
     } finally {
       setSaving(false)
@@ -127,7 +128,7 @@ export default function MeinBereichSubPage({
         {/* Top bar */}
         <div style={{ padding: '16px 20px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
-            onClick={() => router.push(parentHref)}
+            onClick={() => router.push(parentHref as Route)}
             aria-label="Zurück"
             style={{
               width: 38, height: 38, borderRadius: 10,
@@ -170,7 +171,7 @@ export default function MeinBereichSubPage({
         {showSave && (
           <div style={{ padding: '0 20px 24px', display: 'flex', gap: 10 }}>
             <button
-              onClick={() => router.push(parentHref)}
+              onClick={() => router.push(parentHref as Route)}
               disabled={saving}
               style={{
                 flex: 1, padding: 14, borderRadius: 14,

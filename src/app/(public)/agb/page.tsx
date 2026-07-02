@@ -7,6 +7,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'AGB — Allgemeine Geschäftsbedingungen',
   description: 'Allgemeine Geschäftsbedingungen von ChairMatch — Buchungen, Storno-Policy, Widerrufsbelehrung, Haftung.',
+  alternates: { canonical: 'https://www.chairmatch.de/agb' },
   robots: { index: true, follow: false },
 }
 

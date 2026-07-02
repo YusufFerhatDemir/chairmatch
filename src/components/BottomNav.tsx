@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import type { Route } from 'next'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
 
 type NavRole = 'anbieter' | 'vermieter' | 'mieter'
 
-interface NavItem { labelKey: string; href: string; svg: React.ReactNode }
+interface NavItem { labelKey: string; href: Route; svg: React.ReactNode }
 
 const ICONS = {
   home:   <><path d="M3 12l9-9 9 9M5 10v10h14V10"/></>,

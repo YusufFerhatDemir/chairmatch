@@ -37,7 +37,6 @@ export default function robots(): MetadataRoute.Robots {
           '/mieter/onboarding',
           '/vermieter/mein-inserat',
           '/vermieter/onboarding',
-          '/test-i18n-check',
           // Filter-/Such-URLs: Faceted-Search-Falle vermeiden
           '/search?',
           '/explore?',

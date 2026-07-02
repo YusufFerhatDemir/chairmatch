@@ -13,7 +13,9 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          // DENY statt SAMEORIGIN — konsistent mit CSP frame-ancestors 'none'
+          // (moderne Browser folgen der CSP, ältere dem X-Frame-Options-Header)
+          { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           // Permissions-Policy: explizit Features deaktivieren, die nicht gebraucht werden
@@ -83,6 +85,18 @@ const nextConfig: NextConfig = {
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
           { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
         ],
+      },
+      // Noindex für eingeloggte Bereiche & Auth-Flows. Viele davon liegen als
+      // Client-Components in der (public)-Route-Group (Middleware-Whitelist) und
+      // können daher kein metadata.robots exportieren — der Header ist die
+      // zentrale Absicherung gegen Indexierung von Dashboard-Seiten.
+      {
+        source: '/:prefix(admin|investor|provider|owner|account|favorites|booking|auth|konto|nachrichten|termine|unsubscribe)/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/:parent(anbieter|mieter|vermieter)/:sub(mein-salon|mein-bereich|mein-inserat|onboarding)/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
     ]
   },

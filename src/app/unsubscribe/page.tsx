@@ -1,6 +1,13 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+
+export const metadata: Metadata = {
+  title: 'Newsletter abmelden',
+  description: 'Newsletter-Abmeldung von ChairMatch.',
+  robots: { index: false, follow: false },
+}
 
 interface PageProps {
   searchParams: Promise<{ token?: string; action?: string }>
@@ -50,7 +57,7 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
   }
 
   return (
-    <main
+    <section
       style={{
         minHeight: '100vh',
         display: 'flex',
@@ -159,6 +166,6 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
           </>
         )}
       </div>
-    </main>
+    </section>
   )
 }

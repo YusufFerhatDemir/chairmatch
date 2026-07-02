@@ -170,6 +170,7 @@ const publicPrefixes = [
   '/api/products',
   '/api/public-stats',
   '/api/wait-list',     // NEU: Wait-List Signup
+  '/api/match',         // Match-Finder ist public (/match) — sonst 401 für anonyme Besucher
   '/api/indexnow/',     // NEU: IndexNow Key-File
   '/api/setup/',
   '/api/register-provider', // B2-Fix: Public Provider-Signup

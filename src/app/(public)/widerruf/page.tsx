@@ -8,6 +8,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Widerrufsbelehrung',
   description: 'Widerrufsrecht und -belehrung für Verbraucher gemäß § 312g BGB i. V. m. § 355 BGB für Buchungen und Abonnements auf ChairMatch.',
+  alternates: { canonical: 'https://www.chairmatch.de/widerruf' },
   robots: { index: true, follow: false },
 }
 

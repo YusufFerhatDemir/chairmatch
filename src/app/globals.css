@@ -490,6 +490,48 @@ body {
   border-width: 0;
 }
 
+/* ═══ A11Y: Skip-Link + Fokus + Reduced Motion ═══ */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 12px;
+  z-index: 1000;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--gold2);
+  color: #1a1000;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 12px;
+}
+
+/* Sichtbarer Fokus-Indikator für Tastatur-Navigation (WCAG 2.4.7) —
+   nur bei :focus-visible, damit Maus-Klicks keinen Ring zeigen */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--gold2, #c8a84b);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ═══ UTILITY ═══ */
 .fade-up {
   animation: fu 0.4s ease-out both;

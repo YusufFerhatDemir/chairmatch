@@ -56,7 +56,10 @@ export async function POST(req: NextRequest) {
     })
 
     if (error) {
-      if (error.code === '42P01') {
+      // 42P01 = Postgres undefined_table, PGRST205 = PostgREST "table not in
+      // schema cache" — beides heißt: Migration noch nicht eingespielt.
+      // 202 statt 500, sonst loggt jeder Besucher-Browser Console-Errors.
+      if (error.code === '42P01' || error.code === 'PGRST205' || error.message?.includes('schema cache')) {
         return NextResponse.json({ ok: false, reason: 'migration_pending' }, { status: 202 })
       }
       return NextResponse.json({ error: error.message }, { status: 500 })

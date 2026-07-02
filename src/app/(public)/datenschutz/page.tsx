@@ -8,6 +8,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Datenschutzerklärung',
   description: 'Datenschutzerklärung von ChairMatch gemäß DSGVO — Verantwortlicher, Auftragsverarbeiter, Betroffenenrechte, Cookies.',
+  alternates: { canonical: 'https://www.chairmatch.de/datenschutz' },
   robots: { index: true, follow: false },
 }
 
