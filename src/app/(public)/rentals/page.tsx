@@ -123,6 +123,24 @@ export default async function RentalsPage({ searchParams }: Props) {
           <p style={{ color: 'var(--stone)', fontSize: 'var(--font-xs)', marginTop: 8 }}>
             {t('rentals.available', { count: rentals.length })}
           </p>
+
+          {/* Differenzierungs-Tools: Karte + Match-Finder */}
+          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+            <Link
+              href={filterType ? `/karte?type=${filterType}` : '/karte'}
+              className="boutline"
+              style={{ padding: '8px 16px', fontSize: 12, whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-block', borderRadius: 20 }}
+            >
+              🗺 Kartenansicht
+            </Link>
+            <Link
+              href="/match"
+              className="boutline"
+              style={{ padding: '8px 16px', fontSize: 12, whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-block', borderRadius: 20 }}
+            >
+              ✨ Match-Finder
+            </Link>
+          </div>
         </div>
 
         <section style={{ padding: '0 var(--pad)' }}>
