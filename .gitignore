@@ -22,3 +22,6 @@ vite.config.js
 
 # Supabase temp files
 supabase/.temp/
+
+# graphify knowledge graph (lokal, wird bei Bedarf neu generiert)
+graphify-out/
