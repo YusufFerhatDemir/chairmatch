@@ -277,11 +277,11 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
         <p className="cinzel text-gold-metallic" style={{
           fontSize: 18, fontWeight: 700, lineHeight: 1.3, margin: '0 0 6px',
         }}>
-          Deutschlands #1 für Beauty & Haar
+          Deutschlands Marktplatz für Stuhlmiete & Beauty
         </p>
         <p style={{ fontSize: 13, color: 'var(--cream)', lineHeight: 1.5, margin: '0 0 14px' }}>
-          Verifizierte Salons & Kliniken — von Barbershop bis Haartransplantation.
-          Sicher buchen, transparente Preise, echte Bewertungen.
+          Stuhl, Kabine oder Raum tageweise mieten — oder Termin bei verifizierten
+          Salons & Kliniken buchen. 0 % Provision, sichere Zahlung, echte Bewertungen.
         </p>
 
         {/* 3 Audience-Cards (Endkunde / Mieter / Anbieter) */}
@@ -311,7 +311,7 @@ export default function HomeClient({ categories, dbSalons, greeting, topOfferPer
             }}
           >
             <span>💼 Stuhl mieten</span>
-            <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75 }}>Selbstständig arbeiten →</span>
+            <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75 }}>ab 25 €/Tag · selbstständig arbeiten →</span>
           </Link>
 
           <Link
