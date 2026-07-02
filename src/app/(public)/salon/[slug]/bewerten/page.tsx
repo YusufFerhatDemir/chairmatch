@@ -45,8 +45,8 @@ export default function BewertenPage() {
           .from('salons')
           .select('id')
           .eq('slug', slug)
-          .maybeSingle()
-        if (!cancelled && data?.id) setSalonId(data.id as string)
+          .maybeSingle<{ id: string }>()
+        if (!cancelled && data?.id) setSalonId(data.id)
       } catch { /* ignore, fallback to localStorage */ }
     })()
     return () => { cancelled = true }

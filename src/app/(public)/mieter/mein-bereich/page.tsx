@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
 
-type Action = { id: string; lbl: string; sub: string; icon: JSX.Element; badge?: number; wide?: boolean }
+type Action = { id: string; lbl: string; sub: string; icon: React.JSX.Element; badge?: number; wide?: boolean }
 
 function Icon({ children }: { children: React.ReactNode }) {
   return (
