@@ -33,15 +33,24 @@ npx expo run:ios        # iOS-Simulator (braucht Xcode)
 
 ## iOS-Build (App Store / TestFlight)
 
-Einmalig: `npx eas init` (verknüpft EAS-Projekt, schreibt projectId in app.json — danach
-liefert `registerForPushNotifications()` echte Expo-Push-Tokens).
+**Setup-Stand (verifiziert Juli 2026):**
+- ✅ `eas-cli` global installiert (v20.5.1)
+- ✅ `eas.json` fertig konfiguriert: `production` (autoIncrement, Channel), `preview` (intern), `development` (Simulator); `appVersionSource: remote` — buildNumber verwaltet EAS
+- ✅ `app.json` vollständig: `bundleIdentifier: de.chairmatch.app`, `version: 1.0.0`, Icon/Splash, `ITSAppUsesNonExemptEncryption: false` (kein Export-Compliance-Dialog)
+- ✅ Bundle baut lokal: `npx expo export --platform ios` ohne Fehler, `expo-doctor` 20/20, `tsc` 0 Fehler
+- ⏳ **Blockiert auf Account-Logins** (die einzigen manuellen Schritte):
+  1. **Expo-Account**: auf [expo.dev](https://expo.dev) registrieren/einloggen → Account Settings → *Access Tokens* → Token erstellen und dem Agent geben. Damit läuft `eas init` + `eas build` non-interaktiv (`EXPO_TOKEN`).
+  2. **Apple Developer** (99 $/Jahr, [developer.apple.com](https://developer.apple.com)): beim ersten `eas build` fragt EAS nach Apple-Login und legt Zertifikate/Profile automatisch an. Alternativ App-Store-Connect-API-Key (.p8) im Browser erzeugen und dem Agent geben.
+
+Danach (macht der Agent):
 
 ```bash
-npx eas build --platform ios --profile production
-npx eas submit --platform ios
+EXPO_TOKEN=<token> eas init --non-interactive   # schreibt extra.eas.projectId in app.json
+EXPO_TOKEN=<token> eas build --platform ios --profile production
+EXPO_TOKEN=<token> eas submit --platform ios
 ```
 
-Profile in `eas.json`: `development` (Simulator, Dev-Client), `preview` (interne Verteilung), `production`.
+Nach `eas init` liefert `registerForPushNotifications()` echte Expo-Push-Tokens.
 
 ## Konfiguration
 
