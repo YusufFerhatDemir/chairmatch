@@ -3,6 +3,7 @@ node_modules/
 *.log
 .env
 .env.local
+.env.prod
 .env.production.local
 .env.vercel
 dist/

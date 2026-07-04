@@ -203,6 +203,23 @@ const providerPaths = ['/provider']
 const ownerPaths = ['/owner']
 const investorPaths = ['/investor']
 const adminPaths = ['/admin']
+// Bereiche, die eine Session voraussetzen, aber keine spezifische Rolle
+// (Route-Group (protected): /account, /booking, /favorites).
+const authOnlyPaths = ['/account', '/booking', '/favorites']
+
+// Vollständige Liste aller Pfade, die überhaupt eine Session verlangen.
+// ALLES außerhalb dieser Liste ist für anonyme Besucher zugänglich — es gibt
+// KEINEN Default-Deny-Redirect (307 → /auth) mehr für unbekannte oder öffentliche
+// Seiten-Pfade. Das ist der SEO-Fix: eine Login-Wall auf beliebigen gecrawlten
+// URLs (z.B. /ads, /karte, alte Kampagnen-Links) blockierte Googles Indexierung
+// komplett. Geschützte App-Bereiche bleiben über diese Whitelist voll gesichert.
+const authRequiredPaths = [
+  ...authOnlyPaths,
+  ...providerPaths,
+  ...ownerPaths,
+  ...investorPaths,
+  ...adminPaths,
+]
 
 // ---------------------------------------------------------------------------
 // Middleware
@@ -270,13 +287,22 @@ export default auth((req) => {
   // ------ Auth-Prüfung ------
   const session = req.auth
   if (!session) {
-    // API-Routen: 401 JSON statt Redirect
+    // API-Routen: 401 JSON statt Redirect (Default-Deny für nicht-öffentliche APIs bleibt).
     if (pathname.startsWith('/api/')) {
       return NextResponse.json(
         { error: 'Nicht authentifiziert', code: 'UNAUTHORIZED' },
         { status: 401 }
       )
     }
+    // Seiten-Routen: NUR echte geschützte Bereiche auf die Login-Wall schicken.
+    // Jeder andere (unbekannte oder öffentliche) Pfad wird durchgelassen → Next.js
+    // rendert die Seite oder eine saubere 404, statt 307 → /auth. Verhindert, dass
+    // Crawler/Backlinks auf der Login-Wall landen (die Ursache für 0 indexierte Seiten).
+    const needsAuth = authRequiredPaths.some(
+      (p) => pathname === p || pathname.startsWith(p + '/'),
+    )
+    if (!needsAuth) return NextResponse.next()
+
     const loginUrl = new URL('/auth', req.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)
