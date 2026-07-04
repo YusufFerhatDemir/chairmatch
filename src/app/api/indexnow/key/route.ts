@@ -11,11 +11,14 @@
  */
 
 import { NextResponse } from 'next/server'
+import { INDEXNOW_FALLBACK_KEY } from '@/lib/indexnow-key'
 
 export const runtime = 'edge'
 
 export async function GET() {
-  const key = process.env.INDEXNOW_KEY
+  // ENV hat Vorrang (Rotation ohne Deploy), sonst der öffentliche
+  // Repo-Fallback-Key (identisch mit public/<KEY>.txt).
+  const key = process.env.INDEXNOW_KEY || INDEXNOW_FALLBACK_KEY
   if (!key) {
     return new NextResponse('not configured', { status: 404 })
   }

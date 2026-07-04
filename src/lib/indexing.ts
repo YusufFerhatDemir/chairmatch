@@ -20,6 +20,7 @@
  */
 
 import { logger } from './logger'
+import { INDEXNOW_FALLBACK_KEY } from './indexnow-key'
 
 const INDEXNOW_HOST = 'www.chairmatch.de'
 
@@ -35,7 +36,10 @@ interface NotifyResult {
  * erreichbar sein. Wir generieren ihn aus ENV.
  */
 async function pingIndexNow(urls: string[]): Promise<NotifyResult['indexnow']> {
-  const key = process.env.INDEXNOW_KEY
+  // ENV hat Vorrang (Rotation ohne Deploy); Fallback ist der im Repo
+  // committete öffentliche Key (public/<KEY>.txt) — so funktioniert
+  // IndexNow auch ohne Vercel-ENV-Konfiguration.
+  const key = process.env.INDEXNOW_KEY || INDEXNOW_FALLBACK_KEY
   if (!key) {
     return { ok: false, error: 'INDEXNOW_KEY nicht konfiguriert' }
   }
