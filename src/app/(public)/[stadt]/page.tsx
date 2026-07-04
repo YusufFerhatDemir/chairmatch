@@ -18,6 +18,12 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
 export const revalidate = 3600 // 1h ISR
+// Nur die via generateStaticParams (PHASE_1_CITIES) erzeugten Slugs sind gültig.
+// Ohne dieses Flag rendert jeder unbekannte Ein-Segment-Pfad (/foobar) die
+// notFound()-UI, wird unter ISR aber als HTTP 200 gecacht (Soft-404) — Google
+// wertet das als Thin-Content statt echter 404. dynamicParams=false → sauberer
+// 404-Status für alles außerhalb der Liste (analog zur [asset]-Route).
+export const dynamicParams = false
 
 interface Props {
   params: Promise<{ stadt: string }>

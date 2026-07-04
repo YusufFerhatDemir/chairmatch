@@ -18,6 +18,10 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
 export const revalidate = 3600
+// Gültige Kombinationen kommen ausschließlich aus generateStaticParams
+// (PHASE_1_CITIES × VERTICALS). dynamicParams=false liefert für alles andere
+// einen echten 404 statt eines als 200 gecachten Soft-404 (SEO). Siehe [asset].
+export const dynamicParams = false
 
 interface Props {
   params: Promise<{ stadt: string; vertical: string }>
