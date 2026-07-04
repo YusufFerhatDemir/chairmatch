@@ -7,6 +7,21 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
 
+  // SEO-Redirects: Blog-typische Alias-Pfade zeigen auf die kanonische
+  // Magazin-Route. Ohne diese Regeln laufen /blog & /ratgeber in den
+  // Middleware-Default-Deny und 307-redirecten auf /auth — für Google &
+  // Backlinks fatal (Login-Wall statt Content). redirects() greift in der
+  // Next.js-Pipeline VOR der Middleware, umgeht den Auth-Bounce also komplett.
+  // permanent:true → 308 (Google behandelt es wie 301, vererbt Ranking-Signale).
+  async redirects() {
+    return [
+      { source: '/blog', destination: '/magazin', permanent: true },
+      { source: '/blog/:slug', destination: '/magazin/:slug', permanent: true },
+      { source: '/ratgeber', destination: '/magazin', permanent: true },
+      { source: '/ratgeber/:slug', destination: '/magazin/:slug', permanent: true },
+    ]
+  },
+
   async headers() {
     return [
       {
