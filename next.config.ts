@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
       { source: '/blog/:slug', destination: '/magazin/:slug', permanent: true },
       { source: '/ratgeber', destination: '/magazin', permanent: true },
       { source: '/ratgeber/:slug', destination: '/magazin/:slug', permanent: true },
+      // /ads/* existiert nicht als Route (keine Seite, kein Verweis im Code).
+      // Alte Google-Ads-/Kampagnen-URLs, die noch gecrawlt werden, sollen keinen
+      // 404 (und erst recht keinen 307→/auth) liefern, sondern per 308 auf die
+      // Startseite zeigen — Link-Signale werden dort konsolidiert, Klicks landen
+      // im Funnel statt auf einer Fehlerseite. Für ein spezifisches Ziel
+      // (z.B. /premium) genügt es, destination hier anzupassen.
+      { source: '/ads', destination: '/', permanent: true },
+      { source: '/ads/:path*', destination: '/', permanent: true },
     ]
   },
 
