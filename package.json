@@ -13,19 +13,8 @@
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "cap:init": "npx cap add ios && npx cap add android && npx cap sync",
-    "cap:sync": "npx cap sync",
-    "cap:open:ios": "npx cap open ios",
-    "cap:open:android": "npx cap open android",
-    "cap:run:ios": "npx cap run ios",
-    "cap:run:android": "npx cap run android",
-    "cap:assets": "npx capacitor-assets generate --iconBackgroundColor '#080706' --iconBackgroundColorDark '#080706' --splashBackgroundColor '#080706' --splashBackgroundColorDark '#080706'",
-    "ios:verify": "./scripts/ios-build.sh verify",
-    "ios:archive": "./scripts/ios-build.sh archive",
-    "ios:ipa": "./scripts/ios-build.sh ipa",
-    "ios:upload": "./scripts/ios-build.sh upload",
-    "ios:open": "npx cap sync ios && npx cap open ios",
-    "android:bundle": "npx cap sync android && cd android && ./gradlew bundleRelease"
+    "ios:build": "cd mobile && npx eas-cli build --platform ios --profile production --non-interactive",
+    "ios:submit": "cd mobile && npx eas-cli submit --platform ios --profile production --non-interactive --latest"
   },
   "author": "Yusuf Demir",
   "license": "MIT",
@@ -37,16 +26,6 @@
     "appointment"
   ],
   "dependencies": {
-    "@capacitor/android": "^6.2.0",
-    "@capacitor/app": "^6.0.2",
-    "@capacitor/core": "^6.2.0",
-    "@capacitor/haptics": "^6.0.2",
-    "@capacitor/ios": "^6.2.0",
-    "@capacitor/keyboard": "^6.0.3",
-    "@capacitor/preferences": "^6.0.3",
-    "@capacitor/push-notifications": "^6.0.4",
-    "@capacitor/splash-screen": "^6.0.3",
-    "@capacitor/status-bar": "^6.0.2",
     "@next/third-parties": "^16.2.6",
     "@sentry/nextjs": "^9.0.0",
     "@stripe/stripe-js": "^8.10.0",
@@ -64,8 +43,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^6.2.0",
     "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^16.3.0",
