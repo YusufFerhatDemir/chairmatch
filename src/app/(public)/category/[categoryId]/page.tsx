@@ -27,6 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: meta?.title || `${categoryId} — Termin buchen`,
     description: meta?.desc || `Anbieter in der Kategorie ${categoryId} finden und Termin buchen bei ChairMatch.`,
+    // Selbst-Canonical: indexierbare Kategorie-Seiten ohne Canonical riskieren
+    // Duplicate-Content (www/non-www, Query-Parameter-Varianten)
+    alternates: { canonical: `https://www.chairmatch.de/category/${categoryId}` },
     openGraph: {
       title: `${meta?.title || categoryId} | ChairMatch`,
       description: meta?.desc || `Anbieter in der Kategorie ${categoryId} finden.`,

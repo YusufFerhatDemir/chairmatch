@@ -14,7 +14,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 export const revalidate = 3600 // 1h
 
 export const metadata: Metadata = {
-  title: 'FAQ — Alle Fragen zu Stuhl-Miete & ChairMatch | ChairMatch',
+  // Kein "| ChairMatch"-Suffix — das Layout-Title-Template ('%s | ChairMatch') hängt es an
+  title: 'FAQ — Alle Fragen zu Stuhl-Miete & ChairMatch',
   description: 'Antworten auf alle wichtigen Fragen zur Stuhl-Miete: Kosten, Steuern, Versicherungen, Plattform-Garantien. Über 20 detaillierte FAQs aus der Praxis.',
   keywords: 'stuhl miete faq, friseur selbstständig faq, chairmatch fragen, beauty stuhl mieten',
   alternates: { canonical: 'https://www.chairmatch.de/faq' },

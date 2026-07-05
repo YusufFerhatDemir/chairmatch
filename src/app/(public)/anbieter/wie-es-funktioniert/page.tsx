@@ -5,7 +5,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
 export const metadata: Metadata = {
-  title: 'Anbieter werden — Stuhl, Liege oder Kabine vermieten | ChairMatch',
+  // Kein "| ChairMatch"-Suffix — das Layout-Title-Template ('%s | ChairMatch') hängt es an
+  title: 'Anbieter werden — Stuhl, Liege oder Kabine vermieten',
   description: 'Wie funktioniert ChairMatch für Salons, Studios und Praxen? In 4 Schritten dein Listing live — 0% Provision in den ersten 3 Monaten. Stripe-gesichert.',
   keywords: 'salon vermieten, friseurstuhl vermieten, stuhl-miete anbieter werden, salonplatz anbieten, untervermietung salon',
   alternates: { canonical: 'https://www.chairmatch.de/anbieter/wie-es-funktioniert' },

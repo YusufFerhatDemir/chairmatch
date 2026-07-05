@@ -4,7 +4,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
 export const metadata: Metadata = {
-  title: 'Provisionsmodell — transparente Preise | ChairMatch',
+  // Kein "| ChairMatch"-Suffix — das Layout-Title-Template ('%s | ChairMatch') hängt es an
+  title: 'Provisionsmodell — transparente Preise',
   description: '10% auf Stuhl-Miete, 8% auf OP-Räume, 0% für Kunden. Vergleich zu eBay Kleinanzeigen, Facebook und Salonkee.',
   keywords: 'chairmatch provision, stuhl miete provision, salon vermietung gebühren, transparente preise marketplace',
   alternates: { canonical: 'https://www.chairmatch.de/provisionsmodell' },

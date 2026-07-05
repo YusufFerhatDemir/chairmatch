@@ -124,7 +124,9 @@ export interface SalonSchemaInput {
   avg_rating?: number | null
   review_count?: number | null
   price_range?: string | null
-  opening_hours?: Record<string, string> | null
+  // String-Format ("09:00 - 18:00" / "geschlossen") ODER DB-jsonb-Format
+  // ({ open, close } | null) — salonSchema verarbeitet beide.
+  opening_hours?: Record<string, string | { open?: string; close?: string } | null> | null
   latitude?: number | null
   longitude?: number | null
 }
@@ -177,20 +179,40 @@ export function salonSchema(salon: SalonSchemaInput) {
   }
 
   if (salon.opening_hours && typeof salon.opening_hours === 'object') {
+    // Keys case-insensitiv: DB-Seeds nutzen 'mo'/'di'/…, ältere Daten 'Mo'/'Di'/…
     const dayMap: Record<string, string> = {
-      Mo: 'Monday', Di: 'Tuesday', Mi: 'Wednesday',
-      Do: 'Thursday', Fr: 'Friday', Sa: 'Saturday', So: 'Sunday',
+      mo: 'Monday', di: 'Tuesday', mi: 'Wednesday',
+      do: 'Thursday', fr: 'Friday', sa: 'Saturday', so: 'Sunday',
     }
     const specs: Array<Record<string, unknown>> = []
-    for (const [day, hours] of Object.entries(salon.opening_hours)) {
-      if (!hours || hours.toLowerCase().includes('geschlossen')) continue
-      const m = hours.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/)
-      if (!m) continue
+    for (const [day, hours] of Object.entries(salon.opening_hours as Record<string, unknown>)) {
+      if (!hours) continue
+      let opens: string | undefined
+      let closes: string | undefined
+      if (typeof hours === 'string') {
+        // Alt-Format: "09:00 - 18:00" oder "geschlossen"
+        if (hours.toLowerCase().includes('geschlossen')) continue
+        const m = hours.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/)
+        if (!m) continue
+        opens = `${m[1].padStart(2, '0')}:${m[2]}`
+        closes = `${m[3].padStart(2, '0')}:${m[4]}`
+      } else if (typeof hours === 'object') {
+        // DB-Format (jsonb): { open: "09:00", close: "18:00" } | null
+        // WICHTIG: früher warf hours.toLowerCase() hier einen TypeError, der
+        // via catch{notFound()} in salon/[slug]/page.tsx JEDE DB-Salon-Seite
+        // als Soft-404 (HTTP 200 + "Seite nicht gefunden") rendern ließ.
+        const h = hours as { open?: unknown; close?: unknown }
+        if (typeof h.open !== 'string' || typeof h.close !== 'string') continue
+        opens = h.open
+        closes = h.close
+      } else {
+        continue
+      }
       specs.push({
         '@type': 'OpeningHoursSpecification',
-        dayOfWeek: dayMap[day] || day,
-        opens: `${m[1].padStart(2, '0')}:${m[2]}`,
-        closes: `${m[3].padStart(2, '0')}:${m[4]}`,
+        dayOfWeek: dayMap[day.toLowerCase()] || day,
+        opens,
+        closes,
       })
     }
     if (specs.length > 0) schema.openingHoursSpecification = specs

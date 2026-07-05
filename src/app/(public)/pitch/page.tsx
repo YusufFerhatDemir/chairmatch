@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'ChairMatch — Pitch Deck',
   description: 'Deutschlands erste Beauty-Booking-Plattform. 0% Provision. Für Investoren & Partner.',
+  alternates: { canonical: 'https://www.chairmatch.de/pitch' },
 }
 
 const SLIDES = [

@@ -38,10 +38,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/register/anbieter`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/vermieter/wie-es-funktioniert`, changeFrequency: 'monthly', priority: 0.85 },
     { url: `${base}/datenschutz`, changeFrequency: 'monthly', priority: 0.3 },
-    { url: `${base}/impressum`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/agb`, changeFrequency: 'monthly', priority: 0.3 },
-    { url: `${base}/agb-provider`, changeFrequency: 'monthly', priority: 0.3 },
-    { url: `${base}/cookie-settings`, changeFrequency: 'monthly', priority: 0.2 },
+    // /impressum, /agb-provider, /cookie-settings sind bewusst auf noindex —
+    // sie gehören dann NICHT in die Sitemap (GSC meldet sonst den Widerspruch
+    // "gesendet, aber durch noindex ausgeschlossen").
     { url: `${base}/faq`, changeFrequency: 'monthly', priority: 0.85 },
     { url: `${base}/products`, changeFrequency: 'daily', priority: 0.85 },
     // Premium Medical-Beauty Money-Pages

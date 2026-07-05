@@ -5,7 +5,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
 export const metadata: Metadata = {
-  title: 'Stuhl, Liege oder Raum mieten — so funktioniert es | ChairMatch',
+  // Kein "| ChairMatch"-Suffix — das Layout-Title-Template ('%s | ChairMatch') hängt es an
+  title: 'Stuhl, Liege oder Raum mieten — so funktioniert es',
   description: 'Wie findest du als Freelancer-Friseur, Kosmetikerin oder Lash-Specialist den perfekten Arbeitsplatz? In 4 Schritten zur ersten Buchung. 0% Provision für dich.',
   keywords: 'freelancer friseur platz suchen, selbstständig beauty, stuhl mieten anleitung, salonplatz finden, beauty workspace mieten',
   alternates: { canonical: 'https://www.chairmatch.de/mieter/wie-es-funktioniert' },
