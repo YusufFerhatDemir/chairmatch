@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
-import { createBookingCheckout, createSubscriptionCheckout, createProductOrderCheckout } from '@/lib/stripe'
+import { stripe, createBookingCheckout, createSubscriptionCheckout, createProductOrderCheckout, createRentalCheckout } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
@@ -115,6 +115,73 @@ export async function POST(req: NextRequest) {
         .from('orders')
         .update({ payment_status: 'pending', stripe_session_id: checkoutSession.id })
         .eq('id', orderId)
+
+      return NextResponse.json({ url: checkoutSession.url })
+    }
+
+    if (type === 'rental') {
+      // Re-Payment für eine bestehende, noch unbezahlte Miet-Buchung
+      // (Erstanlage + Checkout läuft über POST /api/rental-bookings)
+      const { rentalBookingId } = body
+      if (!rentalBookingId) {
+        return NextResponse.json({ error: 'rentalBookingId fehlt' }, { status: 400 })
+      }
+
+      const supabase = getSupabaseAdmin()
+      const { data: rental, error } = await supabase
+        .from('rental_bookings')
+        .select('*, rental_equipment(name, salons(name))')
+        .eq('id', rentalBookingId)
+        .eq('renter_id', session.user.id)
+        .single()
+
+      if (error || !rental) {
+        return NextResponse.json({ error: 'Miet-Buchung nicht gefunden' }, { status: 404 })
+      }
+      if (rental.payment_status === 'paid') {
+        return NextResponse.json({ error: 'Buchung ist bereits bezahlt' }, { status: 409 })
+      }
+      if (!['pending', 'confirmed'].includes(rental.status)) {
+        return NextResponse.json({ error: 'Buchung ist nicht mehr zahlbar' }, { status: 409 })
+      }
+
+      // Alte, noch offene Checkout-Session invalidieren — sonst existieren zwei
+      // parallel zahlbare Sessions mit unterschiedlichen Payment-Intents
+      // (Doppelzahlung + doppelter Provider-Payout). Der Webhook hat zwar einen
+      // Doppelzahlungs-Guard mit Auto-Refund, aber gar nicht erst zahlbar ist besser.
+      if (rental.stripe_session_id) {
+        try {
+          const old = await stripe.checkout.sessions.retrieve(rental.stripe_session_id)
+          if (old.status === 'open') {
+            await stripe.checkout.sessions.expire(old.id)
+          }
+        } catch {
+          // Session existiert nicht mehr / bereits abgelaufen — egal
+        }
+      }
+
+      const equipment = (rental as Record<string, unknown>).rental_equipment as
+        | { name?: string; salons?: { name?: string } | null }
+        | null
+
+      const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
+      const checkoutSession = await createRentalCheckout({
+        rentalBookingId,
+        renterId: session.user.id,
+        customerEmail: session.user.email || '',
+        salonName: equipment?.salons?.name || 'Salon',
+        equipmentName: equipment?.name || 'Mietobjekt',
+        startDate: rental.start_date,
+        endDate: rental.end_date,
+        amountCents: rental.total_cents,
+        successUrl: `${origin}/rentals?payment=success&rental_id=${rentalBookingId}`,
+        cancelUrl: `${origin}/rentals?payment=cancelled&rental_id=${rentalBookingId}`,
+      })
+
+      await supabase
+        .from('rental_bookings')
+        .update({ payment_status: 'pending', stripe_session_id: checkoutSession.id })
+        .eq('id', rentalBookingId)
 
       return NextResponse.json({ url: checkoutSession.url })
     }

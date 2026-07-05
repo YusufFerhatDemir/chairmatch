@@ -127,6 +127,15 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
+        // ChairMatch Production (pwdbjqfpgumyfktbfswg) — vorher stand hier das
+        // ungenutzte Dev-Projekt (vlrviyrgggzhayepfmop): next/image hätte alle
+        // Storage-Bilder der echten DB mit 400 geblockt.
+        protocol: 'https',
+        hostname: 'pwdbjqfpgumyfktbfswg.supabase.co',
+      },
+      {
+        // Alt/Dev-Projekt übergangsweise erlaubt, falls noch alte Bild-URLs in
+        // der DB stehen — kann nach Daten-Migration entfernt werden.
         protocol: 'https',
         hostname: 'vlrviyrgggzhayepfmop.supabase.co',
       },

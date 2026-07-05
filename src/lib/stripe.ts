@@ -146,6 +146,89 @@ export async function createProductOrderCheckout(params: {
   return session
 }
 
+// Helper: create checkout session for rental booking (Stuhl-/Liegen-/Raum-Miete)
+export async function createRentalCheckout(params: {
+  rentalBookingId: string
+  renterId: string
+  customerEmail: string
+  salonName: string
+  equipmentName: string
+  startDate: string
+  endDate: string
+  amountCents: number
+  successUrl: string
+  cancelUrl: string
+}) {
+  const session = await stripe.checkout.sessions.create({
+    // giropay bewusst NICHT dabei — von Stripe zum 30.06.2024 eingestellt,
+    // der Wert würde die Session-Erstellung hart fehlschlagen lassen.
+    payment_method_types: ['card', 'sepa_debit'],
+    mode: 'payment',
+    customer_email: params.customerEmail,
+    // 30 Min (Stripe-Minimum) statt Default 24h: eine nicht bezahlte Session
+    // soll den Mietzeitraum nicht lange blockieren — checkout.session.expired
+    // im Webhook gibt die pending-Buchung dann wieder frei.
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+    line_items: [
+      {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: params.equipmentName,
+            description: `Miete bei ${params.salonName} · ${params.startDate} bis ${params.endDate}`,
+          },
+          unit_amount: params.amountCents,
+        },
+        quantity: 1,
+      },
+    ],
+    // transfer_group verknuepft Payment + spaeteren Connect-Transfer (Payout-Cron)
+    payment_intent_data: {
+      transfer_group: `rental_${params.rentalBookingId}`,
+    },
+    metadata: {
+      rental_booking_id: params.rentalBookingId,
+      user_id: params.renterId,
+      type: 'rental_payment',
+    },
+    success_url: params.successUrl,
+    cancel_url: params.cancelUrl,
+    locale: 'de',
+  })
+  return session
+}
+
+// Helper: Stripe Connect Express-Account für Anbieter anlegen
+export async function createConnectAccount(params: { email: string; userId: string }) {
+  return stripe.accounts.create({
+    type: 'express',
+    country: 'DE',
+    email: params.email,
+    default_currency: 'eur',
+    metadata: { user_id: params.userId },
+    capabilities: {
+      transfers: { requested: true },
+    },
+    business_profile: {
+      product_description: 'Vermietung von Salon-Arbeitsplätzen über ChairMatch',
+    },
+  })
+}
+
+// Helper: Onboarding-Link für Express-Account (Stripe-hosted)
+export async function createConnectAccountLink(params: {
+  accountId: string
+  refreshUrl: string
+  returnUrl: string
+}) {
+  return stripe.accountLinks.create({
+    account: params.accountId,
+    refresh_url: params.refreshUrl,
+    return_url: params.returnUrl,
+    type: 'account_onboarding',
+  })
+}
+
 // Helper: create refund
 export async function createRefund(paymentIntentId: string, amountCents?: number) {
   return stripe.refunds.create({

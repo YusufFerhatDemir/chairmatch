@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/publish-reviews",
       "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/rental-payouts",
+      "schedule": "0 4 * * *"
     }
   ],
   "headers": [
