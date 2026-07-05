@@ -18,7 +18,8 @@ const VALID_BOOKING_STATUSES = ['confirmed', 'cancelled', 'completed', 'no_show'
 
 // Salon actions: approve, suspend, toggle active
 export async function PATCH(req: NextRequest) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const session = await requireAdmin()
+  if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { action, id, data } = await req.json()
 
@@ -60,6 +61,10 @@ export async function PATCH(req: NextRequest) {
   if (action === 'user-role') {
     if (!VALID_ROLES.includes(data.role)) {
       return NextResponse.json({ error: 'Ungültige Rolle' }, { status: 400 })
+    }
+    const callerRole = (session.user as { role?: string })?.role
+    if (['admin', 'super_admin'].includes(data.role) && callerRole !== 'super_admin') {
+      return NextResponse.json({ error: 'Nur super_admin darf Admin-Rollen vergeben' }, { status: 403 })
     }
     const { error } = await supabase.from('profiles').update({ role: data.role }).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

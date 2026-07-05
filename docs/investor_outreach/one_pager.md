@@ -4,12 +4,12 @@
 
 ---
 
-**The bet.** Germany still books salon-chair rentals on WhatsApp and statutory-funded home care by fax. We're building the first stack to rebuild both — a B2B marketplace (ChairMatch) and a B2C care-marketplace with reimbursement rails (Alltagsengel) — on a single Next.js + Supabase + Capacitor codebase, by a single operator, in the wealthiest underserved corner of Europe.
+**The bet.** Germany still books salon-chair rentals on WhatsApp and statutory-funded home care by fax. We're building the first stack to rebuild both — a B2B marketplace (ChairMatch) and a B2C care-marketplace with reimbursement rails (Alltagsengel) — on a single Next.js + Supabase + Expo (React Native) codebase, by a single operator, in the wealthiest underserved corner of Europe.
 
 **The two products.**
 
 - **ChairMatch** — B2B chair- and studio-rental marketplace. ~80k German salons, ~40% solo-stylist supply already informal. Take rate 12–15%, automated rental contract + payment + insurance.
-- **Alltagsengel** — B2C household help, companionship, patient transport. Invoiced directly to the German statutory long-term care insurance under **§45b SGB XI** — a **€131/month/recipient** entitlement that goes mostly unclaimed because the supply isn't bookable. Live on iOS + Android via Capacitor.
+- **Alltagsengel** — B2C household help, companionship, patient transport. Invoiced directly to the German statutory long-term care insurance under **§45b SGB XI** — a **€131/month/recipient** entitlement that goes mostly unclaimed because the supply isn't bookable. iOS app in TestFlight rollout (Expo/React Native); Android to follow on the same codebase.
 
 **Why one founder, two products.** Same trust primitives (KYC, insurance, verified reviews, escrow). Same supply-side onboarding motion. Same regulatory tailwind (gig formalisation + reimbursement reform). **~70% code reuse** between the two products. Effectively one company with two completely independent demand curves.
 
@@ -17,7 +17,7 @@
 
 - 1 paying Alltagsengel customer — first §45b reimbursement cycle ran clean
 - 2 active Engels onboarded, KYC'd, working real shifts in Frankfurt
-- iOS + Android live in App Store and Play Store
+- Native iOS app built and shipping to TestFlight via Expo/EAS; Android release to follow from the same codebase
 - GA4 + product analytics deployed across both platforms; auth-recovery hardened; SEO/GEO foundation in place
 - Pre-revenue, post-product — proving the loop manually before scaling it
 
@@ -27,7 +27,7 @@
 - **Alltagsengel** — €8.2B/year in unspent statutory §45b entitlement. 5.2M Pflegegrad recipients in Germany. Total private senior-care services €15B+.
 - Combined DACH SAM ≈ **€3.8B GMV at maturity**.
 
-**Stack & operator advantage.** Next.js + Supabase + Capacitor + Tailwind, deployed on Vercel automatically per push. AI-augmented operations cockpit (support triage, content moderation, Engel-vetting interviews, fraud signals) replacing what would normally be 3–4 ops hires. Solo founder shipping at four-person velocity.
+**Stack & operator advantage.** Next.js + Supabase + Tailwind on the web, Expo (React Native) for the native apps — web deployed on Vercel automatically per push, mobile built and submitted via EAS. AI-augmented operations cockpit (support triage, content moderation, Engel-vetting interviews, fraud signals) replacing what would normally be 3–4 ops hires. Solo founder shipping at four-person velocity.
 
 **Business model.**
 

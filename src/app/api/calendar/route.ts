@@ -23,11 +23,12 @@ export async function GET(request: NextRequest) {
       .from('bookings')
       .select(`
         id,
+        customer_id,
         booking_date,
         start_time,
         end_time,
         notes,
-        salon:salons!inner(name, street, house_number, postal_code, city),
+        salon:salons!inner(name, street, house_number, postal_code, city, owner_id),
         service:services!inner(name)
       `)
       .eq('id', bookingId)
@@ -40,6 +41,15 @@ export async function GET(request: NextRequest) {
     // Normalize joined relations — Supabase may return an array for !inner joins
     const salon = Array.isArray(booking.salon) ? booking.salon[0] : booking.salon
     const service = Array.isArray(booking.service) ? booking.service[0] : booking.service
+
+    const role = (session.user as { role?: string }).role || ''
+    const isCustomer = booking.customer_id === session.user.id
+    const isSalonOwner = salon?.owner_id === session.user.id
+    const isAdmin = ['admin', 'super_admin'].includes(role)
+
+    if (!isCustomer && !isSalonOwner && !isAdmin) {
+      return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
+    }
 
     const calendarBooking = {
       id: booking.id,

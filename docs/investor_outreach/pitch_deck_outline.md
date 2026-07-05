@@ -35,7 +35,7 @@
 ## Slide 4 — The Two Wedges
 
 - **Left half — ChairMatch (B2B):** chair & studio rental marketplace. Salons list spare capacity → independent stylists book → platform handles payment, contract, insurance proof. Take rate 12–15%.
-- **Right half — Alltagsengel (B2C + reimbursement):** household help, companionship, patient transport. End-users book → Engel (helpers) deliver → invoice routed directly to Pflegekasse under §45b. Take rate 18–22%. **iOS + Android live in App Store** (Capacitor).
+- **Right half — Alltagsengel (B2C + reimbursement):** household help, companionship, patient transport. End-users book → Engel (helpers) deliver → invoice routed directly to Pflegekasse under §45b. Take rate 18–22%. **Native app built with Expo (React Native) — iOS production build done, TestFlight rollout starting; Android next from the same codebase.**
 - One shared bottom rail: "Same Supabase backend. Same Next.js frontend. Same operator." → key cost advantage.
 - **Visual:** two columns above a single horizontal "platform" bar. Iconography only, no screenshots yet.
 
@@ -55,14 +55,14 @@
 - Three callouts: real-time availability, SCHUFA-light identity check via Stripe Identity, automated rental contract PDF.
 - **Visual:** device-frame mockups on dark background. Add a tiny "Live since [month] 2025" badge.
 
-## Slide 7 — Product Demo II (Alltagsengel iOS + Android)
+## Slide 7 — Product Demo II (Alltagsengel native app)
 
-- Three real screens from the live Capacitor app:
+- Three real screens from the Expo (React Native) app:
   1. "Find an Engel near you" map view
   2. Booking confirmation + §45b invoice routing toggle
   3. Engel earnings dashboard
-- Three callouts: native iOS + Android via single codebase, direct Pflegekasse invoice rail, KYC + criminal-record check baked into Engel onboarding.
-- **Visual:** App Store screenshots in real iPhone + Pixel frames. "Available in App Store and Google Play" badges — verifiable in 30 seconds.
+- Three callouts: native iOS + Android from one React Native codebase (iOS built, Android to follow), direct Pflegekasse invoice rail, KYC + criminal-record check baked into Engel onboarding.
+- **Visual:** app screenshots in real iPhone frames. Small honest status badge: "iOS in TestFlight — App Store launch next." No store badges until the app is actually live.
 
 ## Slide 8 — Traction (honest)
 
@@ -70,7 +70,7 @@
 - Five honest bullets:
   - 1 paying customer Alltagsengel — first €45b invoice cycle ran clean
   - 2 active Engels in Frankfurt onboarded, KYC'd, working real shifts
-  - Capacitor app live in App Store + Play Store — installs growing organically
+  - Native app (Expo / React Native): first iOS production build shipped, TestFlight rollout starting — not in the App Store yet, and we say so
   - GA4 + product analytics deployed across both platforms (Wave 1, last sprint)
   - Foundation work done: auth-recovery hardened, SEO/GEO base laid, test-data isolated from production
 - One-liner at the bottom: *"What we don't have yet: a sales team, paid acquisition, GMV — and that's the point. You're funding the next 100 bookings, not the first one."*
@@ -78,7 +78,7 @@
 
 ## Slide 9 — Tech Edge
 
-- **One stack, two products** — Next.js + Supabase + Capacitor + Tailwind, all on Vercel, deployed automatically per push.
+- **One stack, two products** — Next.js + Supabase + Tailwind on the web (Vercel, deployed automatically per push) + Expo (React Native) for the native app (EAS cloud builds).
 - Operational consequence: ~70% code reuse between platforms (auth, payments, KYC, messaging, notifications, admin).
 - **AI-augmented operations:** Claude-driven ops cockpit handles support triage, content moderation, Engel-vetting interviews, fraud signals — replacing what would normally be 3–4 ops hires at this stage.
 - Three operator metrics: time-to-deploy < 2 minutes; engineering cost / new feature ~70% lower than dual-stack peers; solo founder shipping at 4-person team velocity.
@@ -103,7 +103,7 @@
 
 - **Solo founder narrative — direct, not apologetic.**
   - Yusuf Cilcioglu — Frankfurt am Main. Operator background. Ships product end-to-end: code, design, regulatory research, ops, customer support.
-  - Why solo, why now: "I'm betting that AI-augmented solo execution beats a 5-person team at pre-seed speed. The numbers say I'm right — both apps live, ~70% code reuse, deployed every push."
+  - Why solo, why now: "I'm betting that AI-augmented solo execution beats a 5-person team at pre-seed speed. The numbers say I'm right — both products shipped (web live, iOS build in TestFlight rollout), ~70% code reuse, deployed every push."
   - First three planned hires post-round: (1) DACH Senior BD, (2) Care-ops lead with Pflegekasse experience, (3) Full-stack engineer.
 - One short quote / personal line — what motivates the founder. Keep it human, two sentences max.
 - **Visual:** single founder portrait + 3 silhouette boxes for planned hires. Honest, not over-styled.
@@ -160,7 +160,7 @@
 ## Style / production notes (for Yusuf when converting to .pptx)
 
 - **Stick to ≤ 6 lines of body copy per slide.** Pre-seed deck readers spend 3–4 minutes total. Words must work.
-- **Honesty wins:** the traction slide is the most important slide in the whole deck. Angels can smell padding from one slide away. Yusuf's "1 booking + 2 Engels live + Capacitor app in store + clean tech foundation" is a strong, defensible position. Don't dress it up.
+- **Honesty wins:** the traction slide is the most important slide in the whole deck. Angels can smell padding from one slide away. Yusuf's "1 booking + 2 Engels live + iOS app built and heading into TestFlight + clean tech foundation" is a strong, defensible position. Don't dress it up.
 - **No "AI-powered" / "synergy" / "disrupt" as standalone words.** If you use them, attach a concrete mechanism in the same sentence.
 - **Numbers must trace.** Every TAM/SAM number → cite in footer. Every unit econ → source the assumption. Investors who fund will spreadsheet this.
 - **Colors:** keep brand palettes distinct on slides 4/6/7 (one ChairMatch screen, one Alltagsengel screen — visually different), unify on every other slide so the reader feels "one company, two arms."

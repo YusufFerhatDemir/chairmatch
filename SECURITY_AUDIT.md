@@ -2,7 +2,9 @@
 
 **Audit-Datum:** 2026-05-11
 **Auditor:** Internal (Claude AI Assistant)
-**Scope:** chairmatch.de Web-App + API + Supabase-DB + Native Capacitor-Hülle
+**Scope:** chairmatch.de Web-App + API + Supabase-DB + Native Expo-App (mobile/)
+
+**Update 2026-07-04:** Die native App wurde von Capacitor auf Expo (`mobile/`, EAS-Build) umgestellt. Capacitor-bezogene Attests in diesem Dokument sind obsolet und entsprechend markiert; ein eigenes Audit der Expo-App steht noch aus.
 
 **Legende:** 🟢 OK · 🟡 Empfehlung · 🔴 Kritisch
 
@@ -76,7 +78,7 @@
 **Empfehlung 🟡:**
 - CSP enthält `'unsafe-inline'` und `'unsafe-eval'` für Scripts (nötig für Next.js Hydration + Stripe.js). 
   - Bei zukünftigem Next.js 16 mit Strict-CSP-Support migrieren auf Nonces.
-- Production: `webContentsDebuggingEnabled: false` in capacitor.config.ts ✓ (bereits gesetzt)
+- Hinweis: Das frühere Attest zu `webContentsDebuggingEnabled: false` (capacitor.config.ts) ist obsolet — das Capacitor-Setup wurde am 2026-07-04 entfernt. Die native Expo-App (`mobile/`) rendert ohne WebView; ein eigenes Audit steht aus.
 
 ---
 
@@ -116,7 +118,7 @@
 **Geprüft:**
 - Vercel-Deploys aus Git → reproduzierbar, signierte Commits via GitHub
 - Stripe-Webhooks mit Signing-Secret validiert (`/api/stripe/webhook/route.ts`)
-- Capacitor-Builds aus festgelegtem `capacitor.config.ts` → Bundle-ID stabil
+- Native Builds via EAS Cloud-Build (Expo) → Bundle-ID `de.chairmatch.app` fest in `mobile/app.json` definiert
 - Service-Worker mit Cache-Versionierung (`chairmatch-v11`)
 
 **Empfehlung 🟡:**
@@ -152,17 +154,14 @@
 
 ## Bonus: Mobile/Native-spezifische Risiken
 
-### Capacitor WebView Sicherheit 🟢
+### Native App (Expo) 🟡
 
-**Geprüft (`capacitor.config.ts`):**
-- `cleartext: false` — kein HTTP, nur HTTPS
-- `allowMixedContent: false` (Android)
-- `webContentsDebuggingEnabled: false` (Android Production)
-- `allowNavigation` Whitelist: nur chairmatch.de, Supabase, Stripe
-- `androidScheme: 'https'`, `iosScheme: 'https'`
+**Hinweis:** Die frühere Prüfung der Capacitor-WebView-Konfiguration (`capacitor.config.ts`) ist obsolet — das Capacitor-Setup (ios/, android/, capacitor.config.ts) wurde am 2026-07-04 vollständig entfernt.
 
-**Empfehlung 🟡:**
-- Bei iOS-Builds in Production: `App Transport Security` Exceptions auf NICHT erlauben (default OK)
+Die native App ist jetzt ausschließlich die Expo-App (`mobile/`, Expo SDK 57 / React Native, Build via EAS Cloud):
+- Rendert nativ über React Native — kein WebView; die WebView-spezifischen Konfigurationsrisiken (cleartext, allowNavigation etc.) entfallen damit strukturell
+- Nutzt dieselbe Supabase-Instanz mit anon key + RLS wie die Web-App
+- Ein eigenes Sicherheits-Audit der Expo-App (u. a. Secrets-Handling, Session-Storage, Deep-Link-Scheme `chairmatch`) steht noch aus — bis dahin wird hier bewusst nichts attestiert
 
 ### Push-Notifications 🟢
 
@@ -203,12 +202,12 @@
 | Data Integrity | 🟢 |
 | Logging/Monitoring | 🟡 |
 | SSRF | 🟢 |
-| Mobile/Native | 🟢 |
+| Mobile/Native | 🟡 |
 | DSGVO | 🟡 |
 
-**Gesamtbewertung:** 10/12 grün, 2/12 gelb. **Kein einziges rotes Finding.**
+**Gesamtbewertung:** 9/12 grün, 3/12 gelb. **Kein einziges rotes Finding.**
 
-Du bist auf einem **professionellen Sicherheitslevel** — besser als die meisten frühen Marketplaces. Die zwei gelben Punkte (Sentry-Integration und DSGVO-Final-Polish) sind keine Launch-Blocker, sondern Phase-2-Verbesserungen.
+Du bist auf einem **professionellen Sicherheitslevel** — besser als die meisten frühen Marketplaces. Die drei gelben Punkte (Sentry-Integration, DSGVO-Final-Polish und das ausstehende Audit der Expo-App) sind keine Launch-Blocker, sondern Phase-2-Verbesserungen.
 
 ---
 

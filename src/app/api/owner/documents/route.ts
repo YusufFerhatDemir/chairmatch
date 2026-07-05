@@ -17,12 +17,14 @@ export async function POST(request: NextRequest) {
   }
   if (!owner_id) return NextResponse.json({ error: 'owner_id erforderlich' }, { status: 400 })
 
+  if (owner_type !== 'location') {
+    return NextResponse.json({ error: 'Ungültiger owner_type' }, { status: 400 })
+  }
+
   const supabase = getSupabaseAdmin()
-  if (owner_type === 'location') {
-    const { data: salon } = await supabase.from('salons').select('owner_id').eq('id', owner_id).single()
-    if (!salon || salon.owner_id !== session.user.id) {
-      return NextResponse.json({ error: 'Kein Zugriff auf diesen Standort' }, { status: 403 })
-    }
+  const { data: salon } = await supabase.from('salons').select('owner_id').eq('id', owner_id).single()
+  if (!salon || salon.owner_id !== session.user.id) {
+    return NextResponse.json({ error: 'Kein Zugriff auf diesen Standort' }, { status: 403 })
   }
 
   const { data, error } = await supabase

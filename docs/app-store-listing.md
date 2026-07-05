@@ -256,7 +256,7 @@ Min Android:  API 24 (Android 7.0)
 Wenn du Apple-Developer + Play-Console-Accounts hast:
 
 **Vor dem Hochladen:**
-- [ ] App-Icon in allen Größen erzeugt (Capacitor `npx capacitor-assets generate`)
+- [ ] App-Icon/Splash in `mobile/app.json` gepflegt (Expo) — EAS generiert alle Größen automatisch beim Build
 - [ ] Screenshots in allen Pflicht-Größen
 - [ ] Privacy-Policy-URL erreichbar (✓ schon live: /datenschutz)
 - [ ] AGB-URL erreichbar (✓ schon live: /agb)

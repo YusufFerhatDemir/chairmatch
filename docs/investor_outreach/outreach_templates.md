@@ -34,7 +34,7 @@
 
 > Hi [First name],
 >
-> Yusuf in Frankfurt — I'm raising a €500k pre-seed for two marketplaces I built and run end-to-end on a single Next.js+Supabase+Capacitor stack.
+> Yusuf in Frankfurt — I'm raising a €500k pre-seed for two marketplaces I built and run end-to-end on a single Next.js+Supabase+Expo (React Native) stack.
 >
 > **ChairMatch** rents empty salon chairs to independent stylists, B2B, with payment + insurance + contract automation baked in. **Alltagsengel** is a B2C care-helper marketplace that bills directly to the German statutory long-term care insurance under §45b SGB XI — a €131/month/recipient entitlement that goes mostly unclaimed because the supply isn't bookable. iOS + Android live in both app stores; first paying customer ran clean last [month]; 2 Engels actively working in Frankfurt.
 >

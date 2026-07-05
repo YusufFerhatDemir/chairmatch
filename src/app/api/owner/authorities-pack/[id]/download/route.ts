@@ -18,7 +18,14 @@ export async function GET(
     .single()
   if (!pack) return new NextResponse('Paket nicht gefunden', { status: 404 })
 
-  const { data: salon } = await supabase.from('salons').select('name').eq('id', pack.location_id).single()
+  const { data: salon } = await supabase.from('salons').select('name, owner_id').eq('id', pack.location_id).single()
+
+  const role = (session.user as { role?: string }).role || ''
+  const isAdmin = ['admin', 'super_admin'].includes(role)
+  if (!isAdmin && salon?.owner_id !== session.user.id) {
+    return new NextResponse('Keine Berechtigung', { status: 403 })
+  }
+
   const salonName = salon?.name || pack.location_id
   const date = new Date(pack.created_at).toLocaleDateString('de-DE')
 

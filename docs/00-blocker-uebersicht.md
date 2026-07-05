@@ -112,7 +112,7 @@ Diese Punkte kann ich NICHT alleine erledigen, weil sie externe Accounts brauche
 ### 7. Apple Developer Account + Play Store Account — wartet auf UG
 - Apple: $99/Jahr, braucht D-U-N-S-Number (kommt mit Handelsregister-Eintrag)
 - Google: $25 einmalig
-- Capacitor-iOS-Build hat noch CocoaPods-Pfad-Issue (siehe `docs/capacitor-cocoapods-fix.md`) — Symlink-Workaround dokumentiert
+- iOS-App (Expo, `mobile/`): EAS-Production-Build erfolgreich durchgelaufen (2026-07-04) — verbleibt nur noch, einmalig den App-Eintrag in App Store Connect anzulegen (Login nötig), danach TestFlight-Upload via `npm run ios:submit`
 - App-Icons + Splash-Screens sind bereits konfiguriert
 - App-Store-Listings + Screenshots: kann ich parallel als Mockups vorbereiten wenn du willst
 

@@ -1,144 +1,139 @@
-# iOS-Build — ChairMatch (Capacitor, NICHT Expo)
+# iOS-Build — ChairMatch (Expo/EAS)
 
-ChairMatch ist eine **Capacitor Remote-WebView**-App: das native iOS-Shell lädt
-`https://chairmatch.de` live. Deshalb ist der einfachste Build-Weg **nicht EAS/Expo**,
-sondern **Capacitor + Xcode** direkt.
+ChairMatch ist eine **native Expo-App** (Expo SDK 57, React Native, expo-router) im
+Verzeichnis `mobile/`. Gebaut wird **in der EAS-Cloud** — lokal ist weder Xcode noch
+CocoaPods nötig. Die frühere Capacitor-Variante (`ios/`, `android/`, `capacitor.config.ts`)
+wurde am 2026-07-04 vollständig entfernt; diese Anleitung ersetzt die alte Capacitor-Doku.
 
-- Xcode-Projekt: `ios/App/App.xcworkspace` (immer das **`.xcworkspace`** öffnen, nicht `.xcodeproj` — wegen CocoaPods)
-- Bundle-ID: `de.chairmatch.app`
-- Scheme: `App` (shared, in CI nutzbar)
-- Version: `MARKETING_VERSION` = 1.0, `CURRENT_PROJECT_VERSION` = 1 (in `ios/App/App.xcodeproj/project.pbxproj`)
+- App-Code: `mobile/` (Expo SDK 57, expo-router)
+- Bundle-ID: `de.chairmatch.app` (im Apple Developer Portal registriert, Team `J6H5J2XVL7`)
+- EAS-Projekt: `yusufferhatdemirs-team/chairmatch` (projectId `18d077a8-c1f5-4c1a-bdd0-6e9e416a4ac4`)
+- Provisioning-Profil: gültig bis **2027-07-02**
+- Deep Links: Expo Linking, Scheme `chairmatch` (in `mobile/app.json`)
 
 ---
 
 ## TL;DR
 
 ```bash
-# 1. Baut das Projekt sauber? (keine Apple-Signatur nötig)
-npm run ios:verify
+# 1. Production-Build in der EAS-Cloud (vom Repo-Root)
+npm run ios:build
 
-# 2. Signiertes IPA lokal bauen (braucht Apple Team ID)
-export APPLE_TEAM_ID=AB12CD34EF
-npm run ios:ipa
-
-# 3. Direkt nach TestFlight hochladen
-export APPLE_TEAM_ID=AB12CD34EF ASC_KEY_ID=... ASC_ISSUER_ID=... ASC_KEY_P8_PATH=~/keys/AuthKey_XXXX.p8
-npm run ios:upload
+# 2. Letzten Build nach TestFlight schicken
+npm run ios:submit
 ```
 
-Alles läuft über `scripts/ios-build.sh` (Modi: `verify` | `archive` | `ipa` | `upload`).
+Beide Skripte wrappen `eas-cli` via `npx` — es muss nichts global installiert sein.
 
 ---
 
-## Konfigurationsstand des Xcode-Projekts
+## Voraussetzungen
+
+Lokal ist **nichts** einzurichten:
 
 | Punkt | Status |
 |---|---|
-| Bundle-ID `de.chairmatch.app` | ✅ gesetzt (Debug + Release) |
-| Signing-Style | ✅ `Automatic` |
-| Shared Scheme `App` | ✅ vorhanden (`ios/App/App.xcodeproj/xcshareddata/xcschemes/App.xcscheme`) |
-| ExportOptions | ✅ Template `ios/App/ExportOptions.plist` (Team-ID zur Build-Zeit injiziert) |
-| **`DEVELOPMENT_TEAM`** | ⚠️ **bewusst leer** — kommt per `APPLE_TEAM_ID` aus Env/Secret, kein Hardcoding |
-| Push-Notifications | ⚠️ Plugin konfiguriert, aber noch keine `.entitlements` + Capability. Erst nötig, wenn Push aktiv wird (siehe unten). |
+| `eas-cli` | läuft via `npx`, keine globale Installation nötig |
+| Xcode / CocoaPods | **nicht nötig** — Build passiert in der EAS-Cloud |
+| Signatur-Credentials | ✅ `mobile/credentials.json` (lokal, gitignored) mit `dist.p12` + `profile.mobileprovision` — `credentialsSource: "local"` in `eas.json` |
+| ASC-API-Key für Submit | ✅ in `mobile/eas.json` unter `submit.production.ios` konfiguriert (verweist auf lokale `.p8`-Datei) |
+| Versionsverwaltung | `appVersionSource: "remote"` + `autoIncrement` — die buildNumber zählt EAS automatisch hoch |
 
-> Das Fehlen von `DEVELOPMENT_TEAM` im `project.pbxproj` ist **Absicht**: die Team-ID ist
-> account-spezifisch und wird nicht ins Repo eingecheckt. `xcodebuild` bekommt sie über
-> `DEVELOPMENT_TEAM=$APPLE_TEAM_ID` auf der Kommandozeile.
-
----
-
-## Voraussetzungen (einmalig, im Apple Developer Account)
-
-Diese Klick-Schritte macht **yusuf** (externe Logins — siehe CLAUDE.md):
-
-1. **Apple Developer Program** ($99/Jahr) aktiv.
-2. **Team ID** notieren: developer.apple.com → Membership → *Team ID* (10 Zeichen) → `APPLE_TEAM_ID`.
-3. **App Store Connect API-Key** (für Upload ohne Passwort/2FA):
-   App Store Connect → Users and Access → Integrations → App Store Connect API →
-   Key erzeugen (Rolle *App Manager*). Notieren: **Key ID** (`ASC_KEY_ID`), **Issuer ID**
-   (`ASC_ISSUER_ID`), und die **`AuthKey_XXXX.p8`**-Datei herunterladen (nur einmal möglich!).
-4. **App-Eintrag** in App Store Connect mit Bundle-ID `de.chairmatch.app` anlegen.
-
-Für **CI (GitHub Actions)** zusätzlich ein Distribution-Zertifikat als `.p12`:
-Xcode → Settings → Accounts → Manage Certificates → *Apple Distribution* exportieren (mit Passwort).
+> `mobile/credentials.json` und die Zertifikatsdateien sind bewusst **nicht** im Repo
+> (siehe `mobile/.gitignore`). Bei Verlust lassen sie sich über das Apple Developer
+> Portal bzw. `npx eas-cli credentials` neu erzeugen.
 
 ---
 
-## Lokaler Build (Mac)
-
-`scripts/ios-build.sh` erledigt `cap sync` + `pod install` + `xcodebuild` automatisch.
-
-| Modus | Was passiert | Braucht |
-|---|---|---|
-| `verify` | Simulator-Build, **unsigniert** — prüft nur Baubarkeit | nichts |
-| `archive` | signiertes `build/ios/App.xcarchive` | `APPLE_TEAM_ID` |
-| `ipa` | `archive` + IPA nach `build/ios/export/` | `APPLE_TEAM_ID` |
-| `upload` | `ipa` + Upload zu TestFlight | `APPLE_TEAM_ID` + ASC-Key |
+## Build (EAS Cloud)
 
 ```bash
-export APPLE_TEAM_ID=AB12CD34EF
-export ASC_KEY_ID=ABC123DEFG
-export ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-export ASC_KEY_P8_PATH="$HOME/keys/AuthKey_ABC123DEFG.p8"
-npm run ios:upload
+# Vom Repo-Root (empfohlen):
+npm run ios:build
+
+# Oder direkt:
+cd mobile && npx eas-cli build --platform ios --profile production
 ```
+
+- Profil `production` (in `mobile/eas.json`): `autoIncrement`, Channel `production`, lokale Credentials.
+- Weitere Profile: `development` (Simulator, Dev-Client) und `preview` (internal distribution).
+- Build-Status und Artefakte: [expo.dev](https://expo.dev) → Projekt `chairmatch`.
+
+**Icons & Splash** müssen nicht manuell gepflegt werden: Quelle ist `mobile/app.json`
+(Icon-Pfade + `expo-splash-screen`-Plugin), Expo/EAS generiert daraus alle Größen automatisch.
 
 ---
 
-## CI-Build (GitHub Actions)
+## Submit (TestFlight)
 
-Workflow: `.github/workflows/ios-build.yml` (Runner: `macos-14`).
-
-- **Bei jedem Push/PR auf `ios/**`**: unsignierter Build als Gate — **braucht keine Secrets**.
-- **Bei Tag `ios-v*`** oder manuellem Start (`workflow_dispatch`): signierter Build + TestFlight-Upload,
-  aktiviert sich automatisch, sobald die Secrets vorhanden sind.
-
-Release auslösen:
 ```bash
-git tag ios-v1.0.0 && git push origin ios-v1.0.0
+# Vom Repo-Root — nimmt automatisch den letzten fertigen Build (--latest):
+npm run ios:submit
+
+# Oder direkt:
+cd mobile && npx eas-cli submit --platform ios --profile production --latest
 ```
 
-### Nötige Repository-Secrets (GitHub → Settings → Secrets and variables → Actions)
+Der Upload läuft über den **ASC-API-Key** aus `mobile/eas.json` (`submit.production.ios`) —
+kein Apple-ID-Login, kein 2FA nötig.
 
-| Secret | Herkunft |
+**Wichtig:** Sobald der App-Eintrag in App Store Connect existiert (siehe Status unten),
+sollte die zugehörige **`ascAppId`** in `mobile/eas.json` unter `submit.production.ios`
+eingetragen werden, damit der Submit die App eindeutig zuordnen kann.
+
+---
+
+## Status (Stand 2026-07-04)
+
+| Punkt | Status |
 |---|---|
-| `APPLE_TEAM_ID` | Membership → Team ID |
-| `ASC_KEY_ID` | App Store Connect API Key ID |
-| `ASC_ISSUER_ID` | App Store Connect Issuer ID |
-| `ASC_KEY_P8_BASE64` | `base64 -i AuthKey_XXXX.p8 \| pbcopy` |
-| `IOS_DIST_CERT_P12_BASE64` | `base64 -i dist.p12 \| pbcopy` |
-| `IOS_DIST_CERT_PASSWORD` | Passwort des `.p12`-Exports |
+| Erster Production-Build | ✅ **`ac481b48`** erfolgreich (Version 1.0.0, buildNumber 3, 2026-07-04) |
+| Bundle-ID + Profil | ✅ registriert, Profil gültig bis 2027-07-02 |
+| Submit-Konfiguration | ✅ ASC-API-Key in `eas.json` hinterlegt |
+| **App-Eintrag in App Store Connect** | ⚠️ **fehlt noch** — einzige offene manuelle Aktion |
 
-Ohne diese Secrets läuft weiterhin der unsignierte Gate-Build — CI bleibt grün und nützlich.
+### Einmalige manuelle Aktion (yusuf, externes Login)
+
+Auf [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → *Meine Apps* → *+ Neue App*:
+
+- **Name:** ChairMatch
+- **Bundle-ID:** `de.chairmatch.app`
+- **Sprache:** Deutsch
+- **SKU:** `chairmatch-de-app`
+
+Danach `ascAppId` in `mobile/eas.json` nachtragen — ab dann läuft `npm run ios:submit`
+komplett ohne weitere Klicks.
 
 ---
 
-## Version erhöhen (vor jedem Store-Release)
+## Android (später)
 
-In `ios/App/App.xcodeproj/project.pbxproj` (beide Configs, Debug + Release):
-
-- `MARKETING_VERSION` → sichtbare Version (z.B. `1.1`)
-- `CURRENT_PROJECT_VERSION` → Build-Nummer, **muss pro Upload steigen** (z.B. `2`)
+Android läuft ebenfalls über EAS — das Package `de.chairmatch.app` ist in
+`mobile/app.json` bereits konfiguriert (inkl. Adaptive Icon). Es fehlt nur der
+Google-Play-Teil (Konto, Signing, Submit-Profil), wenn es soweit ist.
 
 ---
 
-## Push-Notifications aktivieren (später)
+## Analytics (nativ)
 
-Das Capacitor-`PushNotifications`-Plugin ist konfiguriert, aber die native Capability fehlt noch.
-Wenn Push live gehen soll:
-
-1. In Xcode → Target `App` → *Signing & Capabilities* → **+ Push Notifications**.
-2. Das erzeugt `ios/App/App/App.entitlements` mit `aps-environment`. Committen.
-3. In der Apple Developer Console die Push-Capability für `de.chairmatch.app` aktivieren.
-
-Bis dahin baut die App problemlos — Push ist nur zur Laufzeit inaktiv.
+Falls native Analytics dazukommen: **Expo-kompatible Pakete** nutzen
+(z.B. `react-native-firebase` oder `expo-insights`) — **nicht** `@capacitor-firebase`,
+das gehörte zum entfernten Capacitor-Setup.
 
 ---
 
 ## Troubleshooting
 
-- **CocoaPods-Fehler bei Pfad mit Leerzeichen** → siehe `docs/capacitor-cocoapods-fix.md`.
-  Aktueller Repo-Pfad (`/Users/work/chairmatch`) hat keine Spaces, also i.d.R. kein Problem.
-- **`scheme "App" not found`** → das shared Scheme fehlt. Es liegt jetzt im Repo; bei Verlust
-  in Xcode: *Product → Scheme → Manage Schemes → App → Shared* anhaken.
-- **`No profiles for 'de.chairmatch.app'`** → `-allowProvisioningUpdates` + gültiger ASC-Key/Team-ID.
+```bash
+cd mobile
+
+# Projekt-Gesundheitscheck (Konfiguration, Dependencies, bekannte Probleme):
+npx expo-doctor
+
+# Dependency-Versionen gegen das SDK abgleichen und ggf. fixen:
+npx expo install --check
+```
+
+- **Build schlägt in der Cloud fehl** → Build-Log auf expo.dev öffnen; meist Dependency-Mismatch, den `npx expo install --check` findet.
+- **Credentials-Fehler** → prüfen, ob `mobile/credentials.json` vorhanden ist und auf existierende `dist.p12`/`profile.mobileprovision`-Dateien zeigt.
+- **Submit-Fehler „App nicht gefunden“** → App-Eintrag in App Store Connect fehlt noch bzw. `ascAppId` ist nicht in `eas.json` eingetragen (siehe Status).

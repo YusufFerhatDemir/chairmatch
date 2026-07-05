@@ -1,7 +1,7 @@
 # MASTERPLAN — Analytics, SEO & GEO (Generative Engine Optimization)
 
 Stand: 2026-05-25 · Autor: Lead Fullstack + SEO/GEO + Analytics
-Scope: Web (chairmatch.de) + spätere Native-App (Capacitor → iOS/Android)
+Scope: Web (chairmatch.de) + Native-App (Expo/React Native → iOS/Android)
 Status: **Architektur-Dokument. Noch nicht implementiert.**
 
 ---
@@ -550,7 +550,7 @@ CREATE INDEX meta_send_log_event_id_idx ON meta_send_log(event_id);
 - Yusuf-Bio mit Person-Schema + `sameAs` zu LinkedIn/X.
 
 **W3.4 — Native-App-Tracking**
-- GA4 for Firebase im Capacitor-Wrapper.
+- GA4 for Firebase in der Expo-App (`@react-native-firebase/analytics` via Expo Config Plugin, EAS-Build).
 - Branch oder Firebase Dynamic Links für Deep-Linking + Install-Attribution.
 - Pixel-Setup parallel (Meta SDK for iOS/Android).
 
@@ -592,23 +592,23 @@ CREATE INDEX meta_send_log_event_id_idx ON meta_send_log(event_id);
 
 ---
 
-## 10. App-Erweiterung (Capacitor → iOS/Android)
+## 10. App-Erweiterung (Expo/React Native → iOS/Android)
 
-Aktuell: `@capacitor/*` v6 in `package.json`. App ist Hybrid-WebView.
+Aktuell: Native App in `mobile/` (Expo SDK 57, React Native, expo-router). Builds laufen als EAS Cloud-Builds (`npm run ios:build`), Submit nach TestFlight via `npm run ios:submit`; Bundle-ID `de.chairmatch.app`, Android-Package gleichnamig in `mobile/app.json` vorbereitet.
 
-**Implikation:** Solange die App den gleichen `chairmatch.de`-Origin lädt, läuft GA4/Pixel automatisch mit. Aber:
+**Implikation:** Die App rendert native Screens (kein WebView auf `chairmatch.de`) — Web-GA4/Pixel laufen dort NICHT automatisch mit. Zusätzlich:
 - App-spezifische Events fehlen (Install, Push-Open, Foreground-Time).
 - Attribution ist schwächer (kein Install-Source).
 
 **Empfehlung Welle 3:**
 1. **Firebase Project anlegen** (kostenlos im Spark-Plan).
-2. **`@capacitor-firebase/analytics` Plugin** integrieren → eigene App-Stream-ID in GA4 (selbe Property, eigener Stream).
+2. **`@react-native-firebase/analytics`** integrieren (als Expo Config Plugin, benötigt EAS-Build — kein Expo Go) → eigene App-Stream-ID in GA4 (selbe Property, eigener Stream).
 3. **Deep Linking:**
    - Universal Links (iOS) + App Links (Android) für `chairmatch.de/*`.
-   - Capacitor-Config: `appUrlOpen` → in App-Router pushen.
+   - Expo Linking: eingehende URLs via `Linking`-API + expo-router in die App-Navigation pushen (Custom Scheme `chairmatch` ist in `mobile/app.json` konfiguriert).
    - `apple-app-site-association` + `assetlinks.json` unter `public/.well-known/` deployen.
 4. **Branch.io oder Firebase Dynamic Links** für Install-Attribution (Tracking welche Werbung zu Installs führt).
-5. **Meta SDK for iOS/Android** als Capacitor-Plugin (Community `@capacitor-community/facebook-login` o. eigenes Wrapper) — für App-Install-Events + CAPI.
+5. **Meta SDK for iOS/Android** via `react-native-fbsdk-next` (Expo Config Plugin) — für App-Install-Events + CAPI.
 
 **Schema für native:** App-Schema (`MobileApplication`) im Layout-JSON-LD ergänzen, App-Store-Links via `RelatedApplication` referenzieren — hilft Google App-Indexing.
 
