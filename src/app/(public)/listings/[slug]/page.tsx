@@ -10,6 +10,7 @@
 export const revalidate = 600 // ISR: 10 Min
 
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
@@ -243,10 +244,11 @@ export default async function ListingDetailPage({ params }: Props) {
               border: '1px solid var(--border)',
               flexShrink: 0,
             }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={salonLogo}
                 alt={`${salon.name} Logo`}
+                width={56}
+                height={56}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </div>

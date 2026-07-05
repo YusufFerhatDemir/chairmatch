@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ShoppingBag, ChevronLeft, Star } from 'lucide-react'
 
@@ -78,8 +79,7 @@ export default function ProductDetailClient({ product: p }: Props) {
         {/* Image */}
         <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: 'var(--c2)', overflow: 'hidden' }}>
           {images[imgIdx]?.url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={images[imgIdx].url} alt={images[imgIdx].alt || p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <Image src={images[imgIdx].url} alt={images[imgIdx].alt || p.name} fill sizes="100vw" style={{ objectFit: 'cover' }} priority />
           ) : (
             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ShoppingBag size={64} style={{ color: 'var(--stone)' }} />
@@ -97,11 +97,10 @@ export default function ProductDetailClient({ product: p }: Props) {
           <div style={{ display: 'flex', gap: 6, padding: '8px var(--pad)', overflowX: 'auto' }}>
             {images.map((img, i) => (
               <button key={i} onClick={() => setImgIdx(i)} style={{
-                width: 48, height: 48, borderRadius: 8, overflow: 'hidden', border: i === imgIdx ? '2px solid var(--gold)' : '1px solid var(--border)',
+                position: 'relative', width: 48, height: 48, borderRadius: 8, overflow: 'hidden', border: i === imgIdx ? '2px solid var(--gold)' : '1px solid var(--border)',
                 padding: 0, background: 'none', cursor: 'pointer', flexShrink: 0,
               }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {img.url && <img src={img.url} alt={img.alt || `${p.name} — Bild ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                {img.url && <Image src={img.url} alt={img.alt || `${p.name} — Bild ${i + 1}`} fill sizes="48px" style={{ objectFit: 'cover' }} />}
               </button>
             ))}
           </div>

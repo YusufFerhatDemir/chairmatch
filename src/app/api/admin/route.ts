@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { auth } from '@/modules/auth/auth.config'
+import { notifyIndexers } from '@/lib/indexing'
+import { cityToSlug } from '@/lib/seo'
+
+// Best-effort: sobald ein Salon live geschaltet wird, Suchmaschinen sofort
+// anpingen statt auf den nächsten Sitemap-Crawl zu warten. Blockiert die
+// Admin-Response nie (fire-and-forget, notifyIndexers wirft nie).
+async function pingSalonIndexers(salonId: string) {
+  const supabase = getSupabaseAdmin()
+  const { data: salon } = await supabase
+    .from('salons')
+    .select('slug, city')
+    .eq('id', salonId)
+    .single()
+  if (!salon?.slug) return
+  const urls = [`https://www.chairmatch.de/salon/${salon.slug}`]
+  if (salon.city) urls.push(`https://www.chairmatch.de/${cityToSlug(salon.city)}`)
+  void notifyIndexers(urls)
+}
 
 async function requireAdmin() {
   const session = await auth()
@@ -48,6 +66,7 @@ export async function PATCH(req: NextRequest) {
     }
     const { error } = await supabase.from('salons').update(updates).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (updates.is_active) void pingSalonIndexers(id)
   }
 
   if (action === 'salon-toggle-active') {
@@ -56,6 +75,7 @@ export async function PATCH(req: NextRequest) {
     }
     const { error } = await supabase.from('salons').update({ is_active: data.is_active }).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (data.is_active) void pingSalonIndexers(id)
   }
 
   if (action === 'user-role') {

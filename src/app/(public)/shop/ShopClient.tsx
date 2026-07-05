@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Search, ShoppingBag } from 'lucide-react'
 import { PRODUCT_CATEGORIES_B2C } from '@/lib/constants'
@@ -128,8 +129,9 @@ export default function ShopClient({ initialProducts }: Props) {
                 <Link href={`/shop/${p.slug}`} style={{ textDecoration: 'none' }}>
                   <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                     {p.images?.[0]?.url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.images[0].url} alt={p.name} style={{ width: '100%', height: 150, objectFit: 'cover' }} />
+                      <div style={{ position: 'relative', width: '100%', height: 150 }}>
+                        <Image src={p.images[0].url} alt={p.name} fill sizes="(max-width: 480px) 50vw, 240px" style={{ objectFit: 'cover' }} />
+                      </div>
                     ) : (
                       <div style={{ width: '100%', height: 150, background: 'linear-gradient(135deg, var(--c2), var(--c3))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <ShoppingBag size={32} style={{ color: 'var(--stone)' }} />

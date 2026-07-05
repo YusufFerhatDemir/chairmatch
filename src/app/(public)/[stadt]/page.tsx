@@ -65,8 +65,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: `Stuhlmiete in ${city.name}: Friseurstuhl, Barberstuhl, Kosmetik-Kabine, Lash-Workstation oder Behandlungsraum tageweise mieten. ${salonCount}+ verifizierte Vermieter, Stripe-gesichert, 0 % Provision für dich als Mieter.`,
     keywords: [
       `stuhlmiete ${cityLower}`,
+      `stuhlvermietung ${cityLower}`,
+      `stuhlvermietung beauty ${cityLower}`,
+      `stuhlvermietung kosmetik ${cityLower}`,
       `friseur stuhlmiete ${cityLower}`,
       `friseurstuhl mieten ${cityLower}`,
+      `stuhl mieten friseur ${cityLower}`,
       `barberstuhl mieten ${cityLower}`,
       `kosmetikraum mieten ${cityLower}`,
       `kosmetik kabine ${cityLower}`,

@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     template: '%s | ChairMatch',
   },
   description: 'Buche Termine bei Top-Salons, Barbershops, Friseuren & Kosmetikstudios in ganz Deutschland. 0% Provision. Stuhlvermietung, OP-Raum mieten, Angebote entdecken.',
-  keywords: ['Friseur buchen', 'Barbershop Termin', 'Kosmetikstudio', 'Beauty Booking', 'Stuhlvermietung', 'Salon buchen Deutschland', 'Nagelstudio', 'Massage Termin', 'Ästhetik', 'Lash Extensions', 'OP-Raum mieten', 'ChairMatch'],
+  keywords: ['Friseur buchen', 'Barbershop Termin', 'Kosmetikstudio', 'Beauty Booking', 'Stuhlvermietung', 'Stuhlvermietung Beauty', 'Stuhl mieten Friseur', 'Stuhlvermietung Kosmetik Frankfurt', 'Salon buchen Deutschland', 'Nagelstudio', 'Massage Termin', 'Ästhetik', 'Lash Extensions', 'OP-Raum mieten', 'ChairMatch'],
   metadataBase: new URL('https://www.chairmatch.de'),
   // Kein hreflang: Sprache wird per Cookie umgeschaltet, es gibt keine
   // locale-spezifischen URLs — identische hreflang-Ziele wären ein
