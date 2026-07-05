@@ -17,8 +17,13 @@ const nextConfig: NextConfig = {
     return [
       { source: '/blog', destination: '/magazin', permanent: true },
       { source: '/blog/:slug', destination: '/magazin/:slug', permanent: true },
+      // Mehrsegmentige Alt-URLs (z.B. WordPress-Permalinks /blog/2024/01/titel)
+      // matchen :slug nicht (nur 1 Segment) und liefen sonst in einen echten
+      // 404 statt einer Weiterleitung. Fallback auf die Magazin-Übersicht.
+      { source: '/blog/:path*', destination: '/magazin', permanent: true },
       { source: '/ratgeber', destination: '/magazin', permanent: true },
       { source: '/ratgeber/:slug', destination: '/magazin/:slug', permanent: true },
+      { source: '/ratgeber/:path*', destination: '/magazin', permanent: true },
       // /ads/* existiert nicht als Route (keine Seite, kein Verweis im Code).
       // Alte Google-Ads-/Kampagnen-URLs, die noch gecrawlt werden, sollen keinen
       // 404 (und erst recht keinen 307→/auth) liefern, sondern per 308 auf die
