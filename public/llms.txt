@@ -68,10 +68,11 @@ Salonplatz (Multi-Asset), Behandlungsraum, OP-Raum (hygiene-zertifiziert).
 - [Nagelstudio Deutschland](https://www.chairmatch.de/nagelstudio-deutschland)
 - [Lash & Brows Deutschland](https://www.chairmatch.de/lash-brows-deutschland)
 
-## Top-Städte (live)
+## Top-Städte (live — alle Top-20)
 
-Frankfurt am Main, Berlin, München, Hamburg, Köln, Düsseldorf, Stuttgart,
-Hannover, Leipzig, Bremen — jeweils mit eigener Stadt-Seite
+Berlin, Hamburg, München, Köln, Frankfurt am Main, Düsseldorf, Stuttgart,
+Hannover, Leipzig, Bremen, Dortmund, Essen, Dresden, Nürnberg, Duisburg,
+Bochum, Wuppertal, Bielefeld, Bonn, Münster — jeweils mit eigener Stadt-Seite
 (z. B. https://www.chairmatch.de/berlin) und Stadt×Vertical-Seiten
 (z. B. https://www.chairmatch.de/berlin/friseur).
 
