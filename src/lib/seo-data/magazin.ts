@@ -2153,6 +2153,274 @@ In der Aufbauphase (Monat 1-6) liegt der Gewinn eher bei 1.000-2.000 €, mit ap
 Selbstständig als Kosmetikerin ist einer der zugänglichsten Wege in die Beauty-Selbstständigkeit: keine Meisterpflicht, überschaubare Behörden-Runde, Start ab rund 3.000-8.000 € über eine gemietete Kabine. Die Pflichten liegen woanders — Hygiene sauber dokumentieren, bei Geräte-Behandlungen die NiSV-Fachkunde nachweisen, Versicherungen und Altersvorsorge selbst regeln. Wer fachlich stark ist, klug kalkuliert und die Kabine im richtigen Salon mietet, arbeitet nach 6-12 Monaten profitabel — mit voller Freiheit über Preise, Termine und Behandlungskonzept.
 `.trim(),
   },
+  {
+    slug: 'stuhlmietvertrag-muster-checkliste',
+    title: 'Stuhlmietvertrag: Was reinmuss — Klauseln, rote Flaggen, Checkliste',
+    description: 'Welche Klauseln in einen Stuhlmietvertrag gehören, welche Formulierungen dich in die Scheinselbstständigkeit ziehen — und wie du in 2 Minuten einen sauberen Vertrag erstellst.',
+    publishedAt: '2026-07-05',
+    readMinutes: 8,
+    category: 'Recht & Verträge',
+    keywords: ['stuhlmietvertrag muster', 'stuhlmiete vertrag', 'mietvertrag friseurstuhl kostenlos', 'stuhlmietvertrag klauseln'],
+    faqs: [
+      { question: 'Ist ein mündlicher Stuhlmietvertrag gültig?', answer: 'Rechtlich ja — praktisch ein großes Risiko. Ohne schriftlichen Vertrag kannst du bei einer Prüfung der Deutschen Rentenversicherung kaum belegen, dass du echt selbstständig arbeitest (feste Miete, eigene Kunden, eigene Preise). Auch bei Streit über Kündigung oder Nebenkosten stehst du ohne Dokument schlecht da.' },
+      { question: 'Fixmiete oder Umsatzbeteiligung — was ist besser?', answer: 'Für die Abgrenzung zur Scheinselbstständigkeit ist eine feste Miete das klar sauberere Modell. Reine Umsatzbeteiligungen — vor allem über 30 % — ähneln wirtschaftlich einem Anstellungsverhältnis und werden von Prüfern kritisch gesehen. Wenn Umsatzanteil, dann als moderater Zusatz zu einer Basismiete.' },
+      { question: 'Wie lange sollte die Kündigungsfrist sein?', answer: 'Üblich und fair sind 2 bis 4 Wochen zum Monatsende in den ersten Monaten, danach 1 bis 2 Monate. Alles über 3 Monate bindet dich unnötig; achte auch darauf, dass die Frist für beide Seiten gleich lang ist.' },
+      { question: 'Wer haftet, wenn im gemieteten Bereich etwas passiert?', answer: 'Grundsatz: Jeder haftet für seinen Bereich. Du brauchst eine eigene Berufshaftpflicht für Behandlungsschäden an deinen Kund:innen; der Salon haftet für Gebäude und Verkehrssicherheit. Genau diese Trennung sollte im Vertrag stehen — inklusive Nachweispflicht deiner Versicherung.' },
+      { question: 'Gibt es ein kostenloses Muster für den Stuhlmietvertrag?', answer: 'Ja — der ChairMatch Vertrag-Generator erstellt dir in rund 2 Minuten einen Stuhlmietvertrag mit allen Pflicht-Klauseln (Mietgegenstand, Fixmiete, Laufzeit, Haftung, Hygiene), den du als PDF nutzen kannst. Er ist auf das Stuhlmiete-Modell zugeschnitten statt ein generisches Gewerbemiet-Muster.' },
+    ],
+    content: `
+## Warum der Vertrag wichtiger ist als der Preis
+
+Beim Stuhlmieten wird um 5 € Tagesmiete verhandelt — und dann ein Vertrag unterschrieben, der bei der ersten Prüfung der Deutschen Rentenversicherung 20.000 € Nachzahlung kostet. Die Reihenfolge ist falsch. Der Vertrag entscheidet über drei Dinge: ob du rechtlich **selbstständig** bist (oder scheinselbstständig), wer bei Schäden **haftet**, und wie schnell du wieder **rauskommst**, wenn der Salon nicht passt.
+
+Die gute Nachricht: Ein sauberer Stuhlmietvertrag ist kein Hexenwerk. Er braucht etwa zehn Klauseln — und muss vor allem widerspiegeln, wie ihr wirklich zusammenarbeitet.
+
+## Die Pflicht-Klauseln im Überblick
+
+| Klausel | Was drinstehen muss | Warum |
+|---|---|---|
+| Mietgegenstand | Konkreter Stuhl/Kabine/Raum, Mitnutzung (Rezeption, Wartebereich, Teeküche) | Klarheit bei Konflikten |
+| Mietzins | **Feste Miete** in € pro Tag/Woche/Monat | Kernabgrenzung zur Scheinselbstständigkeit |
+| Laufzeit & Kündigung | Beginn, Frist (2-4 Wochen bis 2 Monate), gleich für beide Seiten | Flexibilität sichern |
+| Nebenkosten | Strom, Wasser, WLAN, Reinigung — pauschal inklusive oder separat | Versteckte Kosten vermeiden |
+| Nutzung & Zeiten | Zugang, eigene Terminhoheit, ggf. Schlüssel | Eigene Zeiteinteilung = Selbstständigkeits-Indiz |
+| Material & Produkte | Eigenes Material des Mieters; optionale Produktnutzung gegen Entgelt | Eigenes Material = Selbstständigkeits-Indiz |
+| Haftung & Versicherung | Berufshaftpflicht des Mieters (Nachweis), Gebäudehaftung des Vermieters | Saubere Risikotrennung |
+| Hygiene | Wer reinigt was, Hygieneplan-Zuständigkeit für den Mietbereich | Gesundheitsamt-Anforderung |
+| Außenauftritt | Mieter tritt unter eigenem Namen auf (Schild, Karten, Social Media) | Wichtigstes Prüfkriterium |
+| Konkurrenz/Kundenschutz | Idealerweise: keine Kundenschutzklausel gegen den Mieter | Deine Kunden gehören dir |
+
+## Rote Flaggen: Diese Formulierungen solltest du nicht unterschreiben
+
+- **Umsatzbeteiligung über 30 %** oder reine Umsatzmiete ohne Fixanteil — wirtschaftlich ein verdecktes Anstellungsverhältnis.
+- **Weisungsrechte des Salons**: Vorgaben zu Arbeitszeiten, Preisen, Behandlungsablauf oder Kleidung. Jede dieser Vorgaben ist ein Scheinselbstständigkeits-Indiz.
+- **Anwesenheitspflichten** ("Der Mieter ist Mo-Sa von 9-18 Uhr anwesend") — du mietest einen Platz, keinen Dienstplan.
+- **Kundenschutzklauseln gegen dich**: "Kunden, die im Salon behandelt wurden, verbleiben beim Salon." Damit gehört dein Kundenstamm faktisch dem Vermieter.
+- **Pflicht zur Nutzung der Salon-Kasse oder des Salon-Buchungssystems** — deine Umsätze laufen über deine Kasse, deine Rechnungen, deine Buchhaltung.
+- **Einseitige Kündigungsfristen** (Salon: 1 Woche, du: 3 Monate).
+
+Mehr zum Hintergrund liest du im Artikel [Scheinselbstständigkeit bei Stuhlmiete vermeiden](/magazin/scheinselbststaendigkeit-stuhlmiete).
+
+## Checkliste vor der Unterschrift
+
+1. Fixmiete statt (hoher) Umsatzbeteiligung vereinbart?
+2. Kündigungsfrist unter 2 Monaten und für beide Seiten gleich?
+3. Nebenkosten abschließend geregelt (Strom, Wasser, Reinigung, WLAN)?
+4. Eigene Terminhoheit und eigene Preise ausdrücklich festgehalten?
+5. Eigenes Material und eigene Kasse vereinbart?
+6. Haftung getrennt + Berufshaftpflicht-Nachweis geregelt?
+7. Hygiene-Zuständigkeiten schriftlich verteilt?
+8. Kein Kundenschutz gegen dich, eigener Außenauftritt erlaubt?
+9. Zugang auch außerhalb der Salon-Öffnungszeiten geklärt (falls nötig)?
+10. Probemonat oder kurze Anfangslaufzeit vereinbart?
+
+## In 2 Minuten zum fertigen Vertrag
+
+Du musst das Rad nicht neu erfinden: Der kostenlose [ChairMatch Vertrag-Generator](/vertrag-generator) führt dich durch alle Punkte oben — Mietgegenstand, Fixmiete, Laufzeit, Haftung, Hygiene — und erstellt einen unterschriftsreifen Stuhlmietvertrag. Was er kostet, hängt vom Standort ab: Einen Überblick über faire Tagesmieten in deiner Stadt gibt der [Preisvergleich](/preisvergleich).
+
+## Fazit
+
+Ein guter Stuhlmietvertrag schützt beide Seiten: Der Salon bekommt planbare Mieteinnahmen, du bekommst rechtssichere Selbstständigkeit mit eigenem Kundenstamm. Die Formel ist immer gleich — feste Miete, eigene Kunden, eigene Preise, eigenes Material, freie Zeiten, faire Kündigung. Steht das alles drin und wird auch so gelebt, bist du auf der sicheren Seite.
+`.trim(),
+  },
+  {
+    slug: 'wie-viel-verdient-ein-barber',
+    title: 'Wie viel verdient ein Barber? Angestellt vs. selbstständig 2026',
+    description: 'Barber-Gehalt realistisch gerechnet: 2.200-2.800 € brutto angestellt vs. 2.500-4.500 € Gewinn mit Stuhlmiete. Drei Szenarien mit echten Zahlen.',
+    publishedAt: '2026-07-05',
+    readMinutes: 8,
+    category: 'Einkommen & Kalkulation',
+    keywords: ['wie viel verdient ein barber', 'barber gehalt', 'barbershop selbstständig verdienst', 'barber einkommen deutschland'],
+    faqs: [
+      { question: 'Was verdient ein angestellter Barber in Deutschland?', answer: 'Meist 2.200 bis 2.800 € brutto im Monat, in Großstädten mit Erfahrung bis ca. 3.200 €. Netto bleiben davon rund 1.550 bis 1.950 € — plus Trinkgeld, das je nach Laden 150 bis 400 € im Monat ausmachen kann.' },
+      { question: 'Was bleibt einem selbstständigen Barber mit Stuhlmiete?', answer: 'Realistisch 2.500 bis 4.500 € Gewinn vor Einkommensteuer — bei 5 Arbeitstagen, 8 bis 12 Cuts am Tag und Preisen von 25 bis 45 €. Nach Steuern und Krankenversicherung liegt das Netto in der Regel deutlich über dem Angestellten-Niveau.' },
+      { question: 'Wie viele Kunden braucht ein Barber pro Tag, um profitabel zu sein?', answer: 'Der Break-even liegt bei einer Tagesmiete von 30-45 € und einem Schnittpreis von 30 € bei nur 2-3 Kunden. Alles darüber ist Rohgewinn — deshalb ist die Auslastung der wichtigste Hebel, nicht der Preis.' },
+      { question: 'Braucht ein Barber einen Meisterbrief für die Selbstständigkeit?', answer: 'Das klassische Barbering bewegt sich im Friseurhandwerk (zulassungspflichtig). Wege ohne eigenen Meister: Altgesellenregelung nach § 7b HwO, ein angestellter Meister als Betriebsleiter oder eine Ausübungsberechtigung. Details im Artikel "Selbstständig als Friseur".' },
+      { question: 'Wie viel Trinkgeld bekommt ein Barber?', answer: 'In gut laufenden Shops sind 1-3 € pro Cut üblich, bei Stammkundschaft und Bart-Full-Service auch mehr. Selbstständige Barber mit eigenem Stamm berichten von 200 bis 500 € Trinkgeld im Monat — steuerlich gehört es bei Selbstständigen zum Umsatz.' },
+    ],
+    content: `
+## Die kurze Antwort
+
+Angestellt verdienst du als Barber in Deutschland **2.200 bis 2.800 € brutto** (netto ~1.550-1.950 €). Selbstständig mit gemietetem Stuhl liegen nach Abzug von Miete, Material und Versicherungen realistisch **2.500 bis 4.500 € Gewinn** pro Monat drin — mit Spezialisierung und Top-Lage auch mehr. Der Unterschied entsteht nicht durch Zauberei, sondern durch eine simple Rechnung: Als Angestellter erwirtschaftest du 8.000-12.000 € Umsatz im Monat und bekommst davon ein Viertel. Als Selbstständiger behältst du, was nach den Kosten übrig bleibt.
+
+## Was ein angestellter Barber bekommt
+
+- **Einstieg / wenig Erfahrung:** 2.000-2.300 € brutto
+- **2-5 Jahre Erfahrung:** 2.300-2.800 € brutto
+- **Senior / Großstadt / Shop-Leitung:** 2.800-3.400 € brutto
+- Plus Trinkgeld (150-400 €/Monat) — dafür: bezahlter Urlaub, Lohnfortzahlung, planbare Zeiten.
+
+## Die Selbstständigen-Rechnung mit Stuhlmiete
+
+Drei ehrliche Szenarien, jeweils 5 Arbeitstage pro Woche (~21 Tage/Monat), Stuhlmiete als Monatsmodell:
+
+| Posten | Konservativ | Realistisch | Top |
+|---|---:|---:|---:|
+| Kunden pro Tag | 6 | 9 | 12 |
+| Preis pro Cut (Ø inkl. Bart) | 28 € | 34 € | 42 € |
+| Monatsumsatz | ~3.530 € | ~6.430 € | ~10.580 € |
+| − Stuhlmiete | -650 € | -800 € | -1.100 € |
+| − Material & Pflegeprodukte | -180 € | -280 € | -400 € |
+| − Versicherungen (BHV, BGW) | -70 € | -70 € | -80 € |
+| − Buchungstool, Marketing, Sonstiges | -150 € | -250 € | -400 € |
+| **Gewinn vor Steuern & KV** | **~2.480 €** | **~5.030 €** | **~8.600 €** |
+
+Davon gehen noch Krankenversicherung (ca. 250-450 €) und Einkommensteuer-Rücklage (25-30 % des Gewinns) ab. Selbst im konservativen Szenario landest du netto ungefähr auf Angestellten-Niveau — **bei eigener Zeiteinteilung und eigenem Kundenstamm**. Im realistischen Szenario liegst du klar darüber.
+
+Rechne dein eigenes Szenario durch: Der [Freelancer-Rechner](/freelancer-rechner) vergleicht dein aktuelles Gehalt mit deinem Potenzial als Stuhl-Mieter — inklusive Steuern und Versicherungen.
+
+## Die vier Hebel für mehr Einkommen
+
+1. **Auslastung vor Preis:** Von 6 auf 9 Kunden pro Tag zu kommen bringt mehr als jede Preiserhöhung. Instagram mit Vorher/Nachher-Fades, Google-Business-Profil und Online-Buchung sind die Basis.
+2. **Bart als Marge-Booster:** Ein Cut+Beard-Kombi-Termin hebt den Durchschnittsbon von 28 auf 40+ € bei nur 15 Minuten Mehrzeit.
+3. **Standort-Arbitrage:** In Städten wie Dortmund oder Duisburg kostet der Stuhl 20-35 €/Tag, in München 55-90 €. Die Schnittpreise unterscheiden sich weniger stark als die Mieten — die Marge ist in günstigen Städten oft besser. Details im [Preisvergleich](/preisvergleich).
+4. **Stammkunden-Taktung:** Wer Kunden beim Verlassen direkt den nächsten Termin in 3-4 Wochen einbuchen lässt, glättet die Auslastung und macht Marketing fast überflüssig.
+
+## Aufbauphase: die ehrliche Einordnung
+
+Die Szenarien oben gelten **nach** der Aufbauphase. Plane 3-6 Monate ein, in denen du mit 3-5 Kunden am Tag startest — ideal mit einem flexiblen 2-3-Tage-Mietmodell, damit die Fixkosten klein bleiben, während der Stamm wächst. Ein Puffer von 2-3 Monatsausgaben auf dem Konto nimmt den Druck raus.
+
+## Fazit
+
+Ein Barber muss nicht bei 2.500 € brutto stehen bleiben. Mit gemietetem Stuhl, solider Auslastung und Bart-Upselling ist das Doppelte des Angestellten-Nettos ein realistisches, kein optimistisches Ziel. Der Einstieg kostet weniger als 1.500 € — und der [Vertrag-Generator](/vertrag-generator) sorgt dafür, dass die rechtliche Seite von Tag eins sauber ist.
+`.trim(),
+  },
+  {
+    slug: 'hygieneverordnung-beauty-selbststaendige',
+    title: 'Hygienevorschriften für Beauty-Selbstständige: Der Praxis-Guide',
+    description: 'Was das Gesundheitsamt wirklich prüft: Hygieneplan, Desinfektion, NiSV, anzeigepflichtige Tätigkeiten — und wer bei Stuhlmiete wofür verantwortlich ist.',
+    publishedAt: '2026-07-05',
+    readMinutes: 9,
+    category: 'Recht & Verträge',
+    keywords: ['hygieneverordnung kosmetik', 'hygieneplan friseur', 'gesundheitsamt kontrolle kosmetikstudio', 'hygienevorschriften nagelstudio'],
+    faqs: [
+      { question: 'Was prüft das Gesundheitsamt in einem Beauty-Studio?', answer: 'Typischerweise: den schriftlichen Hygieneplan, die Aufbereitung der Instrumente (Desinfektionsmittel mit VAH-Listung, Einwirkzeiten), Händehygiene und Spender, saubere Trennung von rein/unrein, Abfall-Entsorgung und bei Tätigkeiten mit Verletzungsgefahr (PMU, Microblading) die Sterilisation und Dokumentation.' },
+      { question: 'Brauche ich als Stuhl-Mieter einen eigenen Hygieneplan?', answer: 'Ja — für deinen Arbeitsbereich und deine Instrumente bist du selbst verantwortlich. Sinnvoll ist eine schriftliche Aufteilung im Mietvertrag: Der Salon übernimmt Flächen und Sanitär, du übernimmst deinen Platz, deine Werkzeuge und deine Behandlungshygiene.' },
+      { question: 'Ist Permanent Make-up anzeigepflichtig?', answer: 'Ja. PMU und Microblading fallen unter die Hygieneanforderungen für Tätigkeiten, bei denen die Haut verletzt wird — in den meisten Bundesländern musst du die Tätigkeit dem Gesundheitsamt anzeigen und deutlich strengere Anforderungen erfüllen (sterile Instrumente, Dokumentation, teils spezielle Räume).' },
+      { question: 'Was ist die NiSV und wen betrifft sie?', answer: 'Die Verordnung zum Schutz vor nichtionisierender Strahlung regelt apparative Verfahren: Laser- und IPL-Haarentfernung, Ultraschall, Radiofrequenz, EMS. Wer solche Geräte anwendet, braucht eine nachgewiesene Fachkunde (zertifizierte Schulung); Laser-Anwendungen zur Tattoo-Entfernung sind Ärzt:innen vorbehalten.' },
+      { question: 'Welche Desinfektionsmittel sind vorgeschrieben?', answer: 'Es gibt keine Marken-Vorschrift, aber die Mittel sollten VAH-gelistet sein (Verbund für Angewandte Hygiene) und entsprechend der Einwirkzeit angewendet werden. Für Instrumente in der Kosmetik und im Nagelbereich sind bakterizide, fungizide und begrenzt viruzide Mittel Standard.' },
+    ],
+    content: `
+## Warum Hygiene dein Geschäftsrisiko Nummer 1 ist
+
+Eine Gesundheitsamt-Kontrolle kommt unangekündigt — und wer dann keinen Hygieneplan vorlegen kann, riskiert Auflagen, Bußgelder und im Extremfall die Untersagung der Tätigkeit. Gleichzeitig ist Hygiene das am einfachsten zu erfüllende Behörden-Thema der Branche: Die Anforderungen sind bekannt, dokumentierbar und mit 1-2 Stunden Vorbereitung dauerhaft im Griff.
+
+Rechtsgrundlage sind das Infektionsschutzgesetz und die **Hygieneverordnungen der Bundesländer** — die Details unterscheiden sich leicht je nach Land, die Prinzipien sind überall gleich.
+
+## Anforderungen nach Tätigkeit
+
+| Tätigkeit | Risiko-Stufe | Kernanforderungen |
+|---|---|---|
+| Friseur / Barber | Basis | Werkzeug-Desinfektion nach jedem Kunden, saubere Umhänge, Händehygiene; bei versehentlicher Verletzung (Rasur!) Desinfektion + Dokumentation |
+| Kosmetik (nicht-invasiv) | Basis+ | Hygieneplan, Instrumenten-Aufbereitung (VAH), Einmalartikel wo möglich, Liegen-Desinfektion pro Kundin |
+| Nageldesign | Mittel | Zusätzlich: Staub-Absaugung, Fräser-Aufbereitung, Schutz vor Aerosolen |
+| Lash & Brows | Mittel | Augen-Nähe: sterile Einmal-Applikatoren, Pinzetten-Desinfektion, Allergie-Aufklärung |
+| PMU / Microblading | Hoch — anzeigepflichtig | Anzeige beim Gesundheitsamt, sterile Einmal-Module, Sterilgut-Dokumentation, Verbandbuch, teils Raum-Anforderungen |
+| Apparative Kosmetik (Laser/IPL/RF/US) | NiSV | Fachkunde-Zertifikat Pflicht, Geräte-Einweisung dokumentiert, teils Arztvorbehalt |
+
+## Der Hygieneplan: So baust du ihn auf
+
+Ein Hygieneplan ist eine simple Tabelle mit fünf Spalten: **Was** (Fläche/Instrument) — **Womit** (Mittel, VAH-gelistet) — **Wie** (Konzentration, Einwirkzeit) — **Wann** (nach jedem Kunden / täglich / wöchentlich) — **Wer**. Er hängt sichtbar am Arbeitsplatz oder liegt griffbereit.
+
+Typische Positionen:
+
+1. Hände: Desinfektion vor/nach jeder Behandlung, Spender am Platz
+2. Instrumente (Scheren, Pinzetten, Fräser): Reinigung → Desinfektion (Tauchbad/Gerät) → trockene, staubgeschützte Lagerung
+3. Flächen (Stuhl, Liege, Ablagen): nach jedem Kunden wischdesinfizieren
+4. Textilien (Handtücher, Umhänge): pro Kunde frisch, Wäsche bei mind. 60 °C
+5. Abfall: geschlossene Behälter, bei spitzen Gegenständen durchstichsichere Boxen
+
+## Stuhlmiete: Wer ist wofür verantwortlich?
+
+Bei gemieteten Plätzen gilt die Faustregel: **Der Salon verantwortet das Gebäude, du verantwortest deine Behandlung.** Konkret heißt das — und so sollte es auch im [Stuhlmietvertrag](/magazin/stuhlmietvertrag-muster-checkliste) stehen:
+
+- **Vermieter:** Sanitäranlagen, Fußböden, Lüftung, Wartebereich, ggf. zentrale Wäsche
+- **Mieter:** eigener Hygieneplan für den Platz, eigene Instrumente und deren Aufbereitung, Flächendesinfektion des Arbeitsplatzes, eigene Einmalartikel, bei PMU/apparativer Kosmetik sämtliche Sondernachweise
+
+Das Gesundheitsamt prüft im Zweifel beide — eine schriftliche Aufgabenteilung schützt dich davor, für fremde Versäumnisse einzustehen.
+
+## Checkliste: In 7 Schritten kontrollbereit
+
+1. Hygieneplan schriftlich erstellen (Vorlage der BGW oder deiner Innung nutzen)
+2. Desinfektionsmittel auf VAH-Listung prüfen, Einwirkzeiten notieren
+3. Instrumenten-Aufbereitung als fester Ablauf nach jedem Kunden
+4. Einmalartikel-Vorrat (Handschuhe, Applikatoren, Unterlagen) anlegen
+5. Bei PMU/Microblading: Tätigkeit dem Gesundheitsamt anzeigen
+6. Bei Laser/IPL/RF: NiSV-Fachkunde-Zertifikat erwerben und bereithalten
+7. Zuständigkeiten mit dem Vermieter schriftlich fixieren
+
+## Fazit
+
+Hygiene ist in der Beauty-Selbstständigkeit kein Bürokratie-Monster, sondern ein einmalig aufgesetztes System: Plan schreiben, Mittel richtig wählen, Abläufe standardisieren, Zuständigkeiten im Mietvertrag klären. Wer diese Basics lebt, übersteht jede Kontrolle entspannt — und nutzt sichtbare Hygiene ganz nebenbei als Vertrauenssignal gegenüber der Kundschaft.
+`.trim(),
+  },
+  {
+    slug: 'wie-viel-verdient-eine-lash-stylistin',
+    title: 'Lash-Stylistin: Einkommen, Preise und der Weg in die Selbstständigkeit',
+    description: 'Was Lash-Stylistinnen wirklich verdienen: Preisspannen für Neuset und Refill, Materialkosten, Platz-Miete und eine ehrliche Monatsrechnung für die Selbstständigkeit.',
+    publishedAt: '2026-07-05',
+    readMinutes: 8,
+    category: 'Einkommen & Kalkulation',
+    keywords: ['lash stylistin verdienst', 'wimpernstylistin selbstständig', 'lash extensions preise', 'lash stylistin werden'],
+    faqs: [
+      { question: 'Was kostet ein Lash-Neuset und ein Refill?', answer: 'Neusets liegen je nach Technik und Stadt bei 80-180 € (Classic am unteren, Volume/Mega am oberen Ende), Refills bei 45-90 €. In Großstädten und bei etablierten Stylistinnen sind auch höhere Preise durchsetzbar.' },
+      { question: 'Wie viel verdient eine selbstständige Lash-Stylistin im Monat?', answer: 'Mit gemietetem Platz, 4-5 Arbeitstagen und 3-4 Terminen pro Tag sind nach Miete und Material realistisch 2.200-3.800 € Gewinn vor Steuern drin. Entscheidend ist die Refill-Quote: Stammkundinnen im 3-Wochen-Zyklus machen das Einkommen planbar.' },
+      { question: 'Braucht man eine Ausbildung, um Lash-Stylistin zu werden?', answer: 'Es gibt keine staatlich vorgeschriebene Ausbildung und keine Meisterpflicht — aber ohne fundierte zertifizierte Schulung (Classic, dann Volume) bekommst du weder Versicherungsschutz zu guten Konditionen noch überzeugende Ergebnisse. Plane 500-2.000 € für gute Schulungen ein.' },
+      { question: 'Wie hoch sind die Materialkosten pro Behandlung?', answer: 'Pro Neuset etwa 8-15 € (Lashes, Kleber, Pads, Primer), pro Refill 5-10 €. Hochwertiger Kleber ist der kritischste Posten — er hält 4-6 Wochen nach Anbruch und kostet 20-40 € pro Fläschchen.' },
+      { question: 'Was ist das größte Risiko im Lash-Business?', answer: 'Kleber-Allergien der Kundinnen (Aufklärung + ggf. Patch-Test dokumentieren!) und eigene Sensibilisierung durch Dämpfe — gute Belüftung ist Pflicht. Versicherungsseitig brauchst du eine Berufshaftpflicht, die Wimpernverlängerung explizit einschließt.' },
+    ],
+    content: `
+## Der Markt: klein gestartet, stark gewachsen
+
+Lash Extensions sind in zehn Jahren vom Nischen-Trend zum festen Beauty-Ritual geworden — mit einem entscheidenden Geschäftsvorteil gegenüber vielen anderen Behandlungen: dem **Refill-Zyklus**. Wimpernverlängerungen müssen alle 2-4 Wochen aufgefüllt werden. Eine Stylistin mit 40 Stammkundinnen hat damit automatisch 50-70 planbare Termine pro Monat, ohne einen Cent in Neukunden-Marketing zu stecken. Genau diese Wiederkehr macht das Modell so gut mit Platz-Miete kombinierbar.
+
+## Preise: Was du verlangen kannst
+
+| Leistung | Zeitbedarf | Preisspanne |
+|---|---|---:|
+| Classic Neuset (1:1) | 90-120 Min | 80-120 € |
+| Hybrid Neuset | 100-130 Min | 100-140 € |
+| Volume / Mega Neuset | 120-180 Min | 120-180 € |
+| Refill (bis 3 Wochen) | 60-90 Min | 45-90 € |
+| Lash Lifting | 45-60 Min | 45-75 € |
+| Browlifting + Färben | 45-60 Min | 40-70 € |
+
+Brows als Zusatzleistung lohnen sich doppelt: gleiche Kundin, gleicher Termin, 40-70 € mehr Umsatz bei unter einer Stunde Mehrzeit.
+
+## Die Monatsrechnung: selbstständig mit gemietetem Platz
+
+Szenario nach der Aufbauphase — 4,5 Arbeitstage/Woche, Mix aus Neusets, Refills und Lifting (~70 Termine/Monat, Ø 68 €):
+
+| Posten | Monat |
+|---|---:|
+| Umsatz Behandlungen | +4.760 € |
+| − Platz-Miete (Monatsmodell) | -600 € |
+| − Material (Lashes, Kleber, Pads) | -520 € |
+| − Versicherungen (BHV inkl. Lash, BGW) | -65 € |
+| − Buchungstool, Instagram-Ads, Sonstiges | -250 € |
+| **Gewinn vor Steuern & KV** | **~3.325 €** |
+
+In der Aufbauphase (Monat 1-6) halbieren sich Termine und Gewinn ungefähr — starte deshalb mit einem 2-3-Tage-Mietmodell und skaliere hoch, sobald der Refill-Stamm trägt. Ob sich der Schritt für dich rechnet, zeigt dir der [Freelancer-Rechner](/freelancer-rechner) mit deinen eigenen Zahlen.
+
+## Der Weg hinein: Ausbildung, Anmeldung, Platz
+
+1. **Schulung:** Zertifizierter Classic-Kurs (2-3 Tage, 500-1.200 €), nach 3-6 Monaten Praxis der Volume-Kurs. Übungsmodelle einplanen — die ersten 20-30 Sets sind Lernarbeit.
+2. **Gewerbe anmelden:** Wimpernstylistin ist zulassungsfrei — keine Meisterpflicht, einfache Anmeldung (20-60 €). Es gelten die üblichen [Hygienevorschriften](/magazin/hygieneverordnung-beauty-selbststaendige); bei Augen-Nähe zählt saubere Arbeit doppelt.
+3. **Versicherung:** Berufshaftpflicht, die Lash-Behandlungen ausdrücklich einschließt (10-25 €/Monat), plus BGW-Anmeldung.
+4. **Platz mieten statt Studio gründen:** Eine Kabine oder ein Lash-Platz in einem bestehenden Salon kostet 25-65 €/Tag je nach Stadt — bei täglicher Kündbarkeit statt 5-Jahres-Gewerbemietvertrag. Der schriftliche [Mietvertrag](/vertrag-generator) regelt Miete, Hygiene und Haftung.
+5. **Instagram als Hauptkanal:** Lash-Kundinnen buchen über Bilder. Konsistente Vorher/Nachher-Posts, Reels vom Mapping und ein Booking-Link in der Bio ersetzen am Anfang jedes andere Marketing.
+
+## Risiken, die du kennen musst
+
+- **Kleber-Allergien:** Kundinnen aufklären, Unverträglichkeiten dokumentieren, im Zweifel Patch-Test. Eine allergische Reaktion ohne Aufklärung ist ein Haftungsfall.
+- **Eigene Gesundheit:** Cyanacrylat-Dämpfe können Stylistinnen sensibilisieren — gute Belüftung und ggf. Absaugung schützen deine Berufsfähigkeit.
+- **Preisdumping-Falle:** 60-€-Neusets füllen den Kalender und ruinieren die Marge. Rechne rückwärts: Unter ~55 € Stundensatz trägt das Modell keine Selbstständigkeit.
+
+## Fazit
+
+Lash-Styling ist einer der planbarsten Beauty-Berufe für die Selbstständigkeit: kein Meisterzwang, überschaubare Startkosten (unter 3.000 € inklusive Schulung) und ein Geschäftsmodell, das durch Refill-Zyklen von selbst wiederkehrt. Wer sauber arbeitet, seine Preise verteidigt und den Platz im richtigen Salon mietet, erreicht nach 6-12 Monaten ein Einkommen, das deutlich über dem angestellten Kosmetik-Gehalt liegt.
+`.trim(),
+  },
 ]
 
 export function getMagazinArtikel(slug: string): MagazinArtikel | undefined {

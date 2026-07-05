@@ -9,6 +9,7 @@
  */
 
 import Link from 'next/link'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
 const VERTICAL_LINKS = [
   { slug: 'barbershop-deutschland', label: 'Barbershop' },
@@ -18,13 +19,9 @@ const VERTICAL_LINKS = [
   { slug: 'lash-brows-deutschland', label: 'Lash & Brows' },
 ]
 
-const CITY_LINKS = [
-  { slug: 'berlin', label: 'Berlin' },
-  { slug: 'hamburg', label: 'Hamburg' },
-  { slug: 'muenchen', label: 'München' },
-  { slug: 'koeln', label: 'Köln' },
-  { slug: 'frankfurt', label: 'Frankfurt' },
-]
+// Alle SEO-Städte aus der zentralen Datenquelle — hartcodiert war nur Phase 1,
+// neue Städte bekamen sonst keine internen Links (PageRank-Verteilung).
+const CITY_LINKS = PHASE_1_CITIES.map((c) => ({ slug: c.slug, label: c.name }))
 
 const PILLAR_LINKS = [
   { href: '/was-ist-chairmatch', label: 'Was ist ChairMatch?' },
@@ -32,6 +29,10 @@ const PILLAR_LINKS = [
   { href: '/anbieter/wie-es-funktioniert', label: 'Für Anbieter' },
   { href: '/mieter/wie-es-funktioniert', label: 'Für Mieter' },
   { href: '/freelancer-rechner', label: 'Freelancer-Rechner' },
+  { href: '/preisvergleich', label: 'Preisvergleich' },
+  { href: '/vertrag-generator', label: 'Vertrag-Generator' },
+  { href: '/karte', label: 'Stuhl-Karte' },
+  { href: '/match', label: 'Match-Finder' },
   { href: '/faq', label: 'FAQ' },
   { href: '/magazin', label: 'Magazin' },
   { href: '/empfehlungen', label: 'Top-Salons' },

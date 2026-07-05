@@ -376,6 +376,7 @@ export function slugToCity(slug: string): string {
     koeln: 'Köln',
     duesseldorf: 'Düsseldorf',
     nuernberg: 'Nürnberg',
+    muenster: 'Münster',
   }
   return map[slug] || slug.charAt(0).toUpperCase() + slug.slice(1)
 }

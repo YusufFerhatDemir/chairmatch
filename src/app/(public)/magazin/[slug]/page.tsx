@@ -12,6 +12,11 @@ export async function generateStaticParams() {
   return MAGAZIN_ARTIKEL.map((a) => ({ slug: a.slug }))
 }
 
+// Alle gültigen Slugs sind zur Build-Zeit bekannt → unbekannte Slugs bekommen
+// einen ECHTEN 404-Status. Ohne dies streamte Next bei on-demand-Rendern
+// bereits 200, bevor notFound() griff (Soft-404, nur noindex-Meta).
+export const dynamicParams = false
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const a = getMagazinArtikel(slug)
@@ -59,6 +64,9 @@ function renderMarkdown(md: string): { __html: string } {
   // Headings
   html = html.replace(/^## (.+)$/gm, '<h2 class="cinzel" style="font-size:22px;color:var(--gold2);margin:28px 0 12px;font-weight:600">$1</h2>')
   html = html.replace(/^### (.+)$/gm, '<h3 style="font-size:16px;color:var(--cream);margin:20px 0 8px;font-weight:700">$1</h3>')
+
+  // Interne Links [Text](/pfad) — nur relative URLs, keine externen
+  html = html.replace(/\[([^\]]+)\]\((\/[^)\s]*)\)/g, '<a href="$2" style="color:var(--gold2);text-decoration:underline">$1</a>')
 
   // Bold
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--cream)">$1</strong>')
@@ -139,6 +147,19 @@ export default async function MagazinArticlePage({ params }: Props) {
         </p>
 
         <div dangerouslySetInnerHTML={renderMarkdown(a.content)} />
+
+        {/* Autor-Box — sichtbares E-E-A-T-Signal, ergänzt den author im Article-Schema */}
+        <aside style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'var(--c2)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', margin: '32px 0 0' }}>
+          <div aria-hidden="true" style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, color: '#1a1a2e', background: 'linear-gradient(135deg, var(--gold), var(--gold2))' }}>YD</div>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--cream)', margin: 0 }}>Yusuf Ferhat Demir</p>
+            <p style={{ fontSize: 12, color: 'var(--stone)', margin: '2px 0 0', lineHeight: 1.5 }}>
+              Gründer von ChairMatch. Baut Deutschlands Marktplatz für Stuhlmiete &
+              Beauty-Workspace — und schreibt hier über Selbstständigkeit in der
+              Beauty-Branche. <Link href="/was-ist-chairmatch" style={{ color: 'var(--gold2)' }}>Mehr über ChairMatch</Link>
+            </p>
+          </div>
+        </aside>
 
         <FAQ items={a.faqs} title="Häufige Fragen zum Thema" />
 
