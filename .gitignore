@@ -18,6 +18,8 @@ CLAUDE_CODE_MASTER_PROMPT.md
 vite.config.d.ts
 vite.config.js
 .playwright-mcp/
+playwright-report/
+test-results/
 # Test screenshots
 /*.png
 
