@@ -4,9 +4,11 @@
  */
 
 import type { Metadata } from 'next'
-import { breadcrumbSchema, type FaqItem } from '@/lib/seo'
+import Link from 'next/link'
+import type { FaqItem } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { CalculatorClient } from './CalculatorClient'
 
 // GEO/SEO: natürlichsprachliche, zitierbare Antworten rund um den Rechner —
@@ -40,29 +42,52 @@ const RECHNER_FAQS: FaqItem[] = [
 
 export const metadata: Metadata = {
   title: 'Freelancer-Rechner: Wie viel verdienst du als selbstständiger Friseur? | ChairMatch',
-  description: 'Vergleiche dein Brutto-Gehalt als Angestellte(r) mit deinem realistischen Einkommen als Stuhl-Mieter. Mit Steuern, Versicherungen, allen Kosten.',
+  description: 'Freelancer-Rechner: Vergleiche dein Gehalt als Angestellte(r) mit deinem Einkommen als Stuhl-Mieter — mit Steuern, Versicherungen und Stuhlmiete. Kostenlos.',
   keywords: 'freelancer friseur einkommen, selbstständig verdienst rechner, stuhl miete gehalt vergleich, beauty selbstständig kalkulation',
   alternates: { canonical: 'https://www.chairmatch.de/freelancer-rechner' },
   openGraph: {
     title: 'Freelancer-Rechner: Selbstständig vs. Angestellt',
     description: 'Realistischer Einkommens-Vergleich für Beauty-Profis.',
     url: 'https://www.chairmatch.de/freelancer-rechner',
+    type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Freelancer-Rechner' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Freelancer-Rechner: Selbstständig vs. Angestellt | ChairMatch',
+    description: 'Realistischer Einkommens-Vergleich für Beauty-Profis — mit Steuern, Versicherungen, Stuhlmiete.',
+    images: ['/og-image.png'],
+  },
+}
+
+// WebApplication-Schema: der Rechner ist ein kostenloses Web-Tool —
+// stärkt Sichtbarkeit als Tool-Ergebnis in Google & AI-Engines.
+const APP_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  '@id': 'https://www.chairmatch.de/freelancer-rechner#app',
+  name: 'ChairMatch Freelancer-Rechner',
+  url: 'https://www.chairmatch.de/freelancer-rechner',
+  applicationCategory: 'FinanceApplication',
+  operatingSystem: 'Web',
+  inLanguage: 'de-DE',
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+  provider: { '@id': 'https://www.chairmatch.de/#organization' },
+  description: 'Kostenloser Rechner: Einkommen als selbstständiger Beauty-Profi mit Stuhlmiete vs. Festanstellung — inkl. Steuern, Versicherungen und Miete.',
 }
 
 export default function CalculatorPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        {/* BreadcrumbList-Schema kommt aus der <Breadcrumbs>-Komponente — hier bewusst kein zweites. */}
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: 'Freelancer-Rechner', url: '/freelancer-rechner' },
-          ])) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(APP_SCHEMA) }}
         />
 
         <Breadcrumbs items={[{ name: 'Freelancer-Rechner', url: '/freelancer-rechner' }]} />
@@ -78,6 +103,18 @@ export default function CalculatorPage() {
         <CalculatorClient />
 
         <FAQ items={RECHNER_FAQS} title="Häufige Fragen zum Einkommen als Stuhl-Mieter" />
+
+        {/* Interne Verlinkung: Stadt-Hubs (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Stuhlmiete in deiner Stadt:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {PHASE_1_CITIES.filter((c) => c.phase <= 2).map((c) => (
+              <Link key={c.slug} href={`/${c.slug}`} style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>
+                Stuhlmiete {c.name}
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   )

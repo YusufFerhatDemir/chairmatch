@@ -116,6 +116,7 @@ export interface SalonSchemaInput {
   name: string
   slug: string
   description?: string | null
+  // Salon-Kategorie (barber, friseur, …) → spezifischer @type via SALON_CATEGORY_TYPE_MAP
   category?: string | null
   street?: string | null
   postal_code?: string | null
@@ -131,11 +132,29 @@ export interface SalonSchemaInput {
   longitude?: number | null
 }
 
+// Kategorie → spezifischer schema.org-Typ (ehem. in components/SchemaOrg.tsx).
+// Unbekannte/fehlende Kategorie fällt auf generisches LocalBusiness zurück.
+const SALON_CATEGORY_TYPE_MAP: Record<string, string> = {
+  barber: 'BarberShop',
+  friseur: 'HairSalon',
+  kosmetik: 'BeautySalon',
+  aesthetik: 'BeautySalon',
+  lash: 'BeautySalon',
+  nail: 'NailSalon',
+  massage: 'DaySpa',
+  arzt: 'MedicalClinic',
+  opraum: 'MedicalClinic',
+  // Vertical-Slugs (seo-data/verticals.ts) — DB-Kategorien der SEO-Routen
+  barbershop: 'BarberShop',
+  nagelstudio: 'NailSalon',
+  'lash-brows': 'BeautySalon',
+}
+
 export function salonSchema(salon: SalonSchemaInput) {
   const url = `https://www.chairmatch.de/salon/${salon.slug}`
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
+    '@type': (salon.category && SALON_CATEGORY_TYPE_MAP[salon.category]) || 'LocalBusiness',
     '@id': `${url}#localbusiness`,
     name: salon.name,
     url,
@@ -158,6 +177,8 @@ export function salonSchema(salon: SalonSchemaInput) {
       latitude: salon.latitude,
       longitude: salon.longitude,
     }
+    // Google-Maps-Link als hasMap — stärkt das Lokal-Signal der Entität
+    schema.hasMap = `https://www.google.com/maps/search/?api=1&query=${salon.latitude},${salon.longitude}`
   }
 
   if (salon.phone) {
@@ -261,22 +282,101 @@ export function faqSchema(items: FaqItem[]) {
   }
 }
 
-/** ServiceArea-Schema für Stadt-Hubs (kein physischer Standort) */
-export function serviceAreaSchema(city: string, vertical?: string) {
-  return {
+/**
+ * Geo-Input für Stadt-bezogene Schemas & Meta-Tags.
+ * Kompatibel mit CityData aus seo-data/cities.ts — einfach die Stadt durchreichen.
+ */
+export interface CityGeoInput {
+  name: string
+  state?: string
+  lat?: number
+  lng?: number
+  regionCode?: string
+  wikipedia?: string
+}
+
+/**
+ * Schema.org-City-Node mit GeoCoordinates + Wikipedia-sameAs.
+ * Als areaServed in Service-Schemas einsetzen — die Koordinaten und die
+ * Entity-Verknüpfung sind das stärkste Lokal-Signal für Google & AI-Engines.
+ */
+export function cityPlace(city: CityGeoInput) {
+  const node: Record<string, unknown> = {
+    '@type': 'City',
+    name: city.name,
+    containedInPlace: city.state
+      ? {
+          '@type': 'State',
+          name: city.state,
+          containedInPlace: { '@type': 'Country', name: 'Germany' },
+        }
+      : { '@type': 'Country', name: 'Germany' },
+  }
+  if (city.lat && city.lng) {
+    node.geo = { '@type': 'GeoCoordinates', latitude: city.lat, longitude: city.lng }
+  }
+  if (city.wikipedia) node.sameAs = city.wikipedia
+  return node
+}
+
+/**
+ * Klassische Geo-Meta-Tags (geo.region, geo.placename, geo.position, ICBM)
+ * für generateMetadata() → `other`. Kein Ranking-Wunder, aber ein
+ * konsistentes Lokalisierungs-Signal für regionale Suche & Verzeichnisse.
+ */
+export function geoMeta(city: CityGeoInput): Record<string, string> {
+  const meta: Record<string, string> = { 'geo.placename': city.name }
+  if (city.regionCode) meta['geo.region'] = city.regionCode
+  if (city.lat && city.lng) {
+    meta['geo.position'] = `${city.lat};${city.lng}`
+    meta['ICBM'] = `${city.lat}, ${city.lng}`
+  }
+  return meta
+}
+
+/** Preis-Spanne wie "45-75 €/Tag" → { low: '45', high: '75' } (fail-soft) */
+export function parsePriceRange(range: string): { low: string; high: string } | null {
+  const m = range.match(/(\d+)\s*[–-]\s*(\d+)/)
+  if (!m) return null
+  return { low: m[1], high: m[2] }
+}
+
+/**
+ * ServiceArea-Schema für Stadt-Hubs (kein physischer Standort).
+ * Akzeptiert weiterhin einen reinen String ("Deutschland" auf der Homepage);
+ * mit CityGeoInput kommen GeoCoordinates, Bundesland und Wikipedia-Entity dazu.
+ * priceRangePerDay (z.B. "45-75 €/Tag") ergänzt ein AggregateOffer.
+ */
+export function serviceAreaSchema(
+  city: string | CityGeoInput,
+  vertical?: string,
+  priceRangePerDay?: string,
+) {
+  const cityInput: CityGeoInput = typeof city === 'string' ? { name: city } : city
+  const isCountry = cityInput.name === 'Deutschland'
+  const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: vertical
-      ? `${vertical} Workspace mieten in ${city}`
-      : `Beauty Workspace mieten in ${city}`,
+      ? `${vertical} Workspace mieten in ${cityInput.name}`
+      : `Beauty Workspace mieten in ${cityInput.name}`,
     provider: { '@id': 'https://www.chairmatch.de/#organization' },
-    areaServed: {
-      '@type': 'City',
-      name: city,
-      containedInPlace: { '@type': 'Country', name: 'Germany' },
-    },
+    areaServed: isCountry
+      ? { '@type': 'Country', name: 'Germany' }
+      : cityPlace(cityInput),
     serviceType: 'Workspace Rental',
   }
+  const price = priceRangePerDay ? parsePriceRange(priceRangePerDay) : null
+  if (price) {
+    schema.offers = {
+      '@type': 'AggregateOffer',
+      priceCurrency: 'EUR',
+      lowPrice: price.low,
+      highPrice: price.high,
+      unitText: 'DAY',
+    }
+  }
+  return schema
 }
 
 /**

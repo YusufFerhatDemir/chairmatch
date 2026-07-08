@@ -5,7 +5,8 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import SalonDetailClient from '@/components/SalonDetailClient'
 import { PROVS } from '@/lib/demo-data'
-import { salonSchema } from '@/lib/seo'
+import { salonSchema, geoMeta, cityToSlug } from '@/lib/seo'
+import { getCityBySlug } from '@/lib/seo-data/cities'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -39,6 +40,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .maybeSingle()
 
     if (salon) {
+      // Klassische Geo-Meta-Tags (geo.placename, geo.position, ICBM, geo.region).
+      // Salons haben (noch) keine eigenen Koordinaten in der DB — als
+      // Lokal-Signal dienen die Stadtzentrum-Koordinaten aus cities.ts.
+      const cityData = salon.city ? getCityBySlug(cityToSlug(salon.city)) : undefined
+
       return {
         title: `${salon.name} — ${salon.city || 'Deutschland'}`,
         description: `${salon.description || salon.name}. ★ ${salon.avg_rating} (${salon.review_count} Bewertungen). Jetzt Termin buchen.`,
@@ -49,6 +55,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: `https://www.chairmatch.de/salon/${slug}`,
           type: 'website',
         },
+        ...(salon.city
+          ? {
+              other: geoMeta({
+                name: salon.city,
+                lat: cityData?.lat,
+                lng: cityData?.lng,
+                regionCode: cityData?.regionCode,
+              }),
+            }
+          : {}),
       }
     }
   } catch {}

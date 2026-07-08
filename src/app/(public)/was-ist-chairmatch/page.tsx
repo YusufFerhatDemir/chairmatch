@@ -6,13 +6,14 @@
  */
 
 import type { Metadata } from 'next'
-import { breadcrumbSchema, faqSchema } from '@/lib/seo'
+import Link from 'next/link'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
 export const metadata: Metadata = {
   title: 'Was ist ChairMatch? — Deutschlands Marketplace für Beauty-Workspace-Sharing',
-  description: 'ChairMatch ist eine B2B-Plattform für die tageweise Vermietung von Stühlen, Liegen, Kabinen und Räumen an Beauty-, Barber- und Ästhetik-Freelancer in Deutschland. Gegründet 2026.',
+  description: 'ChairMatch ist Deutschlands B2B-Marketplace: Friseurstühle, Kabinen & Räume tageweise mieten und vermieten. Verifiziert, Stripe-gesichert, 0 % für Mieter.',
   keywords: 'chairmatch, beauty workspace sharing, chair rental deutschland, salonplatz mieten, friseurstuhl vermieten, was ist chairmatch',
   alternates: { canonical: 'https://www.chairmatch.de/was-ist-chairmatch' },
   openGraph: {
@@ -22,6 +23,13 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Beauty-Workspace-Sharing' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Was ist ChairMatch?',
+    description: 'Deutschlands Marketplace für Beauty-Workspace-Sharing — Stühle, Liegen, Kabinen tageweise.',
+    images: ['/og-image.png'],
   },
 }
 
@@ -64,19 +72,7 @@ export default function WasIstChairMatchPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: 'Was ist ChairMatch?', url: '/was-ist-chairmatch' },
-          ])) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }}
-        />
+        {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
 
         <Breadcrumbs items={[{ name: 'Was ist ChairMatch?', url: '/was-ist-chairmatch' }]} />
 
@@ -182,6 +178,25 @@ export default function WasIstChairMatchPage() {
 
         {/* FAQ */}
         <FAQ items={FAQS} title="Häufige Fragen zu ChairMatch" />
+
+        {/* Interne Verlinkung: Rollen-Seiten + Stadt-Hubs (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>So funktioniert ChairMatch:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+            <Link href="/mieter/wie-es-funktioniert" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Stuhl mieten</Link>
+            <Link href="/vermieter/wie-es-funktioniert" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Vermieter werden</Link>
+            <Link href="/provisionsmodell" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Provisionsmodell</Link>
+            <Link href="/preisvergleich" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Preisvergleich</Link>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Stuhlmiete in deiner Stadt:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {PHASE_1_CITIES.filter((c) => c.phase <= 2).map((c) => (
+              <Link key={c.slug} href={`/${c.slug}`} style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>
+                Stuhlmiete {c.name}
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   )

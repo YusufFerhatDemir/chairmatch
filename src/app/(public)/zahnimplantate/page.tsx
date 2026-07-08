@@ -10,22 +10,42 @@ import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
-import { breadcrumbSchema, faqSchema } from '@/lib/seo'
 
 export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Zahnimplantate Deutschland — Kosten, All-on-4, Veneers | ChairMatch',
-  description: 'Verifizierte Zahnkliniken für Implantate, All-on-4, Veneers und Invisalign. Realistische Preise ab 1.490 € pro Implantat. Erstberatung kostenlos.',
+  description: 'Zahnimplantate in Deutschland: verifizierte Kliniken für Implantate, All-on-4, Veneers & Invisalign. Preise ab 1.490 € pro Implantat, Erstberatung kostenlos.',
   keywords: 'zahnimplantat kosten, all-on-4, veneers, zahnersatz, invisalign, zahnklinik deutschland, implantologie',
   alternates: { canonical: 'https://www.chairmatch.de/zahnimplantate' },
   openGraph: {
     title: 'Zahnimplantate — Verifizierte Kliniken in Deutschland',
     description: 'Implantate, All-on-4, Veneers, Invisalign — verifizierte Preise + Kliniken.',
     url: 'https://www.chairmatch.de/zahnimplantate',
+    type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Zahnimplantate Deutschland' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Zahnimplantate — Verifizierte Kliniken | ChairMatch',
+    description: 'Implantate, All-on-4, Veneers, Invisalign — verifizierte Preise + Kliniken in Deutschland.',
+    images: ['/og-image.png'],
+  },
+}
+
+// Service-Schema: ChairMatch vermittelt Raum-/Arbeitsplatz-Vermietung an Zahnärzte
+// und Praxen — bewusst OHNE medizinische Claims (kein MedicalProcedure/Dentist).
+const SERVICE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  '@id': 'https://www.chairmatch.de/zahnimplantate#service',
+  name: 'Behandlungsraum Vermittlung für Zahnarzt-Praxen',
+  serviceType: 'Behandlungsraum Vermietung',
+  provider: { '@id': 'https://www.chairmatch.de/#organization' },
+  areaServed: { '@type': 'Country', name: 'Germany' },
+  url: 'https://www.chairmatch.de/zahnimplantate',
 }
 
 const FAQS = [
@@ -67,12 +87,10 @@ export default function ZahnimplantatePage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
         <script type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([{ name: 'Start', url: '/' }, { name: 'Zahnimplantate', url: '/zahnimplantate' }])) }} />
-        <script type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }} />
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }} />
 
         <div style={{ marginBottom: 14 }}>
           <BackButton href="/" label="Zurück zur Startseite" />
@@ -139,6 +157,18 @@ export default function ZahnimplantatePage() {
         <p style={{ fontSize: 10, color: 'var(--stone2)', textAlign: 'center', marginTop: 24 }}>
           Medizinische Inhalte sind allgemeine Informationen. Individuelle Beratung beim approbierten Zahnarzt.
         </p>
+
+        {/* Interne Verlinkung: verwandte Premium-Seiten (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Weitere Medical-Beauty-Themen:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <Link href="/premium" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Medical Beauty Übersicht</Link>
+            <Link href="/haartransplantation" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Haartransplantation</Link>
+            <Link href="/augenlasern" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Augenlasern</Link>
+            <Link href="/iv-infusionen" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>IV-Infusionen</Link>
+            <Link href="/longevity" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Longevity</Link>
+          </div>
+        </section>
       </div>
     </div>
   )

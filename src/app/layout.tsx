@@ -13,6 +13,7 @@ import FloatingLanguageSwitcher from '@/components/FloatingLanguageSwitcher'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import NetworkBanner from '@/components/NetworkBanner'
 import PageReadyWatcher from '@/components/PageReadyWatcher'
+import { organizationSchema, websiteSchema } from '@/lib/seo'
 import './globals.css'
 
 
@@ -113,39 +114,15 @@ export default function RootLayout({
       </head>
       <body className={dmSans.className}>
         <a href="#main" className="skip-link">Zum Inhalt springen</a>
+        {/* Organization + WebSite aus lib/seo.ts — dort ist die vollständige
+            (Brand, Slogan, Founder, knowsAbout) Single-Source-of-Truth. */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'Organization',
-                '@id': 'https://www.chairmatch.de/#organization',
-                name: 'ChairMatch',
-                legalName: 'ChairMatch GmbH (i. Gr.)',
-                url: 'https://www.chairmatch.de',
-                logo: 'https://www.chairmatch.de/icons/chairmatch-pin-logo.png',
-                description: 'Deutschlands Beauty-Booking-Plattform. Buche Termine bei Top-Salons, Barbershops & Kosmetikstudios. 0% Provision.',
-                foundingDate: '2026',
-                areaServed: { '@type': 'Country', name: 'Germany' },
-                sameAs: ['https://www.linkedin.com/company/chairmatch', 'https://www.instagram.com/chairmatch.de'],
-                contactPoint: { '@type': 'ContactPoint', email: 'legal@chairmatch.de', contactType: 'customer service', availableLanguage: ['German', 'English', 'Turkish'] },
-              },
-              {
-                '@type': 'WebSite',
-                '@id': 'https://www.chairmatch.de/#website',
-                url: 'https://www.chairmatch.de',
-                name: 'ChairMatch',
-                publisher: { '@id': 'https://www.chairmatch.de/#organization' },
-                inLanguage: 'de-DE',
-                potentialAction: {
-                  '@type': 'SearchAction',
-                  target: { '@type': 'EntryPoint', urlTemplate: 'https://www.chairmatch.de/search?q={search_term_string}' },
-                  'query-input': 'required name=search_term_string',
-                },
-              },
-            ],
-          }) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema()) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema()) }}
         />
         <DynamicTheme />
         <NetworkBanner />

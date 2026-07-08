@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MAGAZIN_ARTIKEL } from '@/lib/seo-data/magazin'
-import { breadcrumbSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = {
@@ -21,14 +20,7 @@ export default function MagazinIndexPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' }, { name: 'Magazin', url: '/magazin' },
-          ])) }}
-        />
-
+        {/* BreadcrumbList kommt aus <Breadcrumbs> — kein manuelles Duplikat */}
         <Breadcrumbs items={[{ name: 'Magazin', url: '/magazin' }]} />
 
         <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>

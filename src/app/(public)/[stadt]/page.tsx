@@ -11,9 +11,9 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getCityBySlug, PHASE_1_CITIES, type CityData } from '@/lib/seo-data/cities'
+import { getCityBySlug, getNearbyCities, PHASE_1_CITIES, type CityData } from '@/lib/seo-data/cities'
 import { VERTICALS } from '@/lib/seo-data/verticals'
-import { shouldIndex, robotsForListingPage, serviceAreaSchema, breadcrumbSchema, slugToCity } from '@/lib/seo'
+import { shouldIndex, robotsForListingPage, serviceAreaSchema, geoMeta, slugToCity } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -81,6 +81,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ].join(', '),
     alternates: { canonical: `https://www.chairmatch.de/${stadt}` },
     robots: robotsForListingPage(salonCount),
+    // Klassische Geo-Tags (geo.region, geo.position, ICBM) für regionale Suche
+    other: geoMeta(city),
     openGraph: {
       title: `Stuhlmiete in ${city.name} — Friseurstuhl, Kabine & Raum mieten`,
       description: `${salonCount}+ verifizierte Vermieter in ${city.name} bieten Stuhlmiete, Kosmetik-Kabine und Behandlungsraum tageweise an.`,
@@ -112,6 +114,7 @@ export default async function CityHubPage({ params }: Props) {
   } catch { /* fail-soft: alle Counts bleiben 0 */ }
 
   const indexed = shouldIndex(salonCount)
+  const nearby = getNearbyCities(city.slug, 8)
 
   return (
     <div className="shell">
@@ -120,17 +123,9 @@ export default async function CityHubPage({ params }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceAreaSchema(city.name)) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceAreaSchema(city, undefined, city.priceRange.stuhl)) }}
         />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: city.name, url: `/${stadt}` },
-          ])) }}
-        />
-
+        {/* BreadcrumbList kommt aus <Breadcrumbs> — kein manuelles Duplikat */}
         <Breadcrumbs items={[{ name: city.name, url: `/${stadt}` }]} />
 
         {/* Hero */}
@@ -233,15 +228,26 @@ export default async function CityHubPage({ params }: Props) {
         {/* FAQ */}
         <FAQ items={city.faqs} title={`Häufige Fragen zu Stuhl-Miete in ${city.name}`} />
 
-        {/* Cross-Links zu anderen Städten */}
+        {/* Cross-Links: nächstgelegene Städte zuerst (Geo-Relevanz), Rest danach */}
         <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
-          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Weitere Städte:</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {PHASE_1_CITIES.filter((c) => c.slug !== city.slug).map((c) => (
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Stuhlmiete in Städten in der Nähe:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+            {nearby.map((c) => (
               <Link key={c.slug} href={`/${c.slug}`} style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>
-                {slugToCity(c.slug)}
+                Stuhlmiete {c.name}
               </Link>
             ))}
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Weitere Städte:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {PHASE_1_CITIES
+              .filter((c) => c.slug !== city.slug)
+              .filter((c) => !nearby.some((n) => n.slug === c.slug))
+              .map((c) => (
+                <Link key={c.slug} href={`/${c.slug}`} style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>
+                  {slugToCity(c.slug)}
+                </Link>
+              ))}
           </div>
         </section>
       </div>

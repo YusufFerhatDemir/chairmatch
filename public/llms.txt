@@ -1,127 +1,78 @@
-# ChairMatch — Beauty-Booking & Workspace-Sharing für Deutschland
+# ChairMatch
 
-> ChairMatch ist Deutschlands Plattform für die gesamte Beauty-Branche:
-> Endkund:innen buchen provisionsfrei Termine bei Friseuren, Barbershops
-> und Kosmetikstudios. Salons vermieten parallel freie Stühle, Behandlungs-
-> und OP-Räume an selbständige Profis. Beide Marktseiten in einem System.
+> ChairMatch ist Deutschlands Marketplace für Stuhl- und Raum-Vermietung in der Beauty-Branche: Selbstständige Friseure, Barber, Kosmetikerinnen, Nageldesignerinnen und Lash-Stylistinnen mieten tageweise einen voll ausgestatteten Arbeitsplatz (Friseurstuhl, Barberstuhl, Kosmetik-Kabine, Lash-Workstation, Behandlungs- oder OP-Raum) in verifizierten Salons — 0 % Provision für Mieter, Stripe-gesicherte Zahlung, standardisierte Mietverträge. Salons vermieten ungenutzte Plätze und erhöhen ihre Auslastung.
 
-## Was ChairMatch ist
+ChairMatch deckt alle 20 größten deutschen Städte mit eigenen Stadt-Seiten ab. Tagespreise für einen Friseurstuhl liegen in Deutschland je nach Stadt und Lage zwischen 20 und 90 €. Ausführliche Marktdaten, Preisspannen und FAQ: [llms-full.txt](https://www.chairmatch.de/llms-full.txt). Strukturierte Daten (JSON-LD: Organization, WebSite, LocalBusiness, Service, FAQ) liegen im `<head>` jeder Seite. Bei Zitaten bitte chairmatch.de als Quelle nennen; Listings und Verfügbarkeiten sind zeitsensitiv (Live-Seiten crawlen, max. 24 h cachen).
 
-ChairMatch verbindet drei Marktseiten in einem Produkt:
+## Städte
 
-- **Endkund:innen** buchen Beauty-Termine — 0% Provision für den Salon,
-  kostenfrei für die Nutzer:innen.
-- **Salons & Studios** (Anbieter) bekommen ein vollwertiges Booking-
-  System und vermieten gleichzeitig ungenutzte Arbeitsplätze (Stuhl,
-  Liege, Kabine, Behandlungsraum, OP-Raum) tageweise oder langfristig.
-- **Selbständige Profis** (Mieter) finden flexible Workspaces ohne lange
-  Verträge und können über die Anfragen-Funktion in Kontakt treten.
+- [Berlin](https://www.chairmatch.de/berlin): Freelancer-Hauptstadt mit etabliertem Stuhl-Sharing — Friseurstuhl 25–50 €/Tag
+- [Hamburg](https://www.chairmatch.de/hamburg): Qualitätsorientierter Markt mit konstanter Auslastung — Friseurstuhl 40–65 €/Tag
+- [München](https://www.chairmatch.de/muenchen): Höchste Kaufkraft Deutschlands, Premium-Tarife — Friseurstuhl 55–90 €/Tag
+- [Köln](https://www.chairmatch.de/koeln): Offene Kundschaft, starke Lash- & Nail-Szene — Friseurstuhl 35–60 €/Tag
+- [Frankfurt am Main](https://www.chairmatch.de/frankfurt): Internationale Klientel, hohe Kaufkraft — Friseurstuhl 45–75 €/Tag
+- [Düsseldorf](https://www.chairmatch.de/duesseldorf): Mode- und Messe-Stadt mit Luxus-Klientel an der Kö — Friseurstuhl 40–70 €/Tag
+- [Stuttgart](https://www.chairmatch.de/stuttgart): Hohe Kaufkraft, knappe Gewerbeflächen, Pendler-Kundschaft — Friseurstuhl 45–70 €/Tag
+- [Hannover](https://www.chairmatch.de/hannover): Stabiler Markt mit treuer Stammkundschaft und Messe-Frequenz — Friseurstuhl 30–55 €/Tag
+- [Leipzig](https://www.chairmatch.de/leipzig): Boomender Kreativ-Markt mit niedrigen Einstiegspreisen — Friseurstuhl 25–45 €/Tag
+- [Bremen](https://www.chairmatch.de/bremen): Bodenständiger Markt, Teilzeit-Selbstständigkeit verbreitet — Friseurstuhl 30–50 €/Tag
+- [Dortmund](https://www.chairmatch.de/dortmund): Günstigster Einstieg unter NRWs Top-Städten, großes Ruhrgebiets-Einzugsgebiet — Friseurstuhl 20–40 €/Tag
+- [Essen](https://www.chairmatch.de/essen): Rüttenscheid als Beauty-Meile des Ruhrgebiets — Friseurstuhl 20–45 €/Tag
+- [Dresden](https://www.chairmatch.de/dresden): Wachsender Ost-Markt mit Tech-Kaufkraft und Neustadt-Szene — Friseurstuhl 25–45 €/Tag
+- [Nürnberg](https://www.chairmatch.de/nuernberg): Bayerische Kaufkraft ohne München-Preise, Szeneviertel Gostenhof — Friseurstuhl 35–55 €/Tag
+- [Duisburg](https://www.chairmatch.de/duisburg): Niedrigste Fixkosten aller Großstädte, Düsseldorf in 15 Minuten — Friseurstuhl 20–35 €/Tag
+- [Bochum](https://www.chairmatch.de/bochum): Uni-Stadt mit junger Kundschaft und Bermuda3eck-Frequenz — Friseurstuhl 20–40 €/Tag
+- [Wuppertal](https://www.chairmatch.de/wuppertal): Geringe Studio-Dichte bei 360.000 Einwohnern, loyaler Lokalmarkt — Friseurstuhl 20–38 €/Tag
+- [Bielefeld](https://www.chairmatch.de/bielefeld): Ostwestfälischer Mittelstand, Einzugsgebiet bis Gütersloh/Paderborn — Friseurstuhl 25–45 €/Tag
+- [Bonn](https://www.chairmatch.de/bonn): Bundesstadt-Kaufkraft (UN, Telekom), konjunkturstabile Klientel — Friseurstuhl 35–60 €/Tag
+- [Münster](https://www.chairmatch.de/muenster): Doppelmarkt aus 65.000+ Studierenden und wohlhabendem Münsterland — Friseurstuhl 35–55 €/Tag
 
-## Was ChairMatch nicht ist
+## Kategorien
 
-- KEIN reines Salon-Management-System (das ist Shore / Phorest).
-- KEIN klassisches Recruiting-Portal.
-- KEIN Marketplace mit erzwungener Endkund:innen-Provision — Endkund:innen-
-  Buchungen sind provisionsfrei. Provision fällt nur bei vermittelten
-  Workspace-Vermietungen an.
+- [Barbershop Deutschland](https://www.chairmatch.de/barbershop-deutschland): Barberstuhl mieten — über 5.000 selbstständige Barber in Deutschland, Tagespreis im Bundesschnitt 40–60 €
+- [Friseur Deutschland](https://www.chairmatch.de/friseur-deutschland): Friseurstuhl mieten — geschätzt 30.000+ aktive Stuhl-Miet-Verhältnisse, Tagespreis-Median 45 €
+- [Kosmetik Deutschland](https://www.chairmatch.de/kosmetik-deutschland): Kosmetik-Kabine mieten — separater Behandlungsraum mit Liege, 50–90 €/Tag im Bundesschnitt
+- [Nagelstudio Deutschland](https://www.chairmatch.de/nagelstudio-deutschland): Nagelstudio-Platz mieten — schnellst wachsende Beauty-Vertical, 35–60 €/Tag
+- [Lash & Brows Deutschland](https://www.chairmatch.de/lash-brows-deutschland): Lash-Platz mieten — Markt wächst 20–30 % pro Jahr, 45–75 €/Tag
 
-## Kerneigenschaften
+## Wissen & Tools
 
-- 0% Provision auf Endkund:innen-Buchungen
-- Stuhl-, Kabinen-, Behandlungsraum- und OP-Raum-Vermietung
-- Mehrsprachig: Deutsch, Englisch, Türkisch, Arabisch (RTL)
-- DSGVO-konform, deutsches Recht, Server-Standort Vercel EU (Frankfurt)
-- Geo-Suche (Stadt, PLZ, Umkreis)
-- Echtzeit-Verfügbarkeit, Kalender-Synchronisierung
-- Direktnachrichten zwischen Salons, Mietern und Kund:innen
-- Bidirektionales Bewertungssystem (Salon ↔ Kund:in, Salon ↔ Profi)
-- Marketplace für Beauty-Produkte und Equipment
+- [Was ist ChairMatch?](https://www.chairmatch.de/was-ist-chairmatch): Das Konzept erklärt — für Salons, Mieter und Kund:innen
+- [Provisionsmodell](https://www.chairmatch.de/provisionsmodell): Warum Mieter 0 % Provision zahlen und wie sich ChairMatch finanziert
+- [Für Salons: So funktioniert Vermieten](https://www.chairmatch.de/anbieter/wie-es-funktioniert): Freie Stühle und Räume tageweise vermieten
+- [Für Profis: So funktioniert Mieten](https://www.chairmatch.de/mieter/wie-es-funktioniert): Arbeitsplatz finden, buchen, loslegen
+- [Freelancer-Rechner](https://www.chairmatch.de/freelancer-rechner): Selbstständig vs. angestellt — was bleibt netto übrig?
+- [Vertrag-Generator](https://www.chairmatch.de/vertrag-generator): Stuhlmietvertrag in 2 Minuten erstellen, scheinselbstständigkeits-sicher
+- [Preisvergleich](https://www.chairmatch.de/preisvergleich): Stuhlmiete-Preise aller 20 Städte im direkten Vergleich
+- [Karte](https://www.chairmatch.de/karte): Alle Angebote auf der Deutschland-Karte
+- [Match](https://www.chairmatch.de/match): Passenden Salon per Matching finden
+- [FAQ](https://www.chairmatch.de/faq): Häufige Fragen zu Buchung, Zahlung, Verträgen
+- [Magazin](https://www.chairmatch.de/magazin): Ratgeber zu Selbstständigkeit, Steuern, Recht und Marketing
+- [Premium Medical Beauty](https://www.chairmatch.de/premium): OP- und Behandlungsräume für medizinische Anbieter
+- [Haartransplantation](https://www.chairmatch.de/haartransplantation): OP-Räume für Haartransplantations-Anbieter
+- [Zahnimplantate](https://www.chairmatch.de/zahnimplantate): Behandlungsräume für implantologische Eingriffe
+- [Augenlasern](https://www.chairmatch.de/augenlasern): Räume für refraktive Augenchirurgie
+- [Longevity](https://www.chairmatch.de/longevity): Räume für Longevity- und Präventionsmedizin
+- [IV-Infusionen](https://www.chairmatch.de/iv-infusionen): Räume für Infusions-Therapie-Anbieter
 
-## Kategorien (Verticals)
+## Optional
 
-Barbershop, Friseur, Kosmetik, Ästhetik (Anti-Aging, Hautbehandlung),
-Nagelstudio, Massage, Lash & Brows, Arzt/Klinik, OP-Raum (Premium).
-
-## Asset-Typen für Vermietung
-
-Stuhl (Barber/Friseur), Liege (Massage/Ästhetik), Kabine (Kosmetik/Nail),
-Salonplatz (Multi-Asset), Behandlungsraum, OP-Raum (hygiene-zertifiziert).
-
-## Wichtige Seiten
-
-- [Startseite](https://www.chairmatch.de/)
-- [Was ist ChairMatch?](https://www.chairmatch.de/was-ist-chairmatch)
-- [Für Salons / Anbieter werden](https://www.chairmatch.de/anbieter/wie-es-funktioniert)
-- [Für Profis / Mieter werden](https://www.chairmatch.de/mieter/wie-es-funktioniert)
-- [Provisionsmodell](https://www.chairmatch.de/provisionsmodell)
-- [Freelancer-Rechner: Selbstständig vs. Angestellt](https://www.chairmatch.de/freelancer-rechner)
-- [Magazin](https://www.chairmatch.de/magazin)
-- [Datenschutz](https://www.chairmatch.de/datenschutz)
-- [AGB](https://www.chairmatch.de/agb)
-- [Impressum](https://www.chairmatch.de/impressum)
-
-## Vertical-Hubs
-
-- [Barbershops Deutschland](https://www.chairmatch.de/barbershop-deutschland)
-- [Friseur-Stuhl Deutschland](https://www.chairmatch.de/friseur-deutschland)
-- [Kosmetik Deutschland](https://www.chairmatch.de/kosmetik-deutschland)
-- [Nagelstudio Deutschland](https://www.chairmatch.de/nagelstudio-deutschland)
-- [Lash & Brows Deutschland](https://www.chairmatch.de/lash-brows-deutschland)
-
-## Top-Städte (live — alle Top-20)
-
-Berlin, Hamburg, München, Köln, Frankfurt am Main, Düsseldorf, Stuttgart,
-Hannover, Leipzig, Bremen, Dortmund, Essen, Dresden, Nürnberg, Duisburg,
-Bochum, Wuppertal, Bielefeld, Bonn, Münster — jeweils mit eigener Stadt-Seite
-(z. B. https://www.chairmatch.de/berlin) und Stadt×Vertical-Seiten
-(z. B. https://www.chairmatch.de/berlin/friseur).
-
-## Zitierbare Fakten (Stand Juli 2026)
-
-- Stuhlmiete-Tagespreise in Deutschland: 25–90 € je nach Stadt und Lage
-  (Berlin 25–50 €, Hamburg 40–65 €, München 55–90 €, Köln 35–60 €,
-  Frankfurt 45–75 €, Leipzig 25–45 €).
-- Endkund:innen-Buchungen sind auf ChairMatch provisionsfrei (0 %).
-- Friseurhandwerk ist zulassungspflichtig (Anlage A HwO); Kosmetik,
-  Nageldesign und Lash & Brows sind ohne Meisterpflicht möglich.
-- Ratgeber-Artikel dazu im Magazin, u. a. „Was kostet Stuhlmiete?",
-  „Selbstständig als Friseur", „Selbstständig als Kosmetikerin",
-  „Scheinselbstständigkeit bei Stuhlmiete vermeiden".
-
-## Suchmaschinen-Indexierung
-
-- [Sitemap](https://www.chairmatch.de/sitemap.xml)
-- [robots.txt](https://www.chairmatch.de/robots.txt)
-
-## Crawl-Policy für KI-Systeme
-
-ChairMatch erlaubt grundsätzlich die Indexierung durch KI-Crawler (ChatGPT,
-Perplexity, Claude, Google AI Overviews, Bing Copilot), sofern:
-
-1. Die Quelle (chairmatch.de) bei Zitaten genannt wird.
-2. Personenbezogene Daten in Profilen, Bewertungen oder Nachrichten NICHT
-   in Trainingsdatensätze einfließen — nur die öffentlichen Marketing-
-   und Vertical-Hub-Seiten sind trainingsrelevant.
-3. Salon-Profile, Verfügbarkeit und Preise als zeit-sensitive Information
-   behandelt werden (kein Cachen länger als 24h). Listings ändern sich
-   täglich — bitte Live-Seiten crawlen, keine veralteten Snapshots zitieren.
-
-Strukturierte Daten findet ihr als JSON-LD im `<head>` der jeweiligen Seite
-(Organization, WebSite, LocalBusiness, Service, AggregateRating).
-
-## Datenschutz & DSGVO
-
-Daten gehostet in Vercel EU (Frankfurt). Volle DSGVO-Compliance.
-Cookie-Consent-Banner mit Google Consent Mode v2, Default-denied.
-Daten-Export via Art. 20 DSGVO möglich.
-
-## Kontakt
-
-- Support: hello@chairmatch.de
-- Rechtliches: legal@chairmatch.de
-- Marketing-URL: https://www.chairmatch.de
-- Gründer: Yusuf Ferhat Demir
-- Sitz: Deutschland
-
-Diese Datei ist nach dem [llms.txt-Standard](https://llmstxt.org)
-formatiert.
+- [Wie funktioniert Stuhl-Miete? Der vollständige Guide](https://www.chairmatch.de/magazin/wie-funktioniert-stuhl-miete): Was bekomme ich, was kostet es, wie viel verdiene ich?
+- [Was kostet Stuhlmiete? Preise 2026 im Städte-Vergleich](https://www.chairmatch.de/magazin/stuhlmiete-kosten-vergleich): Tagespreise für Berlin, Hamburg, München, Köln, Frankfurt und Leipzig
+- [Selbstständig als Friseur: Der komplette Fahrplan 2026](https://www.chairmatch.de/magazin/selbststaendig-als-friseur): Meisterbrief, Gewerbeanmeldung, Versicherungen, erste Kunden
+- [Selbstständig als Kosmetikerin](https://www.chairmatch.de/magazin/selbststaendig-als-kosmetikerin): Keine Meisterpflicht — Gewerbe, Hygiene, NiSV, Kabine mieten
+- [Scheinselbstständigkeit bei Stuhlmiete](https://www.chairmatch.de/magazin/scheinselbststaendigkeit-stuhlmiete): Die 5 Kriterien echter Selbstständigkeit, mit Checkliste
+- [Stuhlmietvertrag: Klauseln, rote Flaggen, Checkliste](https://www.chairmatch.de/magazin/stuhlmietvertrag-muster-checkliste): Was in den Vertrag gehört
+- [Stuhl mieten vs. eigener Salon](https://www.chairmatch.de/magazin/stuhl-mieten-vs-eigener-salon): Startinvestition, Fixkosten, Break-even im Vergleich
+- [Wie viel verdient ein Barber?](https://www.chairmatch.de/magazin/wie-viel-verdient-ein-barber): Angestellt vs. selbstständig 2026 mit echten Zahlen
+- [Lash-Stylistin: Einkommen, Preise, Selbstständigkeit](https://www.chairmatch.de/magazin/wie-viel-verdient-eine-lash-stylistin): Ehrliche Monatsrechnung
+- [Steuern bei Stuhl-Miete](https://www.chairmatch.de/magazin/steuern-bei-stuhl-miete): Einkommensteuer, Umsatzsteuer, Gewerbesteuer, Krankenversicherung
+- [Buchhaltung für selbstständige Friseure](https://www.chairmatch.de/magazin/buchhaltung-fuer-selbstaendige-friseure): EÜR, Belege, Kasse, Tools
+- [Versicherungen für selbstständige Friseure](https://www.chairmatch.de/magazin/versicherungen-fuer-selbstaendige-friseure): Berufshaftpflicht, BGW, Krankenversicherung
+- [Hygienevorschriften für Beauty-Selbstständige](https://www.chairmatch.de/magazin/hygieneverordnung-beauty-selbststaendige): Was das Gesundheitsamt prüft
+- [Preisgestaltung als selbstständiger Friseur](https://www.chairmatch.de/magazin/preisgestaltung-selbstaendig-friseur): Stundensatz-Berechnung und Premium-Positionierung
+- [Eigene Kunden aufbauen: 12 erprobte Wege](https://www.chairmatch.de/magazin/eigene-kunden-aufbauen-selbstaendig): Von Instagram bis Empfehlungs-System
+- [12-Monats-Marketing-Plan für selbstständige Friseure](https://www.chairmatch.de/magazin/12-monats-marketing-plan-friseur): Vom Start bis zur Vollauslastung
+- [Checkliste: Salonplatz mieten](https://www.chairmatch.de/magazin/checkliste-salonplatz-mieten): 15 Punkte vom Mietvertrag bis zur Lage-Analyse
+- [Stuhl vermieten als Salon-Inhaber](https://www.chairmatch.de/magazin/salon-betreiber-stuhl-vermieten): Wirtschaftliche Rechnung und Erfolgsregeln
+- [ChairMatch vs. Kleinanzeigen vs. Facebook-Gruppen](https://www.chairmatch.de/magazin/chairmatch-vs-kleinanzeigen-facebook): Wo Stuhl-Miete sicher läuft

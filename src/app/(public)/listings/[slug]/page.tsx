@@ -14,7 +14,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { listingSchema, breadcrumbSchema, faqSchema } from '@/lib/seo'
+import { listingSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -46,6 +46,11 @@ interface SalonRow {
   avg_rating: number | null
   review_count: number | null
   is_active: boolean
+  // Optional: Salon-Koordinaten — Spalten existieren (Stand heute) noch nicht
+  // in der salons-Tabelle, werden aber automatisch genutzt sobald eine
+  // Migration sie ergänzt und das Select unten erweitert wird.
+  latitude?: number | null
+  longitude?: number | null
 }
 
 interface SalonImageRow {
@@ -168,7 +173,7 @@ export default async function ListingDetailPage({ params }: Props) {
   const priceEur = listing.price_cents / 100
   const city = salon.city || 'Deutschland'
 
-  const schemaJson = listingSchema({
+  const baseSchema = listingSchema({
     id: listing.id,
     slug,
     name: listing.name,
@@ -183,12 +188,22 @@ export default async function ListingDetailPage({ params }: Props) {
     availability: 'InStock',
   })
 
-  const crumbs = breadcrumbSchema([
-    { name: 'Start', url: '/' },
-    { name: 'Stuhlplätze', url: '/explore' },
-    { name: salon.name, url: `/salon/${salon.slug}` },
-    { name: listing.name, url: `/listings/${slug}` },
-  ])
+  // Salon-Koordinaten (falls vorhanden) als GeoCoordinates am provider-LocalBusiness —
+  // stärkt das Lokal-Signal, ohne ein zweites LocalBusiness-Schema zu emittieren.
+  // Greift erst, sobald die salons-Tabelle Koordinaten-Spalten bekommt (s. SalonRow).
+  const schemaJson = salon.latitude && salon.longitude
+    ? {
+        ...baseSchema,
+        provider: {
+          ...baseSchema.provider,
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: salon.latitude,
+            longitude: salon.longitude,
+          },
+        },
+      }
+    : baseSchema
 
   const faqs = [
     {
@@ -217,18 +232,11 @@ export default async function ListingDetailPage({ params }: Props) {
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}
         />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(faqs)) }}
-        />
-
+        {/* BreadcrumbList & FAQPage kommen aus den Komponenten <Breadcrumbs>/<FAQ>
+            — hier KEINE manuellen Scripts, sonst doppeltes Schema (Google
+            ignoriert dann ggf. beide Rich-Result-Kandidaten). */}
         <Breadcrumbs items={[
+          { name: 'Stuhlplätze', url: '/explore' },
           { name: salon.name, url: `/salon/${salon.slug}` },
           { name: listing.name, url: `/listings/${slug}` },
         ]} />

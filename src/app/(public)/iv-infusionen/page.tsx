@@ -8,15 +8,42 @@ import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
-import { breadcrumbSchema, faqSchema } from '@/lib/seo'
 
 export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'IV-Infusionen Deutschland — NAD+, Vitamin-Drip, Glutathion | ChairMatch',
-  description: 'Vitamin-Cocktails, NAD+ Anti-Aging, Glutathion-Glow, Detox-Drips. Verifizierte Ärzte in deiner Stadt. Bluttest-gestützte Therapie.',
+  description: 'IV-Infusionen & Vitamin-Drips: NAD+, Glutathion & Vitamin-C Hochdosis bei verifizierten Ärzten in deiner Stadt. Bluttest-gestützt, Sitzungen ab 99 €.',
   keywords: 'iv infusion, nad+, vitamin drip, glutathion, vitamin c hochdosis, anti aging infusion, biohacking',
   alternates: { canonical: 'https://www.chairmatch.de/iv-infusionen' },
+  openGraph: {
+    title: 'IV-Infusionen — NAD+, Vitamin-Drips, Glutathion in Deutschland',
+    description: 'NAD+, Glutathion & Vitamin-C Hochdosis bei verifizierten Ärzten — Bluttest-gestützte Therapie.',
+    url: 'https://www.chairmatch.de/iv-infusionen',
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — IV-Infusionen Deutschland' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'IV-Infusionen — NAD+, Vitamin-Drips, Glutathion | ChairMatch',
+    description: 'NAD+, Glutathion & Vitamin-C Hochdosis bei verifizierten Ärzten — Bluttest-gestützte Therapie.',
+    images: ['/og-image.png'],
+  },
+}
+
+// Service-Schema: ChairMatch vermittelt Raum-/Arbeitsplatz-Vermietung an Ärzte
+// und Infusions-Praxen — bewusst OHNE medizinische Claims.
+const SERVICE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  '@id': 'https://www.chairmatch.de/iv-infusionen#service',
+  name: 'Behandlungsraum Vermittlung für Infusions-Praxen',
+  serviceType: 'Behandlungsraum Vermietung',
+  provider: { '@id': 'https://www.chairmatch.de/#organization' },
+  areaServed: { '@type': 'Country', name: 'Germany' },
+  url: 'https://www.chairmatch.de/iv-infusionen',
 }
 
 const FAQS = [
@@ -58,12 +85,10 @@ export default function IVInfusionenPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
         <script type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([{ name: 'Start', url: '/' }, { name: 'IV-Infusionen', url: '/iv-infusionen' }])) }} />
-        <script type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }} />
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }} />
 
         <div style={{ marginBottom: 14 }}>
           <BackButton href="/" label="Zurück zur Startseite" />
@@ -129,6 +154,18 @@ export default function IVInfusionenPage() {
         <p style={{ fontSize: 10, color: 'var(--stone2)', textAlign: 'center', marginTop: 24 }}>
           Inhalte sind allgemeine Informationen, keine medizinische Beratung. Individuelle Eignung beim Arzt klären.
         </p>
+
+        {/* Interne Verlinkung: verwandte Premium-Seiten (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Weitere Medical-Beauty-Themen:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <Link href="/premium" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Medical Beauty Übersicht</Link>
+            <Link href="/longevity" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Longevity</Link>
+            <Link href="/haartransplantation" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Haartransplantation</Link>
+            <Link href="/zahnimplantate" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Zahnimplantate</Link>
+            <Link href="/augenlasern" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Augenlasern</Link>
+          </div>
+        </section>
       </div>
     </div>
   )

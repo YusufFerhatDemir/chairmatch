@@ -7,9 +7,11 @@
  */
 
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { MASTER_FAQS, toFaqItems } from '@/lib/seo-data/faq-master'
-import { faqSchema, breadcrumbSchema } from '@/lib/seo'
+import { faqSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
 export const revalidate = 3600 // 1h
 
@@ -23,8 +25,16 @@ export const metadata: Metadata = {
     title: 'FAQ — ChairMatch',
     description: 'Antworten auf alle Fragen rund um Stuhl-Miete.',
     url: 'https://www.chairmatch.de/faq',
+    type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — FAQ' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FAQ — Alle Fragen zu Stuhl-Miete | ChairMatch',
+    description: 'Kosten, Steuern, Versicherungen, Plattform-Garantien — über 20 FAQs aus der Praxis.',
+    images: ['/og-image.png'],
   },
 }
 
@@ -52,8 +62,9 @@ export default function FaqPage() {
     return { ...section, faqs }
   }).filter((s) => s.faqs.length > 0)
 
-  // Alle FAQs (auch unsorteed) für FAQPage-Schema
-  const allFaqItems = toFaqItems(MASTER_FAQS)
+  // FAQPage-Schema nur mit den sichtbar gerenderten FAQs — Schema und
+  // Seiteninhalt müssen übereinstimmen (Google Rich-Results-Richtlinie).
+  const visibleFaqItems = toFaqItems(sectioned.flatMap((s) => s.faqs))
 
   return (
     <div className="shell">
@@ -61,16 +72,9 @@ export default function FaqPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(allFaqItems)) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(visibleFaqItems)) }}
         />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: 'FAQ', url: '/faq' },
-          ])) }}
-        />
+        {/* BreadcrumbList-Schema kommt aus der <Breadcrumbs>-Komponente — hier bewusst kein zweites. */}
 
         <Breadcrumbs items={[{ name: 'FAQ', url: '/faq' }]} />
 
@@ -146,6 +150,18 @@ export default function FaqPage() {
           >
             Frage stellen →
           </a>
+        </section>
+
+        {/* Interne Verlinkung: Stadt-Hubs (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Stuhlmiete in deiner Stadt:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {PHASE_1_CITIES.filter((c) => c.phase <= 2).map((c) => (
+              <Link key={c.slug} href={`/${c.slug}`} style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>
+                Stuhlmiete {c.name}
+              </Link>
+            ))}
+          </div>
         </section>
       </div>
     </div>

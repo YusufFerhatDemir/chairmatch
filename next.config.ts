@@ -1,4 +1,12 @@
 import type { NextConfig } from 'next'
+import { getAllMagazinSlugs } from './src/lib/seo-data/magazin'
+
+// Bekannte Magazin-Slugs als Regex-Alternation für redirects(). Slugs sind
+// [a-z0-9-], brauchen daher kein Escaping. Nur diese Slugs dürfen 1:1 auf
+// /magazin/:slug zeigen — die Magazin-Route hat dynamicParams=false, jeder
+// unbekannte Slug wäre also ein Redirect→404 (Soft-Error für Google, Link-
+// Signale verpuffen). Alles Unbekannte fällt stattdessen auf /magazin.
+const MAGAZIN_SLUGS = getAllMagazinSlugs().join('|')
 
 const nextConfig: NextConfig = {
   // Build-Tolerance für Vercel — pre-existing TS-Fehler und ESLint-Issues
@@ -16,14 +24,23 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/blog', destination: '/magazin', permanent: true },
-      { source: '/blog/:slug', destination: '/magazin/:slug', permanent: true },
-      // Mehrsegmentige Alt-URLs (z.B. WordPress-Permalinks /blog/2024/01/titel)
-      // matchen :slug nicht (nur 1 Segment) und liefen sonst in einen echten
-      // 404 statt einer Weiterleitung. Fallback auf die Magazin-Übersicht.
-      { source: '/blog/:path*', destination: '/magazin', permanent: true },
       { source: '/ratgeber', destination: '/magazin', permanent: true },
-      { source: '/ratgeber/:slug', destination: '/magazin/:slug', permanent: true },
+      // Bekannte Artikel-Slugs 1:1 auf den Magazin-Artikel — auch wenn sie
+      // als letztes Segment einer mehrsegmentigen Alt-URL stehen (WordPress-
+      // Permalinks wie /blog/2024/01/wie-funktioniert-stuhl-miete).
+      { source: `/blog/:slug(${MAGAZIN_SLUGS})`, destination: '/magazin/:slug', permanent: true },
+      { source: `/blog/:path*/:slug(${MAGAZIN_SLUGS})`, destination: '/magazin/:slug', permanent: true },
+      { source: `/ratgeber/:slug(${MAGAZIN_SLUGS})`, destination: '/magazin/:slug', permanent: true },
+      { source: `/ratgeber/:path*/:slug(${MAGAZIN_SLUGS})`, destination: '/magazin/:slug', permanent: true },
+      // Alles andere unter /blog & /ratgeber (unbekannte Slugs, /blog/feed,
+      // /blog/category/*, /blog/page/2, alte Sitemaps …) auf die Übersicht.
+      // Vorher lief /blog/:slug generisch auf /magazin/:slug und landete für
+      // jeden nicht existierenden Artikel im 404.
+      { source: '/blog/:path*', destination: '/magazin', permanent: true },
       { source: '/ratgeber/:path*', destination: '/magazin', permanent: true },
+      // WordPress-Feed-Reste auf Root-Ebene (bisher 404). Es gibt keinen
+      // RSS-Feed — die Magazin-Übersicht ist das inhaltliche Äquivalent.
+      { source: '/:feed(feed|rss|rss\\.xml|feed\\.xml|atom\\.xml|index\\.xml)', destination: '/magazin', permanent: true },
       // /ads/* existiert nicht als Route (keine Seite, kein Verweis im Code).
       // Alte Google-Ads-/Kampagnen-URLs, die noch gecrawlt werden, sollen keinen
       // 404 (und erst recht keinen 307→/auth) liefern, sondern per 308 auf die

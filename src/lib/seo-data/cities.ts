@@ -13,6 +13,10 @@ export interface CityData {
   name: string                  // Display-Name (mit Umlaut)
   state: string                 // Bundesland
   phase: 1 | 2 | 3
+  lat: number                   // Stadtzentrum (WGS84) — für GeoCoordinates & geo-Meta-Tags
+  lng: number
+  regionCode: string            // ISO 3166-2, z.B. 'DE-NW' — für geo.region
+  wikipedia: string             // Entity-URL für sameAs (Disambiguierung für Google & AI-Engines)
   intro: string                 // 150-200 Wörter lokaler Einleitungstext
   neighborhoods: string[]       // Top-Stadtteile für Beauty-Szene
   marketContext: string         // Was macht den Markt hier besonders
@@ -29,6 +33,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Frankfurt am Main',
     state: 'Hessen',
     phase: 1,
+    lat: 50.1109,
+    lng: 8.6821,
+    regionCode: 'DE-HE',
+    wikipedia: 'https://de.wikipedia.org/wiki/Frankfurt_am_Main',
     intro: 'Frankfurt am Main ist Deutschlands Finanzmetropole — und ein dichter Ballungsraum für Beauty- und Barber-Profis. Im Bahnhofsviertel, Westend und Sachsenhausen entstehen seit Jahren hochwertige Studios, die mit modernen Arbeitsplätzen und einer wohlhabenden Klientel locken. Die Mietpreise für Salonplätze liegen über dem Bundesdurchschnitt, dafür sind die Tarife pro Behandlung höher. Wer in Frankfurt einen Stuhl, eine Kabine oder einen Behandlungsraum mietet, profitiert von einer kaufkräftigen, internationalen Kundschaft und einer hohen Frequenz auch unter der Woche. Besonders nachgefragt sind Plätze in Laufnähe zur S-Bahn und in Vierteln mit hoher Tagesfrequenz wie der Zeil-Umgebung oder dem Westend.',
     neighborhoods: ['Bahnhofsviertel', 'Westend', 'Sachsenhausen', 'Bornheim', 'Nordend', 'Bockenheim'],
     marketContext: 'Internationale Klientel, hohe Kaufkraft, Premium-Tarife. Standorte mit Bürotum-Anbindung besonders gefragt.',
@@ -61,6 +69,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Berlin',
     state: 'Berlin',
     phase: 1,
+    lat: 52.52,
+    lng: 13.405,
+    regionCode: 'DE-BE',
+    wikipedia: 'https://de.wikipedia.org/wiki/Berlin',
     intro: 'Berlin ist Deutschlands kreativster Beauty-Markt. In Mitte, Neukölln, Friedrichshain und Prenzlauer Berg entstehen seit Jahren spezialisierte Studios — von Lash-Atelier bis Barbershop mit Bart-Spezialisierung. Die Hauptstadt hat eine extrem fragmentierte, junge Selbstständigen-Szene: Über 60 % der Beauty-Profis arbeiten freiberuflich oder im Stuhl-Miet-Modell. Die Preise pro Stuhl-Tag liegen unter dem Bundesschnitt, dafür ist die Nachfrage konstant hoch — gerade in trendigen Vierteln. Berlin ist der ideale Markt für Stuhl-Sharing, weil hier Flexibilität wichtiger ist als Festanstellung.',
     neighborhoods: ['Mitte', 'Neukölln', 'Friedrichshain', 'Prenzlauer Berg', 'Kreuzberg', 'Charlottenburg', 'Wedding'],
     marketContext: 'Freelancer-Hauptstadt. Stuhl-Sharing ist hier etabliert. Niedrigere Tagespreise, aber hohe Auslastung.',
@@ -93,6 +105,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'München',
     state: 'Bayern',
     phase: 1,
+    lat: 48.1372,
+    lng: 11.5756,
+    regionCode: 'DE-BY',
+    wikipedia: 'https://de.wikipedia.org/wiki/München',
     intro: 'München ist der teuerste Beauty-Markt Deutschlands — und gleichzeitig der profitabelste für Stuhl-Mieter. In der Maxvorstadt, Schwabing und am Englischen Garten dominieren Premium-Salons mit Behandlungspreisen, die weit über dem Bundesdurchschnitt liegen. Die Münchner Kundschaft ist anspruchsvoll: Beauty-Behandlungen werden als Standard, nicht als Luxus wahrgenommen. Stuhl-Miet-Plätze sind rar und gefragt — die Tagespreise sind hoch, dafür sind die Erträge konstant. Wer in München in Premium-Vierteln einen Stuhl mietet, kann mit 200–400 € Brutto-Tagesumsatz rechnen.',
     neighborhoods: ['Maxvorstadt', 'Schwabing', 'Haidhausen', 'Altstadt-Lehel', 'Glockenbachviertel', 'Neuhausen'],
     marketContext: 'Höchste Kaufkraft in DE. Premium-Tarife sind Standard. Stuhl-Verfügbarkeit knapp, Eingangshürde hoch.',
@@ -125,6 +141,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Hamburg',
     state: 'Hamburg',
     phase: 1,
+    lat: 53.5511,
+    lng: 9.9937,
+    regionCode: 'DE-HH',
+    wikipedia: 'https://de.wikipedia.org/wiki/Hamburg',
     intro: 'Hamburg ist ein Beauty-Markt mit Nordseeküsten-Charakter: pragmatisch, qualitätsbewusst, weniger trend-getrieben als Berlin. Die Beauty-Szene konzentriert sich auf Sternschanze, Eimsbüttel, Eppendorf und HafenCity. Selbstständige Friseure und Kosmetikerinnen haben in Hamburg einen guten Stand — viele Salons bieten gezielt Stuhl-Vermietung an, um ihre Auslastung zu glätten. Die Mietpreise sind moderat (40–65 €/Tag für einen Friseurstuhl), und die Kundschaft ist treu und qualitäts-orientiert. Eine spannende Mischung aus Kaufkraft (Eppendorf) und kreativem Untergrund (Sternschanze).',
     neighborhoods: ['Sternschanze', 'Eimsbüttel', 'Eppendorf', 'St. Pauli', 'Altona', 'HafenCity', 'Winterhude'],
     marketContext: 'Qualitäts-orientierter Markt. Stuhl-Sharing weit verbreitet. Konstante Auslastung, weniger Schwankung als Berlin.',
@@ -157,6 +177,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Köln',
     state: 'Nordrhein-Westfalen',
     phase: 1,
+    lat: 50.9375,
+    lng: 6.9603,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Köln',
     intro: 'Köln ist Deutschlands ungezwungenste Beauty-Metropole. Ehrenfeld, Belgisches Viertel, Südstadt und Nippes prägen die Beauty-Szene mit einer Mischung aus etablierten Salons und jungen Konzept-Studios. Die Kölner Kundschaft ist offen für neue Anbieter, moderat in Preiserwartung und kommunikativ — ideale Bedingungen für selbstständige Beauty-Profis, die einen festen Kundenstamm aufbauen wollen. Stuhl-Miet-Modelle sind verbreitet und akzeptiert. Die Tagespreise (35–60 €/Tag für einen Friseurstuhl) sind fair, und die Stadt hat eine starke Lash- und Nail-Szene, die überdurchschnittlich wächst.',
     neighborhoods: ['Ehrenfeld', 'Belgisches Viertel', 'Südstadt', 'Nippes', 'Innenstadt', 'Lindenthal', 'Rodenkirchen'],
     marketContext: 'Offene Kundschaft, faire Preise, starke Lash/Nail-Szene. Ideal für Einstieg in Selbstständigkeit.',
@@ -189,6 +213,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Düsseldorf',
     state: 'Nordrhein-Westfalen',
     phase: 2,
+    lat: 51.2277,
+    lng: 6.7735,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Düsseldorf',
     intro: 'Düsseldorf ist Deutschlands Mode- und Beauty-Schaufenster. Rund um die Königsallee hat sich ein hochpreisiges Beauty-Segment etabliert, das von Mode-Klientel, Kanzleien und Konzernzentralen lebt — Behandlungspreise liegen hier deutlich über dem NRW-Schnitt. Gleichzeitig bietet die Stadt spannende Kontraste: Das Japanviertel rund um die Immermannstraße bringt eine internationale, stil-bewusste Kundschaft, Flingern und Bilk ziehen eine jüngere, kreative Szene an, während Oberkassel und Pempelfort für kaufkräftige Stammkundschaft stehen. Als Messe-Stadt profitiert Düsseldorf zusätzlich von der Beauty Düsseldorf, einer der wichtigsten Fachmessen der Branche — viele Profis nutzen die Messe-Wochen gezielt für Zusatzumsatz und Networking. Stuhl-Miet-Modelle sind in Düsseldorf verbreitet und werden zunehmend von Premium-Salons angeboten, die ihre Flächen effizienter auslasten wollen. Wer hier einen Stuhl, eine Kabine oder einen Raum mietet, arbeitet in einem der lukrativsten Beauty-Märkte Deutschlands — die Einstiegshürde ist höher als in Köln, die Erträge dafür auch. Auch abseits der Luxus-Lagen wächst der Markt: In Flingern-Nord entstehen Concept-Stores und Studios in ehemaligen Ladenlokalen, die Lash-, Brow- und Nail-Angebote mit fairen Miet-Konditionen kombinieren. Dazu kommt die gute Erreichbarkeit — Rheinbahn und Flughafen bringen Kundschaft aus dem gesamten Rheinland in die Stadt, was gerade spezialisierten Anbietern einen großen Einzugsradius verschafft.',
     neighborhoods: ['Stadtmitte/Kö', 'Pempelfort', 'Flingern', 'Oberkassel', 'Bilk', 'Derendorf', 'Japanviertel (Immermannstraße)'],
     marketContext: 'Mode- und Messe-Stadt mit Luxus-Klientel rund um die Kö. Hochpreisiges Segment, internationale Kundschaft, Premium-Tarife durchsetzbar.',
@@ -221,6 +249,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Stuttgart',
     state: 'Baden-Württemberg',
     phase: 2,
+    lat: 48.7758,
+    lng: 9.1829,
+    regionCode: 'DE-BW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Stuttgart',
     intro: 'Stuttgart ist einer der kaufkräftigsten Beauty-Märkte Deutschlands — die Region lebt von Automobilindustrie, Maschinenbau und einem dichten Netz gut verdienender Angestellter. Für Beauty-Profis heißt das: eine Kundschaft, die Qualität erwartet und bereit ist, dafür zu zahlen. Die Szene konzentriert sich auf die Innenstadt (Mitte), den Stuttgarter Westen mit seiner dichten Wohnbebauung und treuen Stammkundschaft, sowie Bad Cannstatt, Degerloch und Vaihingen als etablierte Stadtteilzentren. Gewerbeflächen sind in Stuttgart knapp und teuer — Leerstand gibt es kaum, was Stuhl-Miet-Modelle für beide Seiten attraktiv macht: Salons lasten ihre Flächen besser aus, Selbstständige sparen sich die schwierige Ladensuche. Ein Pluspunkt ist die Pendler-Kundschaft: Viele Kunden kombinieren Beauty-Termine mit dem Arbeitsweg, wodurch Standorte mit S-Bahn- und Stadtbahn-Anbindung konstant hohe Frequenz haben. Wer in Stuttgart einen Stuhl oder eine Kabine mietet, profitiert von stabilen Preisen und wenig Volatilität. Die Kessellage sorgt zudem für kurze Wege: Wer zentral arbeitet, erreicht Kundschaft aus dem gesamten Talkessel binnen Minuten. Auch die umliegenden Zentren wie Ludwigsburg oder Esslingen speisen Nachfrage in die Landeshauptstadt ein — viele Kundinnen fahren für spezialisierte Behandlungen gezielt nach Stuttgart-Mitte. Für Lash-, Nail- und Kosmetik-Profis ist das eine verlässliche Basis mit planbarem Umsatz.',
     neighborhoods: ['Mitte', 'West', 'Bad Cannstatt', 'Degerloch', 'Vaihingen', 'Süd'],
     marketContext: 'Hohe Kaufkraft, knappe Gewerbeflächen, kaum Leerstand. Pendler-Kundschaft sorgt für konstante Frequenz an ÖPNV-nahen Standorten.',
@@ -253,6 +285,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Hannover',
     state: 'Niedersachsen',
     phase: 2,
+    lat: 52.3759,
+    lng: 9.732,
+    regionCode: 'DE-NI',
+    wikipedia: 'https://de.wikipedia.org/wiki/Hannover',
     intro: 'Hannover ist ein solider, verlässlicher Beauty-Markt — weniger trend-getrieben als Berlin oder Leipzig, dafür mit einer außergewöhnlich treuen Stammkundschaft. Die Szene verteilt sich auf die Innenstadt (Mitte), die bürgerliche List mit ihrer hohen Wohndichte, das kreative Linden mit junger Zielgruppe sowie die Südstadt und Bothfeld als etablierte Wohnviertel. Als Messestadt hat Hannover einen besonderen Rhythmus: Große Messen wie die Hannover Messe bringen regelmäßig internationale Gäste und Zusatzfrequenz in die Stadt, wovon auch Beauty-Betriebe in zentralen Lagen profitieren. Die Preise für Stuhl- und Kabinen-Miete liegen unter denen der Top-5-Metropolen, was den Einstieg in die Selbstständigkeit erleichtert — gleichzeitig sind die Behandlungspreise stabil und die Kundenbindung hoch. Viele Salons in Hannover öffnen sich zunehmend für Stuhl-Miet-Modelle, um ihre Auslastung zu glätten. Wer hier startet, baut sich mit Geduld einen festen Kundenstamm auf, der über Jahre bleibt. Auch abseits der Messen ist die Stadt gut aufgestellt: Universität, Verwaltung und Versicherungen sorgen für breite, konstante Nachfrage über das ganze Jahr. Dazu kommt die überschaubare Konkurrenzdichte — wer sich in Linden oder der List spezialisiert, etwa auf Lashes, Brows oder Barbering, wird schneller sichtbar als in übersättigten Metropol-Märkten.',
     neighborhoods: ['Mitte', 'List', 'Linden', 'Südstadt', 'Bothfeld', 'Oststadt'],
     marketContext: 'Moderater, stabiler Markt mit treuer Stammkundschaft. Messe-Wochen bringen Zusatzfrequenz in zentralen Lagen.',
@@ -285,6 +321,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Leipzig',
     state: 'Sachsen',
     phase: 2,
+    lat: 51.3397,
+    lng: 12.3731,
+    regionCode: 'DE-SN',
+    wikipedia: 'https://de.wikipedia.org/wiki/Leipzig',
     intro: 'Leipzig ist Deutschlands boomender Kreativ-Standort — nicht umsonst hat die Stadt den Spitznamen "Hypezig". Junge Kreative, Studierende und Gründer ziehen seit Jahren in die Stadt und bringen eine wachsende, beauty-affine Zielgruppe mit. Die Szene konzentriert sich auf Plagwitz mit seinen umgenutzten Industriebauten und Ateliers, die lebendige Südvorstadt entlang der Karli, das alternative Connewitz, das Zentrum und das bürgerliche Gohlis. Für Beauty-Profis ist Leipzig einer der attraktivsten Einstiegs-Märkte Deutschlands: Die Stuhl-Miet-Preise sind niedrig, die Konkurrenz weniger verdichtet als in westdeutschen Metropolen, und die Kundschaft ist offen für neue Konzepte — von Lash-Ateliers über Barbershops bis zu Nail-Studios. Viele junge Selbstständige starten hier ihre erste eigene Existenz im Stuhl-Miet-Modell, weil das Risiko überschaubar bleibt. Der Markt wächst spürbar, und wer früh einen guten Standort in Plagwitz oder der Südvorstadt sichert, baut sich seinen Kundenstamm in einem Markt auf, der noch lange nicht gesättigt ist. Auch die Kostenseite spricht für die Stadt: Lebenshaltung und Gewerbemieten liegen deutlich unter westdeutschem Niveau, sodass sich selbst vorsichtige Kalkulationen schnell tragen. Gleichzeitig ziehen die wachsende Bevölkerung und die steigende Kaufkraft die Behandlungspreise langsam nach oben — gute Voraussetzungen für alle, die jetzt einsteigen und mitwachsen wollen.',
     neighborhoods: ['Plagwitz', 'Südvorstadt', 'Connewitz', 'Zentrum', 'Gohlis', 'Reudnitz'],
     marketContext: 'Boomender Kreativ-Markt mit junger Szene und niedrigen Einstiegspreisen. Wachsende Nachfrage, noch nicht gesättigt — ideal für den Start in die Selbstständigkeit.',
@@ -317,6 +357,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Bremen',
     state: 'Bremen',
     phase: 2,
+    lat: 53.0793,
+    lng: 8.8017,
+    regionCode: 'DE-HB',
+    wikipedia: 'https://de.wikipedia.org/wiki/Bremen',
     intro: 'Bremen ist ein bodenständiger, verlässlicher Beauty-Markt mit hanseatischem Charakter: Die Kundschaft ist treu, preisbewusst und legt Wert auf Qualität statt Trends. Die Beauty-Szene konzentriert sich auf die Innenstadt (Mitte), das lebendige Viertel rund um Ostertor und Steintor mit seiner kreativen, jungen Zielgruppe, das gehobene Schwachhausen, das familiäre Findorff und die aufstrebende Neustadt links der Weser. Für selbstständige Beauty-Profis bietet Bremen ein entspanntes Umfeld: Die Stuhl-Miet-Preise liegen deutlich unter denen der Metropolen, der Konkurrenzdruck ist moderat, und viele Salons öffnen sich zunehmend für flexible Miet-Modelle. Auffällig ist die ausgeprägte Work-Life-Balance-Szene — viele Profis arbeiten hier bewusst 3–4 Tage pro Woche und kombinieren Selbstständigkeit mit Familie oder Nebenprojekten, was das Stuhl-Miet-Modell besonders attraktiv macht. Wer in Bremen startet, baut sich mit fairen Preisen und persönlichem Service einen Kundenstamm auf, der über Jahre bleibt. Auch strukturell hat der kompakte Markt Vorteile: Die Wege sind kurz, und Kundschaft aus dem Umland — von Delmenhorst bis Achim — kommt für gute Behandlungen regelmäßig in die Stadt. Die Überseestadt wächst als neues Quartier heran und bringt Büro-Kundschaft mit, die Termine gern in die Mittagspause legt.',
     neighborhoods: ['Mitte', 'Viertel (Ostertor/Steintor)', 'Schwachhausen', 'Findorff', 'Neustadt', 'Überseestadt'],
     marketContext: 'Bodenständiger Markt mit treuer Kundschaft und moderatem Konkurrenzdruck. Ausgeprägte Work-Life-Balance-Szene — Teilzeit-Selbstständigkeit im Stuhl-Miet-Modell ist verbreitet.',
@@ -350,6 +394,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Dortmund',
     state: 'Nordrhein-Westfalen',
     phase: 3,
+    lat: 51.5136,
+    lng: 7.4653,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Dortmund',
     intro: 'Dortmund ist das wirtschaftliche Zentrum des östlichen Ruhrgebiets — und einer der günstigsten Großstadt-Märkte für Beauty-Selbstständige in Deutschland. Rund um das Kreuzviertel und den Westpark hat sich eine junge Studio-Szene etabliert, die von moderaten Gewerbemieten profitiert: Ein Friseurstuhl kostet hier oft nur halb so viel wie in München. Gleichzeitig ist die Kundschaft bodenständig und treu — wer sich in Dortmund einen Namen macht, arbeitet mit hoher Stammkunden-Quote. Die Nähe zu Bochum, Unna und Hagen erweitert das Einzugsgebiet spürbar; viele Kund:innen pendeln für gute Barber und Nageldesigner:innen quer durchs Revier. Für den Einstieg in die Selbstständigkeit mit kleinem Budget ist Dortmund damit einer der attraktivsten Standorte in NRW: geringe Fixkosten, ehrliche Preise, wenig Konkurrenzdruck durch Premium-Ketten. Besonders gefragt sind Plätze im Kreuzviertel, in der City rund um den Westenhellweg und im aufstrebenden Unionviertel.',
     neighborhoods: ['Kreuzviertel', 'Innenstadt-West', 'Unionviertel', 'Kaiserviertel', 'Hörde', 'Körne'],
     marketContext: 'Günstigster Einstieg unter den Top-10-Städten NRWs, treue Stammkundschaft, großes Pendler-Einzugsgebiet im Ruhrgebiet.',
@@ -367,6 +415,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Essen',
     state: 'Nordrhein-Westfalen',
     phase: 3,
+    lat: 51.4556,
+    lng: 7.0116,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Essen',
     intro: 'Essen hat den Strukturwandel vom Kohle-Standort zur Dienstleistungsstadt geschafft — und Rüttenscheid ist heute eine der bekanntesten Beauty-Meilen des Ruhrgebiets. Auf der "Rü" reihen sich Friseure, Barbershops, Nagel- und Kosmetikstudios auf wenigen hundert Metern; die Dichte an Laufkundschaft ist für die Region einzigartig. Wer hier einen Stuhl mietet, kauft sich in eine etablierte Einkaufs- und Ausgeh-Straße ein, ohne die Investition eines eigenen Ladenlokals zu stemmen. Außerhalb von Rüttenscheid sind die Preise deutlich moderater: In Frohnhausen, Holsterhausen oder Steele beginnt die Stuhl-Miete bei rund 20 € pro Tag. Die Kundschaft in Essen ist gemischt — vom Messe-Publikum über Klinik-Personal (Uniklinikum) bis zur klassischen Stammkundschaft der Stadtteile. Für Kosmetik und medizinische Fußpflege ist die Nähe zum Uniklinikum ein echter Standortvorteil, den viele unterschätzen.',
     neighborhoods: ['Rüttenscheid', 'Südviertel', 'Holsterhausen', 'Frohnhausen', 'Steele', 'Borbeck', 'Kettwig'],
     marketContext: 'Rüttenscheid als etablierte Beauty-Meile mit hoher Laufkundschaft; außerhalb sehr günstige Einstiegspreise.',
@@ -384,6 +436,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Dresden',
     state: 'Sachsen',
     phase: 3,
+    lat: 51.0504,
+    lng: 13.7373,
+    regionCode: 'DE-SN',
+    wikipedia: 'https://de.wikipedia.org/wiki/Dresden',
     intro: 'Dresden verbindet barocke Kulisse mit einer wachsenden, jungen Beauty-Szene — vor allem in der Äußeren Neustadt, dem kreativen Herz der Stadt. Zwischen Alaunstraße und Louisenstraße haben sich Barbershops, Tattoo- und Lash-Studios angesiedelt, die ein szeniges, treues Publikum bedienen. Gleichzeitig wächst der Markt: Sachsens Landeshauptstadt zieht durch Tech-Arbeitgeber ("Silicon Saxony") und die TU Dresden stetig junge, zahlungskräftige Kundschaft an. Die Stuhl-Mieten liegen mit 25–45 € pro Tag deutlich unter westdeutschen Großstädten, während die Behandlungspreise in den letzten Jahren spürbar angezogen haben — eine attraktive Marge für Selbstständige. Neben der Neustadt lohnen sich Striesen und Blasewitz für gehobene Kosmetik sowie die Innere Altstadt für Touristen-Laufkundschaft. Dresden ist damit der spannendste ostdeutsche Markt nach Leipzig: geringe Fixkosten, wachsende Nachfrage, wenig etablierte Ketten-Konkurrenz.',
     neighborhoods: ['Äußere Neustadt', 'Innere Altstadt', 'Striesen', 'Blasewitz', 'Pieschen', 'Löbtau'],
     marketContext: 'Wachsender Ost-Markt mit Tech-Kaufkraft, szenige Neustadt-Kundschaft, niedrige Fixkosten bei steigenden Behandlungspreisen.',
@@ -401,6 +457,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Nürnberg',
     state: 'Bayern',
     phase: 3,
+    lat: 49.4521,
+    lng: 11.0767,
+    regionCode: 'DE-BY',
+    wikipedia: 'https://de.wikipedia.org/wiki/Nürnberg',
     intro: 'Nürnberg ist das wirtschaftliche Zentrum Frankens — solide Kaufkraft, treue Kundschaft und ein Beauty-Markt, der zwischen bayerischem Preisniveau und fränkischer Bodenständigkeit liegt. Im Szeneviertel Gostenhof ("GoHo") hat sich eine junge Studio-Kultur entwickelt: Barbershops, Brow-Bars und Nagelstudios in ehemaligen Handwerker-Höfen prägen das Bild. Die Altstadt und die Lorenzkirche-Umgebung bringen Laufkundschaft und Touristen, während St. Johannis mit Altbau-Charme die gehobene Kosmetik-Klientel anzieht. Mit Tagesmieten von 35–55 € liegt Nürnberg klar unter München — bei Behandlungspreisen, die nur wenig darunter rangieren. Dazu kommt das Einzugsgebiet der Metropolregion mit Fürth und Erlangen: Die Siemens- und Uni-Standorte liefern kontinuierlich neue, gut verdienende Kundschaft. Für Selbstständige, die bayerische Kaufkraft ohne Münchner Fixkosten suchen, ist Nürnberg die logische Wahl.',
     neighborhoods: ['Gostenhof', 'Altstadt / St. Lorenz', 'St. Johannis', 'Südstadt', 'Maxfeld', 'Wöhrd'],
     marketContext: 'Bayerische Kaufkraft ohne München-Preise; Metropolregion mit Fürth/Erlangen als Einzugsgebiet; GoHo als Szene-Standort.',
@@ -418,6 +478,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Duisburg',
     state: 'Nordrhein-Westfalen',
     phase: 3,
+    lat: 51.4344,
+    lng: 6.7623,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Duisburg',
     intro: 'Duisburg ist der günstigste Einstiegs-Markt unter Deutschlands Großstädten — und genau das macht die Stadt für Beauty-Gründer:innen interessant. Tagesmieten ab 20 € bedeuten: Schon ab dem zweiten oder dritten Kunden pro Tag arbeitet man profitabel. Rund um den sanierten Innenhafen und in Neudorf (Uni-Nähe) entsteht eine kleine, aber wachsende Studio-Szene; die Innenstadt rund um die Königstraße liefert klassische Laufkundschaft. Duisburgs Stärke ist die Vielfalt: Eine internationale Bevölkerung sorgt für konstante Nachfrage nach Barbering, Braut-Styling und Spezial-Behandlungen, die anderswo Nischen sind. Wer mehrsprachig arbeitet, hat hier einen echten Wettbewerbsvorteil. Die Nähe zu Düsseldorf (15 Minuten mit dem RE) erlaubt zudem ein Hybrid-Modell: günstig in Duisburg produzieren, Premium-Kundschaft gezielt in Düsseldorf bedienen. Für den Selbstständigkeits-Start mit minimalem Risiko ist Duisburg schwer zu schlagen.',
     neighborhoods: ['Innenstadt / Königstraße', 'Innenhafen', 'Neudorf', 'Duissern', 'Hochfeld', 'Rheinhausen'],
     marketContext: 'Niedrigste Fixkosten aller Großstädte, internationale Kundschaft, Düsseldorf in 15 Minuten — ideal für risikoarme Gründung.',
@@ -435,6 +499,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Bochum',
     state: 'Nordrhein-Westfalen',
     phase: 3,
+    lat: 51.4818,
+    lng: 7.2162,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Bochum',
     intro: 'Bochum ist die Universitätsstadt des Ruhrgebiets — und ihr Beauty-Markt lebt vom jungen Publikum der Ruhr-Uni und der Hochschulen. Das Ehrenfeld-Viertel zwischen Schauspielhaus und Bermuda3eck hat sich zum kreativen Kern entwickelt: kleine Studios, Barbershops und Brow-Bars in Gründerzeit-Häusern, getragen von Studierenden und jungen Berufstätigen. Die Stuhl-Mieten gehören mit 20–40 € pro Tag zu den günstigsten in NRW, gleichzeitig sorgt das Bermuda3eck als größte Kneipenmeile des Reviers für Abend- und Wochenend-Frequenz, von der Styling-orientierte Angebote direkt profitieren. Wer auf Studierenden-Budgets zugeschnittene Preise mit schnellen, guten Cuts kombiniert, baut in Bochum außergewöhnlich schnell einen Kundenstamm auf — und wächst mit seiner Kundschaft, die nach dem Abschluss in besser bezahlte Jobs wechselt. Langfristig ist genau das Bochums stille Stärke: loyale Kundschaft mit steigender Kaufkraft.',
     neighborhoods: ['Ehrenfeld', 'Innenstadt / Bermuda3eck', 'Wiemelhausen', 'Langendreer', 'Weitmar', 'Riemke'],
     marketContext: 'Uni-Stadt mit junger Kundschaft und Abend-Frequenz durchs Bermuda3eck; sehr niedrige Einstiegskosten, loyale wachsende Klientel.',
@@ -452,6 +520,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Wuppertal',
     state: 'Nordrhein-Westfalen',
     phase: 3,
+    lat: 51.2562,
+    lng: 7.1508,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Wuppertal',
     intro: 'Wuppertal ist der unterschätzte Markt im Bergischen Land: Zwischen Elberfeld und Barmen leben 360.000 Menschen, doch die Studio-Dichte ist deutlich geringer als in den Rhein-Metropolen — weniger Konkurrenz bei solider Nachfrage. Das Luisenviertel in Elberfeld ist das kulturelle Herz der Stadt: Altbau-Charme, inhabergeführte Läden und ein Publikum, das bewusst lokal kauft. Hier funktionieren persönliche, spezialisierte Beauty-Konzepte besser als jede Kette. Die Stuhl-Mieten gehören mit 20–38 € pro Tag zu den niedrigsten der Top-20-Städte, und über die Schwebebahn ist jeder Stadtteil ohne Auto erreichbar — ein echter Vorteil für Kund:innen-Mobilität entlang der Talachse. Dazu kommt die Nähe zu Düsseldorf und Essen (je ~30 Minuten): Wer will, kombiniert günstige Wuppertaler Fixkosten mit gelegentlichen Premium-Tagen am Rhein. Für Gründer:innen, die einen loyalen Lokalmarkt ohne Großstadt-Kostenrisiko suchen, ist Wuppertal eine kluge Wahl.',
     neighborhoods: ['Luisenviertel', 'Elberfeld-Mitte', 'Barmen', 'Ölberg', 'Ronsdorf', 'Vohwinkel'],
     marketContext: 'Geringe Studio-Dichte bei 360k Einwohnern, Luisenviertel als loyaler Lokalmarkt, niedrigste Fixkosten im bergischen Raum.',
@@ -469,6 +541,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Bielefeld',
     state: 'Nordrhein-Westfalen',
     phase: 3,
+    lat: 52.0302,
+    lng: 8.5325,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Bielefeld',
     intro: 'Bielefeld ist das Zentrum Ostwestfalens — eine Region mit starkem Mittelstand, stabiler Beschäftigung und einer Kundschaft, die Wert auf Verlässlichkeit legt. Der Beauty-Markt spiegelt das wider: weniger Hype, dafür überdurchschnittlich treue Stammkund:innen und planbare Auslastung. Rund um den Siegfriedplatz ("Siggi") im Bielefelder Westen hat sich ein lebendiges Quartier mit inhabergeführten Studios entwickelt; die Altstadt und der Boulevard Bahnhofstraße liefern klassische Laufkundschaft. Mit Tagesmieten von 25–45 € liegt Bielefeld im günstigen Mittelfeld, während die Behandlungspreise dank der soliden ostwestfälischen Kaufkraft stabil sind. Das Einzugsgebiet reicht weit: Gütersloh, Herford und Paderborn haben kaum spezialisierte Studios, sodass Kund:innen für Lash-Extensions, Balayage oder gutes Barbering regelmäßig nach Bielefeld fahren. Wer hier Qualität liefert, baut ein Geschäft mit ungewöhnlich niedriger Kundenfluktuation auf.',
     neighborhoods: ['Bielefelder Westen / Siegfriedplatz', 'Altstadt', 'Mitte / Bahnhofstraße', 'Schildesche', 'Brackwede', 'Sennestadt'],
     marketContext: 'Ostwestfälischer Mittelstand: treue Stammkundschaft, stabile Preise, großes Einzugsgebiet bis Gütersloh/Herford/Paderborn.',
@@ -486,6 +562,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Bonn',
     state: 'Nordrhein-Westfalen',
     phase: 3,
+    lat: 50.7374,
+    lng: 7.0982,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Bonn',
     intro: 'Bonn kombiniert Bundesstadt-Kaufkraft mit internationalem Flair: UN-Standort, DAX-Konzerne wie Telekom und Post sowie zahlreiche Ministerien sorgen für eine überdurchschnittlich verdienende, stilbewusste Kundschaft. Die Südstadt mit ihrer prächtigen Gründerzeit-Architektur ist das Premium-Quartier für Kosmetik und gehobene Friseur-Konzepte; Poppelsdorf punktet mit Uni-Nähe und jungem Publikum, die Altstadt mit dichter Laufkundschaft. Für Beauty-Selbstständige interessant: Durch die internationalen Organisationen gibt es konstante Nachfrage nach englischsprachigem Service — ein Alleinstellungsmerkmal, das kaum ein Studio systematisch bedient. Die Stuhl-Mieten von 35–60 € pro Tag liegen unter Kölner Zentrumsniveau, die Behandlungspreise dafür kaum. Mit Bad Godesberg (Diplomaten-Viertel) und dem Rhein-Sieg-Kreis als Einzugsgebiet arbeitet man in Bonn in einem der stabilsten Beauty-Märkte NRWs — konjunkturunabhängig durch den öffentlichen Sektor.',
     neighborhoods: ['Südstadt', 'Altstadt / Zentrum', 'Poppelsdorf', 'Bad Godesberg', 'Beuel', 'Endenich'],
     marketContext: 'Bundesstadt-Kaufkraft (UN, Telekom, Ministerien), Nachfrage nach englischsprachigem Service, konjunkturstabile Klientel.',
@@ -503,6 +583,10 @@ export const PHASE_1_CITIES: CityData[] = [
     name: 'Münster',
     state: 'Nordrhein-Westfalen',
     phase: 3,
+    lat: 51.9607,
+    lng: 7.6261,
+    regionCode: 'DE-NW',
+    wikipedia: 'https://de.wikipedia.org/wiki/Münster',
     intro: 'Münster ist Deutschlands Fahrradstadt und eine der jüngsten Großstädte des Landes: Über 65.000 Studierende prägen Rhythmus und Stil — entsprechend hoch ist die Dichte an Lash-, Brow- und Nagelstudios rund um das Kreuzviertel und den Hansaring. Gleichzeitig hat Münster durch Verwaltung, Universitätsklinik und einen wohlhabenden Speckgürtel (Münsterland) eine zweite, kaufkräftige Klientel, die gehobene Kosmetik und Premium-Friseurleistungen nachfragt. Diese Doppelstruktur macht den Markt robust: Studierenden-Volumen unter der Woche, Premium-Termine am Freitag und Samstag. Die Stuhl-Mieten liegen bei moderaten 35–55 € pro Tag, deutlich unter dem Niveau vergleichbar attraktiver Städte. Das Kreuzviertel ist der Szene-Standort schlechthin; die Altstadt rund um den Prinzipalmarkt bringt kaufkräftige Laufkundschaft, und das Hafenviertel entwickelt sich zum Kreativ-Quartier. Wer beide Zielgruppen bedient, arbeitet in Münster mit außergewöhnlich stabiler Auslastung.',
     neighborhoods: ['Kreuzviertel', 'Altstadt / Prinzipalmarkt', 'Hansaviertel / Hafen', 'Aaseestadt', 'Mauritz', 'Gievenbeck'],
     marketContext: 'Doppelmarkt: 65k+ Studierende plus wohlhabendes Münsterland; hohe Lash/Brow/Nails-Nachfrage, stabile Auslastung.',
@@ -523,4 +607,32 @@ export function getCityBySlug(slug: string): CityData | undefined {
 
 export function getAllPhase1CitySlugs(): string[] {
   return PHASE_1_CITIES.map((c) => c.slug)
+}
+
+/** Luftlinie zwischen zwei Koordinaten in km (Haversine) */
+function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(bLat - aLat)
+  const dLng = toRad(bLng - aLng)
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2
+  return 6371 * 2 * Math.asin(Math.sqrt(h))
+}
+
+/**
+ * Nächstgelegene Städte zur gegebenen Stadt, sortiert nach Luftlinie.
+ * Für "Städte in der Nähe"-Interlinking auf Stadt-Hubs: entfernungs-
+ * relevante Anchors sind ein stärkeres Lokal-Signal als eine
+ * unsortierte Liste aller Städte.
+ */
+export function getNearbyCities(slug: string, limit = 8): CityData[] {
+  const origin = getCityBySlug(slug)
+  if (!origin) return []
+  return PHASE_1_CITIES
+    .filter((c) => c.slug !== slug)
+    .map((c) => ({ c, d: distanceKm(origin.lat, origin.lng, c.lat, c.lng) }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, limit)
+    .map((x) => x.c)
 }

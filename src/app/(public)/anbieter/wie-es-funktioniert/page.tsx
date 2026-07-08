@@ -1,22 +1,30 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { breadcrumbSchema, faqSchema } from '@/lib/seo'
+import { serviceAreaSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
 export const metadata: Metadata = {
   // Kein "| ChairMatch"-Suffix — das Layout-Title-Template ('%s | ChairMatch') hängt es an
   title: 'Anbieter werden — Stuhl, Liege oder Kabine vermieten',
-  description: 'Wie funktioniert ChairMatch für Salons, Studios und Praxen? In 4 Schritten dein Listing live — 0% Provision in den ersten 3 Monaten. Stripe-gesichert.',
+  description: 'Friseurstuhl, Liege oder Kabine vermieten: In 4 Schritten dein Listing live. Verifizierte Mieter, Stripe-gesichert — Founding-Salons 6 Monate 0 % Provision.',
   keywords: 'salon vermieten, friseurstuhl vermieten, stuhl-miete anbieter werden, salonplatz anbieten, untervermietung salon',
   alternates: { canonical: 'https://www.chairmatch.de/anbieter/wie-es-funktioniert' },
   openGraph: {
     title: 'Anbieter werden — Stuhl vermieten | ChairMatch',
-    description: 'In 4 Schritten dein Salon-Listing live. 0% Provision in den ersten 3 Monaten.',
+    description: 'In 4 Schritten dein Salon-Listing live. Founding-Salons: 6 Monate 0 % Provision.',
     url: 'https://www.chairmatch.de/anbieter/wie-es-funktioniert',
     type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Anbieter werden' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Anbieter werden — Stuhl vermieten | ChairMatch',
+    description: 'In 4 Schritten dein Salon-Listing live. Founding-Salons: 6 Monate 0 % Provision.',
+    images: ['/og-image.png'],
   },
 }
 
@@ -53,18 +61,11 @@ export default function ProviderHowItWorksPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: 'Anbieter werden', url: '/anbieter/wie-es-funktioniert' },
-          ])) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceAreaSchema('Deutschland')) }}
         />
 
         <Breadcrumbs items={[{ name: 'Anbieter werden', url: '/anbieter/wie-es-funktioniert' }]} />
@@ -111,6 +112,18 @@ export default function ProviderHowItWorksPage() {
         </section>
 
         <FAQ items={FAQS} title="Häufige Fragen für Anbieter" />
+
+        {/* Interne Verlinkung: Stadt-Hubs (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Stuhl vermieten in deiner Stadt:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {PHASE_1_CITIES.filter((c) => c.phase <= 2).map((c) => (
+              <Link key={c.slug} href={`/${c.slug}`} style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>
+                Stuhlmiete {c.name}
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   )

@@ -9,7 +9,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { breadcrumbSchema } from '@/lib/seo'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import {
   Sparkles, Scissors, Smile, Eye, Snowflake, Syringe,
   type LucideIcon,
@@ -22,6 +22,34 @@ export const metadata: Metadata = {
   description: 'Verifizierte Premium-Kliniken in Deutschland: Haartransplantation, Zahnimplantate, Augenlasern, Longevity, IV-Infusionen, Ästhetik. Transparente Preise.',
   keywords: 'medical beauty deutschland, schönheitsklinik, haartransplantation, zahnimplantate, augenlasern, longevity, anti aging, biohacking',
   alternates: { canonical: 'https://www.chairmatch.de/premium' },
+  openGraph: {
+    title: 'Medical Beauty Premium — Verifizierte Kliniken in Deutschland',
+    description: 'Haartransplantation, Zahnimplantate, Augenlasern, Longevity, IV-Infusionen, Ästhetik — transparente Preise, verifizierte Anbieter.',
+    url: 'https://www.chairmatch.de/premium',
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Medical Beauty Premium' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Medical Beauty Premium — Verifizierte Kliniken | ChairMatch',
+    description: 'Haartransplantation, Zahnimplantate, Augenlasern, Longevity & mehr — transparente Preise, verifizierte Anbieter.',
+    images: ['/og-image.png'],
+  },
+}
+
+// Service-Schema: ChairMatch vermittelt Raum-/Arbeitsplatz-Vermietung an Ärzte
+// und Kliniken — bewusst OHNE medizinische Claims (kein MedicalClinic/MedicalProcedure).
+const SERVICE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  '@id': 'https://www.chairmatch.de/premium#service',
+  name: 'OP-Raum & Behandlungsraum Vermittlung für Medical-Beauty-Praxen',
+  serviceType: 'OP-Raum & Behandlungsraum Vermietung',
+  provider: { '@id': 'https://www.chairmatch.de/#organization' },
+  areaServed: { '@type': 'Country', name: 'Germany' },
+  url: 'https://www.chairmatch.de/premium',
 }
 
 interface PremiumService {
@@ -85,12 +113,10 @@ export default function PremiumHubPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        {/* BreadcrumbList-Schema kommt aus der <Breadcrumbs>-Komponente — hier bewusst kein zweites. */}
         <script type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: 'Medical Beauty Premium', url: '/premium' },
-          ])) }} />
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }} />
 
         <div style={{ marginBottom: 14 }}>
           <BackButton href="/" label="Zurück zur Startseite" />
@@ -197,6 +223,18 @@ export default function PremiumHubPage() {
           }}>
             Als Premium-Klinik registrieren →
           </Link>
+        </section>
+
+        {/* Interne Verlinkung: Stadt-Hubs (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Räume &amp; Arbeitsplätze in deiner Stadt:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {PHASE_1_CITIES.filter((c) => c.phase <= 2).map((c) => (
+              <Link key={c.slug} href={`/${c.slug}`} style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>
+                {c.name}
+              </Link>
+            ))}
+          </div>
         </section>
       </div>
     </div>

@@ -12,6 +12,7 @@
 
 import Link from 'next/link'
 import { faqSchema, serviceAreaSchema, type FaqItem } from '@/lib/seo'
+import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
 // ─────────────────────────────────────────────────────────────
 // Hero — kompakte Band oben, H1 + Dual-CTA
@@ -141,7 +142,7 @@ const HOME_FAQ: FaqItem[] = [
   {
     question: 'In welchen Städten ist ChairMatch verfügbar?',
     answer:
-      'Phase-1-Launch-Städte sind Berlin, Hamburg, München, Köln und Frankfurt — mit Schwerpunkt auf Friseur, Barber, Kosmetik, Nail, Lash und Premium-Medical (OP-Raum, Behandlungsraum). Weitere Städte folgen sobald in der jeweiligen Region mindestens drei verifizierte Anbieter aktiv sind. Sie können jederzeit als Erstanbieter in einer neuen Stadt starten.',
+      'ChairMatch ist in den 20 größten deutschen Städten aktiv — darunter Berlin, Hamburg, München, Köln, Frankfurt, Düsseldorf, Stuttgart, Hannover, Leipzig, Bremen, Dortmund, Essen, Dresden und Nürnberg — mit Schwerpunkt auf Friseur, Barber, Kosmetik, Nail, Lash und Premium-Medical (OP-Raum, Behandlungsraum). Weitere Städte folgen sobald in der jeweiligen Region mindestens drei verifizierte Anbieter aktiv sind. Sie können jederzeit als Erstanbieter in einer neuen Stadt starten.',
   },
   {
     question: 'Was unterscheidet ChairMatch von eBay Kleinanzeigen und Facebook-Gruppen?',
@@ -162,13 +163,11 @@ const VERTICAL_HUBS: Array<{ slug: string; label: string }> = [
   { slug: 'lash-brows-deutschland', label: 'Lash & Brows' },
 ]
 
-const CITY_HUBS: Array<{ slug: string; label: string }> = [
-  { slug: 'berlin', label: 'Berlin' },
-  { slug: 'hamburg', label: 'Hamburg' },
-  { slug: 'muenchen', label: 'München' },
-  { slug: 'koeln', label: 'Köln' },
-  { slug: 'frankfurt', label: 'Frankfurt' },
-]
+// Alle 20 Städte aus der zentralen Whitelist — Anchor "Stuhlmiete «Stadt»"
+const CITY_HUBS: Array<{ slug: string; label: string }> = PHASE_1_CITIES.map(c => ({
+  slug: c.slug,
+  label: c.name,
+}))
 
 export function HomeSEOFooterContent() {
   const jsonLd = {
@@ -446,6 +445,7 @@ export function HomeSEOFooterContent() {
             <li key={c.slug}>
               <Link
                 href={`/${c.slug}`}
+                title={`Stuhlmiete ${c.label}`}
                 style={{
                   display: 'inline-block',
                   padding: '6px 12px',
@@ -457,7 +457,7 @@ export function HomeSEOFooterContent() {
                   textDecoration: 'none',
                 }}
               >
-                {c.label}
+                Stuhlmiete {c.label}
               </Link>
             </li>
           ))}

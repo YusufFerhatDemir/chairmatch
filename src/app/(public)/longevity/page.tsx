@@ -9,15 +9,42 @@ import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
-import { breadcrumbSchema, faqSchema } from '@/lib/seo'
 
 export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Longevity-Center Deutschland — Cryo, HBOT, HIFU | ChairMatch',
-  description: 'Anti-Aging und Bio-Hacking: Kältekammer, Sauerstofftherapie, HIFU-Hautstraffung, EMS-Training. Verifizierte Longevity-Center in deiner Stadt.',
+  description: 'Longevity-Center in Deutschland: Kryotherapie, HBOT-Sauerstofftherapie, HIFU & EMS. Verifizierte Anbieter in deiner Stadt, Sitzungen ab 29 € — transparent.',
   keywords: 'longevity, anti aging, cryotherapie, hbot, sauerstofftherapie, hifu, biohacking, kältekammer, body contouring',
   alternates: { canonical: 'https://www.chairmatch.de/longevity' },
+  openGraph: {
+    title: 'Longevity-Center — Cryo, HBOT, HIFU in Deutschland',
+    description: 'Kryotherapie, Sauerstofftherapie, HIFU & EMS — verifizierte Longevity-Center in deiner Stadt.',
+    url: 'https://www.chairmatch.de/longevity',
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Longevity-Center Deutschland' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Longevity-Center — Cryo, HBOT, HIFU | ChairMatch',
+    description: 'Kryotherapie, Sauerstofftherapie, HIFU & EMS — verifizierte Longevity-Center in deiner Stadt.',
+    images: ['/og-image.png'],
+  },
+}
+
+// Service-Schema: ChairMatch vermittelt Raum-/Arbeitsplatz-Vermietung an
+// Longevity-Anbieter — bewusst OHNE medizinische Claims.
+const SERVICE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  '@id': 'https://www.chairmatch.de/longevity#service',
+  name: 'Behandlungsraum Vermittlung für Longevity-Center',
+  serviceType: 'Behandlungsraum Vermietung',
+  provider: { '@id': 'https://www.chairmatch.de/#organization' },
+  areaServed: { '@type': 'Country', name: 'Germany' },
+  url: 'https://www.chairmatch.de/longevity',
 }
 
 const FAQS = [
@@ -59,12 +86,10 @@ export default function LongevityPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
         <script type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([{ name: 'Start', url: '/' }, { name: 'Longevity', url: '/longevity' }])) }} />
-        <script type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }} />
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }} />
 
         <div style={{ marginBottom: 14 }}>
           <BackButton href="/" label="Zurück zur Startseite" />
@@ -117,6 +142,18 @@ export default function LongevityPage() {
         <p style={{ fontSize: 10, color: 'var(--stone2)', textAlign: 'center', marginTop: 24 }}>
           Anti-Aging-Therapien sind ergänzend zu gesundem Lebensstil. Keine medizinische Behandlung.
         </p>
+
+        {/* Interne Verlinkung: verwandte Premium-Seiten (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Weitere Medical-Beauty-Themen:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <Link href="/premium" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Medical Beauty Übersicht</Link>
+            <Link href="/iv-infusionen" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>IV-Infusionen</Link>
+            <Link href="/haartransplantation" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Haartransplantation</Link>
+            <Link href="/zahnimplantate" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Zahnimplantate</Link>
+            <Link href="/augenlasern" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Augenlasern</Link>
+          </div>
+        </section>
       </div>
     </div>
   )

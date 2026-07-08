@@ -20,22 +20,42 @@ import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
-import { breadcrumbSchema, faqSchema } from '@/lib/seo'
 
 export const revalidate = 3600 // 1h
 
 export const metadata: Metadata = {
   title: 'Haartransplantation in Deutschland — Kosten, Methoden, Vergleich | ChairMatch',
-  description: 'Verifizierte Kliniken für Haartransplantation in deiner Nähe finden. FUE, DHI, Saphir im Vergleich. Realistische Kosten: 2.490-4.990 €. Kostenlose Erstberatung anfragen.',
+  description: 'Haartransplantation in Deutschland: verifizierte Kliniken, FUE, DHI & Saphir im Vergleich. Realistische Kosten 2.490–4.990 €, kostenlose Erstberatung.',
   keywords: 'haartransplantation, haartransplantation kosten, fue haartransplantation, dhi methode, saphir fue, haartransplantation deutschland, eigenhaartransplantation, haarausfall behandlung',
   alternates: { canonical: 'https://www.chairmatch.de/haartransplantation' },
   openGraph: {
     title: 'Haartransplantation — Verifizierte Kliniken in Deutschland',
     description: 'FUE, DHI, Saphir im Vergleich. Realistische Kosten + verifizierte Kliniken. Kostenlose Erstberatung.',
     url: 'https://www.chairmatch.de/haartransplantation',
+    type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Haartransplantation Deutschland' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Haartransplantation — Verifizierte Kliniken | ChairMatch',
+    description: 'FUE, DHI, Saphir im Vergleich. Realistische Kosten + verifizierte Kliniken in Deutschland.',
+    images: ['/og-image.png'],
+  },
+}
+
+// Service-Schema: ChairMatch vermittelt Raum-/Arbeitsplatz-Vermietung an Ärzte
+// und Kliniken — bewusst OHNE medizinische Claims (kein MedicalProcedure/MedicalClinic).
+const SERVICE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  '@id': 'https://www.chairmatch.de/haartransplantation#service',
+  name: 'OP-Raum Vermittlung für Haartransplantations-Praxen',
+  serviceType: 'OP-Raum Vermietung',
+  provider: { '@id': 'https://www.chairmatch.de/#organization' },
+  areaServed: { '@type': 'Country', name: 'Germany' },
+  url: 'https://www.chairmatch.de/haartransplantation',
 }
 
 const FAQS = [
@@ -82,23 +102,14 @@ const FAQS = [
 ]
 
 export default function HaartransplantationPage() {
-  const crumbs = breadcrumbSchema([
-    { name: 'Start', url: '/' },
-    { name: 'Haartransplantation', url: '/haartransplantation' },
-  ])
-
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }}
         />
 
         <div style={{ marginBottom: 14 }}>
@@ -284,6 +295,18 @@ export default function HaartransplantationPage() {
           Medizinische Inhalte sind allgemeine Informationen, keine Beratung im Einzelfall.
           Sprich mit einem approbierten Arzt für deine individuelle Situation.
         </p>
+
+        {/* Interne Verlinkung: verwandte Premium-Seiten (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Weitere Medical-Beauty-Themen:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <Link href="/premium" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Medical Beauty Übersicht</Link>
+            <Link href="/zahnimplantate" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Zahnimplantate</Link>
+            <Link href="/augenlasern" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Augenlasern</Link>
+            <Link href="/iv-infusionen" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>IV-Infusionen</Link>
+            <Link href="/longevity" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Longevity</Link>
+          </div>
+        </section>
       </div>
     </div>
   )

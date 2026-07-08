@@ -5,12 +5,13 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import type { CSSProperties } from 'react'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
+import { breadcrumbSchema } from '@/lib/seo'
 import BreakEvenClient from './BreakEvenClient'
 
 export const metadata: Metadata = {
   // Layout-Template fügt "| ChairMatch" auto an.
   title: 'Preisvergleich: Was kostet Stuhlmiete in Deutschland?',
-  description: 'Stuhlmiete Kosten im Überblick: Friseurstuhl mieten Preis pro Tag und Monat, Live-Marktpreise aus echten Inseraten, Break-Even-Rechner und Vergleich Stuhlmiete vs. eigener Salon vs. Anstellung.',
+  description: 'Stuhlmiete Kosten im Überblick: Friseurstuhl mieten ab 25 €/Tag, Kabinen & Behandlungsräume — Live-Marktpreise aus echten Inseraten + Break-Even-Rechner.',
   keywords: 'stuhlmiete kosten, friseurstuhl mieten preis, stuhlmiete preisvergleich, was kostet stuhlmiete, friseurstuhl mieten kosten, kabine mieten preis, stuhlmiete oder anstellung, stuhlmiete rechner',
   alternates: { canonical: 'https://www.chairmatch.de/preisvergleich' },
   openGraph: {
@@ -20,6 +21,13 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Stuhlmiete Preisvergleich' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Was kostet Stuhlmiete in Deutschland? | ChairMatch',
+    description: 'Live-Marktpreise für Stuhlmiete, Kabinen und Behandlungsräume — plus Break-Even-Rechner.',
+    images: ['/og-image.png'],
   },
 }
 
@@ -215,6 +223,13 @@ export default async function PreisvergleichPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
+            { name: 'Start', url: '/' },
+            { name: 'Preisvergleich', url: '/preisvergleich' },
+          ])) }}
         />
 
         {/* ---------------------------------------------------------------- */}
@@ -418,6 +433,18 @@ export default async function PreisvergleichPage() {
             </a>
           </div>
         </div>
+
+        {/* Interne Verlinkung: Stadt-Hubs (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ margin: '0 var(--pad)', padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Stuhlmiete-Preise in deiner Stadt:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {PHASE_1_CITIES.filter((c) => c.phase <= 2).map((c) => (
+              <Link key={c.slug} href={`/${c.slug}`} style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>
+                Stuhlmiete {c.name}
+              </Link>
+            ))}
+          </div>
+        </section>
         <div style={{ height: 80 }} />
       </div>
     </div>

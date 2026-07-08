@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { MAGAZIN_ARTIKEL, getMagazinArtikel } from '@/lib/seo-data/magazin'
-import { breadcrumbSchema, faqSchema, articleSchema } from '@/lib/seo'
+import { articleSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -115,21 +115,7 @@ export default async function MagazinArticlePage({ params }: Props) {
             readMinutes: a.readMinutes,
           })) }}
         />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: 'Magazin', url: '/magazin' },
-            { name: a.title, url: `/magazin/${slug}` },
-          ])) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(a.faqs)) }}
-        />
-
+        {/* BreadcrumbList & FAQPage kommen aus <Breadcrumbs>/<FAQ> — keine manuellen Duplikate */}
         <Breadcrumbs items={[
           { name: 'Magazin', url: '/magazin' },
           { name: a.title, url: `/magazin/${slug}` },

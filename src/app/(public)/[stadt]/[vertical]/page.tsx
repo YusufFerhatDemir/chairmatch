@@ -13,7 +13,7 @@ import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getCityBySlug, PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { getVerticalBySlug, VERTICALS } from '@/lib/seo-data/verticals'
-import { robotsForListingPage, breadcrumbSchema, faqSchema, slugToCity, salonSchema } from '@/lib/seo'
+import { robotsForListingPage, geoMeta, cityPlace, parsePriceRange, slugToCity, salonSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -96,6 +96,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ].join(', '),
     alternates: { canonical: `https://www.chairmatch.de/${stadt}/${vertical}` },
     robots: robotsForListingPage(salonCount),
+    other: geoMeta(city),
     openGraph: {
       title,
       description,
@@ -123,39 +124,29 @@ export default async function CityVerticalPage({ params }: Props) {
             '@type': 'Service',
             name: `${v.name}-${v.assetLabel} mieten in ${city.name}`,
             provider: { '@id': 'https://www.chairmatch.de/#organization' },
-            areaServed: {
-              '@type': 'City',
-              name: city.name,
-              containedInPlace: { '@type': 'Country', name: 'Germany' },
-            },
+            areaServed: cityPlace(city),
             serviceType: `${v.name} Chair Rental`,
             description: `Tageweise Vermietung von ${v.assetLabel} in ${city.name}.`,
             offers: salons.length > 0 ? {
               '@type': 'AggregateOffer',
               priceCurrency: 'EUR',
-              lowPrice: city.priceRange.stuhl.split('-')[0].replace(/\D/g, ''),
-              highPrice: city.priceRange.stuhl.split('-')[1]?.replace(/\D/g, '').replace('€/Tag', '') || '90',
+              lowPrice: parsePriceRange(city.priceRange.stuhl)?.low ?? '30',
+              highPrice: parsePriceRange(city.priceRange.stuhl)?.high ?? '90',
               offerCount: salons.length,
             } : undefined,
           }) }}
         />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: city.name, url: `/${stadt}` },
-            { name: v.name, url: `/${stadt}/${vertical}` },
-          ])) }}
-        />
+        {/* BreadcrumbList kommt aus <Breadcrumbs> — kein manuelles Duplikat */}
         {salons.slice(0, 5).map((s) => (
           <script
             key={s.id}
             type="application/ld+json"
             // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: JSON.stringify(salonSchema({
+              // category = Slug (nicht Display-Name), damit der spezifische
+              // @type (BarberShop/HairSalon/…) aus der Map greift.
               id: s.id, name: s.name, slug: s.slug, description: s.description,
-              category: v.name, city: s.city, avg_rating: s.avg_rating, review_count: s.review_count,
+              category: vertical, city: s.city, avg_rating: s.avg_rating, review_count: s.review_count,
             })) }}
           />
         ))}

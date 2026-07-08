@@ -7,7 +7,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getVerticalBySlug } from "@/lib/seo-data/verticals"
 import { PHASE_1_CITIES } from "@/lib/seo-data/cities"
-import { breadcrumbSchema, faqSchema, slugToCity } from "@/lib/seo"
+import { slugToCity } from "@/lib/seo"
 import { Breadcrumbs } from "@/components/seo/Breadcrumbs"
 import { FAQ } from "@/components/seo/FAQ"
 
@@ -19,21 +19,37 @@ export function VerticalHubContent({ verticalSlug }: Props) {
 
   const fullSlug = `${v.slug}-deutschland`
 
+  // Service-Schema: deutschlandweit + OfferCatalog mit allen Stadt-Angeboten
+  // (stärkstes Interlinking-Signal für Google & AI-Engines)
+  const serviceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `https://www.chairmatch.de/${fullSlug}#service`,
+    name: `${v.name}-${v.assetLabel} mieten in Deutschland`,
+    description: v.marketStats,
+    serviceType: 'Workspace Rental',
+    provider: { '@id': 'https://www.chairmatch.de/#organization' },
+    areaServed: { '@type': 'Country', name: 'Germany' },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: `${v.name} Stuhlmiete nach Stadt`,
+      itemListElement: PHASE_1_CITIES.map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: `${v.name} Stuhlmiete ${c.name}`,
+        url: `https://www.chairmatch.de/${c.slug}/${v.slug}`,
+      })),
+    },
+  }
+
   return (
     <div className="shell">
       <div className="screen" style={{ padding: "var(--pad)" }}>
+        {/* BreadcrumbList & FAQPage kommen aus <Breadcrumbs>/<FAQ> — keine manuellen Duplikate */}
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: "Start", url: "/" },
-            { name: `${v.name} Deutschland`, url: `/${fullSlug}` },
-          ])) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(v.faqs)) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
         />
 
         <Breadcrumbs items={[{ name: `${v.name} Deutschland`, url: `/${fullSlug}` }]} />
@@ -83,14 +99,16 @@ export function VerticalHubContent({ verticalSlug }: Props) {
             {v.name} in den Top-Städten
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
+            {/* Anchor-Text "«Vertical» Stuhlmiete «Stadt»" — Keyword-Reihenfolge im DOM */}
             {PHASE_1_CITIES.map((c) => (
               <Link
                 key={c.slug}
                 href={`/${c.slug}/${v.slug}` as never}
+                title={`${v.name} Stuhlmiete ${c.name}`}
                 style={{ textDecoration: "none", background: "var(--c2)", borderRadius: 10, padding: 12, textAlign: "center", border: "1px solid var(--border)" }}
               >
-                <p style={{ fontSize: 13, fontWeight: 600, color: "var(--gold2)", margin: 0 }}>{slugToCity(c.slug)}</p>
-                <p style={{ fontSize: 10, color: "var(--stone)", margin: "2px 0 0" }}>{v.name}</p>
+                <p style={{ fontSize: 10, color: "var(--stone)", margin: 0 }}>{v.name} Stuhlmiete</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: "var(--gold2)", margin: "2px 0 0" }}>{slugToCity(c.slug)}</p>
               </Link>
             ))}
           </div>
@@ -124,9 +142,18 @@ export function makeVerticalMetadata(verticalSlug: string) {
   const v = getVerticalBySlug(verticalSlug)
   if (!v) return { title: "Nicht gefunden" }
   const fullSlug = `${v.slug}-deutschland`
+  const url = `https://www.chairmatch.de/${fullSlug}`
   return {
     title: `${v.name}-${v.assetLabel} mieten in Deutschland | ChairMatch`,
     description: `${v.name}-Chair-Rental in Deutschland: ${v.marketStats} Anbieter werden — 0% Provision in den ersten 3 Monaten.`,
-    alternates: { canonical: `https://www.chairmatch.de/${fullSlug}` },
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${v.name}-${v.assetLabel} mieten in Deutschland — ChairMatch`,
+      description: `${v.name} Stuhlmiete in 20 deutschen Städten: verifizierte Anbieter, transparente Tagespreise, rechtssichere Mietverträge.`,
+      url,
+      type: 'website' as const,
+      locale: 'de_DE',
+      siteName: 'ChairMatch',
+    },
   }
 }

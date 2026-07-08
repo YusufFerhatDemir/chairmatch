@@ -1,20 +1,28 @@
 import type { Metadata } from 'next'
-import { breadcrumbSchema, faqSchema } from '@/lib/seo'
+import Link from 'next/link'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
 export const metadata: Metadata = {
   // Kein "| ChairMatch"-Suffix — das Layout-Title-Template ('%s | ChairMatch') hängt es an
   title: 'Provisionsmodell — transparente Preise',
-  description: '10% auf Stuhl-Miete, 8% auf OP-Räume, 0% für Kunden. Vergleich zu eBay Kleinanzeigen, Facebook und Salonkee.',
+  description: 'ChairMatch Provisionsmodell: 10 % auf Stuhlmiete, 8 % auf OP-Räume, 0 % für Mieter & Kunden. Stripe-gesichert — im Vergleich mit Kleinanzeigen & Salonkee.',
   keywords: 'chairmatch provision, stuhl miete provision, salon vermietung gebühren, transparente preise marketplace',
   alternates: { canonical: 'https://www.chairmatch.de/provisionsmodell' },
   openGraph: {
     title: 'Provisionsmodell — transparente Preise',
     description: 'Klare Preise: 10% Stuhl-Miete, 8% OP-Räume, 0% für Kunden.',
     url: 'https://www.chairmatch.de/provisionsmodell',
+    type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Provisionsmodell' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Provisionsmodell — transparente Preise | ChairMatch',
+    description: 'Klare Preise: 10% Stuhl-Miete, 8% OP-Räume, 0% für Kunden.',
+    images: ['/og-image.png'],
   },
 }
 
@@ -31,19 +39,7 @@ export default function PricingPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: 'Provisionsmodell', url: '/provisionsmodell' },
-          ])) }}
-        />
-        <script
-          type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }}
-        />
+        {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
 
         <Breadcrumbs items={[{ name: 'Provisionsmodell', url: '/provisionsmodell' }]} />
 
@@ -104,6 +100,17 @@ export default function PricingPage() {
         </section>
 
         <FAQ items={FAQS} title="Häufige Fragen zum Preismodell" />
+
+        {/* Interne Verlinkung: weiterführende Seiten (Stil analog [stadt]-Cross-Links) */}
+        <section style={{ marginTop: 40, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 12 }}>Mehr zu Preisen &amp; Ablauf:</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <Link href="/preisvergleich" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Was kostet Stuhlmiete?</Link>
+            <Link href="/vermieter/wie-es-funktioniert" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Vermieter werden</Link>
+            <Link href="/mieter/wie-es-funktioniert" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Stuhl mieten</Link>
+            <Link href="/freelancer-rechner" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline' }}>Freelancer-Rechner</Link>
+          </div>
+        </section>
       </div>
     </div>
   )
