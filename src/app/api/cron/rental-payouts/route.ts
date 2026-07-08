@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getStripe } from '@/lib/stripe'
+import { getStripe, isStripeConfigured } from '@/lib/stripe'
+
+// Zombie-Pendings freigeben. Regulär erledigt das der
+// checkout.session.expired-Webhook nach 30 Min — dieser Fallback greift,
+// falls der Webhook nicht zugestellt wurde. Ohne Cleanup blockiert eine
+// nie bezahlte pending-Buchung den Zeitraum dauerhaft (EXCLUDE-Constraint).
+// Braucht nur Supabase, kein Stripe — läuft deshalb auch ohne STRIPE_SECRET_KEY.
+async function cleanupStalePendings(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+): Promise<{ expiredPendings: number; cleanupError?: string }> {
+  const staleCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data: expired, error } = await supabase
+    .from('rental_bookings')
+    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+    .eq('status', 'pending')
+    .in('payment_status', ['unpaid', 'pending'])
+    .lt('created_at', staleCutoff)
+    .select('id')
+  if (error) return { expiredPendings: 0, cleanupError: `pending-cleanup fehlgeschlagen: ${error.message}` }
+  return { expiredPendings: expired?.length ?? 0 }
+}
 
 /**
  * Cron: Rental-Payouts (Escrow-Modell)
@@ -26,6 +46,24 @@ export async function GET(req: NextRequest) {
 
   const supabase = getSupabaseAdmin()
   const today = new Date().toISOString().slice(0, 10)
+
+  // Ohne STRIPE_SECRET_KEY sind keine Transfers möglich — kontrolliert mit 503
+  // antworten (Cron bleibt im Vercel-Dashboard als fehlgeschlagen sichtbar)
+  // statt mit unhandled Exception zu crashen. Der Pending-Cleanup läuft trotzdem.
+  if (!isStripeConfigured()) {
+    const cleanup = await cleanupStalePendings(supabase)
+    console.error('[cron/rental-payouts] STRIPE_SECRET_KEY fehlt — Payouts übersprungen, Cleanup ausgeführt')
+    return NextResponse.json(
+      {
+        ok: false,
+        date: today,
+        error: 'STRIPE_SECRET_KEY ist nicht konfiguriert (Vercel → Settings → Environment Variables) — Payouts übersprungen',
+        expiredPendings: cleanup.expiredPendings,
+        errors: cleanup.cleanupError ? [cleanup.cleanupError] : [],
+      },
+      { status: 503 },
+    )
+  }
 
   // Fällige, noch nicht transferierte Miet-Transaktionen
   const { data: txs, error } = await supabase
@@ -131,19 +169,8 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Cleanup: Zombie-Pendings freigeben. Regulär erledigt das der
-  // checkout.session.expired-Webhook nach 30 Min — dieser Fallback greift,
-  // falls der Webhook nicht zugestellt wurde. Ohne Cleanup blockiert eine
-  // nie bezahlte pending-Buchung den Zeitraum dauerhaft (EXCLUDE-Constraint).
-  const staleCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const { data: expired, error: expireError } = await supabase
-    .from('rental_bookings')
-    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-    .eq('status', 'pending')
-    .in('payment_status', ['unpaid', 'pending'])
-    .lt('created_at', staleCutoff)
-    .select('id')
-  if (expireError) errors.push(`pending-cleanup fehlgeschlagen: ${expireError.message}`)
+  const cleanup = await cleanupStalePendings(supabase)
+  if (cleanup.cleanupError) errors.push(cleanup.cleanupError)
 
   return NextResponse.json({
     ok: true,
@@ -151,7 +178,7 @@ export async function GET(req: NextRequest) {
     candidates: txs?.length ?? 0,
     transferred,
     skipped,
-    expiredPendings: expired?.length ?? 0,
+    expiredPendings: cleanup.expiredPendings,
     errors,
   })
 }

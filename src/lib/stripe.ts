@@ -2,6 +2,12 @@ import Stripe from 'stripe'
 
 // Server-side Stripe instance — lazy init to prevent build-time crash
 let _stripe: Stripe | null = null
+
+// Für Routen, die ohne Stripe sinnvoll degradieren können (z.B. Cron-Jobs):
+// vorab prüfen statt getStripe() werfen zu lassen.
+export function isStripeConfigured(): boolean {
+  return !!process.env.STRIPE_SECRET_KEY
+}
 export function getStripe(): Stripe {
   if (!_stripe) {
     const key = process.env.STRIPE_SECRET_KEY
