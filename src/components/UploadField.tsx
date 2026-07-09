@@ -49,7 +49,7 @@ export function SingleImageUpload({ storageKey, placeholder = 'YD' }: { storageK
     try {
       const url = await readFileAsDataURL(f)
       setDataUrl(url)
-      try { localStorage.setItem(storageKey, url) } catch (e) {
+      try { localStorage.setItem(storageKey, url) } catch {
         setError('Speicher voll — älteres Bild zuerst löschen')
       }
     } catch {
@@ -159,7 +159,7 @@ export function GalleryUpload({ storageKey, maxImages = 12, label = 'Bilder' }: 
     if (newImages.length === 0) return
     const merged = [...images, ...newImages].slice(0, maxImages)
     setImages(merged)
-    try { localStorage.setItem(storageKey, JSON.stringify(merged)) } catch (e) {
+    try { localStorage.setItem(storageKey, JSON.stringify(merged)) } catch {
       setError('Speicher voll — älteres Bild zuerst löschen')
     }
   }
@@ -266,7 +266,7 @@ export function DocumentUpload({ storageKey, docs }: { storageKey: string; docs:
       const url = await readFileAsDataURL(f)
       const next = { ...files, [docId]: { name: f.name, size: f.size, dataUrl: url } }
       setFiles(next)
-      try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch (e) {
+      try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {
         setError('Speicher voll — älteres Dokument zuerst löschen')
       }
     } catch {

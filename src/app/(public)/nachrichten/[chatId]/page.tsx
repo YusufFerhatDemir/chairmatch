@@ -18,7 +18,7 @@ const CONTACT_INITIALS = 'SA'
 export default function ChatDetailPage() {
   const router = useRouter()
   const params = useParams()
-  const chatId = (params?.chatId as string) || ''
+  const _chatId = (params?.chatId as string) || ''
   const [messages, setMessages] = useState<Msg[]>(MOCK_MESSAGES)
   const [input, setInput] = useState('')
   const endRef = useRef<HTMLDivElement | null>(null)

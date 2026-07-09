@@ -241,7 +241,7 @@ export const GET = withApi(async () => {
 
     const recentTotalBookings = (recentBookings ?? []).length
     const recentBookingsByStatus: Record<string, number> = {}
-    for (const b of recentBookings ?? []) {
+    for (const _b of recentBookings ?? []) {
       // Wir haben hier nur created_at; status aus payments via Join wäre besser.
       // Vereinfachung: alle gleich behandeln, status-spezifisches Aggregat aus bookingsByStatus
       recentBookingsByStatus['total'] = (recentBookingsByStatus['total'] || 0) + 1

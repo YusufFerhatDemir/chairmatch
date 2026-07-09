@@ -51,10 +51,6 @@ async function buildVapidHeaders(endpoint: string): Promise<{ Authorization: str
     '30770201010420',
     'hex'
   )
-  const pkcs8Mid = Buffer.from(
-    'a00a06082a8648ce3d030107a14403420004',
-    'hex'
-  )
 
   // If the private key is 32 bytes (raw), we need the public key too
   // For a complete implementation, use the web-push package

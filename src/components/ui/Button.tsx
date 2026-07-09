@@ -9,7 +9,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Button({ variant = 'gold', children, loading, fullWidth = true, className = '', ...props }: ButtonProps) {
   const base = variant === 'gold' ? 'bgold' : variant === 'outline' ? 'boutline' : ''
-  const width = fullWidth ? 'width:100%' : ''
   return (
     <button
       className={`${base} ${className}`}

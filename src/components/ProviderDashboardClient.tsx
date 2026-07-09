@@ -190,7 +190,6 @@ export default function ProviderDashboardClient({ salon, services: initServices,
   const inp = { className: 'inp', style: { width: '100%' } as const }
   const lbl = { style: { fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 } as const }
 
-  const address = [salon.street, salon.house_number].filter(Boolean).join(' ')
   const statusLabel = salon.is_active ? (salon.is_verified ? 'Verifiziert' : 'Aktiv') : 'Inaktiv'
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 

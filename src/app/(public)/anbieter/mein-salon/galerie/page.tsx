@@ -1,6 +1,6 @@
 'use client'
 
-import MeinBereichSubPage, { AktuellBox, TippsBox, GoldButton } from '@/components/MeinBereichSubPage'
+import MeinBereichSubPage, { TippsBox } from '@/components/MeinBereichSubPage'
 import { GalleryUpload } from '@/components/UploadField'
 import { useTranslations } from '@/i18n/client'
 

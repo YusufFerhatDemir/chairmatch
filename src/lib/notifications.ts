@@ -9,15 +9,6 @@ export type NotificationType =
   | 'system'
   | 'compliance'
 
-interface CreateNotificationParams {
-  userId: string
-  title: string
-  body: string
-  type: NotificationType
-  referenceId?: string
-  referenceType?: string
-}
-
 /**
  * Create an in-app notification for a user.
  *

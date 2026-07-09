@@ -13,8 +13,8 @@
 /** Deutsche & internationale Telefonnummer-Patterns */
 const PHONE_PATTERNS: RegExp[] = [
   /\b0\d{2,4}[\s\-/]?\d{3,12}\b/,           // 0xxx-yyy oder 0xxx yyy
-  /\+49[\s\-]?\d{2,4}[\s\-]?\d{3,12}/,       // +49-xxx-yyy
-  /\b\d{3}[\s\-]?\d{3,4}[\s\-]?\d{3,4}\b/,   // 030 1234567 etc.
+  /\+49[\s-]?\d{2,4}[\s-]?\d{3,12}/,       // +49-xxx-yyy
+  /\b\d{3}[\s-]?\d{3,4}[\s-]?\d{3,4}\b/,   // 030 1234567 etc.
   /\b1\s*5\s*\d\s*[-\s]?(?:\d\s*){7,10}/i,   // 015x... mit Leerzeichen-Trick (15x...)
 ]
 

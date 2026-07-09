@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
 
 interface SalonData {
@@ -92,10 +90,9 @@ function formatDate(iso: string): string {
   } catch { return '' }
 }
 
-export default function SalonDetailClient({ salon, services, staff, reviews, rentals }: Props) {
+export default function SalonDetailClient({ salon, services, reviews, rentals }: Props) {
   const router = useRouter()
   const [isFav, setIsFav] = useState(false)
-  const [activeImg, setActiveImg] = useState(0)
 
   useEffect(() => {
     try {

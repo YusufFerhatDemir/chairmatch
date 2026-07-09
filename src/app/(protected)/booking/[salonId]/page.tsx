@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { PROVS, getProviderSpecs, type DemoProvider, type DemoSpec } from '@/lib/demo-data'
+import { PROVS, getProviderSpecs, type DemoSpec } from '@/lib/demo-data'
 import { PROMO_CODES } from '@/lib/constants'
 
 interface Service {
@@ -410,7 +410,7 @@ export default function BookingPage() {
             <div style={{ marginBottom: 16, padding: 14, background: 'var(--c2)', border: '1px solid var(--border)', borderRadius: 12 }}>
               <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Storno</p>
               <p style={{ fontSize: 12, color: 'var(--stone)', lineHeight: 1.6, margin: 0 }}>
-                Kostenlos bis 24h vorher · 50 % bei weniger als 24h · 100 % bei No-Show. <Link href="/agb" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>AGB</Link>
+                Kostenlos bis 24h vorher · 50 % bei weniger als 24h · 100 % bei No-Show. <Link href="/agb" style={{ color: 'var(--gold2)', textDecoration: 'underline' }}>AGB</Link>
               </p>
             </div>
 

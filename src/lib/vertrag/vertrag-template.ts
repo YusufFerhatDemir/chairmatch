@@ -148,7 +148,7 @@ function parteiAnschrift(p: VertragPartei): string {
 // ── Hauptfunktion ────────────────────────────────────────────────────────
 
 export function buildVertrag(data: VertragDaten): VertragAbschnitt[] {
-  const { vermieter, mieter, objekt, konditionen: k, extras } = data
+  const { mieter, objekt, konditionen: k, extras } = data
 
   const objektLabel = typLabel(objekt.typ)
   const salon = oder(objekt.salonName, 'dem Salon')

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-const DAYS: Record<string, number> = { Mo: 1, Di: 2, Mi: 3, Do: 4, Fr: 5, Sa: 6, So: 0 }
 const SLOT_STEP = 15 // minutes
 
 /** Parse "09:00–19:00" or "Geschlossen" */
