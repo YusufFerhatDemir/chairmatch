@@ -9,10 +9,11 @@ import { getAllMagazinSlugs } from './src/lib/seo-data/magazin'
 const MAGAZIN_SLUGS = getAllMagazinSlugs().join('|')
 
 const nextConfig: NextConfig = {
-  // Build-Tolerance für Vercel — pre-existing TS-Fehler und ESLint-Issues
-  // blockieren keinen Build. Wir fixen sie nach und nach, aber der Deploy
-  // muss durchlaufen.
-  typescript: { ignoreBuildErrors: true },
+  // TypeScript-Fehler blockieren den Build jetzt wieder: die einzige
+  // Fehlerquelle war verwaister zustand-Provider-Code (ProviderDashboardClient
+  // + Manager-Views + rentalStore), der nie gerendert wurde und entfernt ist.
+  // ESLint bleibt build-tolerant — reine Warnings (unused vars etc.) sollen
+  // keinen Deploy blocken, werden aber laufend abgebaut.
   eslint: { ignoreDuringBuilds: true },
 
   // SEO-Redirects: Blog-typische Alias-Pfade zeigen auf die kanonische
