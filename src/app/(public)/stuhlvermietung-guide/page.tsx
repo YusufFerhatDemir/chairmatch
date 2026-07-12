@@ -92,7 +92,7 @@ const VERTICAL_LINKS = [
   { href: '/kosmetik-deutschland', label: 'Kosmetikkabine mieten' },
   { href: '/nagelstudio-deutschland', label: 'Nagelplatz mieten' },
   { href: '/lash-brows-deutschland', label: 'Lash- & Brow-Platz mieten' },
-]
+] as const
 
 const GUIDE_FAQS = [
   { question: 'Was ist Stuhlvermietung?', answer: 'Bei der Stuhlvermietung (Chair Rental) mietet ein selbstständiger Beauty-Profi — Friseur, Barber, Kosmetikerin, Nageldesignerin oder Lash-Stylistin — tageweise oder monatlich einen Arbeitsplatz in einem bestehenden Salon. Die Miete ist fix, der komplette Behandlungsumsatz bleibt beim Mieter.' },
@@ -175,7 +175,7 @@ export default function StuhlvermietungGuidePage() {
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {VERTICAL_LINKS.map((v) => (
-              <Link key={v.href} href={v.href} style={{ fontSize: 13, color: 'var(--gold2)', textDecoration: 'none', background: 'var(--c2)', border: '1px solid var(--border)', borderRadius: 20, padding: '8px 14px' }}>
+              <Link key={v.href} href={v.href as never} style={{ fontSize: 13, color: 'var(--gold2)', textDecoration: 'none', background: 'var(--c2)', border: '1px solid var(--border)', borderRadius: 20, padding: '8px 14px' }}>
                 {v.label}
               </Link>
             ))}
