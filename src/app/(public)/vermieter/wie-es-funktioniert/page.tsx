@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { serviceAreaSchema } from '@/lib/seo'
+import { serviceAreaSchema, howToSchema, speakableSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
@@ -94,15 +94,34 @@ export default function VermieterHowItWorksPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceAreaSchema('Deutschland')) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              serviceAreaSchema('Deutschland'),
+              // HowTo aus den sichtbar gerenderten STEPS
+              howToSchema({
+                url: '/vermieter/wie-es-funktioniert',
+                name: 'Wie vermiete ich Stuhl, Kabine oder Raum? In 4 Schritten zum Inserat',
+                description: 'Friseurstuhl, Kosmetik-Kabine oder Behandlungsraum tageweise vermieten: registrieren, Inserat erstellen, Anfragen bestätigen, Stripe-Auszahlung erhalten.',
+                steps: STEPS.map((s) => ({ name: s.t, text: s.d })),
+                totalTime: 'PT10M',
+                estimatedCostEur: '0',
+              }),
+              speakableSchema(
+                'https://www.chairmatch.de/vermieter/wie-es-funktioniert',
+                'Vermieter werden — Stuhl, Kabine oder Raum vermieten',
+                'In 4 Schritten zum Inserat: registrieren, Inserat erstellen, Anfragen verifizierter Mieter bestätigen, wöchentliche Stripe-Auszahlung.',
+              ),
+            ],
+          }) }}
         />
 
         <Breadcrumbs items={[{ name: 'Vermieter werden', url: '/vermieter/wie-es-funktioniert' }]} />
 
-        <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
+        <h1 className="cinzel speakable-headline" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
           Vermieter werden — Stuhlmiete planbar anbieten
         </h1>
-        <p style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+        <p className="speakable-summary" style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
           Du betreibst einen Salon, ein Studio oder eine Praxis und hast freie Arbeitsplätze?
           Vermiete Friseurstuhl, Kosmetik-Kabine, Lash-Workstation oder Behandlungsraum
           tageweise an verifizierte Freelancer — Stripe-gesichert, mit rechtssicherem

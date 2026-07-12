@@ -9,6 +9,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
+import { SpeakableSchema } from '@/components/seo/SpeakableSchema'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
 export const metadata: Metadata = {
@@ -73,14 +74,19 @@ export default function WasIstChairMatchPage() {
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
         {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
+        <SpeakableSchema
+          path="/was-ist-chairmatch"
+          name="Was ist ChairMatch?"
+          description="ChairMatch ist Deutschlands erster B2B-Marketplace für die tageweise Vermietung von Arbeitsplätzen an Beauty-, Barber- und Ästhetik-Freelancer."
+        />
 
         <Breadcrumbs items={[{ name: 'Was ist ChairMatch?', url: '/was-ist-chairmatch' }]} />
 
         {/* GEO-kritisch: 1-Satz-Definition als allererstes */}
-        <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 16 }}>
+        <h1 className="cinzel speakable-headline" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 16 }}>
           Was ist ChairMatch?
         </h1>
-        <p style={{ fontSize: 16, color: 'var(--cream)', lineHeight: 1.6, marginBottom: 24, fontWeight: 600 }}>
+        <p className="speakable-summary" style={{ fontSize: 16, color: 'var(--cream)', lineHeight: 1.6, marginBottom: 24, fontWeight: 600 }}>
           ChairMatch ist Deutschlands erster B2B-Marketplace für die tageweise oder
           langfristige Vermietung von Arbeitsplätzen an Beauty-, Barber- und Ästhetik-Freelancer.
         </p>

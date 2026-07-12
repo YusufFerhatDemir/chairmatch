@@ -2,10 +2,27 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Footer from '@/components/Footer'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'ChairMatch Statistik — Plattform in Zahlen',
   description: 'Aktuelle Zahlen und Statistiken der ChairMatch Beauty-Plattform: Salons, Buchungen, Nutzer und mehr.',
+  alternates: { canonical: 'https://www.chairmatch.de/statistik' },
+  openGraph: {
+    title: 'ChairMatch Statistik — Plattform in Zahlen',
+    description: 'Aktuelle Zahlen der ChairMatch Beauty-Plattform: Salons, Buchungen, Nutzer, Städte.',
+    url: 'https://www.chairmatch.de/statistik',
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Statistik' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ChairMatch Statistik — Plattform in Zahlen',
+    description: 'Aktuelle Zahlen der ChairMatch Beauty-Plattform: Salons, Buchungen, Nutzer, Städte.',
+    images: ['/og-image.png'],
+  },
 }
 
 export const revalidate = 3600 // ISR statt force-dynamic — Marketing-Seite, 1h Cache
@@ -51,6 +68,7 @@ export default async function StatistikPage() {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        <Breadcrumbs items={[{ name: 'Statistik', url: '/statistik' }]} />
         {/* Header */}
         <div style={{ textAlign: 'center', padding: '32px 0 28px' }}>
           <Link href="/" style={{ color: 'var(--stone)', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 16 }}>

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import type { BreadcrumbItem } from '@/lib/seo'
 
 interface SalonData {
   id: string
@@ -59,6 +61,7 @@ interface Props {
   staff: SalonStaff[]
   reviews: SalonReview[]
   rentals: SalonRental[]
+  breadcrumbs?: BreadcrumbItem[]
 }
 
 const CATEGORY_FALLBACK_BG: Record<string, string> = {
@@ -90,7 +93,7 @@ function formatDate(iso: string): string {
   } catch { return '' }
 }
 
-export default function SalonDetailClient({ salon, services, reviews, rentals }: Props) {
+export default function SalonDetailClient({ salon, services, reviews, rentals, breadcrumbs }: Props) {
   const router = useRouter()
   const [isFav, setIsFav] = useState(false)
 
@@ -214,6 +217,13 @@ export default function SalonDetailClient({ salon, services, reviews, rentals }:
             )}
           </div>
         </div>
+
+        {/* Breadcrumbs */}
+        {breadcrumbs && breadcrumbs.length > 0 && (
+          <div style={{ padding: '14px 20px 0' }}>
+            <Breadcrumbs items={breadcrumbs} />
+          </div>
+        )}
 
         {/* KPI Strip */}
         <div style={{ display: 'flex', gap: 8, padding: '16px 20px 0' }}>

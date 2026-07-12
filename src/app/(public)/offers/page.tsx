@@ -3,6 +3,8 @@ export const revalidate = 3600 // ISR statt force-dynamic — Marketing-Seite, 1
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Link from 'next/link'
+import { itemListSchema } from '@/lib/seo'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = {
   // Layout-Template fügt "| ChairMatch" auto an.
@@ -17,6 +19,13 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'de_DE',
     siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Beauty-Angebote & Rabatte' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Beauty- und Stuhlmiete-Angebote | ChairMatch',
+    description: 'Aktuelle Rabatte und Aktionen rund um Stuhlmiete, Behandlungen und Beauty-Workspace.',
+    images: ['/og-image.png'],
   },
 }
 
@@ -53,7 +62,24 @@ export default async function OffersPage() {
   return (
     <div className="shell">
       <div className="screen">
+        {/* ItemList nur wenn Angebote existieren — leere Listen erzeugen kein Schema */}
+        {offers.length > 0 && (
+          <script
+            type="application/ld+json"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema({
+              url: '/offers',
+              name: 'Beauty-Angebote & Rabatte — Stuhlmiete, Termine, Behandlungen',
+              items: offers.map((o) => ({
+                name: `${o.title}${o.discount_percent ? ` (-${o.discount_percent}%)` : ''} — ${o.salon.name}${o.salon.city ? `, ${o.salon.city}` : ''}`,
+                url: `/salon/${o.salon.slug || o.salon.id}`,
+                ...(o.description ? { description: o.description } : {}),
+              })),
+            })) }}
+          />
+        )}
         <div className="sticky">
+          <Breadcrumbs items={[{ name: 'Angebote', url: '/offers' }]} />
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)' }}>Angebote</h1>
         </div>
         <section style={{ padding: '0 var(--pad)' }}>

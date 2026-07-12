@@ -71,12 +71,17 @@ export default function Footer() {
             <Link href="/offers" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Angebote</Link>
             <Link href="/shop" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Shop</Link>
             <Link href="/rentals" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Stuhlvermietung</Link>
+            <Link href="/karte" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Stuhl-Karte</Link>
+            <Link href="/match" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Match-Finder</Link>
           </nav>
         </div>
         <div>
           <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--cream)', marginBottom: 6, letterSpacing: 1 }}>FÜR PROFIS</p>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <Link href="/register/anbieter" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Salon registrieren</Link>
+            <Link href="/was-ist-chairmatch" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Was ist ChairMatch?</Link>
+            <Link href="/magazin" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Magazin</Link>
+            <Link href="/faq" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>FAQ</Link>
             <Link href="/statistik" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Statistiken</Link>
             <Link href="/investor" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Investoren</Link>
             <Link href="/pitch" style={{ fontSize: 11, color: 'var(--stone)', textDecoration: 'none' }}>Pitch Deck</Link>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import VertragClient from './VertragClient'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = {
   // Layout-Template fügt "| ChairMatch" auto an.
@@ -47,6 +48,8 @@ export default function VertragGeneratorPage() {
           <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
             &larr; Zur&uuml;ck
           </Link>
+
+          <Breadcrumbs items={[{ name: 'Vertrag-Generator', url: '/vertrag-generator' }]} className="no-print" />
 
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginTop: 8 }}>
             Mietvertrag-Generator

@@ -1,9 +1,10 @@
 /**
  * Magazin-Artikel-Daten — strukturiert für Phase-1.
  *
- * 10 Artikel aus Modul 0 PAA-Recherche.
- * Phase 1: erste 3-5 schreiben + publizieren.
+ * Batch 1: 19 Artikel aus Modul-0-PAA-Recherche.
+ * Batch 2 (magazin-2.ts): 8 Artikel Content-Authority-Ausbau (Juli 2026).
  */
+import { MAGAZIN_ARTIKEL_2 } from './magazin-2'
 
 export interface MagazinArtikel {
   slug: string
@@ -18,7 +19,7 @@ export interface MagazinArtikel {
   content: string
 }
 
-export const MAGAZIN_ARTIKEL: MagazinArtikel[] = [
+const MAGAZIN_ARTIKEL_BASE: MagazinArtikel[] = [
   {
     slug: 'wie-funktioniert-stuhl-miete',
     title: 'Wie funktioniert Stuhl-Miete? Der vollständige Guide für Beauty-Profis',
@@ -2422,6 +2423,13 @@ Lash-Styling ist einer der planbarsten Beauty-Berufe für die Selbstständigkeit
 `.trim(),
   },
 ]
+
+/**
+ * Batch 2 (Juli 2026, Content-Authority-Ausbau) wird angehängt.
+ * Import steht bewusst hier unten: magazin-2.ts importiert nur den TYP
+ * MagazinArtikel aus dieser Datei (type-only, zur Laufzeit kein Zyklus).
+ */
+export const MAGAZIN_ARTIKEL: MagazinArtikel[] = [...MAGAZIN_ARTIKEL_BASE, ...MAGAZIN_ARTIKEL_2]
 
 export function getMagazinArtikel(slug: string): MagazinArtikel | undefined {
   return MAGAZIN_ARTIKEL.find((a) => a.slug === slug)

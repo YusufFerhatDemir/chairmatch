@@ -380,6 +380,132 @@ export function serviceAreaSchema(
 }
 
 /**
+ * Speakable-Schema (WebPage + SpeakableSpecification) für GEO/AI-Crawler
+ * und Voice-Assistants. Die cssSelector-Klassen (.speakable-*) müssen im
+ * Markup der Seite gesetzt sein — h1 + Zusammenfassung reichen laut
+ * Google-Guideline (2-3 kurze Abschnitte, keine ganzen Artikel).
+ */
+export function speakableSchema(url: string, name: string, description?: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${url}#webpage`,
+    url,
+    name,
+    ...(description ? { description } : {}),
+    inLanguage: 'de-DE',
+    isPartOf: { '@id': 'https://www.chairmatch.de/#website' },
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['.speakable-headline', '.speakable-summary'],
+    },
+  }
+}
+
+/**
+ * LocalBusiness-Schema für Stadt-Landing-Pages.
+ * ChairMatch hat keinen physischen Standort pro Stadt — der Node modelliert
+ * das lokale Service-Angebot (areaServed + Geo) und hängt per
+ * parentOrganization an der Organization. Ergänzt das Service-Schema
+ * (serviceAreaSchema), ersetzt es nicht.
+ */
+export function cityLocalBusinessSchema(city: CityGeoInput & { slug?: string }, priceRangePerDay?: string) {
+  const slug = city.slug || cityToSlug(city.name)
+  const url = `https://www.chairmatch.de/${slug}`
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': `${url}#localbusiness`,
+    name: `ChairMatch ${city.name} — Stuhlvermietung für die Beauty-Branche`,
+    url,
+    image: 'https://www.chairmatch.de/icons/chairmatch-pin-logo.png',
+    description: `Stuhlvermietung in ${city.name} für Friseure, Barber, Kosmetiker und Nageldesigner: Friseurstuhl, Kosmetik-Kabine oder Behandlungsraum tageweise mieten — verifizierte Salons, Stripe-gesicherte Zahlung.`,
+    parentOrganization: { '@id': 'https://www.chairmatch.de/#organization' },
+    areaServed: cityPlace(city),
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: city.name,
+      ...(city.state ? { addressRegion: city.state } : {}),
+      addressCountry: 'DE',
+    },
+    currenciesAccepted: 'EUR',
+    paymentAccepted: 'Kreditkarte, SEPA, Stripe',
+  }
+  if (city.lat && city.lng) {
+    schema.geo = { '@type': 'GeoCoordinates', latitude: city.lat, longitude: city.lng }
+  }
+  if (priceRangePerDay) schema.priceRange = priceRangePerDay
+  return schema
+}
+
+/**
+ * HowTo-Schema — Schritt-für-Schritt-Anleitungen ("Wie miete ich einen
+ * Stuhl?"). Die Steps müssen sichtbar auf der Seite stehen
+ * (Google-Richtlinie) — Pages übergeben daher ihre gerenderten STEPS-Arrays.
+ */
+export interface HowToStepInput {
+  name: string
+  text: string
+}
+
+export function howToSchema(input: {
+  /** Pfad ("/mieter/wie-es-funktioniert") oder absolute URL der Seite */
+  url: string
+  name: string
+  description: string
+  steps: HowToStepInput[]
+  /** ISO-8601-Dauer, z.B. 'PT10M' */
+  totalTime?: string
+  /** Geschätzte Kosten in EUR — '0': Anmeldung/Registrierung kostenlos */
+  estimatedCostEur?: string
+}) {
+  const url = input.url.startsWith('http') ? input.url : `https://www.chairmatch.de${input.url}`
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    '@id': `${url}#howto`,
+    name: input.name,
+    description: input.description,
+    inLanguage: 'de-DE',
+    ...(input.totalTime ? { totalTime: input.totalTime } : {}),
+    ...(input.estimatedCostEur !== undefined
+      ? { estimatedCost: { '@type': 'MonetaryAmount', currency: 'EUR', value: input.estimatedCostEur } }
+      : {}),
+    step: input.steps.map((s, idx) => ({
+      '@type': 'HowToStep',
+      position: idx + 1,
+      name: s.name,
+      text: s.text,
+      url: `${url}#schritt-${idx + 1}`,
+    })),
+  }
+}
+
+/** ItemList-Schema für Index-/Übersichts-Seiten (z.B. /magazin, /offers) */
+export function itemListSchema(input: {
+  /** Pfad oder absolute URL der Listen-Seite */
+  url: string
+  name: string
+  items: Array<{ name: string; url: string; description?: string }>
+}) {
+  const url = input.url.startsWith('http') ? input.url : `https://www.chairmatch.de${input.url}`
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    '@id': `${url}#itemlist`,
+    name: input.name,
+    numberOfItems: input.items.length,
+    itemListElement: input.items.map((item, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: item.name,
+      ...(item.description ? { description: item.description } : {}),
+      url: item.url.startsWith('http') ? item.url : `https://www.chairmatch.de${item.url}`,
+    })),
+  }
+}
+
+/**
  * Article-Schema für Magazin-Artikel.
  *
  * Optimiert für Google Discover, AI-Engines (ChatGPT, Claude, Perplexity)
@@ -419,6 +545,12 @@ export function articleSchema(a: ArticleSchemaInput) {
     articleSection: a.category,
     inLanguage: 'de-DE',
     isAccessibleForFree: true,
+    // Gleiche Selektor-Konvention wie speakableSchema(): H1 + Zusammenfassung
+    // tragen .speakable-headline / .speakable-summary in magazin/[slug]/page.tsx.
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['.speakable-headline', '.speakable-summary'],
+    },
     ...(a.readMinutes ? { timeRequired: `PT${a.readMinutes}M` } : {}),
   }
 }
@@ -477,6 +609,62 @@ export function listingSchema(input: ListingSchemaInput) {
       seller: { '@id': 'https://www.chairmatch.de/#organization' },
     },
   }
+}
+
+/**
+ * Product-Schema für Stuhl-Angebote (Listing-Detail-Pages).
+ *
+ * Ergänzt das Service-Schema (listingSchema) um einen Product-Node —
+ * Google zeigt für Product+Offer Rich-Results mit Preis, und AI-Engines
+ * behandeln das Mietangebot als konkretes "Produkt" mit Tagespreis.
+ * AggregateRating nur, wenn echte Salon-Bewertungen vorliegen (keine
+ * erfundenen Ratings — Google-Richtlinie).
+ */
+export function listingProductSchema(
+  input: ListingSchemaInput,
+  rating?: { ratingValue: number; reviewCount: number } | null,
+) {
+  const url = `https://www.chairmatch.de/listings/${input.slug}`
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    '@id': `${url}#product`,
+    name: input.name,
+    description: input.description || `${input.name} — Stuhl-Miete bei ${input.salon.name}${input.salon.city ? ` in ${input.salon.city}` : ''}. Tageweise mieten über ChairMatch.`,
+    category: input.category,
+    sku: input.id,
+    brand: { '@type': 'Brand', name: 'ChairMatch' },
+    image: 'https://www.chairmatch.de/og-image.png',
+    offers: {
+      '@type': 'Offer',
+      url,
+      priceCurrency: 'EUR',
+      price: input.pricePerDayEur.toFixed(2),
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price: input.pricePerDayEur.toFixed(2),
+        priceCurrency: 'EUR',
+        unitText: 'DAY',
+      },
+      availability: `https://schema.org/${input.availability || 'InStock'}`,
+      itemCondition: 'https://schema.org/UsedCondition',
+      seller: {
+        '@type': 'LocalBusiness',
+        '@id': `https://www.chairmatch.de/salon/${input.salon.slug}#localbusiness`,
+        name: input.salon.name,
+      },
+    },
+  }
+  if (rating && rating.ratingValue > 0 && rating.reviewCount > 0) {
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: rating.ratingValue,
+      reviewCount: rating.reviewCount,
+      bestRating: 5,
+      worstRating: 1,
+    }
+  }
+  return schema
 }
 
 /** City-Slug-Konverter — Umlaute zu ASCII */

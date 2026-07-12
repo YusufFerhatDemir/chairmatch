@@ -7,7 +7,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getVerticalBySlug } from "@/lib/seo-data/verticals"
 import { PHASE_1_CITIES } from "@/lib/seo-data/cities"
-import { slugToCity } from "@/lib/seo"
+import { slugToCity, speakableSchema } from "@/lib/seo"
 import { Breadcrumbs } from "@/components/seo/Breadcrumbs"
 import { FAQ } from "@/components/seo/FAQ"
 
@@ -49,15 +49,25 @@ export function VerticalHubContent({ verticalSlug }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              serviceSchema,
+              speakableSchema(
+                `https://www.chairmatch.de/${fullSlug}`,
+                `${v.name}-${v.assetLabel} mieten in Deutschland`,
+                v.marketStats,
+              ),
+            ],
+          }) }}
         />
 
         <Breadcrumbs items={[{ name: `${v.name} Deutschland`, url: `/${fullSlug}` }]} />
 
-        <h1 className="cinzel" style={{ fontSize: 28, color: "var(--gold2)", fontWeight: 700, marginBottom: 8 }}>
+        <h1 className="cinzel speakable-headline" style={{ fontSize: 28, color: "var(--gold2)", fontWeight: 700, marginBottom: 8 }}>
           {v.name}-{v.assetLabel} mieten in Deutschland
         </h1>
-        <p style={{ color: "var(--stone)", fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
+        <p className="speakable-summary" style={{ color: "var(--stone)", fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
           {v.marketStats}
         </p>
 

@@ -9,7 +9,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MASTER_FAQS, toFaqItems } from '@/lib/seo-data/faq-master'
-import { faqSchema } from '@/lib/seo'
+import { faqSchema, speakableSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
@@ -72,19 +72,29 @@ export default function FaqPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(visibleFaqItems)) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              faqSchema(visibleFaqItems),
+              speakableSchema(
+                'https://www.chairmatch.de/faq',
+                'FAQ — Alle Fragen zu Stuhl-Miete & ChairMatch',
+                'Antworten auf alle wichtigen Fragen zur Stuhl-Miete: Kosten, Steuern, Versicherungen, Plattform-Garantien.',
+              ),
+            ],
+          }) }}
         />
         {/* BreadcrumbList-Schema kommt aus der <Breadcrumbs>-Komponente — hier bewusst kein zweites. */}
 
         <Breadcrumbs items={[{ name: 'FAQ', url: '/faq' }]} />
 
-        <h1 className="cinzel" style={{
+        <h1 className="cinzel speakable-headline" style={{
           fontSize: 28, fontWeight: 700, color: 'var(--gold2)',
           marginBottom: 8, lineHeight: 1.2,
         }}>
           Häufige Fragen
         </h1>
-        <p style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+        <p className="speakable-summary" style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
           Alles, was du über Stuhl-Miete, Steuern, Versicherungen und die ChairMatch-Plattform
           wissen musst — kompakt zusammengefasst.
         </p>

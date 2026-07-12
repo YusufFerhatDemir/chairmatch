@@ -7,6 +7,22 @@ import EmpfehlungenClient from './EmpfehlungenClient'
 export const metadata: Metadata = {
   title: 'Pflege-Empfehlungen | ChairMatch',
   description: 'Premium Beauty- und Haarpflegeprodukte, kuratiert von ChairMatch. Affiliate-Empfehlungen unserer Partner.',
+  alternates: { canonical: 'https://www.chairmatch.de/empfehlungen' },
+  openGraph: {
+    title: 'Pflege-Empfehlungen | ChairMatch',
+    description: 'Premium Beauty- und Haarpflegeprodukte, kuratiert von ChairMatch.',
+    url: 'https://www.chairmatch.de/empfehlungen',
+    type: 'website',
+    locale: 'de_DE',
+    siteName: 'ChairMatch',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ChairMatch — Pflege-Empfehlungen' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pflege-Empfehlungen | ChairMatch',
+    description: 'Premium Beauty- und Haarpflegeprodukte, kuratiert von ChairMatch.',
+    images: ['/og-image.png'],
+  },
 }
 
 export interface AffiliateProductRow {

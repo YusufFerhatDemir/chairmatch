@@ -14,7 +14,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { listingSchema } from '@/lib/seo'
+import { listingSchema, listingProductSchema, speakableSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -173,7 +173,7 @@ export default async function ListingDetailPage({ params }: Props) {
   const priceEur = listing.price_cents / 100
   const city = salon.city || 'Deutschland'
 
-  const baseSchema = listingSchema({
+  const listingInput = {
     id: listing.id,
     slug,
     name: listing.name,
@@ -185,8 +185,19 @@ export default async function ListingDetailPage({ params }: Props) {
       name: salon.name,
       city: salon.city,
     },
-    availability: 'InStock',
-  })
+    availability: 'InStock' as const,
+  }
+
+  const baseSchema = listingSchema(listingInput)
+
+  // Product-Node zusätzlich zum Service: Google Rich-Results mit Preis,
+  // AggregateRating nur aus echten Salon-Bewertungen (nie erfunden).
+  const productSchema = listingProductSchema(
+    listingInput,
+    salon.avg_rating && salon.review_count
+      ? { ratingValue: salon.avg_rating, reviewCount: salon.review_count }
+      : null,
+  )
 
   // Salon-Koordinaten (falls vorhanden) als GeoCoordinates am provider-LocalBusiness —
   // stärkt das Lokal-Signal, ohne ein zweites LocalBusiness-Schema zu emittieren.
@@ -230,7 +241,17 @@ export default async function ListingDetailPage({ params }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJson) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              schemaJson,
+              productSchema,
+              speakableSchema(
+                `https://www.chairmatch.de/listings/${slug}`,
+                `${listing.name} — ${priceEur.toFixed(0)} €/Tag bei ${salon.name} in ${city}`,
+              ),
+            ],
+          }) }}
         />
         {/* BreadcrumbList & FAQPage kommen aus den Komponenten <Breadcrumbs>/<FAQ>
             — hier KEINE manuellen Scripts, sonst doppeltes Schema (Google
@@ -265,13 +286,13 @@ export default async function ListingDetailPage({ params }: Props) {
           <p style={{ fontSize: 12, color: 'var(--stone)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
             {listing.category || 'Stuhlplatz'} · {city}
           </p>
-          <h1 className="cinzel" style={{
+          <h1 className="cinzel speakable-headline" style={{
             fontSize: 26, fontWeight: 700, color: 'var(--gold2)',
             margin: '0 0 8px', lineHeight: 1.2,
           }}>
             {listing.name}
           </h1>
-          <p style={{ color: 'var(--cream)', fontSize: 14, marginBottom: 12 }}>
+          <p className="speakable-summary" style={{ color: 'var(--cream)', fontSize: 14, marginBottom: 12 }}>
             bei <Link href={`/salon/${salon.slug}`} style={{ color: 'var(--gold)', textDecoration: 'underline' }}>{salon.name}</Link>
             {salon.avg_rating && salon.review_count ? (
               <span style={{ marginLeft: 8, color: 'var(--stone)' }}>

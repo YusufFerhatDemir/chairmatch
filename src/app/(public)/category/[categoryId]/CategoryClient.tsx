@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { PROVS, type DemoProvider } from '@/lib/demo-data'
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { useTranslations } from '@/i18n/client'
 
 interface DBSalon {
@@ -132,6 +133,7 @@ export default function CategoryClient({ categoryId, category, dbSalons }: Props
 
         {/* Title */}
         <div style={{ padding: '0 20px 14px' }}>
+          <Breadcrumbs items={[{ name: categoryLabel, url: `/category/${categoryId}` }]} />
           <h2 className="cinzel text-gold-metallic" style={{ fontSize: 26, fontWeight: 500, letterSpacing: 0.5, lineHeight: 1.15, marginBottom: 5 }}>
             {categoryLabel} Termine
           </h2>

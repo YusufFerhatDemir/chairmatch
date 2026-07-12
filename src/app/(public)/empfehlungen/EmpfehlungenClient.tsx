@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import AffiliateProductCard from '@/components/AffiliateProductCard'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import type { AffiliateProductRow } from './page'
 
 const CATEGORIES = ['Haarpflege', 'Gesichtspflege', 'Make-up', 'Tools'] as const
@@ -22,6 +23,7 @@ export default function EmpfehlungenClient({ products }: Props) {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        <Breadcrumbs items={[{ name: 'Empfehlungen', url: '/empfehlungen' }]} />
         {/* Hero */}
         <div
           style={{

@@ -85,7 +85,7 @@ export function CartDrawer() {
               return (
                 <div key={item.id} className="flex gap-3 bg-white/5 rounded-xl p-3">
                   {image && (
-                    <img src={image} alt={product?.name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
+                    <img src={image} alt={product?.name} width={64} height={64} loading="lazy" decoding="async" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium truncate">{product?.name}</p>

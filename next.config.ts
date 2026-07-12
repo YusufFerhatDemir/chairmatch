@@ -148,6 +148,9 @@ const nextConfig: NextConfig = {
     ]
   },
   images: {
+    // AVIF zuerst (kleinste Dateien), WebP als Fallback — Browser ohne
+    // AVIF-Support bekommen automatisch WebP.
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         // ChairMatch Production (pwdbjqfpgumyfktbfswg) — vorher stand hier das

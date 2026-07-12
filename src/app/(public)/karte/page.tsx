@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { cityToCoords } from '@/lib/geo/city-coords'
 import RentalsMap, { type MapListing } from '@/components/RentalsMap'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'Stuhl-Karte: Verfügbare Plätze in Echtzeit',
@@ -111,6 +112,7 @@ export default async function KartePage({ searchParams }: Props) {
           <Link href="/rentals" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
             &larr; Listenansicht
           </Link>
+          <Breadcrumbs items={[{ name: 'Stuhl-Karte', url: '/karte' }]} />
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginTop: 8 }}>
             Stuhl-Karte
           </h1>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { serviceAreaSchema } from '@/lib/seo'
+import { serviceAreaSchema, howToSchema, speakableSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
@@ -65,15 +65,34 @@ export default function ProviderHowItWorksPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceAreaSchema('Deutschland')) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              serviceAreaSchema('Deutschland'),
+              // HowTo aus den sichtbar gerenderten STEPS
+              howToSchema({
+                url: '/anbieter/wie-es-funktioniert',
+                name: 'Wie vermiete ich einen Stuhl in meinem Salon? In 4 Schritten zum Listing',
+                description: 'Salon, Studio oder Praxis: freie Stühle, Liegen und Kabinen in 4 Schritten tageweise an verifizierte Freelancer vermieten — mit Stripe-Auszahlung.',
+                steps: STEPS.map((s) => ({ name: s.t, text: s.d })),
+                totalTime: 'PT10M',
+                estimatedCostEur: '0',
+              }),
+              speakableSchema(
+                'https://www.chairmatch.de/anbieter/wie-es-funktioniert',
+                'Anbieter werden — Stuhl, Liege oder Kabine vermieten',
+                'In 4 Schritten dein Listing live: anmelden, Listing einstellen, Buchungen empfangen, wöchentliche Stripe-Auszahlung erhalten.',
+              ),
+            ],
+          }) }}
         />
 
         <Breadcrumbs items={[{ name: 'Anbieter werden', url: '/anbieter/wie-es-funktioniert' }]} />
 
-        <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
+        <h1 className="cinzel speakable-headline" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
           Anbieter werden — in 4 Schritten zu mehr Auslastung
         </h1>
-        <p style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+        <p className="speakable-summary" style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
           Vermiete deine ungenutzten Arbeitsplätze tageweise an verifizierte Freelancer.
           Die ersten 50 Salons pro Stadt bekommen 6 Monate 0% Provision und einen Onboarding-Call.
         </p>

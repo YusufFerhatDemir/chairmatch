@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
-import { breadcrumbSchema } from '@/lib/seo'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import BreakEvenClient from './BreakEvenClient'
 
 export const metadata: Metadata = {
@@ -223,21 +223,11 @@ export default async function PreisvergleichPage() {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
-            { name: 'Start', url: '/' },
-            { name: 'Preisvergleich', url: '/preisvergleich' },
-          ])) }}
-        />
-
         {/* ---------------------------------------------------------------- */}
         {/* (a) Headline + Intro                                              */}
         {/* ---------------------------------------------------------------- */}
         <div style={{ padding: '0 var(--pad)' }}>
-          <Link href="/" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
-            &larr; Zurück
-          </Link>
+          <Breadcrumbs items={[{ name: 'Preisvergleich', url: '/preisvergleich' }]} />
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginTop: 8, lineHeight: 1.25 }}>
             Preisvergleich: Was kostet Stuhlmiete in Deutschland?
           </h1>

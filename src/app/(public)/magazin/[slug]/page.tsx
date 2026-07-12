@@ -125,10 +125,11 @@ export default async function MagazinArticlePage({ params }: Props) {
           {a.category.toUpperCase()} · {a.readMinutes} MIN LESEN
         </p>
 
-        <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8, lineHeight: 1.3 }}>
+        <h1 className="cinzel speakable-headline" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8, lineHeight: 1.3 }}>
           {a.title}
         </h1>
-        <p style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24, fontStyle: 'italic' }}>
+        {/* .speakable-summary wird vom SpeakableSpecification-Selektor im Article-Schema referenziert */}
+        <p className="speakable-summary" style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24, fontStyle: 'italic' }}>
           {a.description}
         </p>
 

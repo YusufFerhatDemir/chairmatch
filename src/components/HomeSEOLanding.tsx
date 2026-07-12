@@ -11,7 +11,7 @@
  */
 
 import Link from 'next/link'
-import { faqSchema, serviceAreaSchema, type FaqItem } from '@/lib/seo'
+import { faqSchema, serviceAreaSchema, speakableSchema, type FaqItem } from '@/lib/seo'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
 // ─────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ export function HomeHero() {
     >
       <h1
         id="home-h1"
-        className="cinzel"
+        className="cinzel speakable-headline"
         style={{
           fontSize: 22,
           color: 'var(--gold2)',
@@ -42,7 +42,7 @@ export function HomeHero() {
       >
         Stuhlmiete &amp; Beauty-Workspace mieten — Deutschlands Marketplace
       </h1>
-      <p style={{
+      <p className="speakable-summary" style={{
         fontSize: 13.5,
         color: 'var(--cream)',
         lineHeight: 1.55,
@@ -175,6 +175,12 @@ export function HomeSEOFooterContent() {
     '@graph': [
       faqSchema(HOME_FAQ),
       serviceAreaSchema('Deutschland'),
+      // Speakable (GEO): H1 + Hero-Summary tragen .speakable-headline/.speakable-summary
+      speakableSchema(
+        'https://www.chairmatch.de/',
+        'Stuhlmiete & Beauty-Workspace mieten — ChairMatch Deutschland',
+        'Friseurstuhl, Barberstuhl, Kosmetikraum oder OP-Raum tageweise mieten oder vermieten — Deutschlands Marketplace für Beauty-Workspace-Sharing.',
+      ),
       {
         '@context': 'https://schema.org',
         '@type': 'Service',

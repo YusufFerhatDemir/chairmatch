@@ -34,6 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/mieter/wie-es-funktioniert`, changeFrequency: 'monthly', priority: 0.85 },
     { url: `${base}/provisionsmodell`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${base}/magazin`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${base}/stuhlvermietung-guide`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${base}/pitch`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/register/anbieter`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/vermieter/wie-es-funktioniert`, changeFrequency: 'monthly', priority: 0.85 },
@@ -44,6 +45,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // "gesendet, aber durch noindex ausgeschlossen").
     { url: `${base}/faq`, changeFrequency: 'monthly', priority: 0.85 },
     { url: `${base}/products`, changeFrequency: 'daily', priority: 0.85 },
+    { url: `${base}/shop`, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${base}/empfehlungen`, changeFrequency: 'weekly', priority: 0.5 },
+    { url: `${base}/statistik`, changeFrequency: 'weekly', priority: 0.4 },
+    { url: `${base}/widerruf`, changeFrequency: 'monthly', priority: 0.3 },
     // Premium Medical-Beauty Money-Pages
     { url: `${base}/premium`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${base}/haartransplantation`, changeFrequency: 'weekly', priority: 0.95 },

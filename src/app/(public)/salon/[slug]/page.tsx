@@ -5,11 +5,27 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import SalonDetailClient from '@/components/SalonDetailClient'
 import { PROVS } from '@/lib/demo-data'
-import { salonSchema, geoMeta, cityToSlug } from '@/lib/seo'
+import { salonSchema, geoMeta, cityToSlug, type BreadcrumbItem } from '@/lib/seo'
 import { getCityBySlug } from '@/lib/seo-data/cities'
 
 interface Props {
   params: Promise<{ slug: string }>
+}
+
+/**
+ * Breadcrumb-Kette für Salon-Seiten: Stadt nur verlinken,
+ * wenn es dafür eine Stadt-Hub-Route gibt (PHASE_1_CITIES).
+ */
+function salonBreadcrumbs(name: string, slug: string, city: string | null): BreadcrumbItem[] {
+  const items: BreadcrumbItem[] = []
+  if (city) {
+    const citySlug = cityToSlug(city)
+    if (getCityBySlug(citySlug)) {
+      items.push({ name: city, url: `/${citySlug}` })
+    }
+  }
+  items.push({ name, url: `/salon/${slug}` })
+  return items
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -136,7 +152,14 @@ export default async function SalonDetailPage({ params }: Props) {
     return (
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-        <SalonDetailClient salon={salonData} services={services} staff={[]} reviews={reviews} rentals={rentals} />
+        <SalonDetailClient
+          salon={salonData}
+          services={services}
+          staff={[]}
+          reviews={reviews}
+          rentals={rentals}
+          breadcrumbs={salonBreadcrumbs(demoProvider.nm, slug, demoProvider.city)}
+        />
       </>
     )
   }
@@ -218,6 +241,7 @@ export default async function SalonDetailPage({ params }: Props) {
         staff={(staffRes.data || []).map(m => ({ id: m.id, name: m.name, title: m.title, avatar_url: m.avatar_url }))}
         reviews={(reviewsRes.data || []).map(r => ({ id: r.id, rating: r.rating, comment: r.comment, reply: r.reply, customer: r.customer, created_at: r.created_at }))}
         rentals={(rentalsRes.data || []).map(r => ({ id: r.id, type: r.type, name: r.name, price_per_day_cents: r.price_per_day_cents, description: r.description }))}
+        breadcrumbs={salonBreadcrumbs(salon.name, slug, salon.city)}
       />
       </>
     )

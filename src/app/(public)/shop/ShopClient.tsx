@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Search, ShoppingBag } from 'lucide-react'
 import { PRODUCT_CATEGORIES_B2C } from '@/lib/constants'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 interface ProductItem {
   id: string
@@ -79,6 +80,7 @@ export default function ShopClient({ initialProducts }: Props) {
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
+        <Breadcrumbs items={[{ name: 'Shop', url: '/shop' }]} />
         <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginBottom: 4 }}>Shop</h1>
         <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginBottom: 16 }}>Beauty-Produkte von deinem Salon empfohlen</p>
 

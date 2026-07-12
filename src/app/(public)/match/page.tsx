@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import MatchClient from './MatchClient'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'Match-Finder: Der passende Stuhl für dich',
@@ -28,6 +29,7 @@ export default function MatchPage() {
           <Link href="/rentals" style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>
             &larr; Alle Inserate
           </Link>
+          <Breadcrumbs items={[{ name: 'Match-Finder', url: '/match' }]} />
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)', marginTop: 8 }}>
             Match-Finder
           </h1>

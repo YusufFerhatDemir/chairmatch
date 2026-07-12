@@ -76,7 +76,7 @@ export function RecommendationBanner() {
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 {product.images?.[0]?.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={product.images[0].url} alt={product.name} style={{ width: '100%', height: 120, objectFit: 'cover' }} />
+                  <img src={product.images[0].url} alt={product.name} width={220} height={120} loading="lazy" decoding="async" style={{ width: '100%', height: 120, objectFit: 'cover' }} />
                 ) : (
                   <div style={{ width: '100%', height: 120, background: 'var(--c3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <ShoppingBag size={28} style={{ color: 'var(--stone)' }} />

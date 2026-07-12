@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { serviceAreaSchema, howToSchema, speakableSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
@@ -45,17 +46,43 @@ const FAQS = [
 ]
 
 export default function TenantHowItWorksPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      serviceAreaSchema('Deutschland'),
+      // HowTo aus den sichtbar gerenderten STEPS — "Wie miete ich einen Stuhl?"
+      howToSchema({
+        url: '/mieter/wie-es-funktioniert',
+        name: 'Wie miete ich einen Stuhl? In 4 Schritten zum Beauty-Arbeitsplatz',
+        description: 'Als Freelancer-Friseur, Barber, Kosmetikerin oder Lash-Specialist in 4 Schritten einen Stuhl, eine Liege oder einen Raum tageweise mieten — über ChairMatch, Stripe-gesichert.',
+        steps: STEPS.map((s) => ({ name: s.t, text: s.d })),
+        totalTime: 'PT10M',
+        estimatedCostEur: '0',
+      }),
+      speakableSchema(
+        'https://www.chairmatch.de/mieter/wie-es-funktioniert',
+        'Stuhl mieten — so funktioniert es',
+        'In 4 Schritten zum flexiblen Beauty-Arbeitsplatz: anmelden, Plätze suchen, buchen, arbeiten. 0% Provision für Mieter.',
+      ),
+    ],
+  }
+
   return (
     <div className="shell">
       <div className="screen" style={{ padding: 'var(--pad)' }}>
         {/* FAQPage- und BreadcrumbList-Schema kommen aus <FAQ>/<Breadcrumbs> — hier bewusst keine zweiten. */}
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
 
         <Breadcrumbs items={[{ name: 'Stuhl mieten', url: '/mieter/wie-es-funktioniert' }]} />
 
-        <h1 className="cinzel" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
+        <h1 className="cinzel speakable-headline" style={{ fontSize: 28, color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>
           Stuhl mieten — so geht es
         </h1>
-        <p style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+        <p className="speakable-summary" style={{ color: 'var(--stone)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
           Als Freelancer-Friseur, Barber, Kosmetikerin oder Lash-Specialist in 4 Schritten zum
           flexiblen Arbeitsplatz. 0% Provision. Stripe-gesichert. Verifizierte Salons.
         </p>
