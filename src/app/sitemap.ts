@@ -11,9 +11,14 @@ import { shouldIndex } from '@/lib/seo'
 // komplett gegen Supabase (gemessen ~9s TTFB). Inhalte ändern sich ~wöchentlich.
 export const revalidate = 86400
 
+// Nur Kategorien MIT Anbietern (Demo oder DB). Die 5 Medical-Slugs
+// (haartransplantation, zahnimplantate, augenlasern, longevity, infusion)
+// sind leer und 308-redirecten in next.config.ts auf ihre Money-Pages —
+// Redirect-URLs gehören nicht in die Sitemap (GSC-Mail 15.06.: „Sitemap
+// enthält Weiterleitungen"). Die Money-Pages selbst stehen unten in
+// staticPages. Slug wieder aufnehmen, sobald echte Anbieter existieren.
 const CATEGORY_SLUGS = [
   'barber', 'friseur', 'kosmetik', 'aesthetik',
-  'haartransplantation', 'zahnimplantate', 'augenlasern', 'longevity', 'infusion',
   'nail', 'massage', 'lash', 'arzt', 'opraum',
 ]
 

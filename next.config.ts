@@ -58,6 +58,16 @@ const nextConfig: NextConfig = {
       { source: '/products', destination: '/shop', permanent: true },
       { source: '/products/:slug', destination: '/shop/:slug', permanent: true },
       { source: '/salons', destination: '/explore', permanent: true },
+      // Soft-404-Fix (GSC 18.07.): Die 5 Medical-Kategorien haben (noch) keine
+      // Anbieter — /category/augenlasern & Co. rendern nur „Bald verfügbar"
+      // (Dünn-Content, Google wertet das als Soft 404). 308 auf die inhaltlich
+      // starken Money-Pages, bis echte Anbieter in diesen Kategorien existieren.
+      // Dann: Redirect entfernen + Slug wieder in sitemap.ts CATEGORY_SLUGS.
+      { source: '/category/haartransplantation', destination: '/haartransplantation', permanent: true },
+      { source: '/category/zahnimplantate', destination: '/zahnimplantate', permanent: true },
+      { source: '/category/augenlasern', destination: '/augenlasern', permanent: true },
+      { source: '/category/longevity', destination: '/longevity', permanent: true },
+      { source: '/category/infusion', destination: '/iv-infusionen', permanent: true },
       { source: '/so-funktionierts', destination: '/was-ist-chairmatch', permanent: true },
       { source: '/fuer-vermieter', destination: '/vermieter/wie-es-funktioniert', permanent: true },
     ]
