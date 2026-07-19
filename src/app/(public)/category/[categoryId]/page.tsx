@@ -29,33 +29,28 @@ const categoryMeta: Record<string, { title: string; desc: string }> = {
   infusion: { title: 'IV-Infusionen buchen', desc: 'Vitamin- und NAD+-Infusionen bei geprüften Anbietern in Deutschland. Jetzt Termin für IV-Therapie buchen.' },
 }
 
+// Nur bekannte Kategorie-Slugs sind gültige Routen — alles andere ist ein
+// echter HTTP 404. Wichtig: notFound() im Seiten-Body oder in generateMetadata
+// greift hier NICHT als Status-Code, weil das Streaming (loading.tsx) den
+// 200er-Header bereits geflusht hat — Google sähe nur 200 + noindex (Soft-404-
+// Fläche). dynamicParams=false ist dasselbe Pattern wie bei der Magazin-Route.
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  const slugs = new Set(Object.keys(categoryMeta))
+  try {
+    const supabase = getSupabaseAdmin()
+    const { data } = await supabase.from('categories').select('slug').limit(500)
+    for (const c of data ?? []) if (c.slug) slugs.add(c.slug)
+  } catch {
+    // Build ohne DB-Zugriff → kuratierte Liste reicht
+  }
+  return [...slugs].map((categoryId) => ({ categoryId }))
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { categoryId } = await params
   const meta = categoryMeta[categoryId]
-
-  // Phantom-Slugs bereits in der Metadata-Phase abbrechen: nur hier liefert
-  // notFound() noch einen echten HTTP-404-Status. Im Seiten-Body hat das
-  // Streaming (loading.tsx) schon begonnen — dort käme nur noch 200 +
-  // noindex-Meta beim Crawler an. notFound() bewusst AUSSERHALB des try:
-  // es wirft intern und würde sonst vom eigenen catch verschluckt.
-  if (!meta) {
-    let dbChecked = false
-    let dbHasCategory = false
-    try {
-      const supabase = getSupabaseAdmin()
-      const { data } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('slug', categoryId)
-        .limit(1)
-        .single()
-      dbChecked = true
-      dbHasCategory = !!data
-    } catch {
-      // DB nicht erreichbar — im Zweifel weiterrendern statt hart 404en
-    }
-    if (dbChecked && !dbHasCategory) notFound()
-  }
 
   return {
     title: meta?.title || `${categoryId} — Termin buchen`,
