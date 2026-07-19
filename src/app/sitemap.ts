@@ -44,7 +44,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // sie gehören dann NICHT in die Sitemap (GSC meldet sonst den Widerspruch
     // "gesendet, aber durch noindex ausgeschlossen").
     { url: `${base}/faq`, changeFrequency: 'monthly', priority: 0.85 },
-    { url: `${base}/products`, changeFrequency: 'daily', priority: 0.85 },
+    // /products existiert NICHT als Route (Shop lebt unter /shop) — der Eintrag
+    // erzeugte einen 404 in der Sitemap (GSC „Nicht gefunden (404)").
+    // next.config.ts leitet /products jetzt per 308 auf /shop um.
     { url: `${base}/shop`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${base}/empfehlungen`, changeFrequency: 'weekly', priority: 0.5 },
     { url: `${base}/statistik`, changeFrequency: 'weekly', priority: 0.4 },
@@ -171,12 +173,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .select('id, slug, updated_at')
         .eq('is_active', true)
         .limit(5000)
-      productPages = (products ?? []).map((p: { id: string; slug?: string | null; updated_at?: string }) => ({
-        url: `${base}/products/${p.slug || p.id}`,
-        lastModified: p.updated_at,
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      }))
+      // Produkt-Detailseiten leben unter /shop/[slug] (NICHT /products/…) und
+      // die Route lädt ausschließlich per slug — Produkte ohne Slug wären 404.
+      productPages = (products ?? [])
+        .filter((p: { slug?: string | null }) => !!p.slug)
+        .map((p: { slug?: string | null; updated_at?: string }) => ({
+          url: `${base}/shop/${p.slug}`,
+          lastModified: p.updated_at,
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+        }))
     } catch {
       // ok
     }

@@ -50,6 +50,16 @@ const nextConfig: NextConfig = {
       // (z.B. /premium) genügt es, destination hier anzupassen.
       { source: '/ads', destination: '/', permanent: true },
       { source: '/ads/:path*', destination: '/', permanent: true },
+      // GSC-Fixes (Juli 2026): URLs, die Google crawlt, aber in den 404 laufen.
+      // /products war nie eine Route (der Shop lebt unter /shop), stand aber in
+      // der Sitemap. /salons, /so-funktionierts und /fuer-vermieter sind
+      // Alt-Pfade aus früheren Versionen bzw. externen Links — 308 auf das
+      // inhaltliche Äquivalent statt Redirect→404 (GSC: „Umleitungsfehler").
+      { source: '/products', destination: '/shop', permanent: true },
+      { source: '/products/:slug', destination: '/shop/:slug', permanent: true },
+      { source: '/salons', destination: '/explore', permanent: true },
+      { source: '/so-funktionierts', destination: '/was-ist-chairmatch', permanent: true },
+      { source: '/fuer-vermieter', destination: '/vermieter/wie-es-funktioniert', permanent: true },
     ]
   },
 

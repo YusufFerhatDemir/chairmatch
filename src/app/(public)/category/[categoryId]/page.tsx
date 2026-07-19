@@ -1,6 +1,7 @@
 export const revalidate = 3600 // ISR statt force-dynamic — Marketing-Seite, 1h Cache
 
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import CategoryClient from './CategoryClient'
 
@@ -18,6 +19,14 @@ const categoryMeta: Record<string, { title: string; desc: string }> = {
   lash: { title: 'Lash & Brows Termin buchen', desc: 'Wimpernverlängerung, Lifting, Brow Design. Jetzt Termin bei Lash-Experten buchen.' },
   arzt: { title: 'Arzt & Klinik Termin buchen', desc: 'Dermatologie, Laserbehandlung, ärztliche Behandlungen. Online Termin buchen.' },
   opraum: { title: 'OP-Raum mieten', desc: 'Sterile OP-Räume tageweise mieten. Für Chirurgen, Ärzte und Praxen in ganz Deutschland.' },
+  // Medical-Beauty-Kategorien: standen in der Sitemap, hatten hier aber keine
+  // Meta-Daten — Google sah generische Fallback-Titel ohne Inhalt und wertete
+  // z.B. /category/augenlasern als Soft 404.
+  haartransplantation: { title: 'Haartransplantation — Klinik finden', desc: 'Verifizierte Kliniken für Haartransplantation in Deutschland vergleichen und beraten lassen. FUE, DHI und Saphir-Methode.' },
+  zahnimplantate: { title: 'Zahnimplantate — Praxis finden', desc: 'Spezialisierte Zahnarztpraxen für Implantate in Deutschland finden. Beratung und Termin online buchen.' },
+  augenlasern: { title: 'Augenlasern — Klinik finden', desc: 'Augenkliniken für LASIK, Femto-LASIK und ReLEx SMILE in Deutschland vergleichen und Beratungstermin buchen.' },
+  longevity: { title: 'Longevity & Präventionsmedizin', desc: 'Longevity-Praxen und Präventionsmedizin in Deutschland entdecken: Diagnostik, Biohacking, ganzheitliche Vorsorge.' },
+  infusion: { title: 'IV-Infusionen buchen', desc: 'Vitamin- und NAD+-Infusionen bei geprüften Anbietern in Deutschland. Jetzt Termin für IV-Therapie buchen.' },
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -79,6 +88,11 @@ export default async function CategoryPage({ params }: Props) {
   } catch {
     // DB connection failed
   }
+
+  // Unbekannte Slugs (weder kuratierte Kategorie noch DB-Kategorie) → echter
+  // 404 statt 200 mit leerer Seite. Vorher beantwortete /category/<beliebig>
+  // jede Phantom-URL mit Status 200 — unbegrenzte Soft-404-Fläche für Google.
+  if (!categoryMeta[categoryId] && !category) notFound()
 
   return <CategoryClient categoryId={categoryId} category={category} dbSalons={salons} />
 }
