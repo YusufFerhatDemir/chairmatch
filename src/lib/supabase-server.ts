@@ -1,9 +1,30 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+/**
+ * Server-only Supabase-Client mit `service_role`.
+ *
+ * Kein Fallback auf den Anon-Key: ein fehlender Service-Key würde sonst still
+ * dazu führen, dass Admin-Abfragen als `anon` laufen — mit RLS also leere
+ * Ergebnisse statt eines erkennbaren Fehlers liefern.
+ */
 export function getSupabaseAdmin() {
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+  if (!supabaseUrl) {
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_URL fehlt — getSupabaseAdmin() kann keinen Client erzeugen.'
+    )
+  }
+
+  if (!supabaseServiceKey) {
+    throw new Error(
+      'SUPABASE_SERVICE_ROLE_KEY fehlt — getSupabaseAdmin() faellt bewusst NICHT auf den Anon-Key zurueck. ' +
+        'Env-Variable in Vercel/.env.local setzen.'
+    )
+  }
+
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
   })
