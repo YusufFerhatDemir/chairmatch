@@ -3,7 +3,7 @@
 **Projekt:** ChairMatch — Supabase `pwdbjqfpgumyfktbfswg`
 **Datum:** 2026-08-19
 **Basis-Commit:** `e537f76`
-**Commit-ID dieses Fixes:** `__COMMIT_ID__`
+**Commit-ID dieses Fixes:** `0bb4f1b`
 **Status:** Code-Fix deployed · SQL-Migration **wartet auf manuelle Anwendung** · RLS-Tests **nicht gelaufen** (API-Keys ungültig)
 
 ---
