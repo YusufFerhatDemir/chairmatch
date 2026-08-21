@@ -17,13 +17,22 @@ export const ROLES = {
 
 export type Role = (typeof ROLES)[keyof typeof ROLES]
 
-/** Legacy DB role → Spec role */
+/**
+ * Legacy DB role → Spec role.
+ *
+ * Die Spec-Namen selbst muessen hier ebenfalls stehen: `hasRoleOrAbove()`
+ * schickt AUCH die Vergleichsrolle durch `toSpecRole()`. Fehlt ein Name,
+ * faellt er auf CUSTOMER (Index 0) zurueck und der Vergleich ist immer wahr —
+ * genau so war `isBusinessOwnerOrAbove()` fuer jede Rolle `true`
+ * (BUSINESS_OWNER war nur als `b2b` hinterlegt).
+ */
 const ROLE_MAP: Record<string, Role> = {
   kunde: ROLES.CUSTOMER,
   customer: ROLES.CUSTOMER,
   anbieter: ROLES.PROVIDER,
   provider: ROLES.PROVIDER,
   b2b: ROLES.BUSINESS_OWNER,
+  business_owner: ROLES.BUSINESS_OWNER,
   investor: ROLES.INVESTOR,
   admin: ROLES.ADMIN,
   super_admin: ROLES.SUPER_ADMIN,

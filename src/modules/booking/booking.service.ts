@@ -64,8 +64,14 @@ export function validateTransition(
   newStatus: string,
   actor: 'customer' | 'provider' | 'system'
 ): boolean {
+  // Aufrufer liefern GROSSSCHREIBUNG ('PENDING' aus booking.actions), die
+  // Tabelle steht in DB-Schreibweise ('pending'). Ohne Normalisierung traf
+  // KEINE einzige Transition zu — Bestaetigen/Abschliessen/Stornieren/No-Show
+  // liefen alle in "nicht moeglich".
+  const from = currentStatus?.toLowerCase()
+  const to = newStatus?.toLowerCase()
   return VALID_TRANSITIONS.some(
-    t => t.from === currentStatus && t.to === newStatus && t.actor === actor
+    t => t.from.toLowerCase() === from && t.to.toLowerCase() === to && t.actor === actor
   )
 }
 

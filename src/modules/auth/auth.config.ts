@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import NextAuth, { type NextAuthConfig } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
@@ -29,7 +29,115 @@ const DEMO_ACCOUNTS: Record<string, { password: string; id: string; name: string
   'super@chairmatch.de':    { password: 'Cm!Super#2026xQ',     id: 'dddddddd-0004-4000-a000-000000000004', name: 'Super Admin',       role: 'super_admin' },
 } : {}
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+/**
+ * Credentials-Login als eigenstaendige, exportierte Funktion.
+ *
+ * NextAuth() gibt den konfigurierten Provider nicht wieder heraus — ohne
+ * diesen Export waere der komplette Login-Pfad (Rate-Limit, Supabase-Auth,
+ * Profil-Lookup, deaktivierte Konten) nicht testbar.
+ */
+export async function authorizeCredentials(
+  credentials: Partial<Record<'email' | 'password', unknown>>,
+) {
+  try {
+    const parsed = loginSchema.safeParse(credentials)
+    if (!parsed.success) return null
+
+    const { email, password } = parsed.data
+
+    // Rate-Limit: 10 Fehlversuche / 15min pro IP.
+    // Das `throw` MUSS ausserhalb des try stehen — vorher fing der eigene
+    // catch-Block es sofort wieder ein und das Limit war wirkungslos.
+    const h = await headers()
+    const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || 'unknown'
+    let failedAttempts = 0
+    try {
+      const supabaseAdmin = getSupabaseAdmin()
+      const since = new Date(Date.now() - RATE_WINDOW_MIN * 60 * 1000).toISOString()
+      const { count } = await supabaseAdmin
+        .from('login_attempts')
+        .select('*', { count: 'exact', head: true })
+        .eq('ip', ip)
+        .eq('success', false)
+        .gte('created_at', since)
+      failedAttempts = count ?? 0
+    } catch {
+      /* login_attempts table may not exist */
+    }
+    if (failedAttempts >= RATE_LIMIT) {
+      throw new Error('Zu viele Fehlversuche. Bitte in 15 Minuten erneut versuchen.')
+    }
+
+    // Check demo accounts first
+    const demo = DEMO_ACCOUNTS[email.toLowerCase()]
+    if (demo && demo.password === password) {
+      await logLoginAttempt(ip, email, true)
+      return { id: demo.id, email, name: demo.name, role: demo.role }
+    }
+
+    // Authenticate via Supabase Auth (mit Anon-Key — nur für Auth)
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error || !data.user) {
+      console.error('[AUTH] signInWithPassword failed:', { email, error: error?.message })
+      await logLoginAttempt(ip, email, false)
+      return null
+    }
+
+    await logLoginAttempt(ip, email, true)
+
+    // Profile-Load mit SERVICE-ROLE-CLIENT (bypassed RLS)
+    const supabaseAdmin = getSupabaseAdmin()
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, email, full_name, role, is_active')
+      .eq('id', data.user.id)
+      .single()
+
+    if (profileError) {
+      console.error('[AUTH] Profile-Lookup failed:', { userId: data.user.id, email, profileError: profileError.message })
+      // Fallback: trotzdem Login zulassen mit Daten aus auth.user
+      return {
+        id: data.user.id,
+        email: data.user.email || email,
+        name: (data.user.user_metadata?.full_name as string) || data.user.email || email,
+        role: (data.user.user_metadata?.role as string) || 'kunde',
+      }
+    }
+
+    if (!profile) {
+      console.error('[AUTH] Profile not found:', { userId: data.user.id, email })
+      // Auto-create Profile via auth.user-Metadata
+      return {
+        id: data.user.id,
+        email: data.user.email || email,
+        name: (data.user.user_metadata?.full_name as string) || data.user.email || email,
+        role: (data.user.user_metadata?.role as string) || 'kunde',
+      }
+    }
+
+    if ((profile as { is_active?: boolean }).is_active === false) {
+      console.error('[AUTH] Profile inactive:', { userId: data.user.id, email })
+      return null
+    }
+
+    return {
+      id: profile.id,
+      email: profile.email || data.user.email,
+      name: profile.full_name || data.user.email,
+      role: profile.role,
+    }
+  } catch (e) {
+    console.error('[AUTH] authorize() crashed:', e)
+    return null
+  }
+}
+
+export const authOptions = {
   trustHost: true,
   providers: [
     Credentials({
@@ -38,100 +146,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
-        try {
-          const parsed = loginSchema.safeParse(credentials)
-          if (!parsed.success) return null
-
-          const { email, password } = parsed.data
-
-          // Rate-Limit: 10 Fehlversuche / 15min pro IP
-          const h = await headers()
-          const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || 'unknown'
-          try {
-            const supabaseAdmin = getSupabaseAdmin()
-            const since = new Date(Date.now() - RATE_WINDOW_MIN * 60 * 1000).toISOString()
-            const { count } = await supabaseAdmin
-              .from('login_attempts')
-              .select('*', { count: 'exact', head: true })
-              .eq('ip', ip)
-              .eq('success', false)
-              .gte('created_at', since)
-            if ((count ?? 0) >= RATE_LIMIT) {
-              throw new Error('Zu viele Fehlversuche. Bitte in 15 Minuten erneut versuchen.')
-            }
-          } catch {
-            /* login_attempts table may not exist */
-          }
-
-          // Check demo accounts first
-          const demo = DEMO_ACCOUNTS[email.toLowerCase()]
-          if (demo && demo.password === password) {
-            await logLoginAttempt(ip, email, true)
-            return { id: demo.id, email, name: demo.name, role: demo.role }
-          }
-
-          // Authenticate via Supabase Auth (mit Anon-Key — nur für Auth)
-          const supabase = createClient(supabaseUrl, supabaseAnonKey)
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          })
-
-          if (error || !data.user) {
-            console.error('[AUTH] signInWithPassword failed:', { email, error: error?.message })
-            await logLoginAttempt(ip, email, false)
-            return null
-          }
-
-          await logLoginAttempt(ip, email, true)
-
-          // Profile-Load mit SERVICE-ROLE-CLIENT (bypassed RLS)
-          const supabaseAdmin = getSupabaseAdmin()
-          const { data: profile, error: profileError } = await supabaseAdmin
-            .from('profiles')
-            .select('id, email, full_name, role, is_active')
-            .eq('id', data.user.id)
-            .single()
-
-          if (profileError) {
-            console.error('[AUTH] Profile-Lookup failed:', { userId: data.user.id, email, profileError: profileError.message })
-            // Fallback: trotzdem Login zulassen mit Daten aus auth.user
-            return {
-              id: data.user.id,
-              email: data.user.email || email,
-              name: (data.user.user_metadata?.full_name as string) || data.user.email || email,
-              role: (data.user.user_metadata?.role as string) || 'kunde',
-            }
-          }
-
-          if (!profile) {
-            console.error('[AUTH] Profile not found:', { userId: data.user.id, email })
-            // Auto-create Profile via auth.user-Metadata
-            return {
-              id: data.user.id,
-              email: data.user.email || email,
-              name: (data.user.user_metadata?.full_name as string) || data.user.email || email,
-              role: (data.user.user_metadata?.role as string) || 'kunde',
-            }
-          }
-
-          if ((profile as { is_active?: boolean }).is_active === false) {
-            console.error('[AUTH] Profile inactive:', { userId: data.user.id, email })
-            return null
-          }
-
-          return {
-            id: profile.id,
-            email: profile.email || data.user.email,
-            name: profile.full_name || data.user.email,
-            role: profile.role,
-          }
-        } catch (e) {
-          console.error('[AUTH] authorize() crashed:', e)
-          return null
-        }
-      },
+      authorize: authorizeCredentials,
     }),
   ],
   callbacks: {
@@ -176,4 +191,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     },
   },
-})
+} satisfies NextAuthConfig
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions)
