@@ -15,7 +15,7 @@ export default function Page() {
       showSave={false}
       role="anbieter"
     >
-      <DocumentUpload storageKey="cm_anbieter_zertifikate" docs={[
+      <DocumentUpload docs={[
         { id: 'hygiene',    title: t('subZertifikate.doc1Title'), sub: t('subZertifikate.doc1Sub') },
         { id: 'approbation', title: t('subZertifikate.doc2Title'), sub: t('subZertifikate.doc2Sub') },
         { id: 'medical',    title: t('subZertifikate.doc3Title'), sub: t('subZertifikate.doc3Sub') },

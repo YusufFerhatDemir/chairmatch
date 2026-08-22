@@ -15,7 +15,7 @@ export default function Page() {
       showSave={false}
       role="anbieter"
     >
-      <GalleryUpload storageKey="cm_anbieter_galerie_images" maxImages={12} label="" />
+      <GalleryUpload target="salon_gallery" maxImages={12} label="" />
       <TippsBox title={t('subGalerie.tippsTitle')} tipps={[
         t('subGalerie.tip1'), t('subGalerie.tip2'), t('subGalerie.tip3'), t('subGalerie.tip4'),
       ]} />

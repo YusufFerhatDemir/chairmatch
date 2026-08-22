@@ -5,84 +5,148 @@ import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
 import type { Route } from 'next'
 import { useRouter } from 'next/navigation'
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
+
+/** Werte der `[data-storage]`-Felder einer Unterseite. */
+export type SubPageValues = Record<string, string | boolean | number>
 
 export interface SubPageProps {
   parentHref: string
   parentLabel: string
   title: string
   subtitle: string
-  /** Storage-Key (z.B. 'cm_anbieter_beschreibung') — wenn gesetzt, wird Inhalt persistiert in localStorage */
+  /**
+   * Nur noch Fallback fuer Seiten ohne DB-Anbindung: wenn weder `loadValues`
+   * noch `onSave` gesetzt sind, laufen Laden und Speichern ueber
+   * localStorage[storageKey].
+   */
   storageKey?: string
   /** Welche Rolle für Bottom-Nav */
   role?: 'anbieter' | 'vermieter' | 'mieter'
   children: ReactNode
   showSave?: boolean
-  /** Manuelle Save-Funktion. Wenn null/undefined und storageKey gesetzt, wird auto-saved (alle data-storage Felder im DOM). */
-  onSave?: () => Promise<void> | void
+  /**
+   * Speichert die gesammelten Formularwerte. Wirft die Funktion, bleibt der
+   * Nutzer auf der Seite und sieht die Fehlermeldung — es wird NICHT
+   * "Gespeichert" angezeigt und nicht zurueck navigiert.
+   */
+  onSave?: (values: SubPageValues) => Promise<void> | void
+  /**
+   * Laedt die Startwerte (z.B. aus der DB). `null` = noch nichts gespeichert,
+   * die Default-Werte der Felder bleiben stehen.
+   */
+  loadValues?: () => Promise<SubPageValues | null>
+}
+
+/** Fehlermeldung aus einem unbekannten Wurf herausziehen. */
+function errorText(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message
+  return fallback
+}
+
+function storageNodes(): NodeListOf<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> {
+  return document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('[data-storage]')
+}
+
+function collectValues(): SubPageValues {
+  const obj: SubPageValues = {}
+  storageNodes().forEach((n) => {
+    const k = n.getAttribute('data-storage') || n.name || n.id
+    if (!k) return
+    if ((n as HTMLInputElement).type === 'checkbox') {
+      obj[k] = (n as HTMLInputElement).checked
+    } else {
+      obj[k] = n.value
+    }
+  })
+  return obj
+}
+
+function applyValues(values: SubPageValues) {
+  storageNodes().forEach((n) => {
+    const k = n.getAttribute('data-storage') || n.name || n.id
+    if (!k || !(k in values)) return
+    const v = values[k]
+    if ((n as HTMLInputElement).type === 'checkbox') {
+      ;(n as HTMLInputElement).checked = !!v
+    } else {
+      n.value = String(v)
+    }
+    // React-kontrollierte Felder muessen von der Wertaenderung erfahren.
+    n.dispatchEvent(new Event('input', { bubbles: true }))
+    n.dispatchEvent(new Event('change', { bubbles: true }))
+  })
 }
 
 export default function MeinBereichSubPage({
   parentHref, parentLabel, title, subtitle, storageKey, role,
-  children, showSave = true, onSave,
+  children, showSave = true, onSave, loadValues,
 }: SubPageProps) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [savedToast, setSavedToast] = useState(false)
+  const [loading, setLoading] = useState(!!loadValues)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  // Auto-save: collect all data-storage="..." input/textarea values into localStorage[storageKey]
   async function doSave() {
-    if (saving) return
+    if (saving || loading) return
     setSaving(true)
+    setSaveError(null)
     try {
       if (onSave) {
-        await onSave()
+        await onSave(collectValues())
       } else if (storageKey && typeof window !== 'undefined') {
-        const nodes = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('[data-storage]')
-        const obj: Record<string, string | boolean | number> = {}
-        nodes.forEach((n) => {
-          const k = n.getAttribute('data-storage') || n.name || n.id
-          if (!k) return
-          if ((n as HTMLInputElement).type === 'checkbox') {
-            obj[k] = (n as HTMLInputElement).checked
-          } else {
-            obj[k] = n.value
-          }
-        })
-        try { localStorage.setItem(storageKey, JSON.stringify(obj)) } catch {}
+        try { localStorage.setItem(storageKey, JSON.stringify(collectValues())) } catch {}
       }
-      // small artificial delay so user sees feedback
-      await new Promise((r) => setTimeout(r, 350))
-      setSavedToast(true)
-      setTimeout(() => {
-        setSavedToast(false)
-        router.push(parentHref as Route)
-      }, 1100)
-    } finally {
+    } catch (err) {
+      setSaveError(errorText(err, 'Speichern fehlgeschlagen. Bitte erneut versuchen.'))
       setSaving(false)
+      return
     }
+    setSaving(false)
+    setSavedToast(true)
+    setTimeout(() => {
+      setSavedToast(false)
+      router.push(parentHref as Route)
+    }, 1100)
   }
 
-  // Restore values on mount (best-effort)
+  // `loadValues` kommt aus den Seiten meist als Inline-Arrow — waere es eine
+  // Dependency des Effects, liefe der Fetch bei jedem Render erneut.
+  const loadRef = useRef(loadValues)
+  loadRef.current = loadValues
+  const hasLoader = !!loadValues
+
+  // Startwerte laden: bevorzugt aus der DB, sonst aus localStorage.
   useEffect(() => {
+    let cancelled = false
+    const load = loadRef.current
+
+    if (load) {
+      setLoading(true)
+      setLoadError(null)
+      load()
+        .then((values) => {
+          if (cancelled) return
+          if (values) applyValues(values)
+        })
+        .catch((err) => {
+          if (!cancelled) setLoadError(errorText(err, 'Daten konnten nicht geladen werden.'))
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
+      return () => { cancelled = true }
+    }
+
     if (!storageKey || typeof window === 'undefined') return
     try {
       const raw = localStorage.getItem(storageKey)
-      if (!raw) return
-      const obj = JSON.parse(raw)
-      const nodes = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('[data-storage]')
-      nodes.forEach((n) => {
-        const k = n.getAttribute('data-storage') || n.name || n.id
-        if (!k || !(k in obj)) return
-        const v = obj[k]
-        if ((n as HTMLInputElement).type === 'checkbox') {
-          ;(n as HTMLInputElement).checked = !!v
-        } else {
-          n.value = String(v)
-        }
-      })
-    } catch {}
-  }, [storageKey])
+      if (raw) applyValues(JSON.parse(raw))
+    } catch { /* defekter Cache — Defaults stehen lassen */ }
+    return () => { cancelled = true }
+  }, [storageKey, hasLoader])
 
   return (
     <div style={{
@@ -164,9 +228,33 @@ export default function MeinBereichSubPage({
         </div>
 
         {/* Body */}
-        <div style={{ padding: '0 20px 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ padding: '0 20px 24px', display: 'flex', flexDirection: 'column', gap: 18, opacity: loading ? 0.45 : 1, transition: 'opacity 160ms' }}>
           {children}
         </div>
+
+        {loading && (
+          <div style={{ padding: '0 20px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--stone)' }}>
+            <span style={{ display: 'inline-flex', gap: 4 }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold2)', animation: 'cmpulse 1s infinite' }} />
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold2)', animation: 'cmpulse 1s infinite 0.2s' }} />
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold2)', animation: 'cmpulse 1s infinite 0.4s' }} />
+            </span>
+            <span>Daten werden geladen…</span>
+          </div>
+        )}
+
+        {(loadError || saveError) && (
+          <div
+            role="alert"
+            style={{
+              margin: '0 20px 16px', padding: '11px 14px', borderRadius: 12,
+              background: 'rgba(232,80,64,0.10)', border: '1px solid rgba(232,80,64,0.32)',
+              color: '#FF8888', fontSize: 12, lineHeight: 1.5,
+            }}
+          >
+            {saveError || loadError}
+          </div>
+        )}
 
         {showSave && (
           <div style={{ padding: '0 20px 24px', display: 'flex', gap: 10 }}>
@@ -183,15 +271,15 @@ export default function MeinBereichSubPage({
             >Abbrechen</button>
             <button
               onClick={doSave}
-              disabled={saving}
+              disabled={saving || loading}
               style={{
                 flex: 2, padding: 14, borderRadius: 14,
                 background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
                 color: '#1a1000', border: 'none',
-                fontFamily: 'inherit', fontWeight: 700, fontSize: 14, cursor: saving ? 'wait' : 'pointer',
+                fontFamily: 'inherit', fontWeight: 700, fontSize: 14, cursor: saving ? 'wait' : loading ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 boxShadow: '0 0 18px rgba(196,168,106,0.25)',
-                opacity: saving ? 0.7 : 1,
+                opacity: saving || loading ? 0.7 : 1,
               }}
             >
               {saving ? (

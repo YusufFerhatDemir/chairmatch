@@ -1,8 +1,13 @@
 'use client'
 
 import MeinBereichSubPage, { TippsBox } from '@/components/MeinBereichSubPage'
+import { apiGet, apiSend } from '@/lib/client-api'
 
 import { useTranslations } from '@/i18n/client'
+
+interface SalonResponse {
+  salon: { description: string | null } | null
+}
 
 export default function Page() {
   const t = useTranslations()
@@ -12,9 +17,17 @@ export default function Page() {
       parentLabel={t('meinSalon.title')}
       title={t('subBeschreibung.title')}
       subtitle={t('subBeschreibung.subtitle')}
-      storageKey="cm_anbieter_beschreibung"
       showSave={true}
       role="anbieter"
+      loadValues={async () => {
+        const { salon } = await apiGet<SalonResponse>('/api/me/salon')
+        return { value: salon?.description ?? '' }
+      }}
+      onSave={async (values) => {
+        await apiSend('/api/me/salon', 'PATCH', {
+          description: String(values.value ?? '').trim(),
+        })
+      }}
     >
       <textarea
         data-storage="value"

@@ -1,8 +1,15 @@
 'use client'
 
 import MeinBereichSubPage from '@/components/MeinBereichSubPage'
+import { apiGet, apiSend } from '@/lib/client-api'
 
 import { useTranslations } from '@/i18n/client'
+
+interface TenantProfile {
+  display_name: string
+  job: string
+  license_number: string
+}
 
 export default function Page() {
   const t = useTranslations()
@@ -12,9 +19,19 @@ export default function Page() {
       parentLabel={t('meinBereich.title')}
       title={t('subProfil.title')}
       subtitle={t('subProfil.subtitle')}
-      storageKey="cm_mieter_profil"
       showSave={true}
       role="mieter"
+      loadValues={async () => {
+        const { profile } = await apiGet<{ profile: TenantProfile }>('/api/me/tenant-profile')
+        return { name: profile.display_name, job: profile.job, license: profile.license_number }
+      }}
+      onSave={async (values) => {
+        await apiSend('/api/me/tenant-profile', 'PUT', {
+          display_name: String(values.name ?? '').trim(),
+          job: String(values.job ?? '').trim(),
+          license_number: String(values.license ?? '').trim(),
+        })
+      }}
     >
       <div>
         <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subProfil.nameLbl')}</label>

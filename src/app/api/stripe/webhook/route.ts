@@ -3,6 +3,7 @@ import { stripe, STRIPE_WEBHOOK_SECRET, createRefund } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { calculateNewCustomerCommission, calculateRentalCommission } from '@/modules/marketplace/commission.service'
 import { calculateCommission } from '@/lib/marketplace-rules'
+import { createNotification } from '@/lib/notifications'
 import type Stripe from 'stripe'
 
 // Disable body parsing — Stripe needs raw body
@@ -153,6 +154,30 @@ async function fulfillRentalPayment(
     entity_id: rentalId,
     details: { amount: session.amount_total, currency: session.currency },
   })
+
+  // In-App-Benachrichtigung für beide Seiten. Bewusst nach dem Audit-Log:
+  // schlägt sie fehl, ist die Zahlung trotzdem vollständig verbucht.
+  const period = `${rental.start_date} – ${rental.end_date}`
+  const amountEur = ((session.amount_total ?? rental.total_cents) / 100).toFixed(2)
+  await createNotification(
+    rental.renter_id,
+    'Miete bezahlt',
+    `Deine Buchung für ${period} ist bestätigt. Betrag: ${amountEur} €.`,
+    'payment',
+    rentalId,
+    'rental_booking',
+  )
+  const rentalOwnerId = equipment?.salons?.owner_id
+  if (rentalOwnerId) {
+    await createNotification(
+      rentalOwnerId,
+      'Neue bezahlte Mietbuchung',
+      `Dein Mietobjekt ist für ${period} gebucht und bezahlt (${amountEur} €).`,
+      'booking',
+      rentalId,
+      'rental_booking',
+    )
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -215,6 +240,35 @@ export async function POST(req: NextRequest) {
           entity_id: meta.booking_id,
           details: { amount: session.amount_total, currency: session.currency },
         })
+
+        // Kunde und Saloninhaber informieren.
+        const amountEur = ((session.amount_total ?? 0) / 100).toFixed(2)
+        if (meta.user_id) {
+          await createNotification(
+            meta.user_id,
+            'Zahlung bestätigt',
+            `Deine Buchung ist bezahlt und bestätigt. Betrag: ${amountEur} €.`,
+            'payment',
+            meta.booking_id,
+            'booking',
+          )
+        }
+        const { data: paidBooking } = await supabase
+          .from('bookings')
+          .select('booking_date, start_time, salons(owner_id)')
+          .eq('id', meta.booking_id)
+          .single()
+        const bookingOwnerId = (paidBooking?.salons as { owner_id?: string } | null)?.owner_id
+        if (bookingOwnerId) {
+          await createNotification(
+            bookingOwnerId,
+            'Neue bezahlte Buchung',
+            `Neuer Termin am ${paidBooking?.booking_date ?? ''} ${paidBooking?.start_time ?? ''} (${amountEur} €).`,
+            'booking',
+            meta.booking_id,
+            'booking',
+          )
+        }
       }
 
       if (meta.type === 'product_order' && meta.order_id) {

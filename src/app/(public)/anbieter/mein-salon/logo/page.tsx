@@ -15,7 +15,7 @@ export default function Page() {
       showSave={false}
       role="anbieter"
     >
-      <SingleImageUpload storageKey="cm_anbieter_logo_image" placeholder="YD" />
+      <SingleImageUpload target="salon_logo" placeholder="YD" />
       <TippsBox title={t('subLogo.tippsTitle')} tipps={[
         t('subLogo.tip1'), t('subLogo.tip2'), t('subLogo.tip3'), t('subLogo.tip4'),
       ]} />

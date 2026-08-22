@@ -152,7 +152,8 @@
     "filterChair": "Stuhl",
     "filterBed": "Liege",
     "filterRoom": "Kabine",
-    "filterOR": "OP-Raum"
+    "filterOR": "OP-Raum",
+    "bookNow": "Jetzt mieten"
   },
   "consent": {
     "text": "Wir verwenden Cookies für den Betrieb der Plattform. Sie können Ihre Auswahl anpassen.",
@@ -322,7 +323,9 @@
     "payout": "Auszahlung",
     "payoutSub": "Wie du bezahlt wirst",
     "preview": "Vorschau",
-    "previewSub": "Wie Mieter dich sehen"
+    "previewSub": "Wie Mieter dich sehen",
+    "listings": "Mietobjekte",
+    "listingsSub": "Stühle, Liegen & Räume verwalten"
   },
   "konto": {
     "title": "Konto",
@@ -425,7 +428,17 @@
   },
   "subAusstattung": {
     "title": "Ausstattung",
-    "subtitle": "Was ist beim Stuhl / Kabine dabei?"
+    "subtitle": "Was ist beim Stuhl / Kabine dabei?",
+    "item1": "Spiegel & Arbeitsplatz",
+    "item2": "Waschbecken",
+    "item3": "Föhn & Styling-Geräte",
+    "item4": "Sterilisator",
+    "item5": "WLAN",
+    "item6": "Klimaanlage",
+    "item7": "Abschließbarer Stauraum",
+    "item8": "Empfang / Rezeption",
+    "item9": "Wartebereich für Kunden",
+    "item10": "Parkplatz"
   },
   "subPreise": {
     "title": "Preise",

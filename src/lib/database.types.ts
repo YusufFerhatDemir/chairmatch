@@ -274,9 +274,16 @@ export interface Database {
           description: string | null
           price_per_day_cents: number
           price_per_month_cents: number | null
+          price_per_hour_cents: number | null
+          price_per_week_cents: number | null
+          available_days: string[]
+          available_from: string | null
+          available_to: string | null
+          features: string[]
           is_available: boolean
           images: unknown[]
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
@@ -286,10 +293,122 @@ export interface Database {
           description?: string | null
           price_per_day_cents: number
           price_per_month_cents?: number | null
+          price_per_hour_cents?: number | null
+          price_per_week_cents?: number | null
+          available_days?: string[]
+          available_from?: string | null
+          available_to?: string | null
+          features?: string[]
           is_available?: boolean
           images?: unknown[]
         }
         Update: Partial<Database['public']['Tables']['rental_equipment']['Insert']>
+      }
+      tenant_profiles: {
+        Row: {
+          user_id: string
+          display_name: string | null
+          job: string | null
+          license_number: string | null
+          search_radius_km: number
+          search_city: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          display_name?: string | null
+          job?: string | null
+          license_number?: string | null
+          search_radius_km?: number
+          search_city?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['tenant_profiles']['Insert']>
+      }
+      payout_accounts: {
+        Row: {
+          user_id: string
+          context: 'anbieter' | 'vermieter'
+          /** Klartext-IBAN — per REVOKE nur fuer service_role lesbar. */
+          iban: string
+          iban_last4: string
+          account_holder: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          context: 'anbieter' | 'vermieter'
+          iban: string
+          iban_last4: string
+          account_holder?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['payout_accounts']['Insert']>
+      }
+      user_uploads: {
+        Row: {
+          id: string
+          user_id: string
+          target: 'salon_logo' | 'salon_gallery' | 'salon_certificate' | 'listing_photo'
+          salon_id: string | null
+          equipment_id: string | null
+          doc_key: string | null
+          bucket: string
+          storage_path: string
+          mime_type: string
+          size_bytes: number
+          is_public: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          target: 'salon_logo' | 'salon_gallery' | 'salon_certificate' | 'listing_photo'
+          salon_id?: string | null
+          equipment_id?: string | null
+          doc_key?: string | null
+          bucket?: string
+          storage_path: string
+          mime_type: string
+          size_bytes: number
+          is_public?: boolean
+        }
+        Update: Partial<Database['public']['Tables']['user_uploads']['Insert']>
+      }
+      rental_requests: {
+        Row: {
+          id: string
+          equipment_id: string | null
+          salon_id: string | null
+          requester_id: string
+          recipient_id: string | null
+          request_type: 'miete' | 'besichtigung'
+          preferred_date: string
+          preferred_time: string | null
+          duration_unit: 'hour' | 'day' | 'week' | 'month' | null
+          units: number | null
+          message: string | null
+          estimated_cents: number
+          status: 'open' | 'accepted' | 'declined' | 'withdrawn'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          equipment_id?: string | null
+          salon_id?: string | null
+          requester_id: string
+          recipient_id?: string | null
+          request_type?: 'miete' | 'besichtigung'
+          preferred_date: string
+          preferred_time?: string | null
+          duration_unit?: 'hour' | 'day' | 'week' | 'month' | null
+          units?: number | null
+          message?: string | null
+          estimated_cents?: number
+          status?: 'open' | 'accepted' | 'declined' | 'withdrawn'
+        }
+        Update: Partial<Database['public']['Tables']['rental_requests']['Insert']>
       }
       rental_bookings: {
         Row: {

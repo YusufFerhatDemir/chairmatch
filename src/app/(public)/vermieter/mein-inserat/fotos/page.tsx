@@ -15,7 +15,7 @@ export default function Page() {
       showSave={false}
       role="vermieter"
     >
-      <GalleryUpload storageKey="cm_vermieter_fotos_images" maxImages={8} label="" />
+      <GalleryUpload target="listing_photo" maxImages={8} label="" />
       <TippsBox title={t('subFotos.tippsTitle')} tipps={[
         t('subFotos.tip1'), t('subFotos.tip2'), t('subFotos.tip3'),
       ]} />

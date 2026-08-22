@@ -1,8 +1,31 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+/**
+ * Upload-Felder für Logo, Galerie, Inserats-Fotos und Zertifikate.
+ *
+ * Vorher lagen die Dateien als Data-URL in localStorage — sie existierten nur
+ * im Browser des Nutzers, waren nach dem Cache-Leeren weg und sprengten bei
+ * mehreren Bildern das 5-MB-Limit von localStorage. Jetzt geht jede Datei an
+ * `POST /api/uploads`, landet im privaten Bucket und wird über
+ * `/api/uploads/{id}` (frische Signed URL pro Abruf) ausgeliefert.
+ */
 
-const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { apiGet, apiSend, apiUpload } from '@/lib/client-api'
+
+const MAX_BYTES = 5 * 1024 * 1024
+const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp']
+
+export type UploadTarget = 'salon_logo' | 'salon_gallery' | 'salon_certificate' | 'listing_photo'
+
+export interface UploadRecord {
+  id: string
+  url: string
+  target: UploadTarget
+  doc_key: string | null
+  mime_type: string
+  size_bytes: number
+}
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -10,56 +33,113 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function readFileAsDataURL(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader()
-    r.onload = () => resolve(r.result as string)
-    r.onerror = () => reject(r.error)
-    r.readAsDataURL(file)
-  })
+function errorText(err: unknown, fallback: string): string {
+  return err instanceof Error && err.message ? err.message : fallback
+}
+
+/** Client-Vorprüfung — der Server prüft dasselbe nochmal verbindlich. */
+function localReject(file: File, allowed: string[]): string | null {
+  if (!allowed.includes(file.type)) {
+    return allowed.includes('application/pdf')
+      ? 'Nur PDF, JPG, PNG oder WebP erlaubt'
+      : 'Nur JPG, PNG oder WebP erlaubt'
+  }
+  if (file.size > MAX_BYTES) return `${file.name}: zu groß (${formatSize(file.size)}, max 5 MB)`
+  if (file.size === 0) return `${file.name}: Datei ist leer`
+  return null
+}
+
+async function uploadFile(file: File, target: UploadTarget, docKey?: string): Promise<UploadRecord> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('target', target)
+  if (docKey) form.append('docKey', docKey)
+  const res = await apiUpload<{ upload: UploadRecord }>('/api/uploads', form)
+  return res.upload
+}
+
+/** Lädt die bereits hochgeladenen Dateien eines Ziels. */
+function useUploads(target: UploadTarget) {
+  const [items, setItems] = useState<UploadRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const reload = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await apiGet<{ uploads: UploadRecord[] }>(`/api/uploads?target=${target}`)
+      setItems(res.uploads)
+      setError(null)
+    } catch (err) {
+      setError(errorText(err, 'Dateien konnten nicht geladen werden'))
+    } finally {
+      setLoading(false)
+    }
+  }, [target])
+
+  useEffect(() => { void reload() }, [reload])
+
+  return { items, setItems, loading, error, setError }
+}
+
+const goldButtonStyle: React.CSSProperties = {
+  background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
+  color: '#1a1000', border: 'none',
+  fontFamily: 'inherit', fontWeight: 700, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+}
+
+function ErrorLine({ children }: { children: React.ReactNode }) {
+  return <p role="alert" style={{ fontSize: 11, color: '#FF8888', textAlign: 'center' }}>{children}</p>
 }
 
 /* ═══════════════════════════════════════════════════════════════
  * SingleImageUpload — z.B. Logo / Profilbild
  * ═══════════════════════════════════════════════════════════════ */
 
-export function SingleImageUpload({ storageKey, placeholder = 'YD' }: { storageKey: string; placeholder?: string }) {
-  const [dataUrl, setDataUrl] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+export function SingleImageUpload({
+  target = 'salon_logo',
+  placeholder = 'YD',
+}: {
+  target?: UploadTarget
+  placeholder?: string
+}) {
+  const { items, setItems, loading, error, setError } = useUploads(target)
+  const [busy, setBusy] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(storageKey)
-      if (v) setDataUrl(v)
-    } catch {}
-  }, [storageKey])
+  const current = items[items.length - 1] ?? null
 
   async function handleFile(f: File | null) {
-    if (!f) return
+    if (!f || busy) return
+    const reject = localReject(f, IMAGE_MIMES)
+    if (reject) { setError(reject); return }
+
+    setBusy(true)
     setError(null)
-    if (!f.type.startsWith('image/')) {
-      setError('Nur Bilder erlaubt')
-      return
-    }
-    if (f.size > MAX_BYTES) {
-      setError(`Datei zu groß (${formatSize(f.size)}). Max 5 MB.`)
-      return
-    }
     try {
-      const url = await readFileAsDataURL(f)
-      setDataUrl(url)
-      try { localStorage.setItem(storageKey, url) } catch {
-        setError('Speicher voll — älteres Bild zuerst löschen')
-      }
-    } catch {
-      setError('Fehler beim Lesen der Datei')
+      const record = await uploadFile(f, target)
+      // Logo ersetzt das vorige — der Server räumt die alte Datei mit auf.
+      setItems([record])
+    } catch (err) {
+      setError(errorText(err, 'Upload fehlgeschlagen'))
+    } finally {
+      setBusy(false)
+      if (inputRef.current) inputRef.current.value = ''
     }
   }
 
-  function removeImage() {
-    setDataUrl(null)
-    try { localStorage.removeItem(storageKey) } catch {}
+  async function removeImage() {
+    if (!current || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await apiSend(`/api/uploads/${current.id}`, 'DELETE')
+      setItems([])
+    } catch (err) {
+      setError(errorText(err, 'Löschen fehlgeschlagen'))
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -76,132 +156,153 @@ export function SingleImageUpload({ storageKey, placeholder = 'YD' }: { storageK
         background: 'linear-gradient(135deg, #2A2418, #161210)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        {dataUrl ? (
+        {current ? (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={dataUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={current.url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <span className="cinzel text-gold-metallic" style={{ fontSize: 42, fontWeight: 600 }}>{placeholder}</span>
         )}
       </div>
-      {dataUrl ? (
-        <p style={{ fontSize: 11, color: '#6ABF80', textAlign: 'center' }}>✓ Bild hochgeladen</p>
+
+      {loading ? (
+        <p style={{ fontSize: 11, color: 'var(--stone)' }}>Lade…</p>
+      ) : current ? (
+        <p style={{ fontSize: 11, color: '#6ABF80', textAlign: 'center' }}>✓ Bild gespeichert</p>
       ) : (
         <p style={{ fontSize: 11, color: 'var(--stone)', textAlign: 'center' }}>Noch kein Bild · Initialen werden angezeigt</p>
       )}
 
-      <input ref={inputRef} type="file" accept="image/*" onChange={(e) => handleFile(e.target.files?.[0] || null)} style={{ display: 'none' }} />
+      <input ref={inputRef} type="file" accept={IMAGE_MIMES.join(',')} onChange={(e) => handleFile(e.target.files?.[0] || null)} style={{ display: 'none' }} />
 
       <div style={{ display: 'flex', gap: 10, width: '100%' }}>
         <button
           onClick={() => inputRef.current?.click()}
-          style={{
-            flex: 1, padding: 10, borderRadius: 12,
-            background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
-            color: '#1a1000', border: 'none',
-            fontFamily: 'inherit', fontWeight: 700, fontSize: 12.5, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}
-        >📷 {dataUrl ? 'Anderes Bild' : 'Bild auswählen'}</button>
-        {dataUrl && (
+          disabled={busy || loading}
+          style={{ ...goldButtonStyle, flex: 1, padding: 10, borderRadius: 12, fontSize: 12.5, opacity: busy || loading ? 0.6 : 1 }}
+        >📷 {busy ? 'Lädt hoch…' : current ? 'Anderes Bild' : 'Bild auswählen'}</button>
+        {current && (
           <button
             onClick={removeImage}
+            disabled={busy}
             style={{
               flex: 1, padding: 10, borderRadius: 12,
               background: 'transparent', color: '#FF8888',
               border: '1px solid rgba(232,80,64,0.3)',
-              fontFamily: 'inherit', fontWeight: 600, fontSize: 12.5, cursor: 'pointer',
+              fontFamily: 'inherit', fontWeight: 600, fontSize: 12.5, cursor: busy ? 'wait' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              opacity: busy ? 0.6 : 1,
             }}
           >✕ Entfernen</button>
         )}
       </div>
 
-      {error && (
-        <p style={{ fontSize: 11, color: '#FF8888', textAlign: 'center', marginTop: -4 }}>{error}</p>
-      )}
+      {error && <ErrorLine>{error}</ErrorLine>}
     </div>
   )
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * GalleryUpload — z.B. Salon-Galerie, Vermieter-Fotos
+ * GalleryUpload — Salon-Galerie, Vermieter-Fotos
  * ═══════════════════════════════════════════════════════════════ */
 
-export function GalleryUpload({ storageKey, maxImages = 12, label = 'Bilder' }: { storageKey: string; maxImages?: number; label?: string }) {
-  const [images, setImages] = useState<string[]>([])
-  const [error, setError] = useState<string | null>(null)
+export function GalleryUpload({
+  target = 'salon_gallery',
+  maxImages = 12,
+  label = 'Bilder',
+}: {
+  target?: UploadTarget
+  maxImages?: number
+  label?: string
+}) {
+  const { items, setItems, loading, error, setError } = useUploads(target)
+  const [busy, setBusy] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(storageKey)
-      if (v) setImages(JSON.parse(v))
-    } catch {}
-  }, [storageKey])
-
   async function handleFiles(files: FileList | null) {
-    if (!files) return
+    if (!files || busy) return
     setError(null)
-    const newImages: string[] = []
-    const remaining = maxImages - images.length
-    for (let i = 0; i < Math.min(files.length, remaining); i++) {
-      const f = files[i]
-      if (!f.type.startsWith('image/')) continue
-      if (f.size > MAX_BYTES) {
-        setError(`${f.name}: zu groß (max 5 MB)`)
-        continue
-      }
+
+    const remaining = maxImages - items.length
+    if (remaining <= 0) {
+      setError(`Maximal ${maxImages} Bilder — bitte zuerst eines löschen`)
+      return
+    }
+
+    setBusy(true)
+    const uploaded: UploadRecord[] = []
+    let firstError: string | null = null
+
+    // Sequenziell: parallele Uploads würden beim Server-Limit gegeneinander
+    // laufen und der Nutzer bekäme eine zufällige Auswahl statt der ersten n.
+    for (const file of Array.from(files).slice(0, remaining)) {
+      const reject = localReject(file, IMAGE_MIMES)
+      if (reject) { firstError ??= reject; continue }
       try {
-        const url = await readFileAsDataURL(f)
-        newImages.push(url)
-      } catch {}
+        uploaded.push(await uploadFile(file, target))
+      } catch (err) {
+        firstError ??= errorText(err, `${file.name}: Upload fehlgeschlagen`)
+        break
+      }
     }
-    if (newImages.length === 0) return
-    const merged = [...images, ...newImages].slice(0, maxImages)
-    setImages(merged)
-    try { localStorage.setItem(storageKey, JSON.stringify(merged)) } catch {
-      setError('Speicher voll — älteres Bild zuerst löschen')
+
+    if (uploaded.length > 0) setItems(prev => [...prev, ...uploaded])
+    if (firstError) setError(firstError)
+    setBusy(false)
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  async function removeImage(id: string) {
+    if (busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await apiSend(`/api/uploads/${id}`, 'DELETE')
+      setItems(prev => prev.filter(i => i.id !== id))
+    } catch (err) {
+      setError(errorText(err, 'Löschen fehlgeschlagen'))
+    } finally {
+      setBusy(false)
     }
   }
 
-  function removeImage(idx: number) {
-    const next = images.filter((_, i) => i !== idx)
-    setImages(next)
-    try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {}
-  }
-
-  const slotsLeft = maxImages - images.length
+  const slotsLeft = maxImages - items.length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <p style={{ fontSize: 11, color: 'var(--stone)', textAlign: 'center' }}>
-        <b style={{ color: 'var(--gold2)', fontWeight: 700 }}>{images.length}</b> von <b style={{ color: 'var(--gold2)', fontWeight: 700 }}>{maxImages}</b> {label} hochgeladen
+        {loading ? 'Lade…' : (
+          <>
+            <b style={{ color: 'var(--gold2)', fontWeight: 700 }}>{items.length}</b> von{' '}
+            <b style={{ color: 'var(--gold2)', fontWeight: 700 }}>{maxImages}</b> {label} hochgeladen
+          </>
+        )}
       </p>
 
-      <input ref={inputRef} type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} />
+      <input ref={inputRef} type="file" accept={IMAGE_MIMES.join(',')} multiple onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-        {images.map((src, i) => (
-          <div key={i} style={{
+        {items.map((item, i) => (
+          <div key={item.id} style={{
             aspectRatio: '1', borderRadius: 12, position: 'relative', overflow: 'hidden',
             background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.18)',
           }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src} alt={`Bild ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={item.url} alt={`Bild ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             <span style={{
               position: 'absolute', bottom: 5, left: 5,
               background: 'rgba(0,0,0,0.7)', color: '#fff',
               fontSize: 9, padding: '2px 6px', borderRadius: 6, fontWeight: 700,
             }}>{i + 1}</span>
             <button
-              onClick={() => removeImage(i)}
+              onClick={() => removeImage(item.id)}
+              disabled={busy}
               aria-label="Löschen"
               style={{
                 position: 'absolute', top: 5, right: 5,
                 width: 22, height: 22, borderRadius: '50%',
                 background: 'rgba(11,11,15,0.85)', color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11,
-                border: '1px solid rgba(196,168,106,0.3)', cursor: 'pointer',
+                border: '1px solid rgba(196,168,106,0.3)', cursor: busy ? 'wait' : 'pointer',
               }}
             >✕</button>
           </div>
@@ -209,27 +310,29 @@ export function GalleryUpload({ storageKey, maxImages = 12, label = 'Bilder' }: 
         {slotsLeft > 0 && (
           <button
             onClick={() => inputRef.current?.click()}
+            disabled={busy || loading}
             style={{
               aspectRatio: '1', borderRadius: 12,
               background: 'var(--c1)',
               border: '1.5px dashed rgba(196,168,106,0.4)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--gold2)', cursor: 'pointer', fontFamily: 'inherit',
+              color: 'var(--gold2)', cursor: busy || loading ? 'wait' : 'pointer', fontFamily: 'inherit',
+              opacity: busy || loading ? 0.6 : 1,
             }}
           >
-            <span style={{ fontSize: 32, lineHeight: 1 }}>+</span>
+            <span style={{ fontSize: 32, lineHeight: 1 }}>{busy ? '…' : '+'}</span>
             <span style={{ fontSize: 11, fontWeight: 600, marginTop: 2 }}>Bild</span>
           </button>
         )}
       </div>
 
-      {error && <p style={{ fontSize: 11, color: '#FF8888', textAlign: 'center' }}>{error}</p>}
+      {error && <ErrorLine>{error}</ErrorLine>}
     </div>
   )
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * DocumentUpload — z.B. Hygiene-Zertifikat, Approbation
+ * DocumentUpload — Hygiene-Zertifikat, Approbation, …
  * ═══════════════════════════════════════════════════════════════ */
 
 interface DocItem {
@@ -238,54 +341,56 @@ interface DocItem {
   sub: string
 }
 
-export function DocumentUpload({ storageKey, docs }: { storageKey: string; docs: DocItem[] }) {
-  const [files, setFiles] = useState<Record<string, { name: string; size: number; dataUrl: string }>>({})
-  const [error, setError] = useState<string | null>(null)
+const DOC_MIMES = [...IMAGE_MIMES, 'application/pdf']
+
+export function DocumentUpload({ docs }: { docs: DocItem[] }) {
+  const { items, setItems, loading, error, setError } = useUploads('salon_certificate')
+  const [busyDoc, setBusyDoc] = useState<string | null>(null)
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(storageKey)
-      if (v) setFiles(JSON.parse(v))
-    } catch {}
-  }, [storageKey])
+  const byDocKey = new Map(items.map(i => [i.doc_key ?? '', i]))
 
   async function handleFile(docId: string, f: File | null) {
-    if (!f) return
+    if (!f || busyDoc) return
+    const reject = localReject(f, DOC_MIMES)
+    if (reject) { setError(reject); return }
+
+    setBusyDoc(docId)
     setError(null)
-    const ok = f.type.startsWith('image/') || f.type === 'application/pdf'
-    if (!ok) {
-      setError('Nur PDF oder Bilder erlaubt')
-      return
-    }
-    if (f.size > MAX_BYTES) {
-      setError(`${f.name}: zu groß (max 5 MB)`)
-      return
-    }
     try {
-      const url = await readFileAsDataURL(f)
-      const next = { ...files, [docId]: { name: f.name, size: f.size, dataUrl: url } }
-      setFiles(next)
-      try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {
-        setError('Speicher voll — älteres Dokument zuerst löschen')
-      }
-    } catch {
-      setError('Fehler beim Lesen der Datei')
+      const record = await uploadFile(f, 'salon_certificate', docId)
+      // Pro docKey genau ein Dokument — das alte wird serverseitig ersetzt.
+      setItems(prev => [...prev.filter(i => i.doc_key !== docId), record])
+    } catch (err) {
+      setError(errorText(err, 'Upload fehlgeschlagen'))
+    } finally {
+      setBusyDoc(null)
+      const input = inputRefs.current[docId]
+      if (input) input.value = ''
     }
   }
 
-  function removeFile(docId: string) {
-    const next = { ...files }
-    delete next[docId]
-    setFiles(next)
-    try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {}
+  async function removeFile(docId: string) {
+    const existing = byDocKey.get(docId)
+    if (!existing || busyDoc) return
+    setBusyDoc(docId)
+    setError(null)
+    try {
+      await apiSend(`/api/uploads/${existing.id}`, 'DELETE')
+      setItems(prev => prev.filter(i => i.id !== existing.id))
+    } catch (err) {
+      setError(errorText(err, 'Löschen fehlgeschlagen'))
+    } finally {
+      setBusyDoc(null)
+    }
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {docs.map((d) => {
-        const f = files[d.id]
+        const f = byDocKey.get(d.id)
         const status = f ? 'ok' : 'missing'
+        const busy = busyDoc === d.id
         return (
           <div key={d.id} style={{
             background: 'var(--c1)',
@@ -302,14 +407,14 @@ export function DocumentUpload({ storageKey, docs }: { storageKey: string; docs:
                 background: status === 'ok' ? 'rgba(74,138,90,0.15)' : 'rgba(232,80,64,0.15)',
                 color: status === 'ok' ? '#6ABF80' : '#FF8888',
               }}>
-                {status === 'ok' ? 'HOCHGELADEN' : 'FEHLT'}
+                {loading ? 'LÄDT' : status === 'ok' ? 'HOCHGELADEN' : 'FEHLT'}
               </span>
             </div>
 
             <input
               ref={(el) => { inputRefs.current[d.id] = el }}
               type="file"
-              accept=".pdf,image/*"
+              accept=".pdf,image/jpeg,image/png,image/webp"
               onChange={(e) => handleFile(d.id, e.target.files?.[0] || null)}
               style={{ display: 'none' }}
             />
@@ -322,26 +427,37 @@ export function DocumentUpload({ storageKey, docs }: { storageKey: string; docs:
                   marginBottom: 8,
                 }}>
                   <span style={{ fontSize: 18 }}>📄</span>
-                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--stone)' }}>{formatSize(f.size)}</span>
+                  <a
+                    href={f.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--gold2)', textDecoration: 'none' }}
+                  >
+                    {f.mime_type === 'application/pdf' ? 'Dokument (PDF)' : 'Dokument (Bild)'}
+                  </a>
+                  <span style={{ fontSize: 10, color: 'var(--stone)' }}>{formatSize(f.size_bytes)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     onClick={() => inputRefs.current[d.id]?.click()}
+                    disabled={busy}
                     style={{
                       flex: 1, padding: 10, borderRadius: 10,
                       background: 'transparent', color: 'var(--gold2)',
                       border: '1px solid rgba(196,168,106,0.3)',
-                      fontFamily: 'inherit', fontWeight: 600, fontSize: 12, cursor: 'pointer',
+                      fontFamily: 'inherit', fontWeight: 600, fontSize: 12, cursor: busy ? 'wait' : 'pointer',
+                      opacity: busy ? 0.6 : 1,
                     }}
-                  >↻ Ersetzen</button>
+                  >↻ {busy ? 'Lädt…' : 'Ersetzen'}</button>
                   <button
                     onClick={() => removeFile(d.id)}
+                    disabled={busy}
                     style={{
                       flex: 1, padding: 10, borderRadius: 10,
                       background: 'transparent', color: '#FF8888',
                       border: '1px solid rgba(232,80,64,0.3)',
-                      fontFamily: 'inherit', fontWeight: 600, fontSize: 12, cursor: 'pointer',
+                      fontFamily: 'inherit', fontWeight: 600, fontSize: 12, cursor: busy ? 'wait' : 'pointer',
+                      opacity: busy ? 0.6 : 1,
                     }}
                   >✕ Löschen</button>
                 </div>
@@ -349,22 +465,18 @@ export function DocumentUpload({ storageKey, docs }: { storageKey: string; docs:
             ) : (
               <button
                 onClick={() => inputRefs.current[d.id]?.click()}
-                style={{
-                  width: '100%', padding: 12, borderRadius: 12,
-                  background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
-                  color: '#1a1000', border: 'none',
-                  fontFamily: 'inherit', fontWeight: 700, fontSize: 12.5, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                }}
+                disabled={busy || loading}
+                style={{ ...goldButtonStyle, width: '100%', padding: 12, borderRadius: 12, fontSize: 12.5, gap: 8, opacity: busy || loading ? 0.6 : 1 }}
               >
-                <span>📎</span><span>Dokument hochladen (PDF · JPG · max. 5 MB)</span>
+                <span>📎</span>
+                <span>{busy ? 'Lädt hoch…' : 'Dokument hochladen (PDF · JPG · max. 5 MB)'}</span>
               </button>
             )}
           </div>
         )
       })}
 
-      {error && <p style={{ fontSize: 11, color: '#FF8888', textAlign: 'center' }}>{error}</p>}
+      {error && <ErrorLine>{error}</ErrorLine>}
     </div>
   )
 }

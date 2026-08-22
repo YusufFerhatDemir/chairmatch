@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createRentalCheckout } from '@/lib/stripe'
+import { createNotification } from '@/lib/notifications'
 
 /**
  * Rental-Bookings API — der fehlende End-to-End-Pfad für Stuhl-/Liegen-/Raum-Miete.
@@ -182,6 +183,17 @@ export async function POST(req: NextRequest) {
         .from('rental_bookings')
         .update({ payment_status: 'pending', stripe_session_id: checkoutSession.id })
         .eq('id', booking.id)
+
+      // Merkposten fuer den Mieter: bricht er den Checkout ab, findet er die
+      // offene Buchung ueber die Benachrichtigung wieder.
+      await createNotification(
+        session.user.id,
+        'Mietbuchung reserviert',
+        `${equipment.name} vom ${startDate} bis ${endDate} \u2014 Zahlung offen (${(totalCents / 100).toFixed(2)} \u20AC).`,
+        'booking',
+        booking.id,
+        'rental_booking',
+      )
 
       return NextResponse.json(
         { booking, checkoutUrl: checkoutSession.url, totalCents, days },

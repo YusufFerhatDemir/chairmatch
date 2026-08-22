@@ -190,20 +190,31 @@ export default async function RentalsPage({ searchParams }: Props) {
                       )}
                     </div>
                   </div>
+                  {/* Primaeraktion ist die Miete selbst. Vorher zeigte der
+                      zweite Button auf /booking/{salonId} — also auf die
+                      Termin-Buchung beim Friseur, nicht auf die Stuhlmiete. */}
                   <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                     <Link
-                      href={`/salon/${r.salon.slug || r.salon.id}`}
+                      href={`/rentals/${r.id}/buchen`}
                       className="bgold"
                       style={{ flex: 1, textAlign: 'center', padding: '10px 0', fontSize: 12, textDecoration: 'none' }}
                     >
-                      {t('rentals.viewSalon')}
+                      {t('rentals.bookNow')}
                     </Link>
                     <Link
-                      href={`/booking/${r.salon.id}?rental=${r.id}`}
+                      href={`/inserat/${r.id}/anfragen`}
                       className="boutline"
                       style={{ flex: 1, textAlign: 'center', padding: '10px 0', fontSize: 12, textDecoration: 'none' }}
                     >
                       {t('rentals.sendRequest')}
+                    </Link>
+                  </div>
+                  <div style={{ marginTop: 8, textAlign: 'center' }}>
+                    <Link
+                      href={`/salon/${r.salon.slug || r.salon.id}`}
+                      style={{ fontSize: 12, color: 'var(--stone)', textDecoration: 'none' }}
+                    >
+                      {t('rentals.viewSalon')}
                     </Link>
                   </div>
                 </div>

@@ -32,6 +32,7 @@ export default function MeinInseratPage() {
     { id: 'preise',         lbl: t('meinInserat.prices'),      sub: t('meinInserat.pricesSub'), icon: <Icon><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></Icon> },
     { id: 'verfuegbarkeit', lbl: t('meinInserat.availability'),sub: t('meinInserat.availabilitySub'), icon: <Icon><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></Icon> },
     { id: 'anfragen',       lbl: t('meinInserat.requests'),    sub: t('meinInserat.requestsOpen', { n: 5 }), badge: 5, icon: <Icon><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></Icon> },
+    { id: 'inserate',       lbl: t('meinInserat.listings'),    sub: t('meinInserat.listingsSub'), icon: <Icon><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></Icon> },
     { id: 'auszahlung',     lbl: t('meinInserat.payout'),      sub: t('meinInserat.payoutSub'), icon: <Icon><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></Icon> },
     { id: 'vorschau',       lbl: t('meinInserat.preview'),     sub: t('meinInserat.previewSub'), wide: true, icon: <Icon><circle cx="12" cy="12" r="3"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/></Icon> },
   ]
@@ -102,6 +103,7 @@ export default function MeinInseratPage() {
                   preise: '/vermieter/mein-inserat/preise',
                   verfuegbarkeit: '/vermieter/mein-inserat/verfuegbarkeit',
                   anfragen: '/vermieter/mein-inserat/anfragen',
+                  inserate: '/vermieter/mein-inserat/inserate',
                   auszahlung: '/vermieter/mein-inserat/auszahlung',
                   vorschau: '/vermieter/mein-inserat/vorschau',
                 }

@@ -1,10 +1,35 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
 import { useTranslations } from '@/i18n/client'
+import { apiGet, apiSend, ApiError } from '@/lib/client-api'
+
+/**
+ * Eingegangene Anfrage aus `rental_requests` — im Gegensatz zu den
+ * Beispieldaten weiter unten eine echte Anfrage eines echten Nutzers.
+ */
+interface RealRequest {
+  id: string
+  request_type: 'miete' | 'besichtigung'
+  preferred_date: string
+  preferred_time: string | null
+  duration_unit: string | null
+  units: number | null
+  message: string | null
+  estimated_cents: number
+  status: 'open' | 'accepted' | 'declined' | 'withdrawn'
+  rental_equipment?: { name?: string } | null
+}
+
+const REQUEST_STATUS_LABELS: Record<string, string> = {
+  open: 'OFFEN',
+  accepted: 'BESTÄTIGT',
+  declined: 'ABGELEHNT',
+  withdrawn: 'ZURÜCKGEZOGEN',
+}
 
 interface Anfrage {
   id: string
@@ -35,6 +60,41 @@ export default function VermieterAnfragenPage() {
   const [filter, setFilter] = useState<'new' | 'confirmed' | 'rejected' | 'all'>('new')
   const t = useTranslations()
   const [anfragen, setAnfragen] = useState<Anfrage[]>(MOCK_ANFRAGEN)
+
+  const [realRequests, setRealRequests] = useState<RealRequest[]>([])
+  const [realLoading, setRealLoading] = useState(true)
+  const [realError, setRealError] = useState<string | null>(null)
+  const [busyRequestId, setBusyRequestId] = useState<string | null>(null)
+
+  const loadRealRequests = useCallback(async () => {
+    setRealLoading(true)
+    try {
+      const res = await apiGet<{ requests: RealRequest[] }>('/api/rental-requests?role=recipient')
+      setRealRequests(res.requests)
+      setRealError(null)
+    } catch (err) {
+      // Nicht eingeloggt ist kein Fehler, den man dem Nutzer hier vorwerfen muss.
+      setRealError(err instanceof ApiError && err.status === 401 ? null : (err instanceof Error ? err.message : 'Anfragen konnten nicht geladen werden'))
+    } finally {
+      setRealLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { void loadRealRequests() }, [loadRealRequests])
+
+  async function decideRequest(id: string, status: 'accepted' | 'declined') {
+    if (busyRequestId) return
+    setBusyRequestId(id)
+    setRealError(null)
+    try {
+      const res = await apiSend<{ request: RealRequest }>(`/api/rental-requests/${id}`, 'PATCH', { status })
+      setRealRequests(prev => prev.map(r => (r.id === id ? { ...r, ...res.request } : r)))
+    } catch (err) {
+      setRealError(err instanceof Error ? err.message : 'Status konnte nicht geändert werden')
+    } finally {
+      setBusyRequestId(null)
+    }
+  }
 
   useEffect(() => {
     try {
@@ -108,6 +168,86 @@ export default function VermieterAnfragenPage() {
             <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>€{weekRevenue}</div>
             <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>{t('requests.kpiWeek')}</div>
           </div>
+        </div>
+
+        {/* Echte Anfragen aus der Datenbank */}
+        <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <p style={{ fontSize: 10, letterSpacing: 1.6, color: 'var(--gold2)', textTransform: 'uppercase', fontWeight: 700 }}>
+            Eingegangene Anfragen
+          </p>
+
+          {realLoading && <p style={{ fontSize: 12, color: 'var(--stone)' }}>Wird geladen…</p>}
+
+          {realError && (
+            <p role="alert" style={{ fontSize: 12, color: '#FF8888' }}>{realError}</p>
+          )}
+
+          {!realLoading && !realError && realRequests.length === 0 && (
+            <p style={{ fontSize: 12, color: 'var(--stone)', lineHeight: 1.5 }}>
+              Noch keine Anfrage eingegangen. Sobald jemand deinen Platz anfragt, steht sie hier.
+            </p>
+          )}
+
+          {realRequests.map(r => (
+            <div key={r.id} style={{
+              background: 'var(--c1)', border: '1px solid rgba(191,149,63,0.22)',
+              borderRadius: 16, padding: 14,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--cream)' }}>
+                    {r.request_type === 'besichtigung' ? 'Besichtigung' : 'Mietanfrage'}
+                    {r.rental_equipment?.name ? ` · ${r.rental_equipment.name}` : ''}
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 2 }}>
+                    {r.preferred_date}{r.preferred_time ? ` · ${r.preferred_time.slice(0, 5)}` : ''}
+                    {r.units && r.duration_unit ? ` · ${r.units} × ${r.duration_unit}` : ''}
+                    {r.estimated_cents > 0 ? ` · ca. ${(r.estimated_cents / 100).toFixed(0)} €` : ''}
+                  </p>
+                </div>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: '3px 8px', borderRadius: 6, letterSpacing: 1, flexShrink: 0,
+                  background: r.status === 'accepted' ? 'rgba(74,138,90,0.15)' : r.status === 'open' ? 'rgba(196,168,106,0.15)' : 'rgba(232,80,64,0.15)',
+                  color: r.status === 'accepted' ? '#6ABF80' : r.status === 'open' ? 'var(--gold2)' : '#FF8888',
+                }}>{REQUEST_STATUS_LABELS[r.status] ?? r.status}</span>
+              </div>
+
+              {r.message && (
+                <p style={{ fontSize: 12, color: 'var(--cream)', lineHeight: 1.5, marginTop: 10 }}>{r.message}</p>
+              )}
+
+              {r.status === 'open' && (
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button
+                    onClick={() => decideRequest(r.id, 'accepted')}
+                    disabled={busyRequestId === r.id}
+                    style={{
+                      flex: 1, padding: 9, borderRadius: 10,
+                      background: 'linear-gradient(135deg, #D4AF37 0%, #BF953F 25%, #FCF6BA 50%, #B38728 75%, #AA771C 100%)',
+                      color: '#1a1000', border: 'none', fontFamily: 'inherit', fontWeight: 700, fontSize: 12,
+                      cursor: busyRequestId === r.id ? 'wait' : 'pointer', opacity: busyRequestId === r.id ? 0.6 : 1,
+                    }}
+                  >Bestätigen</button>
+                  <button
+                    onClick={() => decideRequest(r.id, 'declined')}
+                    disabled={busyRequestId === r.id}
+                    style={{
+                      flex: 1, padding: 9, borderRadius: 10,
+                      background: 'transparent', color: '#FF8888',
+                      border: '1px solid rgba(232,80,64,0.3)', fontFamily: 'inherit', fontWeight: 600, fontSize: 12,
+                      cursor: busyRequestId === r.id ? 'wait' : 'pointer', opacity: busyRequestId === r.id ? 0.6 : 1,
+                    }}
+                  >Ablehnen</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ padding: '0 16px 8px' }}>
+          <p style={{ fontSize: 10, letterSpacing: 1.6, color: 'var(--stone)', textTransform: 'uppercase', fontWeight: 700 }}>
+            Beispiel-Anfragen (Demo)
+          </p>
         </div>
 
         {/* Filter */}

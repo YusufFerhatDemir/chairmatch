@@ -152,7 +152,8 @@
     "filterChair": "Koltuk",
     "filterBed": "Sedye",
     "filterRoom": "Kabin",
-    "filterOR": "Ameliyathane"
+    "filterOR": "Ameliyathane",
+    "bookNow": "Hemen kirala"
   },
   "consent": {
     "text": "Platformu çalıştırmak için çerez kullanıyoruz. Seçiminizi düzenleyebilirsiniz.",
@@ -322,7 +323,9 @@
     "payout": "Ödeme",
     "payoutSub": "Ödemen nasıl yapılır",
     "preview": "Önizleme",
-    "previewSub": "Kiracılar seni nasıl görüyor"
+    "previewSub": "Kiracılar seni nasıl görüyor",
+    "listings": "Kiralık birimler",
+    "listingsSub": "Koltuk, sedye ve odaları yönet"
   },
   "konto": {
     "title": "Hesap",
@@ -425,7 +428,17 @@
   },
   "subAusstattung": {
     "title": "Ekipman",
-    "subtitle": "Koltuk / kabin ile birlikte ne var?"
+    "subtitle": "Koltuk / kabin ile birlikte ne var?",
+    "item1": "Ayna ve çalışma alanı",
+    "item2": "Lavabo",
+    "item3": "Saç kurutma ve şekillendirme",
+    "item4": "Sterilizatör",
+    "item5": "Wi-Fi",
+    "item6": "Klima",
+    "item7": "Kilitli dolap",
+    "item8": "Resepsiyon",
+    "item9": "Müşteri bekleme alanı",
+    "item10": "Otopark"
   },
   "subPreise": {
     "title": "Fiyatlar",

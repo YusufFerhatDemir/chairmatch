@@ -91,6 +91,7 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
   private wantCount = false
   private limitN: number | null = null
   private orderBy: { column: string; ascending: boolean } | null = null
+  private conflictKeys: string[] | null = null
 
   constructor(
     private readonly db: FakeSupabase,
@@ -120,8 +121,15 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     return this
   }
 
-  upsert(values: Row | Row[]): this {
-    return this.insert(values)
+  upsert(values: Row | Row[], options?: { onConflict?: string }): this {
+    this.insert(values)
+    // Ohne onConflict verhaelt sich upsert wie ein Insert (so nutzt der
+    // Produktivcode es an einigen Stellen). Mit onConflict wird die
+    // Konfliktspalten-Liste zum Schluessel: existierende Zeile wird ersetzt.
+    this.conflictKeys = options?.onConflict
+      ? options.onConflict.split(',').map(c => c.trim()).filter(Boolean)
+      : null
+    return this
   }
 
   delete(): this {
@@ -228,6 +236,17 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     if (this.op === 'insert') {
       const inserted: Row[] = []
       for (const raw of this.payload) {
+        const keys = this.conflictKeys
+        const existing = keys
+          ? rows.find(r => keys.every(k => r[k] === raw[k]))
+          : undefined
+
+        if (existing) {
+          Object.assign(existing, raw)
+          inserted.push(existing)
+          continue
+        }
+
         const row: Row = { ...raw }
         if (row.id === undefined) row.id = this.db.nextId()
         if (row.created_at === undefined) row.created_at = new Date().toISOString()
@@ -314,6 +333,70 @@ export class FakeSupabase {
 
   from(table: string): FakeQuery {
     return new FakeQuery(this, table)
+  }
+
+  /**
+   * Supabase-Storage — nur die drei im Produktivcode benutzten Aufrufe.
+   * Dateien landen in einer Map statt in einem Bucket; das reicht, um
+   * Upload/Cleanup/Signed-URL-Pfade zu pruefen.
+   */
+  readonly files = new Map<string, { size: number; contentType: string }>()
+  private storageErrors = new Map<string, PostgrestError>()
+
+  /** Naechsten upload/remove/sign-Aufruf auf diesen Bucket fehlschlagen lassen. */
+  failStorage(bucket: string, op: 'upload' | 'remove' | 'sign', error: PostgrestError): void {
+    this.storageErrors.set(`${bucket}:${op}`, error)
+  }
+
+  private takeStorageError(bucket: string, op: string): PostgrestError | null {
+    const key = `${bucket}:${op}`
+    const err = this.storageErrors.get(key)
+    if (err) this.storageErrors.delete(key)
+    return err ?? null
+  }
+
+  storage = {
+    from: (bucket: string) => ({
+      upload: async (
+        path: string,
+        file: { size?: number; type?: string },
+        options?: { contentType?: string; upsert?: boolean },
+      ) => {
+        this.log.push({ op: 'insert', table: `storage:${bucket}`, payload: [{ path }] })
+        const forced = this.takeStorageError(bucket, 'upload')
+        if (forced) return { data: null, error: forced }
+        const key = `${bucket}/${path}`
+        if (this.files.has(key) && !options?.upsert) {
+          return { data: null, error: pgError('23505', 'The resource already exists') }
+        }
+        this.files.set(key, {
+          size: file?.size ?? 0,
+          contentType: options?.contentType ?? file?.type ?? 'application/octet-stream',
+        })
+        return { data: { path }, error: null }
+      },
+      remove: async (paths: string[]) => {
+        this.log.push({ op: 'delete', table: `storage:${bucket}`, payload: paths })
+        const forced = this.takeStorageError(bucket, 'remove')
+        if (forced) return { data: null, error: forced }
+        for (const p of paths) this.files.delete(`${bucket}/${p}`)
+        return { data: paths.map(p => ({ name: p })), error: null }
+      },
+      createSignedUrl: async (path: string, expiresIn: number) => {
+        const forced = this.takeStorageError(bucket, 'sign')
+        if (forced) return { data: null, error: forced }
+        if (!this.files.has(`${bucket}/${path}`)) {
+          return { data: null, error: pgError('404', 'Object not found') }
+        }
+        return {
+          data: { signedUrl: `https://storage.test/${bucket}/${path}?token=sig&exp=${expiresIn}` },
+          error: null,
+        }
+      },
+      getPublicUrl: (path: string) => ({
+        data: { publicUrl: `https://storage.test/public/${bucket}/${path}` },
+      }),
+    }),
   }
 
   /** Rohzeilen einer Tabelle (mutierbar — genau das wollen wir in Assertions) */

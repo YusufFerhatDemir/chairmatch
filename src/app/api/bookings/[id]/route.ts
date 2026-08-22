@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { confirmBooking, completeBooking, markNoShow } from '@/modules/booking/booking.actions'
+import { createNotification } from '@/lib/notifications'
 
 export async function GET(
   _request: NextRequest,
@@ -63,7 +64,7 @@ export async function PATCH(
     const supabase = getSupabaseAdmin()
     const { data: booking } = await supabase
       .from('bookings')
-      .select('salon_id, salons!inner(owner_id)')
+      .select('salon_id, customer_id, booking_date, start_time, salons!inner(owner_id)')
       .eq('id', id)
       .single()
 
@@ -99,6 +100,25 @@ export async function PATCH(
 
     if ('error' in result) {
       return NextResponse.json({ error: result.error }, { status: 400 })
+    }
+
+    // Statuswechsel ist fuer den Kunden die eigentliche Nachricht — bisher
+    // erfuhr er davon nur, wenn er die Terminliste zufaellig neu lud.
+    const statusLabels: Record<string, string> = {
+      confirmed: 'Termin bestaetigt',
+      completed: 'Termin abgeschlossen',
+      no_show: 'Termin als nicht wahrgenommen markiert',
+    }
+    const label = statusLabels[String(newStatus).toLowerCase()]
+    if (label && booking.customer_id) {
+      await createNotification(
+        booking.customer_id as string,
+        label,
+        `Dein Termin am ${booking.booking_date ?? ''} ${booking.start_time ?? ''} wurde aktualisiert: ${label}.`,
+        'booking',
+        id,
+        'booking',
+      )
     }
 
     return NextResponse.json(result)

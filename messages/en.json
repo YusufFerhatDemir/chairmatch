@@ -152,7 +152,8 @@
     "filterChair": "Chair",
     "filterBed": "Bed",
     "filterRoom": "Cabin",
-    "filterOR": "OR Room"
+    "filterOR": "OR Room",
+    "bookNow": "Book now"
   },
   "consent": {
     "text": "We use cookies to operate the platform. You can adjust your selection.",
@@ -322,7 +323,9 @@
     "payout": "Payout",
     "payoutSub": "How you get paid",
     "preview": "Preview",
-    "previewSub": "How renters see you"
+    "previewSub": "How renters see you",
+    "listings": "Rental items",
+    "listingsSub": "Manage chairs, beds & rooms"
   },
   "konto": {
     "title": "Account",
@@ -425,7 +428,17 @@
   },
   "subAusstattung": {
     "title": "Equipment",
-    "subtitle": "What's included with the chair / cabin?"
+    "subtitle": "What's included with the chair / cabin?",
+    "item1": "Mirror & workstation",
+    "item2": "Wash basin",
+    "item3": "Hairdryer & styling tools",
+    "item4": "Sterilizer",
+    "item5": "Wi-Fi",
+    "item6": "Air conditioning",
+    "item7": "Lockable storage",
+    "item8": "Reception",
+    "item9": "Customer waiting area",
+    "item10": "Parking"
   },
   "subPreise": {
     "title": "Prices",
