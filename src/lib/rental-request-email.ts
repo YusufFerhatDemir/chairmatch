@@ -229,8 +229,12 @@ async function resolveRecipient(userId: string): Promise<Recipient> {
     .maybeSingle()
 
   if (error) {
+    // Bewusst werfen statt `email: null` zurueckzugeben: ein Timeout auf
+    // `profiles` ist etwas anderes als ein Vermieter ohne Adresse. Wuerde er
+    // hier als 'skipped' im Log landen, sperrt der UNIQUE-Index die Referenz
+    // dauerhaft — der Ausfall waere als endgueltiger Verzicht getarnt.
     logger.warn('rental_request_email.profile_lookup_failed', { err: error.message })
-    return { email: null, name }
+    throw new Error(error.message)
   }
 
   const row = profile as { email?: string | null; full_name?: string | null } | null
