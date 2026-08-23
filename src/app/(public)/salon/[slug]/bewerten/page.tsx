@@ -18,7 +18,12 @@ import { supabase } from '@/lib/supabase'
  *   2. Wenn nicht eingeloggt → /auth Redirect
  *   3. Submit → POST /api/reviews { salonId, rating, comment }
  *   4. Erfolg → /salon/[slug]?reviewed=1
- *   5. Fehler → Toast (Fallback: lokal speichern für Retry)
+ *   5. Fehler → Fehlermeldung, Text bleibt im Formular
+ *
+ * KEIN localStorage-Fallback: eine lokal geparkte Bewertung wird von nichts
+ * jemals nachgesendet. Sie als Erfolg zu melden, verliert die Bewertung
+ * still. Bei jedem Fehler bleibt der Nutzer auf der Seite und kann erneut
+ * senden.
  */
 
 export default function BewertenPage() {
@@ -88,31 +93,29 @@ export default function BewertenPage() {
         setSubmitting(false)
         return
       } catch {
-        // Netzwerk-Fehler → Fallback lokal
-        saveLocally()
-        router.push(`/salon/${slug}?reviewed=1` as never)
+        // KEIN localStorage-Fallback bei Uebertragungsfehler.
+        //
+        // Vorher wurde die Bewertung hier lokal abgelegt und der Nutzer mit
+        // ?reviewed=1 auf die Erfolgsseite geschickt. Die Bewertung existierte
+        // damit ausschliesslich im Browser des Verfassers (synced: false), und
+        // es gibt keinen Weg, der sie jemals nachtraeglich absendet. Der Nutzer
+        // glaubte, bewertet zu haben; der Salon sah nie etwas. Ein stiller
+        // Datenverlust, als Erfolg gemeldet.
+        //
+        // Richtig ist, den Fehler zu zeigen und den Text im Formular zu lassen,
+        // damit der Nutzer es erneut senden kann.
+        setErrorMsg(t('reviews.errSubmit'))
+        setSubmitting(false)
         return
       }
     }
 
-    // Fallback: localStorage (Demo-Salons ohne UUID, oder nicht eingeloggt)
-    saveLocally()
-    router.push(`/salon/${slug}?reviewed=1` as never)
-  }
-
-  function saveLocally() {
-    try {
-      const reviews = JSON.parse(localStorage.getItem('cm_reviews') || '[]')
-      reviews.unshift({
-        id: 'r' + Date.now(),
-        slug,
-        rating,
-        text: text.trim(),
-        createdAt: new Date().toISOString(),
-        synced: false,
-      })
-      localStorage.setItem('cm_reviews', JSON.stringify(reviews.slice(0, 100)))
-    } catch { /* ignore */ }
+    // Ohne salonId oder ohne Anmeldung gibt es keinen Empfaenger — auch hier
+    // wird kein Erfolg vorgetaeuscht. Die Auth-Pflicht oben leitet nicht
+    // angemeldete Nutzer bereits nach /auth um; dieser Zweig faengt den Rest
+    // (z. B. Demo-Salons ohne UUID) ehrlich ab.
+    setErrorMsg(t('reviews.errSubmit'))
+    setSubmitting(false)
   }
 
   const sentimentKey =
