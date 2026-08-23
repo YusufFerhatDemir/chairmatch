@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createNotification } from '@/lib/notifications'
-import { sendProviderNotification } from '@/lib/email'
+import { notifyLandlordOfRentalRequest } from '@/lib/rental-request-email'
 
 /**
  * Miet- und Besichtigungsanfragen (Track D).
@@ -47,7 +47,7 @@ interface EquipmentForRequest {
   price_per_week_cents: number | null
   price_per_month_cents: number | null
   is_available: boolean
-  salons?: { name?: string; owner_id?: string } | null
+  salons?: { name?: string; city?: string; owner_id?: string } | null
 }
 
 /**
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       .from('rental_equipment')
       .select(
         'id, salon_id, name, type, price_per_day_cents, price_per_hour_cents, ' +
-          'price_per_week_cents, price_per_month_cents, is_available, salons(name, owner_id)',
+          'price_per_week_cents, price_per_month_cents, is_available, salons(name, city, owner_id)',
       )
       .eq('id', input.equipmentId)
       .limit(1)
@@ -190,20 +190,23 @@ export async function POST(req: NextRequest) {
       )
 
       // E-Mail ist Beiwerk: schlägt sie fehl, ist die Anfrage trotzdem da.
+      // Doppelversand-Schutz und Zustellstatus stecken in notifyLandlord…().
       try {
-        const { data: ownerRows } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('id', ownerId)
-          .limit(1)
-        const ownerEmail = (ownerRows?.[0] as { email?: string } | undefined)?.email
-        if (ownerEmail) {
-          await sendProviderNotification(ownerEmail, 'general', {
-            salonName: equipment.salons?.name,
-            customerName: requesterName,
-            message: `${summary}${input.message ? `\n\n„${input.message}"` : ''}`,
-          })
-        }
+        await notifyLandlordOfRentalRequest({
+          requestId: String(request.id),
+          recipientId: ownerId,
+          requestType: input.requestType,
+          equipmentName: equipment.name,
+          requesterName,
+          preferredDate: input.preferredDate,
+          preferredTime: input.preferredTime ?? null,
+          durationUnit: durationUnit,
+          units,
+          estimatedCents,
+          message: input.message?.trim() || null,
+          salonName: equipment.salons?.name ?? null,
+          city: equipment.salons?.city ?? null,
+        })
       } catch (mailErr) {
         console.error('rental-request mail failed:', mailErr)
       }

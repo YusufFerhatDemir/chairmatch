@@ -605,6 +605,11 @@ export interface Database {
         Insert: { id?: string; user_id: string; title: string; body: string; type?: string; reference_id?: string | null; reference_type?: string | null; is_read?: boolean }
         Update: Partial<Database['public']['Tables']['notifications']['Insert']> & { read_at?: string | null }
       }
+      email_delivery_log: {
+        Row: { id: string; email_type: string; reference_id: string; recipient_user_id: string | null; recipient_email: string | null; status: 'pending' | 'sent' | 'failed' | 'skipped'; provider_message_id: string | null; error: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; email_type: string; reference_id: string; recipient_user_id?: string | null; recipient_email?: string | null; status?: 'pending' | 'sent' | 'failed' | 'skipped'; provider_message_id?: string | null; error?: string | null }
+        Update: Partial<Database['public']['Tables']['email_delivery_log']['Insert']> & { updated_at?: string }
+      }
       push_subscriptions: {
         Row: { id: string; user_id: string; endpoint: string; p256dh: string; auth: string; created_at: string; updated_at: string }
         Insert: { id?: string; user_id: string; endpoint: string; p256dh: string; auth: string }

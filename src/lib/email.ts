@@ -518,3 +518,94 @@ export async function sendPostBookingAffiliateRecommendations(
 
   return send(to, subject, html)
 }
+
+// ---------------------------------------------------------------------------
+// Mietanfragen (Track D) — Benachrichtigung an den Vermieter
+// ---------------------------------------------------------------------------
+
+export interface RentalRequestEmailDetails {
+  /** rental_requests.id — steht als Referenz in der Mail und im Delivery-Log. */
+  requestId: string
+  requestType: 'miete' | 'besichtigung'
+  equipmentName: string
+  /** Kurzform des Interessenten-Namens, z. B. „Marko F." — nie die volle Identität. */
+  requesterName: string
+  preferredDate: string
+  preferredTime?: string | null
+  /** Vorformatierte Dauer, z. B. „3 Tage". */
+  durationLabel?: string | null
+  estimatedCents?: number | null
+  /** Freitext des Interessenten (gekürzt), optional. */
+  message?: string | null
+  salonName?: string | null
+  /** Nur die Stadt — nie die vollständige Anschrift. */
+  city?: string | null
+  /** Anrede-Name des Vermieters. */
+  recipientName?: string | null
+}
+
+const RENTAL_REQUESTS_DEEP_LINK = '/vermieter/mein-inserat/anfragen'
+
+/**
+ * Benachrichtigt den Vermieter über eine neue Miet- oder Besichtigungsanfrage.
+ *
+ * Bewusst datensparsam: kein IBAN/Auszahlungsbezug, keine vollständige Adresse,
+ * keine Kontaktdaten des Interessenten. Wer die Details braucht, klickt in die
+ * App — dort greift die Authentifizierung.
+ */
+export async function sendRentalRequestNotification(
+  to: string,
+  details: RentalRequestEmailDetails,
+) {
+  const isRental = details.requestType === 'miete'
+  const heading = isRental ? 'Neue Mietanfrage' : 'Neue Besichtigungsanfrage'
+  const subject = details.salonName
+    ? `${heading} für ${details.salonName} — ChairMatch`
+    : `${heading} — ChairMatch`
+
+  const rows: Array<[string, string]> = [
+    ['Anfrage', isRental ? 'Miete' : 'Besichtigung'],
+    ['Mietobjekt', esc(details.equipmentName)],
+    ['Interessent', esc(details.requesterName)],
+    [
+      'Wunschtermin',
+      `${formatDate(details.preferredDate)}${details.preferredTime ? ` um ${esc(details.preferredTime)} Uhr` : ''}`,
+    ],
+  ]
+  if (details.durationLabel) rows.push(['Dauer', esc(details.durationLabel)])
+  if (details.city) rows.push(['Standort', esc(details.city)])
+  if (isRental && details.estimatedCents != null && details.estimatedCents > 0) {
+    rows.push(['Schätzung', `<span style="color:#D4AF37;font-weight:700">${formatPrice(details.estimatedCents)}</span>`])
+  }
+
+  const tableRows = rows
+    .map(
+      ([label, value], i) => {
+        const border = i < rows.length - 1 ? 'border-bottom:1px solid #333' : ''
+        return `<tr><td style="padding:12px 16px;color:#999;font-size:13px;${border}">${label}</td>
+          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;${border}">${value}</td></tr>`
+      },
+    )
+    .join('')
+
+  const html = baseLayout(subject, `
+    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">&#x1F4E9; ${heading}</h2>
+    <p>Hallo${details.recipientName ? ` ${esc(details.recipientName)}` : ''},</p>
+    <p>du hast eine neue ${isRental ? 'Mietanfrage' : 'Besichtigungsanfrage'} über ChairMatch erhalten.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:20px 0;background:#1a1a1a;border-radius:8px;border:1px solid #444">
+      ${tableRows}
+    </table>
+    ${details.message ? `<div style="background:#1a1a1a;border-radius:8px;border-left:4px solid #D4AF37;padding:16px;margin:16px 0">
+      <p style="margin:0 0 6px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#999">Nachricht</p>
+      <p style="margin:0;color:#e0e0e0;white-space:pre-line">${esc(details.message)}</p>
+    </div>` : ''}
+    ${goldButton('Anfrage in ChairMatch öffnen', `${APP_URL}${RENTAL_REQUESTS_DEEP_LINK}`)}
+    <p style="font-size:13px;color:#777;margin-top:24px">
+      Antworte bitte direkt in der App — so bleiben Kontaktdaten geschützt und die
+      Anfrage nachvollziehbar dokumentiert.
+    </p>
+    <p style="font-size:12px;color:#555;margin-top:6px">Anfrage-ID: ${esc(details.requestId)}</p>
+  `)
+
+  return send(to, subject, html)
+}
