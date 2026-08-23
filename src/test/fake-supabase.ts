@@ -28,6 +28,19 @@ export interface FakeError {
 
 type Op = 'select' | 'insert' | 'update' | 'delete'
 
+/**
+ * Vergleichsoperatoren, die der Produktivcode benutzt. `lt`/`gt` vergleichen
+ * lexikografisch — fuer ISO-8601-Zeitstempel (immer UTC, feste Breite) ist
+ * das dieselbe Ordnung wie in Postgres.
+ */
+type FilterOp = 'eq' | 'lt' | 'gt' | 'is'
+
+interface Filter {
+  column: string
+  op: FilterOp
+  value: unknown
+}
+
 interface UniqueIndex {
   table: string
   columns: string[]
@@ -56,7 +69,7 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   private op: Op = 'select'
   private payload: Row[] = []
   private patch: Row = {}
-  private filters: Array<[string, unknown]> = []
+  private filters: Filter[] = []
   private rowLimit: number | null = null
 
   constructor(
@@ -86,7 +99,27 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   }
 
   eq(column: string, value: unknown) {
-    this.filters.push([column, value])
+    this.filters.push({ column, op: 'eq', value })
+    return this
+  }
+
+  /**
+   * Kleiner-als. Gebraucht fuer die atomare Uebernahme abgelaufener
+   * Dedupe-Claims (`… .eq('fingerprint', fp).lt('expires_at', now)`), wo der
+   * Filter Teil der Korrektheit ist und nicht nur eine Projektion.
+   */
+  lt(column: string, value: unknown) {
+    this.filters.push({ column, op: 'lt', value })
+    return this
+  }
+
+  gt(column: string, value: unknown) {
+    this.filters.push({ column, op: 'gt', value })
+    return this
+  }
+
+  is(column: string, value: unknown) {
+    this.filters.push({ column, op: 'is', value })
     return this
   }
 
@@ -133,7 +166,19 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   }
 
   private matches(row: Row): boolean {
-    return this.filters.every(([column, value]) => row[column] === value)
+    return this.filters.every(({ column, op, value }) => {
+      const cell = row[column]
+      switch (op) {
+        case 'lt':
+          return cell != null && value != null && String(cell) < String(value)
+        case 'gt':
+          return cell != null && value != null && String(cell) > String(value)
+        case 'is':
+          return value === null ? cell == null : cell === value
+        default:
+          return cell === value
+      }
+    })
   }
 
   private run(): RunResult {

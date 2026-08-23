@@ -88,6 +88,10 @@ function seedDatabase() {
   fakeDb.reset()
   // Der Index aus 20260823_email_delivery_log.sql — Herzstueck der Idempotenz.
   fakeDb.addUniqueIndex('email_delivery_log', ['email_type', 'reference_id'], 'uq_email_delivery_log_ref')
+  // Der PRIMARY KEY aus 20260823_rental_request_dedupe.sql. Hier nur, damit
+  // die Route dieselben Bedingungen sieht wie in Produktion; der
+  // Doppel-Submit-Schutz selbst wird in dedupe.test.ts geprueft.
+  fakeDb.addUniqueIndex('rental_request_dedupe', ['fingerprint'], 'rental_request_dedupe_pkey')
 
   fakeDb.seed('rental_equipment', [
     {

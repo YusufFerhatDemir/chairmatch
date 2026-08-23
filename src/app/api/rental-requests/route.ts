@@ -4,6 +4,12 @@ import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createNotification } from '@/lib/notifications'
 import { notifyLandlordOfRentalRequest } from '@/lib/rental-request-email'
+import {
+  claimRentalRequest,
+  linkRentalRequestClaim,
+  readIdempotencyKey,
+  releaseRentalRequestClaim,
+} from '@/lib/rental-request-dedupe'
 
 /**
  * Miet- und Besichtigungsanfragen (Track D).
@@ -15,6 +21,14 @@ import { notifyLandlordOfRentalRequest } from '@/lib/rental-request-email'
  *
  * Die Kostenschätzung wird IMMER server-seitig aus rental_equipment gerechnet.
  * Der Client schickt nur Dauer und Menge.
+ *
+ * Doppel-Submit-Schutz (Track 5): der `submitting`-State im Formular reicht
+ * nicht — er kennt weder den zweiten Tab noch den Retry der Serverless-
+ * Funktion. Vor dem Insert wird deshalb ein Claim auf den Anfrage-
+ * Fingerprint gesetzt (siehe src/lib/rental-request-dedupe.ts). Kommt
+ * derselbe Inhalt innerhalb des Fensters ein zweites Mal, antwortet die
+ * Route idempotent mit der bereits gespeicherten Anfrage statt eine zweite
+ * anzulegen — und der Vermieter bekommt keine zweite Mail.
  */
 
 const UNITS_PER_DAY = 8
@@ -75,6 +89,30 @@ function estimateRequestCents(
     Math.round(equipment.price_per_day_cents * (DAYS_PER_UNIT[durationUnit] ?? 1))
 
   return Math.max(0, Math.round(perUnit * units))
+}
+
+type SupabaseAdmin = ReturnType<typeof getSupabaseAdmin>
+
+/**
+ * Die Anfrage, die ein früherer Request mit demselben Fingerprint erzeugt
+ * hat. Damit wird der zweite Klick idempotent: der Nutzer sieht denselben
+ * Erfolg wie beim ersten, statt einer Fehlermeldung.
+ */
+async function loadExistingRequest(
+  supabase: SupabaseAdmin,
+  requestId: string,
+): Promise<Record<string, unknown> | null> {
+  const { data, error } = await supabase
+    .from('rental_requests')
+    .select('*')
+    .eq('id', requestId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('rental-requests duplicate lookup failed:', error)
+    return null
+  }
+  return (data as Record<string, unknown> | null) ?? null
 }
 
 export async function POST(req: NextRequest) {
@@ -148,6 +186,62 @@ export async function POST(req: NextRequest) {
     const estimatedCents =
       isRental && durationUnit && units ? estimateRequestCents(equipment, durationUnit, units) : 0
 
+    // Riegel gegen Doppel-Submits. Bewusst erst hier, nach allen fachlichen
+    // Prüfungen: eine abgelehnte Anfrage soll keinen Fingerprint blockieren,
+    // und das Zeitfenster zwischen Claim und Insert bleibt so minimal.
+    const claim = await claimRentalRequest({
+      requesterId: session.user.id,
+      equipmentId: equipment.id,
+      requestType: input.requestType,
+      preferredDate: input.preferredDate,
+      preferredTime: input.preferredTime ?? null,
+      durationUnit,
+      units,
+      message: input.message ?? null,
+      idempotencyKey: readIdempotencyKey(req.headers),
+    })
+
+    if (claim.outcome === 'error') {
+      // Kein stiller Durchlauf: ohne funktionierenden Riegel entstünden
+      // genau die Doppelanfragen, die wir verhindern wollen.
+      return NextResponse.json(
+        { error: 'Anfrage konnte nicht gesendet werden' },
+        { status: 500 },
+      )
+    }
+
+    if (claim.outcome === 'duplicate') {
+      const existing = await loadExistingRequest(supabase, claim.requestId)
+      if (existing) {
+        return NextResponse.json(
+          {
+            request: existing,
+            estimatedCents: Number(existing.estimated_cents ?? 0),
+            duplicate: true,
+          },
+          { status: 200 },
+        )
+      }
+      // Claim zeigt auf eine Anfrage, die es nicht mehr gibt (gelöscht o. ä.).
+      return NextResponse.json(
+        { error: 'Diese Anfrage wurde bereits gesendet', duplicate: true },
+        { status: 409 },
+      )
+    }
+
+    if (claim.outcome === 'in_flight') {
+      return NextResponse.json(
+        {
+          error: 'Diese Anfrage wird gerade gesendet. Bitte einen Moment warten.',
+          duplicate: true,
+        },
+        { status: 409 },
+      )
+    }
+
+    // 'claimed' oder 'unavailable' (Migration fehlt, siehe Log-Warnung).
+    const heldFingerprint = claim.outcome === 'claimed' ? claim.fingerprint : null
+
     const { data: request, error: insertError } = await supabase
       .from('rental_requests')
       .insert({
@@ -169,8 +263,15 @@ export async function POST(req: NextRequest) {
 
     if (insertError || !request) {
       console.error('rental-requests insert failed:', insertError)
+      // Claim freigeben — sonst blockiert ein einmaliger DB-Fehler auch
+      // jeden Neuversuch des Nutzers für die Dauer des Fensters.
+      if (heldFingerprint) await releaseRentalRequestClaim(heldFingerprint)
       return NextResponse.json({ error: 'Anfrage konnte nicht gesendet werden' }, { status: 500 })
     }
+
+    // Ab jetzt kann ein Duplikat-Request diese Anfrage zurückbekommen,
+    // statt auf den Erstversuch zu warten.
+    if (heldFingerprint) await linkRentalRequestClaim(heldFingerprint, String(request.id))
 
     // Zustellung an den Vermieter — der eigentliche Punkt der Übung.
     if (ownerId) {
