@@ -63,6 +63,12 @@ const sendRentalRequestNotification = vi.fn(async () => ({ success: true, id: 'm
 vi.mock('@/lib/email', () => ({
   sendRentalRequestNotification: (...args: unknown[]) =>
     (sendRentalRequestNotification as unknown as (...a: unknown[]) => unknown)(...args),
+  // Der Betreff wird nicht gemockt: er landet im Delivery-Log und soll dort
+  // derselbe sein wie in der Mail — genau das pruefen die Tests unten.
+  rentalRequestEmailSubject: (requestType: string, salonName?: string | null) => {
+    const heading = requestType === 'miete' ? 'Neue Mietanfrage' : 'Neue Besichtigungsanfrage'
+    return salonName ? `${heading} für ${salonName} — ChairMatch` : `${heading} — ChairMatch`
+  },
 }))
 
 import {
@@ -245,7 +251,6 @@ describe('notifyLandlordOfRentalRequest', () => {
     expect(claim?.payload).toMatchObject({
       email_type: RENTAL_REQUEST_EMAIL_TYPE,
       reference_id: BASE_INPUT.requestId,
-      recipient_user_id: BASE_INPUT.recipientId,
       status: 'pending',
     })
   })
@@ -269,7 +274,7 @@ describe('notifyLandlordOfRentalRequest', () => {
 
     expect(outcome).toEqual({ status: 'failed', error: 'Resend 429' })
     const update = writes.find(w => w.table === 'email_delivery_log' && w.op === 'update')
-    expect(update?.payload).toMatchObject({ status: 'failed', error: 'Resend 429' })
+    expect(update?.payload).toMatchObject({ status: 'failed', error_message: 'Resend 429' })
   })
 
   it('faengt eine Exception des Mailversands ab', async () => {

@@ -173,6 +173,26 @@ const publicPrefixes = [
   '/api/match',         // Match-Finder ist public (/match) — sonst 401 für anonyme Besucher
   '/api/indexnow/',     // NEU: IndexNow Key-File
   '/api/setup/',
+  // Detailsicht eines Mietobjekts. Die Seiten, die sie brauchen —
+  // /inserat/[id]/anfragen und /rentals/[id]/buchen — sind oeffentlich; der
+  // API-Aufruf dahinter lief bis 2026-08-23 gegen den Default-Deny und
+  // antwortete anonymen Besuchern mit 401. Das Anfrageformular blieb damit
+  // leer, obwohl die Route selbst nie eine Session verlangt hat.
+  //
+  // Nur mit Slash: `/api/rental-equipment` OHNE Slash ist die
+  // Vermieter-Liste (GET) und das Anlegen (POST) und bleibt geschuetzt.
+  // PATCH und DELETE auf /[id] pruefen Session und Besitz in der Route
+  // selbst (siehe src/app/api/rental-equipment/__tests__/crud.e2e.test.ts).
+  '/api/rental-equipment/',
+  // Auslieferung hochgeladener Dateien. In `salons.logo_url` und
+  // `rental_equipment.images` steht `/api/uploads/{id}` — die stabile
+  // App-URL. Ohne diesen Eintrag liefert jedes Salonlogo und jedes
+  // Inseratsfoto anonymen Besuchern 401 statt eines Bildes.
+  //
+  // Die Route entscheidet selbst, was oeffentlich ist: `is_public = false`
+  // (Zertifikate) verlangt Eigentuemer oder Admin, DELETE verlangt den
+  // Eigentuemer. `/api/uploads` OHNE Slash (Liste, Upload) bleibt geschuetzt.
+  '/api/uploads/',
   '/api/register-provider', // B2-Fix: Public Provider-Signup
   '/api/debug-auth',        // TEMP: Debug-Endpoint, bald wieder weg
   '/unsubscribe',           // DSGVO: Newsletter ohne Login abmeldbar
@@ -221,6 +241,43 @@ const authRequiredPaths = [
   ...adminPaths,
 ]
 
+/**
+ * Ist dieser Pfad ohne Session erreichbar?
+ *
+ * Ausgelagert, weil sich hier eine Fehlerklasse versteckt, die kein
+ * Route-Test finden kann: eine Route ohne eigenen Session-Check gilt im
+ * Handler als oeffentlich, wird aber vom Default-Deny dieser Middleware mit
+ * 401 beantwortet. Genau so waren `/api/rental-equipment/[id]` und
+ * `/api/uploads/[id]` monatelang unerreichbar — beide Handler pruefen keine
+ * Session, beide antworteten live trotzdem 401.
+ *
+ * Als reine Funktion laesst sich die Zuordnung direkt pruefen
+ * (src/__tests__/middleware-public-paths.test.ts), ohne NextAuth zu starten.
+ */
+export function isPublicPath(pathname: string): boolean {
+  if (publicPaths.includes(pathname)) return true
+  if (publicPrefixes.some((p) => pathname.startsWith(p))) return true
+
+  // AI-/Social-Crawler-Endpoints auf jeder Tiefe (Next.js Convention)
+  if (
+    pathname.endsWith('/opengraph-image') ||
+    pathname.endsWith('/twitter-image') ||
+    pathname.endsWith('/apple-icon') ||
+    pathname.endsWith('/icon')
+  ) {
+    return true
+  }
+
+  // Vertical-Deutschland-Hubs (z.B. /barbershop-deutschland, /friseur-deutschland)
+  if (pathname.match(/^\/[a-z-]+-deutschland\/?$/)) return true
+
+  // Stadt-Hubs (z.B. /berlin, /leipzig, /berlin/friseur)
+  const firstSegment = pathname.split('/')[1]
+  if (firstSegment && SEO_CITY_SLUGS.has(firstSegment)) return true
+
+  return false
+}
+
 // ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
@@ -265,24 +322,7 @@ export default auth((req) => {
   }
 
   // ------ Öffentliche Routen ------
-  if (publicPaths.includes(pathname)) return NextResponse.next()
-  if (publicPrefixes.some(p => pathname.startsWith(p))) return NextResponse.next()
-
-  // AI-/Social-Crawler-Endpoints auf jeder Tiefe (Next.js Convention)
-  if (pathname.endsWith('/opengraph-image') ||
-      pathname.endsWith('/twitter-image') ||
-      pathname.endsWith('/apple-icon') ||
-      pathname.endsWith('/icon')) {
-    return NextResponse.next()
-  }
-
-  // Vertical-Deutschland-Hubs (z.B. /barbershop-deutschland, /friseur-deutschland)
-  if (pathname.match(/^\/[a-z-]+-deutschland\/?$/)) return NextResponse.next()
-
-  // Stadt-Hubs (z.B. /berlin, /leipzig, /berlin/friseur)
-  // Whitelist aus seo-data/cities.ts — nicht alle 2-Wort-Routes öffnen
-  const firstSegment = pathname.split('/')[1]
-  if (firstSegment && SEO_CITY_SLUGS.has(firstSegment)) return NextResponse.next()
+  if (isPublicPath(pathname)) return NextResponse.next()
 
   // ------ Auth-Prüfung ------
   const session = req.auth

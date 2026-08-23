@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { NextRequest } from 'next/server'
 import { fakeDb, type Row } from '@/test/fake-supabase'
+import { NOTIFICATION_TABLE } from '@/lib/notifications'
+import { applyLiveSchema } from '@/test/live-schema'
 
 /**
  * E2E der Kette Mietanfrage → E-Mail → email_delivery_log.
@@ -86,6 +88,10 @@ beforeAll(async () => {
 
 function seedDatabase() {
   fakeDb.reset()
+  // Spalten wie in Produktion. Ohne das nimmt der Fake jede erfundene Spalte
+  // an — genau so blieben `email_delivery_log.recipient_user_id` und `.error`
+  // hier gruen, waehrend sie live in 42703 liefen.
+  applyLiveSchema(fakeDb)
   // Der Index aus 20260823_email_delivery_log.sql — Herzstueck der Idempotenz.
   fakeDb.addUniqueIndex('email_delivery_log', ['email_type', 'reference_id'], 'uq_email_delivery_log_ref')
   // Der PRIMARY KEY aus 20260823_rental_request_dedupe.sql. Hier nur, damit
@@ -175,11 +181,13 @@ describe('POST /api/rental-requests — Kette bis zum Zustelllog', () => {
     const log = deliveryLog()[0]
     expect(log.email_type).toBe(EMAIL_TYPE)
     expect(log.reference_id).toBe(String(stored.id))
-    expect(log.recipient_user_id).toBe(OWNER_ID)
+    // Kein `recipient_user_id`: die Spalte gibt es in der Produktionstabelle
+    // nicht (siehe src/test/live-schema.ts). Der Empfaenger steht ueber
+    // `recipient_email` und `reference_id` fest.
     expect(log.recipient_email).toBe(LANDLORD_EMAIL)
     expect(log.status).toBe('sent')
     expect(log.provider_message_id).toBe('msg_e2e_1')
-    expect(log.error ?? null).toBeNull()
+    expect(log.error_message ?? null).toBeNull()
   })
 
   it('legt die Log-Zeile vor dem Versand als pending an', async () => {
@@ -195,8 +203,8 @@ describe('POST /api/rental-requests — Kette bis zum Zustelllog', () => {
 
   it('benachrichtigt den Vermieter zusaetzlich in der App', async () => {
     await submit()
-    expect(fakeDb.rows('notifications')).toHaveLength(1)
-    expect(fakeDb.rows('notifications')[0].user_id).toBe(OWNER_ID)
+    expect(fakeDb.rows(NOTIFICATION_TABLE)).toHaveLength(1)
+    expect(fakeDb.rows(NOTIFICATION_TABLE)[0].user_id).toBe(OWNER_ID)
   })
 
   it('gibt in der Mail keinen Klarnamen und keine Adresse des Interessenten preis', async () => {
@@ -272,7 +280,7 @@ describe('Fehlerfaelle beim Mailversand', () => {
     expect(rentalRequests()).toHaveLength(1)
     const log = deliveryLog()[0]
     expect(log.status).toBe('failed')
-    expect(log.error).toBe('Rate limit exceeded')
+    expect(log.error_message).toBe('Rate limit exceeded')
     expect(log.recipient_email).toBe(LANDLORD_EMAIL)
     expect(log.provider_message_id ?? null).toBeNull()
   })
@@ -284,7 +292,7 @@ describe('Fehlerfaelle beim Mailversand', () => {
     expect(status).toBe(201)
     const log = deliveryLog()[0]
     expect(log.status).toBe('failed')
-    expect(String(log.error)).toContain('ECONNREFUSED')
+    expect(String(log.error_message)).toContain('ECONNREFUSED')
   })
 
   it('markiert eine fehlende Empfaengeradresse als skipped statt zu senden', async () => {
@@ -294,7 +302,7 @@ describe('Fehlerfaelle beim Mailversand', () => {
     expect(status).toBe(201)
     expect(mail.sent).toHaveLength(0)
     expect(deliveryLog()[0].status).toBe('skipped')
-    expect(deliveryLog()[0].error).toBe('Keine E-Mail-Adresse hinterlegt')
+    expect(deliveryLog()[0].error_message).toBe('Keine E-Mail-Adresse hinterlegt')
   })
 
   it('trennt einen DB-Ausfall beim Empfaenger-Lookup vom Fall „keine Adresse"', async () => {
@@ -306,7 +314,7 @@ describe('Fehlerfaelle beim Mailversand', () => {
     expect(status).toBe(201)
     expect(mail.sent).toHaveLength(0)
     expect(deliveryLog()[0].status).toBe('failed')
-    expect(String(deliveryLog()[0].error)).toContain('statement timeout')
+    expect(String(deliveryLog()[0].error_message)).toContain('statement timeout')
   })
 
   it('sendet ohne Log-Tabelle weiter — aber dann ohne Doppelversand-Schutz', async () => {
@@ -331,7 +339,7 @@ describe('DB-Fehler', () => {
     expect(json.request).toBeUndefined()
     expect(mail.sent).toHaveLength(0)
     expect(deliveryLog()).toHaveLength(0)
-    expect(fakeDb.rows('notifications')).toHaveLength(0)
+    expect(fakeDb.rows(NOTIFICATION_TABLE)).toHaveLength(0)
   })
 
   it('antwortet mit 500, wenn das Mietobjekt nicht geladen werden kann', async () => {

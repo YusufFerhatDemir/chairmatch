@@ -547,6 +547,22 @@ export interface RentalRequestEmailDetails {
 const RENTAL_REQUESTS_DEEP_LINK = '/vermieter/mein-inserat/anfragen'
 
 /**
+ * Betreff der Vermieter-Mail.
+ *
+ * Ausgelagert, weil ihn zwei Stellen brauchen: der Versand selbst und das
+ * Zustelllog (`email_delivery_log.subject`). Wuerde das Log den Betreff
+ * nachbauen, stuende beim naechsten Textwechsel etwas anderes im Log als in
+ * der Mail — und genau das Log ist die Quelle fuer Support-Rueckfragen.
+ */
+export function rentalRequestEmailSubject(
+  requestType: 'miete' | 'besichtigung',
+  salonName?: string | null,
+): string {
+  const heading = requestType === 'miete' ? 'Neue Mietanfrage' : 'Neue Besichtigungsanfrage'
+  return salonName ? `${heading} für ${salonName} — ChairMatch` : `${heading} — ChairMatch`
+}
+
+/**
  * Benachrichtigt den Vermieter über eine neue Miet- oder Besichtigungsanfrage.
  *
  * Bewusst datensparsam: kein IBAN/Auszahlungsbezug, keine vollständige Adresse,
@@ -559,9 +575,7 @@ export async function sendRentalRequestNotification(
 ) {
   const isRental = details.requestType === 'miete'
   const heading = isRental ? 'Neue Mietanfrage' : 'Neue Besichtigungsanfrage'
-  const subject = details.salonName
-    ? `${heading} für ${details.salonName} — ChairMatch`
-    : `${heading} — ChairMatch`
+  const subject = rentalRequestEmailSubject(details.requestType, details.salonName)
 
   const rows: Array<[string, string]> = [
     ['Anfrage', isRental ? 'Miete' : 'Besichtigung'],

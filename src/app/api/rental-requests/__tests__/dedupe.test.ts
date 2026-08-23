@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 import { fakeDb, type Row } from '@/test/fake-supabase'
+import { NOTIFICATION_TABLE } from '@/lib/notifications'
+import { applyLiveSchema } from '@/test/live-schema'
 
 /**
  * Doppel-Submit-Schutz fuer Mietanfragen (Track 5).
@@ -88,6 +90,10 @@ beforeAll(async () => {
 
 function seedDatabase() {
   fakeDb.reset()
+  // Spalten wie in Produktion. Ohne das nimmt der Fake jede erfundene Spalte
+  // an — genau so blieben `email_delivery_log.recipient_user_id` und `.error`
+  // hier gruen, waehrend sie live in 42703 liefen.
+  applyLiveSchema(fakeDb)
   // Der PRIMARY KEY aus 20260823_rental_request_dedupe.sql — der eigentliche Riegel.
   fakeDb.addUniqueIndex(DEDUPE_TABLE, ['fingerprint'], 'rental_request_dedupe_pkey')
   fakeDb.addUniqueIndex(
@@ -146,7 +152,7 @@ async function submit(body: Row = requestBody(), headers: Record<string, string>
 
 const rentalRequests = () => fakeDb.rows('rental_requests')
 const claims = () => fakeDb.rows(DEDUPE_TABLE)
-const notifications = () => fakeDb.rows('notifications')
+const notifications = () => fakeDb.rows(NOTIFICATION_TABLE)
 
 beforeEach(() => {
   seedDatabase()

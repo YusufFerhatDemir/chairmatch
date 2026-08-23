@@ -14,8 +14,19 @@
  *  - Jeder Zugriff wird mitgeschrieben, damit ein Test auch belegen kann,
  *    dass etwas NICHT passiert ist.
  *
- * Bewusst nicht abgebildet: Spalten-Projektion (`select('a, b')` liefert die
- * ganze Zeile), Joins und RLS. Wer Projektion oder Policies testen will,
+ *  - Ein optionales Spaltenschema pro Tabelle. Ist es gesetzt, laeuft ein
+ *    Insert/Update auf eine unbekannte Spalte in 42703 — genau wie
+ *    PostgREST. Ohne das war der Fake zu gutmuetig: er nahm jede Spalte an,
+ *    und zwei Schema-Abweichungen (`notifications` statt `notification_log`,
+ *    `email_delivery_log.recipient_user_id`/`.error`) blieben monatelang von
+ *    einer gruenen Suite gedeckt, waehrend sie live jeden Tag fehlschlugen.
+ *
+ *  - Spalten-Projektion: `select('a, b')` liefert nur diese Spalten, damit
+ *    ein Test belegen kann, dass eine Route interne Felder (Storage-Pfade,
+ *    Fingerprints) NICHT mit ausliefert.
+ *
+ * Bewusst nicht abgebildet: Joins (eine `select`-Liste mit eingebetteter
+ * Ressource schaltet die Projektion ab) und RLS. Wer Policies testen will,
  * braucht eine echte Datenbank.
  */
 
@@ -33,7 +44,7 @@ type Op = 'select' | 'insert' | 'update' | 'delete'
  * lexikografisch — fuer ISO-8601-Zeitstempel (immer UTC, feste Breite) ist
  * das dieselbe Ordnung wie in Postgres.
  */
-type FilterOp = 'eq' | 'lt' | 'gt' | 'is'
+type FilterOp = 'eq' | 'neq' | 'lt' | 'gt' | 'is' | 'in'
 
 interface Filter {
   column: string
@@ -58,6 +69,11 @@ interface RunResult {
   error: FakeError | null
 }
 
+/** Was PostgREST liefert, wenn eine Spalte nicht existiert. */
+function undefinedColumn(table: string, column: string): FakeError {
+  return { code: '42703', message: `column ${table}.${column} does not exist` }
+}
+
 function uniqueViolation(index: UniqueIndex): FakeError {
   return {
     code: '23505',
@@ -71,6 +87,7 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   private patch: Row = {}
   private filters: Filter[] = []
   private rowLimit: number | null = null
+  private projection: string[] | null = null
 
   constructor(
     private readonly db: FakeSupabase,
@@ -94,8 +111,39 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     return this
   }
 
-  select(_columns?: string) {
+  /**
+   * Merkt sich die Spaltenauswahl. Eingebettete Ressourcen
+   * (`salons(owner_id)`) schalten die Projektion ab — der Fake kann keine
+   * Joins, und eine halb angewandte Projektion waere irrefuehrender als gar
+   * keine. `*` liefert wie in PostgREST die ganze Zeile.
+   */
+  select(columns?: string) {
+    if (!columns || columns.includes('(') || columns.trim() === '*') {
+      this.projection = null
+      return this
+    }
+    this.projection = columns.split(',').map((c) => c.trim()).filter(Boolean)
     return this
+  }
+
+  /**
+   * Schneidet die Antwort auf die ausgewaehlten Spalten zu — als Kopie, damit
+   * die gespeicherte Zeile unangetastet bleibt.
+   *
+   * Ohne das lieferte jede Abfrage die volle Zeile, und ein Test konnte nicht
+   * belegen, dass eine Route interne Felder (Storage-Pfade, Hashes) aus ihrer
+   * Antwort heraushaelt.
+   */
+  private project(rows: Row[]): Row[] {
+    const columns = this.projection
+    if (!columns) return rows
+    return rows.map((row) => {
+      const out: Row = {}
+      for (const column of columns) {
+        if (column in row) out[column] = row[column]
+      }
+      return out
+    })
   }
 
   eq(column: string, value: unknown) {
@@ -120,6 +168,21 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
 
   is(column: string, value: unknown) {
     this.filters.push({ column, op: 'is', value })
+    return this
+  }
+
+  /** Ungleich. Gebraucht beim Aufraeumen alter Logo-Dateien. */
+  neq(column: string, value: unknown) {
+    this.filters.push({ column, op: 'neq', value })
+    return this
+  }
+
+  /**
+   * Mengenzugehoerigkeit. Traegt echte Korrektheit: der Loesch-Vorbehalt fuer
+   * Mietobjekte haengt daran, ob eine Buchung in BLOCKING_STATUSES faellt.
+   */
+  in(column: string, values: unknown[]) {
+    this.filters.push({ column, op: 'in', value: values })
     return this
   }
 
@@ -175,6 +238,10 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
           return cell != null && value != null && String(cell) > String(value)
         case 'is':
           return value === null ? cell == null : cell === value
+        case 'neq':
+          return cell !== value
+        case 'in':
+          return Array.isArray(value) && value.includes(cell)
         default:
           return cell === value
       }
@@ -197,30 +264,129 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     if (this.op === 'insert') {
       const inserted: Row[] = []
       for (const raw of this.payload) {
-        const row: Row = { id: this.db.nextId(), created_at: this.db.timestamp(), ...raw }
+        const unknownColumn = this.db.findUnknownColumn(this.table, raw)
+        if (unknownColumn) return { data: null, error: undefinedColumn(this.table, unknownColumn) }
+        // `id`/`created_at` vergibt sonst Postgres. Nur setzen, wenn die
+        // Tabelle sie laut Schema ueberhaupt fuehrt — `rental_request_dedupe`
+        // etwa hat weder das eine noch das andere.
+        const row: Row = {
+          ...(this.db.hasColumn(this.table, 'id') ? { id: this.db.nextId() } : {}),
+          ...(this.db.hasColumn(this.table, 'created_at')
+            ? { created_at: this.db.timestamp() }
+            : {}),
+          ...raw,
+        }
         const violated = this.db.findUniqueViolation(this.table, row)
         if (violated) return { data: null, error: uniqueViolation(violated) }
         rows.push(row)
         inserted.push(row)
       }
-      return { data: inserted, error: null }
+      return { data: this.project(inserted), error: null }
     }
 
     if (this.op === 'update') {
+      const unknownColumn = this.db.findUnknownColumn(this.table, this.patch)
+      if (unknownColumn) return { data: null, error: undefinedColumn(this.table, unknownColumn) }
+
       const hit = rows.filter((row) => this.matches(row))
       for (const row of hit) Object.assign(row, this.patch)
-      return { data: hit, error: null }
+      return { data: this.project(hit), error: null }
     }
 
     if (this.op === 'delete') {
       const hit = rows.filter((row) => this.matches(row))
       this.db.tables[this.table] = rows.filter((row) => !this.matches(row))
-      return { data: hit, error: null }
+      return { data: this.project(hit), error: null }
     }
 
     let hit = rows.filter((row) => this.matches(row))
     if (this.rowLimit != null) hit = hit.slice(0, this.rowLimit)
-    return { data: hit, error: null }
+    return { data: this.project(hit), error: null }
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Storage
+// ---------------------------------------------------------------------------
+
+export interface StoredObject {
+  path: string
+  contentType: string
+  size: number
+}
+
+/**
+ * Minimaler Ersatz fuer Supabase Storage.
+ *
+ * Er kann genau so viel, wie die Upload-Route braucht — und vor allem das,
+ * worauf ihre Korrektheit beruht: `upsert: false` weist einen belegten Pfad
+ * ab, und `remove` loescht wirklich. Nur damit laesst sich pruefen, dass eine
+ * fehlgeschlagene DB-Zeile die bereits hochgeladene Datei wieder aufraeumt
+ * statt sie verwaist liegen zu lassen.
+ */
+class FakeBucket {
+  constructor(
+    private readonly store: Map<string, StoredObject>,
+    private readonly bucket: string,
+    private readonly db: FakeSupabase,
+  ) {}
+
+  private key(path: string): string {
+    return `${this.bucket}/${path}`
+  }
+
+  async upload(
+    path: string,
+    file: { size?: number },
+    opts?: { contentType?: string; upsert?: boolean },
+  ): Promise<{ data: { path: string } | null; error: FakeError | null }> {
+    const failure = this.db.failures.get(`storage.${this.bucket}.upload`)
+    if (failure) return { data: null, error: failure }
+
+    if (!opts?.upsert && this.store.has(this.key(path))) {
+      return { data: null, error: { message: 'The resource already exists', code: '23505' } }
+    }
+    this.store.set(this.key(path), {
+      path,
+      contentType: opts?.contentType ?? 'application/octet-stream',
+      size: file?.size ?? 0,
+    })
+    return { data: { path }, error: null }
+  }
+
+  async remove(paths: string[]): Promise<{ data: unknown; error: FakeError | null }> {
+    for (const path of paths) this.store.delete(this.key(path))
+    return { data: null, error: null }
+  }
+
+  async createSignedUrl(path: string, expiresIn: number) {
+    if (!this.store.has(this.key(path))) {
+      return { data: null, error: { message: 'Object not found' } as FakeError }
+    }
+    return {
+      data: { signedUrl: `https://storage.test/${this.bucket}/${path}?exp=${expiresIn}` },
+      error: null,
+    }
+  }
+}
+
+class FakeStorage {
+  readonly objects = new Map<string, StoredObject>()
+
+  constructor(private readonly db: FakeSupabase) {}
+
+  from(bucket: string): FakeBucket {
+    return new FakeBucket(this.objects, bucket, this.db)
+  }
+
+  /** Alle abgelegten Pfade — fuer Assertions „Datei ist weg/da". */
+  paths(): string[] {
+    return [...this.objects.keys()]
+  }
+
+  clear() {
+    this.objects.clear()
   }
 }
 
@@ -230,8 +396,12 @@ export class FakeSupabase {
   failures = new Map<string, FakeError>()
   access: AccessLogEntry[] = []
   private uniques: UniqueIndex[] = []
+  /** Tabelle -> erlaubte Spalten. Fehlt ein Eintrag, wird nicht geprueft. */
+  private schema = new Map<string, Set<string>>()
   private idCounter = 0
   private clock = 0
+
+  readonly storage = new FakeStorage(this)
 
   from(table: string): FakeQuery {
     return new FakeQuery(this, table)
@@ -244,6 +414,38 @@ export class FakeSupabase {
   seed(table: string, rows: Row[]) {
     this.rows(table).push(...rows)
     return this
+  }
+
+  /**
+   * Legt fest, welche Spalten eine Tabelle hat. Danach scheitert jeder
+   * Schreibzugriff auf eine andere Spalte mit 42703.
+   *
+   * Gedacht fuer Ketten-Tests, die gegen das echte Produktionsschema laufen
+   * sollen (`src/test/live-schema.ts`). Tabellen ohne Schema bleiben
+   * unveraendert freizuegig — kein Bestandstest muss angefasst werden.
+   */
+  defineSchema(table: string, columns: readonly string[]) {
+    this.schema.set(table, new Set(columns))
+    return this
+  }
+
+  /**
+   * Fuehrt die Tabelle diese Spalte? Ohne definiertes Schema gilt jede
+   * Spalte als vorhanden — so verhalten sich Bestandstests wie bisher.
+   */
+  hasColumn(table: string, column: string): boolean {
+    const allowed = this.schema.get(table)
+    return allowed ? allowed.has(column) : true
+  }
+
+  /** Erste Spalte in `row`, die die Tabelle nicht kennt — oder null. */
+  findUnknownColumn(table: string, row: Row): string | null {
+    const allowed = this.schema.get(table)
+    if (!allowed) return null
+    for (const column of Object.keys(row)) {
+      if (!allowed.has(column)) return column
+    }
+    return null
   }
 
   addUniqueIndex(table: string, columns: string[], name: string) {
@@ -291,6 +493,8 @@ export class FakeSupabase {
     this.failures.clear()
     this.access = []
     this.uniques = []
+    this.schema.clear()
+    this.storage.clear()
     this.idCounter = 0
     this.clock = 0
   }

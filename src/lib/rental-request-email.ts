@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { logger } from '@/lib/logger'
-import { sendRentalRequestNotification } from '@/lib/email'
+import { rentalRequestEmailSubject, sendRentalRequestNotification } from '@/lib/email'
 
 /**
  * E-Mail-Benachrichtigung an den Vermieter bei neuer Mietanfrage.
@@ -20,6 +20,37 @@ import { sendRentalRequestNotification } from '@/lib/email'
 export const RENTAL_REQUEST_EMAIL_TYPE = 'rental_request_created'
 
 const DELIVERY_LOG_TABLE = 'email_delivery_log'
+
+/**
+ * Spalten von `email_delivery_log`, wie sie in der Produktionsdatenbank
+ * tatsaechlich stehen (verifiziert am 2026-08-23 per PostgREST-Probe):
+ *
+ *   id, email_type, reference_id, recipient_email, status,
+ *   provider_message_id, error_message, subject, created_at, updated_at
+ *
+ * Der Code hat bis dahin `recipient_user_id` mitgeschrieben und den
+ * Fehlertext nach `error` gelegt — beides gibt es live nicht. Der INSERT
+ * lief damit in 42703 ("column does not exist"). `claimDelivery` wertet
+ * einen unbekannten Fehlercode als 'unavailable', also lief der Versand
+ * ohne Log und OHNE Doppelversand-Schutz weiter — genau die zwei
+ * Eigenschaften, fuer die es diese Tabelle gibt.
+ *
+ * Wer hier eine Spalte ergaenzt, muss sie erst in der Datenbank anlegen.
+ * `src/test/live-schema.ts` haelt dieselbe Liste fuer die Tests; der
+ * Schema-Test dort schlaegt fehl, wenn beide auseinanderlaufen.
+ */
+export const DELIVERY_LOG_COLUMNS = [
+  'id',
+  'email_type',
+  'reference_id',
+  'recipient_email',
+  'status',
+  'provider_message_id',
+  'error_message',
+  'subject',
+  'created_at',
+  'updated_at',
+] as const
 
 /** Freitext des Interessenten, der in die Mail darf. */
 const MESSAGE_EXCERPT_LIMIT = 400
@@ -113,6 +144,22 @@ type ClaimResult =
   | { kind: 'duplicate' }
   /** Tabelle fehlt (Migration nicht eingespielt) — senden ohne Schutz. */
   | { kind: 'unavailable' }
+  /**
+   * Die Tabelle ist da, aber der Claim ist gescheitert (falsche Spalte,
+   * Timeout, Constraint). Hier NICHT zu senden ist Absicht:
+   *
+   * Ohne Claim gibt es keinen Doppelversand-Schutz. Der haeufigste Grund fuer
+   * einen zweiten Aufruf mit derselben `requestId` ist der Retry einer
+   * abgebrochenen Serverless-Funktion — jeder Versuch wuerde dem Vermieter
+   * eine weitere Mail schicken. Die Anfrage selbst ist zu diesem Zeitpunkt
+   * gespeichert und in der App sichtbar; eine ausbleibende Mail ist der
+   * kleinere Schaden als eine Mailflut, und sie faellt im Log auf.
+   *
+   * Genau dieser Zweig war vorher `unavailable`: der Insert lief wegen einer
+   * nicht existierenden Spalte in 42703, und der Versand fuhr Mail fuer Mail
+   * ungeschuetzt weiter.
+   */
+  | { kind: 'blocked'; error: string }
 
 /** Postgres/PostgREST-Codes fuer „Relation existiert nicht". */
 function isMissingTable(code: string | undefined): boolean {
@@ -129,10 +176,7 @@ function isUniqueViolation(code: string | undefined): boolean {
  * derselben Referenz laeuft in den UNIQUE-Index und bekommt 'duplicate' —
  * genau das verhindert die doppelte Mail bei einem Retry.
  */
-async function claimDelivery(
-  referenceId: string,
-  recipientUserId: string | null,
-): Promise<ClaimResult> {
+async function claimDelivery(referenceId: string, subject: string): Promise<ClaimResult> {
   try {
     const admin = getSupabaseAdmin()
     const { data, error } = await admin
@@ -140,7 +184,7 @@ async function claimDelivery(
       .insert({
         email_type: RENTAL_REQUEST_EMAIL_TYPE,
         reference_id: referenceId,
-        recipient_user_id: recipientUserId,
+        subject,
         status: 'pending',
       })
       .select('id')
@@ -154,14 +198,18 @@ async function claimDelivery(
         })
         return { kind: 'unavailable' }
       }
-      logger.warn('rental_request_email.claim_failed', { requestId: referenceId, err: error.message })
-      return { kind: 'unavailable' }
+      logger.error('rental_request_email.claim_failed', error, {
+        requestId: referenceId,
+        code: error.code,
+      })
+      return { kind: 'blocked', error: error.message }
     }
 
     return { kind: 'claimed', logId: (data as { id?: string } | null)?.id ?? null }
   } catch (e) {
-    logger.warn('rental_request_email.claim_exception', { requestId: referenceId, err: String(e) })
-    return { kind: 'unavailable' }
+    const message = e instanceof Error ? e.message : String(e)
+    logger.warn('rental_request_email.claim_exception', { requestId: referenceId, err: message })
+    return { kind: 'blocked', error: message }
   }
 }
 
@@ -172,7 +220,8 @@ async function finishDelivery(
     status: 'sent' | 'failed' | 'skipped'
     recipient_email?: string | null
     provider_message_id?: string | null
-    error?: string | null
+    /** Heisst in der Datenbank `error_message`, nicht `error`. */
+    error_message?: string | null
   },
 ): Promise<void> {
   if (!logId) return
@@ -260,10 +309,19 @@ export async function notifyLandlordOfRentalRequest(
     return { status: 'skipped', reason: 'Kein Vermieter hinterlegt' }
   }
 
-  const claim = await claimDelivery(input.requestId, input.recipientId)
+  // Betreff steht vor dem Claim fest, damit er auch dann im Log landet, wenn
+  // der Versand danach scheitert — sonst waere eine 'failed'-Zeile ohne jeden
+  // Hinweis darauf, welche Mail eigentlich gemeint war.
+  const subject = rentalRequestEmailSubject(input.requestType, input.salonName)
+  const claim = await claimDelivery(input.requestId, subject)
   if (claim.kind === 'duplicate') {
     logger.info('rental_request_email.duplicate_suppressed', { requestId: input.requestId })
     return { status: 'skipped', reason: 'Bereits versendet' }
+  }
+  if (claim.kind === 'blocked') {
+    // Kein Log-Eintrag moeglich (der Insert ist ja gerade gescheitert) — der
+    // Fehler steht dafuer im Logger, mit Code.
+    return { status: 'failed', error: `Zustelllog nicht beschreibbar: ${claim.error}` }
   }
   const logId = claim.kind === 'claimed' ? claim.logId : null
 
@@ -272,13 +330,13 @@ export async function notifyLandlordOfRentalRequest(
     recipient = await resolveRecipient(input.recipientId)
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
-    await finishDelivery(logId, { status: 'failed', error: `Empfaenger-Lookup: ${message}` })
+    await finishDelivery(logId, { status: 'failed', error_message: `Empfaenger-Lookup: ${message}` })
     logger.warn('rental_request_email.recipient_failed', { requestId: input.requestId, err: message })
     return { status: 'failed', error: message }
   }
 
   if (!recipient.email) {
-    await finishDelivery(logId, { status: 'skipped', error: 'Keine E-Mail-Adresse hinterlegt' })
+    await finishDelivery(logId, { status: 'skipped', error_message: 'Keine E-Mail-Adresse hinterlegt' })
     logger.warn('rental_request_email.no_address', { requestId: input.requestId })
     return { status: 'skipped', reason: 'Keine E-Mail-Adresse hinterlegt' }
   }
@@ -303,7 +361,7 @@ export async function notifyLandlordOfRentalRequest(
       await finishDelivery(logId, {
         status: 'failed',
         recipient_email: recipient.email,
-        error: result.error ?? 'Unbekannter Versandfehler',
+        error_message: result.error ?? 'Unbekannter Versandfehler',
       })
       logger.warn('rental_request_email.send_failed', {
         requestId: input.requestId,
@@ -324,7 +382,7 @@ export async function notifyLandlordOfRentalRequest(
     await finishDelivery(logId, {
       status: 'failed',
       recipient_email: recipient.email,
-      error: message,
+      error_message: message,
     })
     logger.warn('rental_request_email.send_exception', { requestId: input.requestId, err: message })
     return { status: 'failed', error: message }

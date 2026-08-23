@@ -1,5 +1,20 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
+/**
+ * Tabellenname der In-App-Benachrichtigungen.
+ *
+ * Heisst live `notification_log` (Migration 20260317_payments_and_compliance).
+ * Der Code hat bis 2026-08-23 auf `notifications` geschrieben — eine Tabelle,
+ * die es in der Produktionsdatenbank nie gab. PostgREST antwortete darauf mit
+ * PGRST205, `createNotification` schluckte das als `console.error` und gab
+ * `null` zurueck: JEDE In-App-Benachrichtigung fiel still aus, ohne dass ein
+ * Aufrufer es gemerkt haette (kein Aufrufer prueft den Rueckgabewert).
+ *
+ * Deshalb steht der Name jetzt genau einmal hier. Wer ihn aendert, aendert
+ * ihn ueberall — Lesen und Schreiben koennen nicht mehr auseinanderlaufen.
+ */
+export const NOTIFICATION_TABLE = 'notification_log'
+
 export type NotificationType =
   | 'info'
   | 'booking'
@@ -31,7 +46,7 @@ export async function createNotification(
   const supabase = getSupabaseAdmin()
 
   const { data, error } = await supabase
-    .from('notifications')
+    .from(NOTIFICATION_TABLE)
     .insert({
       user_id: userId,
       title,
@@ -86,7 +101,7 @@ export async function createBulkNotifications(
   }))
 
   const { data, error } = await supabase
-    .from('notifications')
+    .from(NOTIFICATION_TABLE)
     .insert(rows)
     .select('id')
 

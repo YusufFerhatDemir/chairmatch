@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { NOTIFICATION_TABLE } from '@/lib/notifications'
 import { auth } from '@/modules/auth/auth.config'
 
 const DEFAULT_PAGE_SIZE = 20
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch notifications with pagination
     const { data: notifications, error, count } = await supabase
-      .from('notifications')
+      .from(NOTIFICATION_TABLE)
       .select('*', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Get unread count
     const { count: unreadCount, error: unreadError } = await supabase
-      .from('notifications')
+      .from(NOTIFICATION_TABLE)
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('is_read', false)
@@ -97,8 +98,12 @@ export async function PUT(request: NextRequest) {
     const supabase = getSupabaseAdmin()
 
     const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
+      .from(NOTIFICATION_TABLE)
+      // Kein `read_at`: `notification_log` fuehrt diese Spalte nicht. Der
+      // Zeitpunkt des Lesens wird fachlich nirgends ausgewertet — nur das
+      // Flag. Ein Update mit unbekannter Spalte waere 42703 und haette den
+      // gesamten Aufruf scheitern lassen.
+      .update({ is_read: true })
       .in('id', notificationIds)
       .eq('user_id', session.user.id)
 
