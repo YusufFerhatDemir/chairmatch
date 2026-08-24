@@ -589,13 +589,13 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['booking_policies']['Insert']>
       }
       protect_pricing: {
-        Row: { id: string; risk_level: string; day_price_cents: number; month_price_cents: number; year_price_cents: number; currency: string; active: boolean; created_at: string }
+        Row: { id: string; risk_level: string; day_price_cents: number; month_price_cents: number; year_price_cents: number; currency: string; active: boolean; created_at: string; updated_at: string }
         Insert: { id?: string; risk_level: string; day_price_cents: number; month_price_cents: number; year_price_cents: number; currency?: string; active?: boolean }
         Update: Partial<Database['public']['Tables']['protect_pricing']['Insert']>
       }
       compliance_plans: {
-        Row: { id: string; plan_type: string; price_cents: number; included_submissions: number; min_term_months: number; extra_submission_price_cents: number; created_at: string }
-        Insert: { id?: string; plan_type: string; price_cents: number; included_submissions?: number; min_term_months?: number; extra_submission_price_cents?: number }
+        Row: { id: string; plan_type: string; price_cents: number; included_submissions: number; min_term_months: number; extra_submission_price_cents: number; currency: string; active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; plan_type: string; price_cents: number; included_submissions?: number; min_term_months?: number; extra_submission_price_cents?: number; currency?: string; active?: boolean }
         Update: Partial<Database['public']['Tables']['compliance_plans']['Insert']>
       }
       payments: {

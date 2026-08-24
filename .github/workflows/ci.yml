@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Ein laufender CI-Lauf pro Branch reicht; aeltere Laeufe werden abgebrochen.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck + Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Typecheck und Tests laufen bewusst NACHEINANDER (getrennte Steps).
+      # Beide parallel im selben Runner haben lokal wie in CI OOM-Abbrueche
+      # provoziert (tsc haelt den ganzen Programmgraph im Speicher).
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests (vitest)
+        run: npx vitest run --reporter=dot

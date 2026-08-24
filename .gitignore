@@ -35,3 +35,12 @@ ios/App/Pods/
 ios/App/App.xcarchive/
 ios/App/ExportOptions.rendered.plist
 DerivedData/
+
+# Legacy Vite-Ära (2026-03), nicht mehr referenziert:
+#   index.html      — Vite-Entrypoint (<script src="/src/main.tsx">), Next.js
+#                     App Router nutzt src/app/layout.tsx. Einziger Verweis
+#                     kam aus dem toten Root-sw.js.
+#   supabase.min.js — 476 KB vendored SDK für index_legacy.html; die App zieht
+#                     @supabase/supabase-js aus node_modules.
+index.html
+supabase.min.js
