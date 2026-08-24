@@ -130,6 +130,26 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
   payout_accounts: ['user_id', 'context', 'account_holder'],
 
   /**
+   * Live vorhanden: `last_message_at` — NICHT `updated_at`. Der Code hat bis
+   * 2026-08-24 nach `updated_at` sortiert und geschrieben; GET /api/messages
+   * antwortete deshalb jedem eingeloggten Nutzer mit 500, und eine neue
+   * Konversation liess sich gar nicht anlegen.
+   */
+  conversations: ['id', 'salon_id', 'created_at', 'last_message_at'],
+
+  conversation_participants: ['id', 'conversation_id', 'user_id'],
+
+  messages: ['id', 'conversation_id', 'sender_id', 'content', 'is_read', 'created_at'],
+
+  /**
+   * Live vorhanden: `severity` — NICHT `level`. `logError()` schreibt
+   * korrekt nach `severity`; nur das MIS las `level` und bekam deshalb
+   * dauerhaft eine leere Fehlerliste.
+   */
+  error_logs: ['id', 'message', 'stack', 'url', 'user_agent', 'ip', 'user_id',
+               'severity', 'component', 'context', 'created_at'],
+
+  /**
    * ACHTUNG — hier steht bewusst die ALTE Fassung.
    *
    * Die Tabelle existiert live, aber mit `is_active` (boolean) statt

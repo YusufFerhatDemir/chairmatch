@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { isSchemaMismatch } from '@/lib/pg-errors'
 import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent')?.slice(0, 500) || null
 
     const supabase = getSupabaseAdmin()
-    await supabase.from('visit_logs').insert({
+    const { error } = await supabase.from('visit_logs').insert({
       path,
       ip,
       country,
@@ -40,6 +41,21 @@ export async function POST(request: NextRequest) {
       city,
       user_agent: userAgent,
     })
+
+    // Der Rueckgabewert wurde vorher verworfen. Live fehlen in `visit_logs`
+    // die Spalten `path`, `ip`, `country`, `region` und `city` — jeder Insert
+    // lief in 42703, und die Route antwortete trotzdem {ok:true}. Die
+    // Besucherstatistik war dadurch dauerhaft leer, ohne dass irgendwo etwas
+    // aufgefallen waere. Behoben durch
+    // supabase/migrations/20260824_schema_drift_repair.sql; die Auswertung
+    // hier bleibt, damit ein naechster Drift nicht wieder still ausfaellt.
+    if (error) {
+      console.error('[Visit-Log] Insert fehlgeschlagen:', error.code, error.message)
+      if (isSchemaMismatch(error)) {
+        return NextResponse.json({ ok: false, reason: 'migration_pending' }, { status: 202 })
+      }
+      return NextResponse.json({ ok: false }, { status: 500 })
+    }
 
     return NextResponse.json({ ok: true })
   } catch {

@@ -33,7 +33,7 @@ interface MISData {
   }
   providerHealthScores?: { id: string; name: string; score: number; breakdown: Record<string, number> }[]
   atRiskProviders?: { id: string; name: string; score: number; breakdown: Record<string, number> }[]
-  recentErrors?: { id: string; message: string; level: string; created_at: string }[]
+  recentErrors?: { id: string; message: string; severity: string; created_at: string }[]
   onboardingPipeline?: { registered: number; docsUploaded: number; verified: number; active: number }
   platformRevenue?: {
     totalCommissionEur: number
@@ -500,7 +500,7 @@ export default function MISPage() {
               headers={['Zeit', 'Level', 'Nachricht']}
               rows={data.recentErrors.slice(0, 10).map(e => [
                 new Date(e.created_at).toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }),
-                e.level?.toUpperCase() || 'ERROR',
+                e.severity?.toUpperCase() || 'ERROR',
                 e.message.length > 120 ? e.message.slice(0, 120) + '…' : e.message,
               ])}
             />

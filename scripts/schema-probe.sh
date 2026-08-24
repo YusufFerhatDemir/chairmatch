@@ -46,6 +46,7 @@ probe() { # tabelle spalte
 # Schema NACH den offenen Migrationen:
 #   supabase/migrations/20260525_analytics_events.sql
 #   supabase/migrations/20260824_newsletter_schema_repair.sql
+#   supabase/migrations/20260824_schema_drift_repair.sql
 # Solange die nicht eingespielt sind, meldet die Probe dort KEINE/FEHLT — das
 # ist der erwartete Befund, kein neuer Fehler. src/test/live-schema.ts fuehrt
 # dagegen den tatsaechlichen Ist-Zustand, damit die Tests ehrlich bleiben.
@@ -62,6 +63,13 @@ notification_log|id user_id title body type reference_id reference_type is_read 
 user_uploads|id user_id target salon_id equipment_id doc_key bucket storage_path mime_type size_bytes is_public created_at
 salons|id owner_id name city slug gallery logo_url created_at updated_at
 rental_bookings|id equipment_id status created_at
+conversations|id salon_id created_at last_message_at
+conversation_participants|id conversation_id user_id
+messages|id conversation_id sender_id content is_read created_at
+error_logs|id message stack url user_agent ip user_id severity component context created_at
+visit_logs|id path ip country region city user_agent created_at
+salon_images|id salon_id url image_type sort_order storage_path bucket created_at
+services|id salon_id name slug price_cents duration_minutes category is_active sort_order created_at
 newsletter_subscribers|id email name source status tags unsubscribe_token last_sent_at is_confirmed subscribed_at unsubscribed_at
 newsletter_campaigns|id subject preview_text html_content audience_filter status total_recipients total_sent total_opened total_clicked total_bounced sent_at created_by created_at updated_at
 newsletter_sends|id campaign_id subscriber_id status resend_email_id error_message sent_at opened_at clicked_at created_at

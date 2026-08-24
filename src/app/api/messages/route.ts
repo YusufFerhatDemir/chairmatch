@@ -23,7 +23,7 @@ export async function GET() {
         id,
         salon_id,
         created_at,
-        updated_at,
+        last_message_at,
         conversation_participants!inner(user_id),
         messages(
           id,
@@ -34,7 +34,11 @@ export async function GET() {
         )
       `)
       .eq('conversation_participants.user_id', userId)
-      .order('updated_at', { ascending: false })
+      // Live heisst die Spalte `last_message_at`, nicht `updated_at`. Bis
+      // 2026-08-24 stand hier `updated_at`: PostgREST antwortete mit 42703,
+      // der Handler ging in `convError` — GET /api/messages lieferte also
+      // jedem eingeloggten Nutzer 500 statt seines Postfachs.
+      .order('last_message_at', { ascending: false })
 
     if (convError) {
       console.error('GET /api/messages:', convError)
@@ -99,7 +103,7 @@ export async function GET() {
             }
           : null,
         unreadCount,
-        updatedAt: conv.updated_at,
+        updatedAt: conv.last_message_at,
       }
     })
 
@@ -210,7 +214,7 @@ export async function POST(request: NextRequest) {
         .from('conversations')
         .insert({
           salon_id: salonId ?? null,
-          updated_at: new Date().toISOString(),
+          last_message_at: new Date().toISOString(),
         })
         .select('id')
         .single()
@@ -259,11 +263,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update conversation timestamp
-    await supabase
+    // Zeitstempel der Konversation nachziehen — er bestimmt die Sortierung
+    // des Postfachs. Ein Fehler hier waere nicht schlimm genug, um die schon
+    // gespeicherte Nachricht abzulehnen, darf aber nicht unbemerkt bleiben.
+    const { error: touchError } = await supabase
       .from('conversations')
-      .update({ updated_at: new Date().toISOString() })
+      .update({ last_message_at: new Date().toISOString() })
       .eq('id', conversationId)
+    if (touchError) {
+      console.error('POST /api/messages: last_message_at nicht aktualisiert:', touchError)
+    }
 
     return NextResponse.json(message, { status: 201 })
   } catch {

@@ -88,6 +88,7 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   private filters: Filter[] = []
   private rowLimit: number | null = null
   private projection: string[] | null = null
+  private orderColumns: string[] = []
 
   constructor(
     private readonly db: FakeSupabase,
@@ -186,7 +187,19 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     return this
   }
 
-  order(_column: string, _opts?: unknown) {
+  /**
+   * Merkt sich die Sortierspalte. Sortiert wird nicht — die Tests hier
+   * pruefen Zustand, keine Reihenfolge — aber die Spalte wird gegen das
+   * Schema gehalten.
+   *
+   * Warum das zaehlt: PostgREST beantwortet `?order=updated_at` mit 42703,
+   * wenn es die Spalte nicht gibt. Genau darauf lief GET /api/messages —
+   * `conversations` heisst live `last_message_at` — und lieferte jedem
+   * eingeloggten Nutzer 500 statt seines Postfachs, waehrend hier alles
+   * gruen war.
+   */
+  order(column: string, _opts?: unknown) {
+    this.orderColumns.push(column)
     return this
   }
 
@@ -328,6 +341,9 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
       if (!this.db.hasColumn(this.table, column)) return column
     }
     for (const { column } of this.filters) {
+      if (!this.db.hasColumn(this.table, column)) return column
+    }
+    for (const column of this.orderColumns) {
       if (!this.db.hasColumn(this.table, column)) return column
     }
     return null

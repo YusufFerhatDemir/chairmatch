@@ -444,7 +444,10 @@ export async function sendPostBookingAffiliateRecommendations(
   // Empfänger holen
   const { data: profile } = await supabase
     .from('profiles')
-    .select('email, full_name, first_name')
+    // KEIN `first_name` — die Spalte gibt es live nicht. Mit ihr lief die
+    // ganze Abfrage in 42703, `profile` blieb null, und damit fiel nicht nur
+    // die Anrede aus, sondern auch die Empfaengeradresse.
+    .select('email, full_name')
     .eq('id', userId)
     .maybeSingle()
 
@@ -489,7 +492,8 @@ export async function sendPostBookingAffiliateRecommendations(
 
   const serviceLabel = categoryLabel(slug)
   const subject = `Mach das Beste aus deiner ${serviceLabel}`
-  const greetingName = profile?.first_name || profile?.full_name || ''
+  // Vorname aus `full_name` ableiten, statt eine eigene Spalte zu erwarten.
+  const greetingName = (profile?.full_name || '').trim().split(/\s+/)[0] || ''
 
   const productBlocks = productList
     .map(p => {

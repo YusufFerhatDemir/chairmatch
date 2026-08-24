@@ -330,17 +330,20 @@ export const GET = withApi(async () => {
     const atRiskProviders = providerHealthScores.filter(p => p.score < 50).slice(0, 10)
 
     // --- Recent Errors (last 24h) ---
-    let recentErrors: { id: string; message: string; level: string; created_at: string; count?: number }[] = []
+    let recentErrors: { id: string; message: string; severity: string; created_at: string; count?: number }[] = []
     try {
       const twentyFourHoursAgo = new Date()
       twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
+      // Live heisst die Spalte `severity`, nicht `level` — mit `level` lief
+      // die Abfrage in 42703 und die Fehlerliste im MIS blieb immer leer.
+      // `logError()` schreibt ebenfalls nach `severity`.
       const { data: errors } = await supabase
         .from('error_logs')
-        .select('id, message, level, created_at')
+        .select('id, message, severity, created_at')
         .gte('created_at', twentyFourHoursAgo.toISOString())
         .order('created_at', { ascending: false })
         .limit(20)
-      recentErrors = (errors as { id: string; message: string; level: string; created_at: string }[]) ?? []
+      recentErrors = (errors as { id: string; message: string; severity: string; created_at: string }[]) ?? []
     } catch {
       // error_logs evtl. nicht vorhanden — best-effort
     }
