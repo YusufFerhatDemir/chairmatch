@@ -70,6 +70,9 @@ error_logs|id message stack url user_agent ip user_id severity component context
 visit_logs|id path ip country region city user_agent created_at
 salon_images|id salon_id url image_type sort_order storage_path bucket created_at
 services|id salon_id name slug price_cents duration_minutes category is_active sort_order created_at
+documents|id salon_id user_id type status name url created_at
+authorities_packs|id salon_id created_by status created_at
+submission_tickets|id salon_id user_id status plan_type admin_notes created_at updated_at
 newsletter_subscribers|id email name source status tags unsubscribe_token last_sent_at is_confirmed subscribed_at unsubscribed_at
 newsletter_campaigns|id subject preview_text html_content audience_filter status total_recipients total_sent total_opened total_clicked total_bounced sent_at created_by created_at updated_at
 newsletter_sends|id campaign_id subscriber_id status resend_email_id error_message sent_at opened_at clicked_at created_at

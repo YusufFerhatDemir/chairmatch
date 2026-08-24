@@ -20,9 +20,11 @@ export async function PATCH(
   }
 
   const supabase = getSupabaseAdmin()
+  // Live heisst die Spalte `status`, nicht `verified_status`. Das Feld im
+  // Request-Body behaelt seinen Namen — die API-Form aendert sich nicht.
   const { error } = await supabase
     .from('documents')
-    .update({ verified_status: status })
+    .update({ status })
     .eq('id', id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

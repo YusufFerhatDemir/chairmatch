@@ -526,8 +526,11 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['audit_logs']['Insert']>
       }
       documents: {
-        Row: { id: string; owner_type: string; owner_id: string; doc_type: string; file_url: string | null; expiry_date: string | null; verified_status: string; version: number; created_at: string }
-        Insert: { id?: string; owner_type: string; owner_id: string; doc_type: string; file_url?: string | null; expiry_date?: string | null; verified_status?: string; version?: number }
+        // Spalten wie live (2026-08-24 per Probe erhoben). Vorher stand hier
+        // owner_type/owner_id/doc_type/verified_status/file_url — keine
+        // dieser Spalten existiert in der Produktionsdatenbank.
+        Row: { id: string; salon_id: string | null; user_id: string | null; type: string; status: string; name: string | null; url: string | null; created_at: string }
+        Insert: { id?: string; salon_id?: string | null; user_id?: string | null; type: string; status?: string; name?: string | null; url?: string | null }
         Update: Partial<Database['public']['Tables']['documents']['Insert']>
       }
       insurance_policies: {
@@ -536,13 +539,13 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['insurance_policies']['Insert']>
       }
       authorities_packs: {
-        Row: { id: string; location_id: string; created_by: string | null; file_url: string | null; created_at: string }
-        Insert: { id?: string; location_id: string; created_by?: string | null; file_url?: string | null }
+        Row: { id: string; salon_id: string; created_by: string | null; status: string | null; created_at: string }
+        Insert: { id?: string; salon_id: string; created_by?: string | null; status?: string | null }
         Update: Partial<Database['public']['Tables']['authorities_packs']['Insert']>
       }
       submission_tickets: {
-        Row: { id: string; location_id: string; pack_id: string | null; plan_type: string; status: string; proof_file_url: string | null; admin_notes: string | null; created_at: string; updated_at: string }
-        Insert: { id?: string; location_id: string; pack_id?: string | null; plan_type: string; status?: string; proof_file_url?: string | null; admin_notes?: string | null }
+        Row: { id: string; salon_id: string; user_id: string | null; type: string | null; plan_type: string | null; status: string; admin_notes: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; salon_id: string; user_id?: string | null; type?: string | null; plan_type?: string | null; status?: string; admin_notes?: string | null }
         Update: Partial<Database['public']['Tables']['submission_tickets']['Insert']>
       }
       consents: {

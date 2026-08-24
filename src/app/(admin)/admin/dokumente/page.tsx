@@ -7,7 +7,7 @@ import { DocumentRow } from '@/components/admin/DocumentRow'
 export default async function AdminDokumentePage() {
   await requireRole(['admin', 'super_admin'])
   const supabase = getSupabaseAdmin()
-  const { data: docs } = await supabase.from('documents').select('id, owner_type, owner_id, doc_type, verified_status, created_at').order('created_at', { ascending: false }).limit(200)
+  const { data: docs } = await supabase.from('documents').select('id, salon_id, user_id, type, status, name, url, created_at').order('created_at', { ascending: false }).limit(200)
   const list = docs ?? []
 
   return (
@@ -18,7 +18,7 @@ export default async function AdminDokumentePage() {
         <div style={{ background: 'var(--c1)', border: '1px solid rgba(176,144,96,0.08)', borderRadius: 12, padding: 24, textAlign: 'center', color: 'var(--stone)' }}>Noch keine Dokumente eingereicht.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {list.map((d: { id: string; owner_type: string; owner_id: string; doc_type: string; verified_status: string; created_at: string }) => (
+          {list.map((d: { id: string; salon_id: string | null; user_id: string | null; type: string; status: string; name: string | null; url: string | null; created_at: string }) => (
             <DocumentRow key={d.id} d={d} />
           ))}
         </div>

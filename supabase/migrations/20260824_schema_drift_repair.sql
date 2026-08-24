@@ -84,4 +84,36 @@ ALTER TABLE public.services ADD COLUMN IF NOT EXISTS slug text;
 CREATE UNIQUE INDEX IF NOT EXISTS uq_services_slug
   ON public.services(slug) WHERE slug IS NOT NULL;
 
+-- ══════════════════════════════════════════════════════════════════════
+-- 4. authorities_packs / submission_tickets
+-- ══════════════════════════════════════════════════════════════════════
+-- Beide Tabellen fuehren live `salon_id`, der Code sprach sie als
+-- `location_id` an — das ist im Code korrigiert. Was wirklich fehlt:
+--
+--   authorities_packs.created_by   POST /api/owner/authorities-pack schrieb
+--                                  es mit; ohne die Spalte lief der Insert in
+--                                  42703 und das Behoerdenpaket liess sich
+--                                  gar nicht erstellen.
+--   submission_tickets.plan_type   Anzeige in der Ticketliste.
+--   submission_tickets.admin_notes PATCH /api/admin/tickets/[id] schreibt es.
+
+ALTER TABLE public.authorities_packs
+  ADD COLUMN IF NOT EXISTS created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL;
+
+ALTER TABLE public.submission_tickets ADD COLUMN IF NOT EXISTS plan_type   text;
+ALTER TABLE public.submission_tickets ADD COLUMN IF NOT EXISTS admin_notes text;
+
+-- ══════════════════════════════════════════════════════════════════════
+-- BEWUSST NICHT ENTHALTEN: protect_pricing, compliance_plans
+-- ══════════════════════════════════════════════════════════════════════
+-- Beide Tabellen existieren, fuehren live aber nur `id` und `created_at`.
+-- Der Code erwartet `risk_level`, `day_price_cents`, `month_price_cents`,
+-- `year_price_cents` bzw. `plan_type`, `price_cents`, `included_submissions`,
+-- `extra_submission_price_cents`.
+--
+-- Diese Spalten anzulegen hiesse, ein Preismodell zu erfinden — welche
+-- Risikostufen und welche Betraege gelten, ist eine Geschaeftsentscheidung.
+-- Die Admin-Seite /admin/pricing meldet den Zustand jetzt ehrlich
+-- ("Tabelle unvollstaendig") statt "Keine Eintraege".
+
 COMMIT;

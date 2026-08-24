@@ -8,7 +8,7 @@ const STATUS_LABEL: Record<string, string> = { OPEN: 'Offen', IN_PROGRESS: 'In B
 
 interface Ticket {
   id: string
-  location_id: string
+  salon_id: string
   plan_type: string
   status: string
   admin_notes: string | null

@@ -6,10 +6,25 @@ import { requireRole } from '@/modules/auth/session'
 export default async function AdminPricingPage() {
   await requireRole(['admin', 'super_admin'])
   const supabase = getSupabaseAdmin()
-  const { data: protect } = await supabase.from('protect_pricing').select('*').order('risk_level')
-  const { data: plans } = await supabase.from('compliance_plans').select('*').order('plan_type')
+
+  // Beide Tabellen existieren live, fuehren aber nur `id` und `created_at` —
+  // weder `risk_level`/`day_price_cents` noch `plan_type`/`price_cents`
+  // (Spaltenprobe 2026-08-24). Die Sortierung lief deshalb in 42703, und die
+  // Seite meldete "Keine Eintraege" statt "Tabelle unvollstaendig". Die
+  // Sortierung ist raus; der Fehler wird jetzt unterschieden.
+  //
+  // Bewusst KEINE Migration dafuer: das sind Preise. Welche Stufen und
+  // Betraege gelten, ist eine Geschaeftsentscheidung und darf nicht aus dem
+  // Anzeigecode erraten werden.
+  const { data: protect, error: protectErr } = await supabase.from('protect_pricing').select('*')
+  const { data: plans, error: plansErr } = await supabase.from('compliance_plans').select('*')
   const protectList = protect ?? []
   const plansList = plans ?? []
+
+  const emptyLabel = (err: { message?: string } | null) =>
+    err
+      ? 'Tabelle unvollständig — Schema passt nicht zum Code. ./scripts/schema-probe.sh'
+      : 'Keine Einträge. Migration ausführen.'
 
   return (
     <div>
@@ -17,7 +32,7 @@ export default async function AdminPricingPage() {
 
       <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>ChairMatch Protect</h3>
       {protectList.length === 0 ? (
-        <p style={{ color: 'var(--stone)', fontSize: 13, marginBottom: 24 }}>Keine Einträge. Migration ausführen.</p>
+        <p style={{ color: 'var(--stone)', fontSize: 13, marginBottom: 24 }}>{emptyLabel(protectErr)}</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
           {protectList.map((p: { risk_level: string; day_price_cents: number; month_price_cents: number; year_price_cents: number }) => (
@@ -35,7 +50,7 @@ export default async function AdminPricingPage() {
 
       <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--cream)', marginBottom: 12 }}>Einreich-Service (Compliance-Pläne)</h3>
       {plansList.length === 0 ? (
-        <p style={{ color: 'var(--stone)', fontSize: 13 }}>Keine Einträge. Migration ausführen.</p>
+        <p style={{ color: 'var(--stone)', fontSize: 13 }}>{emptyLabel(plansErr)}</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {plansList.map((c: { plan_type: string; price_cents: number; included_submissions: number; extra_submission_price_cents: number }) => (

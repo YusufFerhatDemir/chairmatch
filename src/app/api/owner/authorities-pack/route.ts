@@ -16,9 +16,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Kein Zugriff auf diesen Standort' }, { status: 403 })
   }
 
+  // Live heisst die Spalte `salon_id`, nicht `location_id` — mit dem alten
+  // Namen lief der Insert in 42703 und das Erstellen eines Behoerdenpakets
+  // endete fuer jeden Inhaber in 500. `created_by` kommt aus
+  // 20260824_schema_drift_repair.sql; ohne diese Migration ist unbekannt,
+  // wer das Paket angefordert hat.
   const { data: pack, error } = await supabase
     .from('authorities_packs')
-    .insert({ location_id, created_by: session.user.id })
+    .insert({ salon_id: location_id, created_by: session.user.id })
     .select('id')
     .single()
 

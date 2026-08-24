@@ -13,12 +13,12 @@ export async function GET(
   const supabase = getSupabaseAdmin()
   const { data: pack } = await supabase
     .from('authorities_packs')
-    .select('id, location_id, created_at')
+    .select('id, salon_id, created_at')
     .eq('id', id)
     .single()
   if (!pack) return new NextResponse('Paket nicht gefunden', { status: 404 })
 
-  const { data: salon } = await supabase.from('salons').select('name, owner_id').eq('id', pack.location_id).single()
+  const { data: salon } = await supabase.from('salons').select('name, owner_id').eq('id', pack.salon_id).single()
 
   const role = (session.user as { role?: string }).role || ''
   const isAdmin = ['admin', 'super_admin'].includes(role)
@@ -26,7 +26,7 @@ export async function GET(
     return new NextResponse('Keine Berechtigung', { status: 403 })
   }
 
-  const salonName = salon?.name || pack.location_id
+  const salonName = salon?.name || pack.salon_id
   const date = new Date(pack.created_at).toLocaleDateString('de-DE')
 
   const content = `Behördenpaket ChairMatch

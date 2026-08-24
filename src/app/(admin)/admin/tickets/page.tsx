@@ -9,11 +9,13 @@ export default async function AdminTicketsPage() {
   const supabase = getSupabaseAdmin()
   const { data: tickets } = await supabase
     .from('submission_tickets')
-    .select('id, location_id, plan_type, status, admin_notes, created_at')
+    // `salon_id` statt `location_id` — so heisst die Spalte live. `plan_type`
+    // und `admin_notes` kommen aus 20260824_schema_drift_repair.sql.
+    .select('id, salon_id, plan_type, status, admin_notes, created_at')
     .order('created_at', { ascending: false })
     .limit(100)
   const list = tickets ?? []
-  const salonIds = [...new Set(list.map((t: { location_id: string }) => t.location_id))]
+  const salonIds = [...new Set(list.map((t: { salon_id: string }) => t.salon_id))]
   const { data: salons } = salonIds.length > 0 ? await supabase.from('salons').select('id, name').in('id', salonIds) : { data: [] }
   const nameMap = new Map((salons ?? []).map((s: { id: string; name: string }) => [s.id, s.name]))
 
@@ -25,8 +27,8 @@ export default async function AdminTicketsPage() {
         <div style={{ background: 'var(--c1)', border: '1px solid rgba(176,144,96,0.08)', borderRadius: 12, padding: 24, textAlign: 'center', color: 'var(--stone)' }}>Noch keine Tickets.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {list.map((t: { id: string; location_id: string; plan_type: string; status: string; admin_notes: string | null; created_at: string }) => (
-            <TicketCard key={t.id} t={t} salonName={nameMap.get(t.location_id) || t.location_id.slice(0, 8)} />
+          {list.map((t: { id: string; salon_id: string; plan_type: string; status: string; admin_notes: string | null; created_at: string }) => (
+            <TicketCard key={t.id} t={t} salonName={nameMap.get(t.salon_id) || t.salon_id.slice(0, 8)} />
           ))}
         </div>
       )}

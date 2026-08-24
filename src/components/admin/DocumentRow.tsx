@@ -5,18 +5,21 @@ import { useState } from 'react'
 
 const STATUS_LABEL: Record<string, string> = { pending: 'Offen', approved: 'Freigegeben', rejected: 'Abgelehnt' }
 
+/** Spaltennamen wie in der Produktionsdatenbank — siehe src/test/live-schema.ts. */
 interface Doc {
   id: string
-  owner_type: string
-  owner_id: string
-  doc_type: string
-  verified_status: string
+  salon_id: string | null
+  user_id: string | null
+  type: string
+  status: string
+  name: string | null
+  url: string | null
   created_at: string
 }
 
 export function DocumentRow({ d }: { d: Doc }) {
   const router = useRouter()
-  const [status, setStatus] = useState(d.verified_status)
+  const [status, setStatus] = useState(d.status)
   const [loading, setLoading] = useState(false)
 
   async function setVerify(newStatus: 'approved' | 'rejected') {
@@ -39,8 +42,10 @@ export function DocumentRow({ d }: { d: Doc }) {
   return (
     <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 14, flexWrap: 'wrap', gap: 8 }}>
       <div>
-        <span style={{ color: 'var(--cream)', fontWeight: 600 }}>{d.doc_type}</span>
-        <span style={{ color: 'var(--stone)', fontSize: 12, marginLeft: 8 }}>{d.owner_type} · {d.owner_id.slice(0, 8)}…</span>
+        <span style={{ color: 'var(--cream)', fontWeight: 600 }}>{d.name || d.type}</span>
+        <span style={{ color: 'var(--stone)', fontSize: 12, marginLeft: 8 }}>
+          {d.salon_id ? `Standort · ${d.salon_id.slice(0, 8)}…` : d.user_id ? `Person · ${d.user_id.slice(0, 8)}…` : '—'}
+        </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {status === 'pending' && (

@@ -27,9 +27,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Kein Zugriff auf diesen Standort' }, { status: 403 })
   }
 
+  // Live heisst die Tabelle anders, als der Code sie bis 2026-08-24
+  // angesprochen hat:
+  //   owner_type / owner_id  → salon_id   (diese Route laesst ohnehin nur
+  //                                        owner_type === 'location' zu)
+  //   doc_type               → type
+  //   verified_status        → status
+  //   file_url               → url
+  // Mit den alten Namen lief der Insert in 42703 — das Hochladen eines
+  // Standort-Dokuments war vollstaendig blockiert.
   const { data, error } = await supabase
     .from('documents')
-    .insert({ owner_type, owner_id, doc_type, file_url: file_url || null, verified_status: 'pending' })
+    .insert({
+      salon_id: owner_id,
+      user_id: session.user.id,
+      type: doc_type,
+      url: file_url || null,
+      status: 'pending',
+    })
     .select('id')
     .single()
 
