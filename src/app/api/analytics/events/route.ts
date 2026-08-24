@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { isSchemaMismatch } from '@/lib/pg-errors'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
  * First-Party-Event-Stream — Eingang für trackEvent() aus dem Browser.
@@ -14,8 +15,18 @@ import { isSchemaMismatch } from '@/lib/pg-errors'
  * Kein Auth-Check (anonyme Visitors sollen tracken können), Geo aus
  * Vercel-Headern, User-Agent abgeschnitten. Schreibt in analytics_events.
  */
+const RATE = { scope: 'analytics-events', max: 60, windowMs: 60_000 }
+
 export async function POST(req: NextRequest) {
   try {
+    // Der Endpunkt schreibt unauthentifiziert in die Datenbank. 60/Minute
+    // reichen fuer eine lebhafte Sitzung und deckeln die Schreiblast, die
+    // eine einzelne Quelle erzeugen kann.
+    const limit = checkRateLimit(clientIp(req), RATE)
+    if (limit.limited) {
+      return rateLimitResponse(limit, 'Zu viele Events.')
+    }
+
     const body = await req.json().catch(() => null) as
       | { event_name?: unknown; session_id?: unknown; path?: unknown; props?: unknown }
       | null

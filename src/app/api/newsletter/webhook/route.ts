@@ -13,8 +13,15 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  *   Endpoint: https://www.chairmatch.de/api/newsletter/webhook
  *
  * Signatur-Verifikation (Svix): aktiv sobald RESEND_WEBHOOK_SECRET
- * gesetzt ist (Wert "whsec_..." aus dem Resend-Dashboard). Ohne Secret
- * werden Events weiterhin unverifiziert akzeptiert (Übergangsmodus).
+ * gesetzt ist (Wert "whsec_..." aus dem Resend-Dashboard).
+ *
+ * Ohne Secret war das bis 2026-08-24 ein "Übergangsmodus", der jedes Event
+ * unverifiziert annahm. Der Endpunkt ist öffentlich und ändert Daten: ein
+ * gefälschtes `email.bounced` setzt einen Abonnenten auf 'bounced' — also
+ * eine fremde Abmeldung ohne jede Prüfung — und verfälscht die
+ * Kampagnenzähler. In Produktion wird ohne Secret deshalb abgelehnt statt
+ * geschluckt; lokal bleibt der Modus erhalten, damit man mit `curl` testen
+ * kann.
  */
 
 interface ResendEvent {
@@ -57,7 +64,18 @@ export async function POST(req: NextRequest) {
   const rawBody = await req.text()
 
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET
-  if (webhookSecret && !verifySvixSignature(req, rawBody, webhookSecret)) {
+  if (!webhookSecret) {
+    const isProduction =
+      process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production'
+    if (isProduction) {
+      console.error(
+        '[Newsletter-Webhook] RESEND_WEBHOOK_SECRET fehlt — Event abgelehnt. ' +
+          'Wert "whsec_..." aus dem Resend-Dashboard in den Vercel-Env-Variablen setzen.'
+      )
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 })
+    }
+    console.warn('[Newsletter-Webhook] Ohne RESEND_WEBHOOK_SECRET — Signatur wird nicht geprüft (nur lokal).')
+  } else if (!verifySvixSignature(req, rawBody, webhookSecret)) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 

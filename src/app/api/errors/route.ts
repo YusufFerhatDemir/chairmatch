@@ -2,13 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { logError } from '@/lib/error-tracking'
 import { auth } from '@/modules/auth/auth.config'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
  * POST /api/errors — Client-side error reporting.
  * Called from ErrorBoundary / global-error when a rendering or JS error occurs.
  */
+const RATE = { scope: 'client-errors', max: 20, windowMs: 60_000 }
+
 export async function POST(request: NextRequest) {
   try {
+    // Eine Render-Schleife im Browser kann diesen Endpunkt hunderte Male pro
+    // Sekunde treffen. Der Deckel schuetzt `error_logs` davor, dass ein
+    // einziger kaputter Client die Tabelle fuellt.
+    const limit = checkRateLimit(clientIp(request), RATE)
+    if (limit.limited) {
+      return rateLimitResponse(limit, 'Zu viele Fehlermeldungen.')
+    }
+
     const body = await request.json().catch(() => ({}))
 
     const message = typeof body.message === 'string' ? body.message.slice(0, 2000) : 'Unknown client error'

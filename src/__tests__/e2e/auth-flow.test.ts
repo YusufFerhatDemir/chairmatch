@@ -9,6 +9,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createDb, postRequest, brokenJsonRequest, IDS } from './_harness/fixtures'
 import type { FakeSupabase, Row } from './_harness/fake-supabase'
+import { __resetRateLimits } from '@/lib/rate-limit'
 
 const NEW_USER = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
@@ -81,6 +82,9 @@ beforeEach(() => {
   state.db = createDb()
   state.anon = createAnonClient()
   state.clientIp = '203.0.113.7'
+  // Die Zaehler in @/lib/rate-limit sind modul-global. Ohne Reset zieht der
+  // erste Testfall die Grenze fuer alle folgenden mit.
+  __resetRateLimits()
 })
 
 afterEach(() => {
@@ -417,7 +421,11 @@ describe('Passwort zurücksetzen (POST /api/auth/forgot-password)', () => {
     expect(state.anon.auth.resetPasswordForEmail).not.toHaveBeenCalled()
   })
 
-  it('meldet einen Supabase-Fehler als 400 zurück', async () => {
+  it('gibt einen Supabase-Fehler NICHT nach aussen weiter', async () => {
+    // Vorher: 400 mit `error.message` von Supabase. Damit war von aussen
+    // unterscheidbar, ob eine Adresse registriert ist — die Erfolgsmeldung
+    // sagt bewusst "Falls ein Konto existiert", und der Fehlerzweig hat genau
+    // das ausgehebelt. Antwort ist jetzt in beiden Faellen identisch.
     state.anon.auth.resetPasswordForEmail.mockResolvedValueOnce({
       data: null,
       error: { message: 'Email rate limit exceeded' },
@@ -427,7 +435,61 @@ describe('Passwort zurücksetzen (POST /api/auth/forgot-password)', () => {
         email: 'kundin@example.de',
       }),
     )
-    expect(res.status).toBe(400)
+    const json = (await res.json()) as { ok?: boolean; message?: string; error?: string }
+
+    expect(res.status).toBe(200)
+    expect(json.ok).toBe(true)
+    expect(json.message).toMatch(/Falls ein Konto existiert/)
+    expect(JSON.stringify(json)).not.toMatch(/rate limit exceeded/i)
+  })
+
+  it('deckelt Reset-Anfragen pro IP', async () => {
+    // Der Endpunkt loest fremden Mailversand aus. Ohne Deckel genuegte eine
+    // Schleife, um eine beliebige Adresse zuzumuellen und nebenbei das
+    // Mailkontingent des Supabase-Projekts aufzubrauchen.
+    const call = (email: string) =>
+      forgotPasswordRoute(
+        postRequest('https://www.chairmatch.de/api/auth/forgot-password', { email }),
+      )
+
+    for (let i = 0; i < 3; i++) {
+      expect((await call(`nutzer${i}@example.de`)).status).toBe(200)
+    }
+    const blocked = await call('nummervier@example.de')
+
+    expect(blocked.status).toBe(429)
+    expect(blocked.headers.get('retry-after')).toBeTruthy()
+    expect(state.anon.auth.resetPasswordForEmail).toHaveBeenCalledTimes(3)
+  })
+
+  it('deckelt Reset-Anfragen zusaetzlich pro Adresse — auch ueber IP-Wechsel', async () => {
+    // Ein Limit nur pro IP ist wirkungslos: der Angreifer wechselt die Quelle
+    // und die Mailflut an dieselbe Adresse laeuft weiter. Deshalb zaehlt die
+    // Route zusaetzlich pro Empfaengeradresse.
+    const callFrom = (ip: string) =>
+      forgotPasswordRoute(
+        postRequest(
+          'https://www.chairmatch.de/api/auth/forgot-password',
+          { email: 'opfer@example.de' },
+          { 'x-forwarded-for': ip },
+        ),
+      )
+
+    for (let i = 0; i < 3; i++) {
+      const res = await callFrom(`198.51.100.${i}`)
+      expect(res.status).toBe(200)
+    }
+
+    // Vierte Anfrage von einer vierten IP — der IP-Zaehler ist unberuehrt.
+    const res = await callFrom('198.51.100.99')
+    const json = (await res.json()) as { ok?: boolean; message?: string }
+
+    // Bewusst 200 mit derselben generischen Meldung: ein 429 nur fuer
+    // existierende Adressen waere wieder ein Konto-Orakel.
+    expect(res.status).toBe(200)
+    expect(json.message).toMatch(/Falls ein Konto existiert/)
+    // Aber es geht keine vierte Mail raus.
+    expect(state.anon.auth.resetPasswordForEmail).toHaveBeenCalledTimes(3)
   })
 
   it('antwortet 500 bei kaputtem JSON-Body', async () => {

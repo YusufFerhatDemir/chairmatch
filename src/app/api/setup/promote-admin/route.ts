@@ -1,6 +1,8 @@
+import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { auth } from '@/modules/auth/auth.config'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
  * Setup endpoint to promote a user to super_admin.
@@ -11,7 +13,32 @@ import { auth } from '@/modules/auth/auth.config'
  *  (2) Header-Promote: Header "x-setup-key" + Body { "email": "..." } — befördert beliebigen User
  *
  * Set ADMIN_SETUP_KEY in .env.local. Nach Nutzung wieder entfernen.
+ *
+ * Dieser Endpunkt vergibt die hoechste Rolle der Anwendung. Drei Riegel, die
+ * bis 2026-08-24 fehlten:
+ *
+ *   1. Rate-Limit. Der Schluesselvergleich war der einzige Schutz, und es gab
+ *      beliebig viele Versuche pro Sekunde.
+ *   2. Zeitkonstanter Vergleich. `!==` bricht beim ersten abweichenden Byte
+ *      ab; ueber genug Versuche laesst sich daraus die Laufzeit auslesen.
+ *   3. Mindestlaenge. Ein versehentlich kurzes ADMIN_SETUP_KEY (etwa "test")
+ *      machte den Endpunkt praktisch offen — jetzt bleibt er deaktiviert.
  */
+
+const RATE = { scope: 'promote-admin', max: 5, windowMs: 60 * 60_000 }
+
+/** Kuerzere Schluessel sind kein Schutz — der Endpunkt bleibt dann zu. */
+const MIN_KEY_LENGTH = 24
+
+/** Vergleich ohne Laufzeit-Leck; Laengenunterschied ist ohnehin oeffentlich. */
+function keyMatches(provided: string | null, expected: string): boolean {
+  if (!provided) return false
+  const a = Buffer.from(provided)
+  const b = Buffer.from(expected)
+  if (a.length !== b.length) return false
+  return timingSafeEqual(a, b)
+}
+
 export async function POST(req: NextRequest) {
   const setupKey = process.env.ADMIN_SETUP_KEY
   if (!setupKey) {
@@ -19,6 +46,17 @@ export async function POST(req: NextRequest) {
       { error: 'Setup endpoint deaktiviert. Setze ADMIN_SETUP_KEY in .env.local' },
       { status: 403 }
     )
+  }
+  if (setupKey.length < MIN_KEY_LENGTH) {
+    console.error(
+      `[promote-admin] ADMIN_SETUP_KEY ist zu kurz (${setupKey.length} < ${MIN_KEY_LENGTH}) — Endpunkt bleibt deaktiviert.`
+    )
+    return NextResponse.json({ error: 'Setup endpoint deaktiviert.' }, { status: 403 })
+  }
+
+  const limit = checkRateLimit(clientIp(req), RATE)
+  if (limit.limited) {
+    return rateLimitResponse(limit, 'Zu viele Versuche.')
   }
 
   const supabase = getSupabaseAdmin()
@@ -31,11 +69,10 @@ export async function POST(req: NextRequest) {
     // Body evtl. leer
   }
 
-  const headerKey = req.headers.get('x-setup-key')
-  const bodyKey = body.setupKey
-  const providedKey = headerKey || bodyKey
+  const providedKey = req.headers.get('x-setup-key') ?? body.setupKey ?? null
 
-  if (providedKey !== setupKey) {
+  if (!keyMatches(providedKey, setupKey)) {
+    console.warn('[promote-admin] Fehlgeschlagener Setup-Key von', clientIp(req))
     return NextResponse.json({ error: 'Ungültiger Setup-Key' }, { status: 403 })
   }
 

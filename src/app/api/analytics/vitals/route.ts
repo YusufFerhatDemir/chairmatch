@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { isSchemaMismatch } from '@/lib/pg-errors'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
  * Web-Vitals RUM Endpoint — empfängt Core-Web-Vital-Messungen aus dem
@@ -13,8 +14,16 @@ import { isSchemaMismatch } from '@/lib/pg-errors'
 
 const VALID_METRICS = new Set(['CLS', 'INP', 'LCP', 'FCP', 'TTFB', 'FID'])
 
+const RATE = { scope: 'analytics-vitals', max: 30, windowMs: 60_000 }
+
 export async function POST(req: NextRequest) {
   try {
+    // Ein Seitenaufruf meldet hoechstens eine Handvoll Metriken.
+    const limit = checkRateLimit(clientIp(req), RATE)
+    if (limit.limited) {
+      return rateLimitResponse(limit, 'Zu viele Messwerte.')
+    }
+
     const body = await req.json().catch(() => null) as
       | { name?: unknown; value?: unknown; rating?: unknown; id?: unknown; session_id?: unknown; path?: unknown; navigationType?: unknown }
       | null
