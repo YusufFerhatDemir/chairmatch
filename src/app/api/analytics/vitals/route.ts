@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { isSchemaMismatch } from '@/lib/pg-errors'
 
 /**
  * Web-Vitals RUM Endpoint — empfängt Core-Web-Vital-Messungen aus dem
@@ -56,10 +57,9 @@ export async function POST(req: NextRequest) {
     })
 
     if (error) {
-      // 42P01 = Postgres undefined_table, PGRST205 = PostgREST "table not in
-      // schema cache" — beides heißt: Migration noch nicht eingespielt.
-      // 202 statt 500, sonst loggt jeder Besucher-Browser Console-Errors.
-      if (error.code === '42P01' || error.code === 'PGRST205' || error.message?.includes('schema cache')) {
+      // Migration noch nicht eingespielt → 202 statt 500, sonst loggt jeder
+      // Besucher-Browser Console-Errors. Codes siehe @/lib/pg-errors.
+      if (isSchemaMismatch(error)) {
         return NextResponse.json({ ok: false, reason: 'migration_pending' }, { status: 202 })
       }
       return NextResponse.json({ error: error.message }, { status: 500 })

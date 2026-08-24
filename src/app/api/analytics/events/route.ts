@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { isSchemaMismatch } from '@/lib/pg-errors'
 
 /**
  * First-Party-Event-Stream — Eingang für trackEvent() aus dem Browser.
@@ -62,10 +63,16 @@ export async function POST(req: NextRequest) {
     })
 
     if (error) {
-      // 42P01 = relation does not exist → Tabelle ist noch nicht migriert.
-      // Wir antworten 202 (Accepted, but not persisted), damit der Client
-      // nicht in Endlos-Retries läuft.
-      if (error.code === '42P01') {
+      // Tabelle/Spalte fehlt → Migration noch nicht eingespielt. 202
+      // (Accepted, but not persisted), damit der Client nicht in
+      // Endlos-Retries läuft.
+      //
+      // Vorher stand hier nur `error.code === '42P01'`. PostgREST antwortet
+      // für eine fehlende Tabelle aber mit PGRST205 — und `analytics_events`
+      // fehlt live. Jedes trackEvent() aus dem Browser bekam also 500 statt
+      // 202. Die Schwesterroute /api/analytics/vitals hatte den Fall korrekt
+      // abgedeckt; jetzt teilen sich beide isSchemaMismatch().
+      if (isSchemaMismatch(error)) {
         return NextResponse.json({ ok: false, reason: 'migration_pending' }, { status: 202 })
       }
       return NextResponse.json({ error: error.message }, { status: 500 })

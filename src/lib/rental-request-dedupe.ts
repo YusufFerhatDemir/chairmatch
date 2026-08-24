@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { logger } from '@/lib/logger'
+import { isMissingTable, isUniqueViolation } from '@/lib/pg-errors'
 
 /**
  * Serverseitiger Doppel-Submit-Schutz fuer Mietanfragen.
@@ -86,14 +87,6 @@ export type ClaimResult =
 // ---------------------------------------------------------------------------
 // Reine Helfer (ohne IO) — direkt testbar
 // ---------------------------------------------------------------------------
-
-function isMissingTable(code: string | undefined): boolean {
-  return code === '42P01' || code === 'PGRST205' || code === 'PGRST106'
-}
-
-function isUniqueViolation(code: string | undefined): boolean {
-  return code === '23505'
-}
 
 /**
  * Freitext vergleichbar machen, ohne verschiedene Nachrichten zu verschmelzen.
@@ -198,14 +191,14 @@ export async function claimRentalRequest(
 
     if (!insert.error) return { outcome: 'claimed', fingerprint }
 
-    if (isMissingTable(insert.error.code)) {
+    if (isMissingTable(insert.error)) {
       // Migration noch nicht eingespielt. Die Anfrage selbst ist wichtiger
       // als der Riegel — aber das gehoert laut in die Logs.
       logger.warn('rental_request.dedupe.table_missing', { error: insert.error.message })
       return { outcome: 'unavailable', fingerprint, reason: insert.error.message }
     }
 
-    if (!isUniqueViolation(insert.error.code)) {
+    if (!isUniqueViolation(insert.error)) {
       logger.error('rental_request.dedupe.claim_failed', insert.error, { fingerprint })
       return { outcome: 'error', fingerprint, error: insert.error.message }
     }

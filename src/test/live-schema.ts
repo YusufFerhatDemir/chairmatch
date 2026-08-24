@@ -26,8 +26,8 @@
  * niemand prueft, ist schlechter als keine.
  */
 
-/** Verifiziert am 2026-08-23 gegen die Produktionsdatenbank. */
-export const LIVE_SCHEMA_VERIFIED_AT = '2026-08-23'
+/** Verifiziert am 2026-08-24 gegen die Produktionsdatenbank. */
+export const LIVE_SCHEMA_VERIFIED_AT = '2026-08-24'
 
 export const LIVE_SCHEMA: Record<string, readonly string[]> = {
   rental_requests: [
@@ -128,15 +128,70 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
   profiles: ['id', 'email', 'full_name'],
 
   payout_accounts: ['user_id', 'context', 'account_holder'],
+
+  /**
+   * ACHTUNG — hier steht bewusst die ALTE Fassung.
+   *
+   * Die Tabelle existiert live, aber mit `is_active` (boolean) statt
+   * `status` (text), und ohne `name`, `tags`, `unsubscribe_token`,
+   * `last_sent_at`, `is_confirmed`. Der gesamte Newsletter-Code ist gegen
+   * die neue Fassung geschrieben — er lief live also in 42703, von der
+   * oeffentlichen Anmeldung bis zur Abmeldeseite.
+   *
+   * Erhoben am 2026-08-24 per Spaltenprobe. Sobald
+   * supabase/migrations/20260824_newsletter_schema_repair.sql eingespielt
+   * ist, wird diese Liste durch NEWSLETTER_SUBSCRIBERS_AFTER_REPAIR ersetzt
+   * — und erst dann, nicht vorher.
+   */
+  newsletter_subscribers: [
+    'id',
+    'email',
+    'source',
+    'user_id',
+    'subscribed_at',
+    'unsubscribed_at',
+    'is_active',
+  ],
 }
 
 /**
+ * Zielzustand von `newsletter_subscribers` nach
+ * supabase/migrations/20260824_newsletter_schema_repair.sql.
+ *
+ * Steht hier, damit die Ketten-Tests BEIDE Zustaende belegen koennen: dass
+ * der Code heute ehrlich scheitert, und dass er nach der Migration
+ * durchlaeuft. Ein Test, der nur den Zielzustand kennt, haette den Ausfall
+ * nicht gefunden — genau das ist hier passiert.
+ */
+export const NEWSLETTER_SUBSCRIBERS_AFTER_REPAIR: readonly string[] = [
+  'id',
+  'email',
+  'name',
+  'source',
+  'status',
+  'tags',
+  'unsubscribe_token',
+  'last_sent_at',
+  'is_confirmed',
+  'user_id',
+  'subscribed_at',
+  'unsubscribed_at',
+  'is_active',
+]
+
+/**
  * Tabellen, die der Code anspricht, die es in der Produktionsdatenbank aber
- * NICHT gibt (Stand 2026-08-23). Kein Test deckt sie ab — sie stehen hier,
- * damit der Befund nicht nur in einem Report verschwindet.
+ * NICHT gibt (Stand 2026-08-24, per Spaltenprobe ueber alle 63 im Code
+ * referenzierten Tabellen bestaetigt — nur diese drei fehlen).
  *
  * `notifications` fehlt bewusst in dieser Liste: der Code spricht sie seit
  * dem Fix nicht mehr an.
+ *
+ * Migrationen dafuer liegen im Repo und muessen im Supabase-SQL-Editor
+ * eingespielt werden:
+ *   analytics_events      → 20260525_analytics_events.sql
+ *   newsletter_campaigns  → 20260824_newsletter_schema_repair.sql
+ *   newsletter_sends      → 20260824_newsletter_schema_repair.sql
  */
 export const MISSING_IN_PRODUCTION: readonly string[] = [
   'analytics_events',

@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { logger } from '@/lib/logger'
+import { isMissingTable, isUniqueViolation } from '@/lib/pg-errors'
 import { rentalRequestEmailSubject, sendRentalRequestNotification } from '@/lib/email'
 
 /**
@@ -161,16 +162,6 @@ type ClaimResult =
    */
   | { kind: 'blocked'; error: string }
 
-/** Postgres/PostgREST-Codes fuer „Relation existiert nicht". */
-function isMissingTable(code: string | undefined): boolean {
-  return code === '42P01' || code === 'PGRST205' || code === 'PGRST106'
-}
-
-/** Postgres-Code fuer Unique-Verletzung. */
-function isUniqueViolation(code: string | undefined): boolean {
-  return code === '23505'
-}
-
 /**
  * Reserviert den Versand fuer (Typ, referenceId). Der zweite Aufruf mit
  * derselben Referenz laeuft in den UNIQUE-Index und bekommt 'duplicate' —
@@ -191,8 +182,8 @@ async function claimDelivery(referenceId: string, subject: string): Promise<Clai
       .maybeSingle()
 
     if (error) {
-      if (isUniqueViolation(error.code)) return { kind: 'duplicate' }
-      if (isMissingTable(error.code)) {
+      if (isUniqueViolation(error)) return { kind: 'duplicate' }
+      if (isMissingTable(error)) {
         logger.warn('rental_request_email.log_table_missing', {
           hint: 'Migration 20260823_email_delivery_log.sql nicht eingespielt — kein Doppelversand-Schutz',
         })

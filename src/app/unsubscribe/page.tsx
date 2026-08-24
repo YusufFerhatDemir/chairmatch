@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { isSchemaMismatch } from '@/lib/pg-errors'
 
 export const metadata: Metadata = {
   title: 'Newsletter abmelden',
@@ -19,6 +20,12 @@ interface PageProps {
  * GET /unsubscribe?token=...&action=resubscribe → reaktiviert
  *
  * Funktioniert ohne JS — alles serverseitig.
+ *
+ * Ein fehlgeschlagener Lookup ist NICHT "Link ungueltig". Bis 2026-08-24 hat
+ * diese Seite den Fehler des SELECT verworfen: weil `unsubscribe_token` live
+ * nicht existiert (42703), sah jeder Abmeldewillige "Link ungueltig" statt
+ * eines Serverfehlers — und blieb abonniert. Fuer eine Abmeldung ist das ein
+ * DSGVO-Problem, deshalb wird der Fehlerfall jetzt getrennt gemeldet.
  */
 export default async function UnsubscribePage({ searchParams }: PageProps) {
   const params = await searchParams
@@ -30,13 +37,20 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
 
   if (token) {
     const sb = getSupabaseAdmin()
-    const { data: sub } = await sb
+    const { data: sub, error: lookupErr } = await sb
       .from('newsletter_subscribers')
       .select('id, email, status')
       .eq('unsubscribe_token', token)
       .maybeSingle()
 
-    if (sub) {
+    if (lookupErr) {
+      console.error(
+        '[Unsubscribe] Lookup fehlgeschlagen:',
+        lookupErr.code,
+        isSchemaMismatch(lookupErr) ? 'Schema passt nicht zur DB' : lookupErr.message
+      )
+      state = 'error'
+    } else if (sub) {
       email = sub.email
       if (action === 'resubscribe') {
         const { error } = await sb

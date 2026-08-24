@@ -40,7 +40,15 @@ probe() { # tabelle spalte
   return 0
 }
 
-# Erwartete Spalten je Tabelle — Spiegel von src/test/live-schema.ts.
+# Erwartete Spalten je Tabelle — SOLL-Zustand, nicht Ist-Zustand.
+#
+# Die unteren vier Bloecke (newsletter_*, analytics_events) beschreiben das
+# Schema NACH den offenen Migrationen:
+#   supabase/migrations/20260525_analytics_events.sql
+#   supabase/migrations/20260824_newsletter_schema_repair.sql
+# Solange die nicht eingespielt sind, meldet die Probe dort KEINE/FEHLT — das
+# ist der erwartete Befund, kein neuer Fehler. src/test/live-schema.ts fuehrt
+# dagegen den tatsaechlichen Ist-Zustand, damit die Tests ehrlich bleiben.
 while IFS='|' read -r table columns; do
   [ -z "$table" ] && continue
   printf '%s\n' "$table"
@@ -54,6 +62,10 @@ notification_log|id user_id title body type reference_id reference_type is_read 
 user_uploads|id user_id target salon_id equipment_id doc_key bucket storage_path mime_type size_bytes is_public created_at
 salons|id owner_id name city slug gallery logo_url created_at updated_at
 rental_bookings|id equipment_id status created_at
+newsletter_subscribers|id email name source status tags unsubscribe_token last_sent_at is_confirmed subscribed_at unsubscribed_at
+newsletter_campaigns|id subject preview_text html_content audience_filter status total_recipients total_sent total_opened total_clicked total_bounced sent_at created_by created_at updated_at
+newsletter_sends|id campaign_id subscriber_id status resend_email_id error_message sent_at opened_at clicked_at created_at
+analytics_events|id event_name session_id user_id path props source country region city user_agent created_at
 TABLES
 
 if [ "$fail" -eq 0 ]; then

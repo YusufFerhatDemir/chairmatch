@@ -261,6 +261,11 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
 
     const rows = this.db.rows(this.table)
 
+    if (this.op === 'select' || this.op === 'delete') {
+      const unknownColumn = this.unknownReadColumn()
+      if (unknownColumn) return { data: null, error: undefinedColumn(this.table, unknownColumn) }
+    }
+
     if (this.op === 'insert') {
       const inserted: Row[] = []
       for (const raw of this.payload) {
@@ -285,7 +290,8 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     }
 
     if (this.op === 'update') {
-      const unknownColumn = this.db.findUnknownColumn(this.table, this.patch)
+      const unknownColumn =
+        this.db.findUnknownColumn(this.table, this.patch) ?? this.unknownReadColumn()
       if (unknownColumn) return { data: null, error: undefinedColumn(this.table, unknownColumn) }
 
       const hit = rows.filter((row) => this.matches(row))
@@ -302,6 +308,29 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     let hit = rows.filter((row) => this.matches(row))
     if (this.rowLimit != null) hit = hit.slice(0, this.rowLimit)
     return { data: this.project(hit), error: null }
+  }
+
+  /**
+   * Lesende Zugriffe gegen das Spaltenschema pruefen.
+   *
+   * PostgREST beantwortet `?select=status` und `?eq.status=active` mit 42703,
+   * wenn es die Spalte nicht gibt — und zwar bevor es die Rechte prueft.
+   * Genau darauf beruht ./scripts/schema-probe.sh.
+   *
+   * Der Fake hat das bis 2026-08-24 nur fuer INSERT/UPDATE getan. Deshalb
+   * konnte der komplette Newsletter live an `newsletter_subscribers.status`
+   * scheitern (die Tabelle fuehrt `is_active`), waehrend hier alles gruen
+   * blieb: die Anmeldung las `select('id, status')`, bekam vom Fake brav
+   * eine Zeile und lief nie in den Fehlerzweig.
+   */
+  private unknownReadColumn(): string | null {
+    for (const column of this.projection ?? []) {
+      if (!this.db.hasColumn(this.table, column)) return column
+    }
+    for (const { column } of this.filters) {
+      if (!this.db.hasColumn(this.table, column)) return column
+    }
+    return null
   }
 }
 
