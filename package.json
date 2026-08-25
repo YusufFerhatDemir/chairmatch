@@ -15,7 +15,8 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "ios:build": "cd mobile && npx eas-cli build --platform ios --profile production --non-interactive",
-    "ios:submit": "cd mobile && npx eas-cli submit --platform ios --profile production --non-interactive --latest"
+    "ios:submit": "cd mobile && npx eas-cli submit --platform ios --profile production --non-interactive --latest",
+    "verify:pricing-schema": "node scripts/verify-pricing-schema.mjs"
   },
   "author": "Yusuf Demir",
   "license": "MIT",

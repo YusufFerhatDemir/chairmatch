@@ -32,6 +32,17 @@
 --     compliance_plans_plan_type_chk in der Migration.
 -- ──────────────────────────────────────────────────────────────────────
 
+-- ── ACHTUNG: GILT NUR VOR 20260826_pricing_gueltigkeit.sql ────────────
+-- Dieses Template ueberschreibt den laufenden Preis
+-- (`ON CONFLICT … DO UPDATE`). Danach ist nicht mehr feststellbar, welcher
+-- Preis zum Zeitpunkt eines Vertrags galt.
+--
+-- Sobald `supabase/migrations/20260826_pricing_gueltigkeit.sql`
+-- angewendet ist, gibt es den UNIQUE-Index auf risk_level/plan_type nicht
+-- mehr und diese Datei scheitert mit 42P10. Dann statt ihrer:
+--   supabase/seed/pricing.seed.versioniert.template.sql
+-- ──────────────────────────────────────────────────────────────────────
+
 BEGIN;
 
 -- ══════════════════════════════════════════════════════════════════════
