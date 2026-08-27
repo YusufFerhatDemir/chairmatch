@@ -80,6 +80,133 @@ function requireProviderActor(result: ActorResult): ActionFailure | null {
   return null
 }
 
+/** Minuten seit Mitternacht aus "HH:MM[:SS]". */
+function minutesOfDay(time: unknown): number {
+  const [h, m] = String(time).split(':').map(Number)
+  return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0)
+}
+
+/**
+ * Hat die frisch angelegte Buchung ein Rennen um denselben Slot verloren?
+ *
+ * Gepraeft wird gegen alle anderen aktiven Buchungen desselben Salons am
+ * selben Tag. Bei Ueberschneidung gewinnt die aeltere Buchung; bei exakt
+ * gleichem Zeitstempel entscheidet die id, damit die Ordnung total bleibt
+ * und nicht beide Seiten zuruecktreten.
+ */
+async function losesSlotRace(
+  neu: Record<string, unknown>,
+  durationMinutes: number,
+): Promise<boolean> {
+  const supabase = getSupabaseAdmin()
+
+  const { data: others } = await supabase
+    .from('bookings')
+    .select('id, start_time, end_time, created_at')
+    .eq('salon_id', neu.salon_id as string)
+    .eq('booking_date', neu.booking_date as string)
+    .in('status', ['confirmed', 'pending'])
+    .neq('id', neu.id as string)
+
+  if (!others || others.length === 0) return false
+
+  const start = minutesOfDay(neu.start_time)
+  const end = neu.end_time ? minutesOfDay(neu.end_time) : start + durationMinutes
+  const eigenerStempel = String(neu.created_at ?? '')
+  const eigeneId = String(neu.id ?? '')
+
+  return others.some(other => {
+    const oStart = minutesOfDay(other.start_time)
+    const oEnd = minutesOfDay(other.end_time)
+    const ueberschneidet = start < oEnd && end > oStart
+    if (!ueberschneidet) return false
+
+    const fremderStempel = String(other.created_at ?? '')
+    if (fremderStempel !== eigenerStempel) return fremderStempel < eigenerStempel
+    return String(other.id ?? '') < eigeneId
+  })
+}
+
+/** Wie oft ein CAS auf denselben Rabattcode wiederholt wird, bevor er als voll gilt. */
+const PROMO_CLAIM_ATTEMPTS = 5
+
+/**
+ * Belegt atomar einen Platz im Kontingent eines Rabattcodes.
+ *
+ * Der Compare-and-Swap `.eq('used_count', gelesen)` laesst bei gleichzeitigen
+ * Buchungen nur einen Schreiber gewinnen; der Verlierer liest neu und
+ * versucht es erneut, bis das Kontingent erschoepft ist. Ohne diese Bedingung
+ * war der Deckel `max_uses` wirkungslos.
+ */
+async function claimPromoCode(rawCode: string): Promise<{
+  claimed: boolean
+  discount: number
+  type: 'percent' | 'fixed' | null
+}> {
+  const supabase = getSupabaseAdmin()
+  const code = rawCode.toUpperCase()
+  const nichtEingeloest = { claimed: false, discount: 0, type: null } as const
+
+  for (let versuch = 0; versuch < PROMO_CLAIM_ATTEMPTS; versuch++) {
+    const promo = await validatePromoCode(code)
+    if (!promo.valid) return nichtEingeloest
+
+    const { data: row } = await supabase
+      .from('promo_codes')
+      .select('used_count, max_uses')
+      .eq('code', code)
+      .single()
+
+    if (!row) return nichtEingeloest
+
+    const gelesen = row.used_count ?? 0
+    if (row.max_uses === null || row.max_uses === undefined) {
+      // Unbegrenzter Code: hochzaehlen ist reine Statistik, kein Deckel.
+      await supabase
+        .from('promo_codes')
+        .update({ used_count: gelesen + 1 })
+        .eq('code', code)
+      return { claimed: true, discount: promo.discount, type: promo.type }
+    }
+
+    if (gelesen >= row.max_uses) return nichtEingeloest
+
+    const { data: gewonnen } = await supabase
+      .from('promo_codes')
+      .update({ used_count: gelesen + 1 })
+      .eq('code', code)
+      .eq('used_count', gelesen)
+      .select('id')
+
+    if (gewonnen && gewonnen.length > 0) {
+      return { claimed: true, discount: promo.discount, type: promo.type }
+    }
+    // Jemand anderes war schneller — neu lesen und erneut versuchen.
+  }
+
+  console.warn(`[promo] ${code}: Kontingent nach ${PROMO_CLAIM_ATTEMPTS} Versuchen nicht belegbar`)
+  return nichtEingeloest
+}
+
+/** Gibt einen belegten Platz zurueck (Buchung kam doch nicht zustande). */
+async function releasePromoCode(rawCode: string): Promise<void> {
+  const supabase = getSupabaseAdmin()
+  const code = rawCode.toUpperCase()
+  const { data: row } = await supabase
+    .from('promo_codes')
+    .select('used_count')
+    .eq('code', code)
+    .single()
+
+  const gelesen = row?.used_count ?? 0
+  if (gelesen <= 0) return
+  await supabase
+    .from('promo_codes')
+    .update({ used_count: gelesen - 1 })
+    .eq('code', code)
+    .eq('used_count', gelesen)
+}
+
 export async function createBooking(input: unknown) {
   const parsed = createBookingSchema.safeParse(input)
   if (!parsed.success) {
@@ -93,8 +220,13 @@ export async function createBooking(input: unknown) {
     return { error: 'Nicht authentifiziert. Bitte melden Sie sich an.' }
   }
 
+  // Fehlendes salonId hat bis 2026-08-27 einen ERFOLG gemeldet:
+  // `{ success: true, bookingId: 'demo-…' }`, ohne irgendetwas zu schreiben.
+  // Die Route macht daraus 201, der Kunde sieht "gebucht", der Salon sieht
+  // nie einen Termin. Dieselbe stille Erfolgsluege, die im Bewertungs-
+  // Formular bereits ausgebaut wurde — nur hier am Kernprodukt.
   if (!data.salonId) {
-    return { success: true, bookingId: 'demo-' + Date.now() }
+    return { error: 'Salon fehlt. Bitte den Termin erneut ueber die Salonseite buchen.' }
   }
 
   const supabase = getSupabaseAdmin()
@@ -108,6 +240,20 @@ export async function createBooking(input: unknown) {
 
   if (!service) {
     return { error: 'Dienstleistung nicht gefunden.' }
+  }
+
+  // Die Leistung muss zu DIESEM Salon gehoeren. Geprueft wurde das nie:
+  // `serviceId` und `salonId` kamen unabhaengig aus dem Request. Damit liess
+  // sich die guenstige Leistung eines fremden Salons zum Preis von dort auf
+  // einen anderen Salon buchen — Preis, Dauer und Termin stammten aus zwei
+  // verschiedenen Betrieben.
+  if (service.salon_id !== data.salonId) {
+    return { error: 'Dienstleistung nicht gefunden.' }
+  }
+
+  // Deaktivierte Leistungen waren weiter buchbar — der Filter fehlte schlicht.
+  if (service.is_active === false) {
+    return { error: 'Diese Dienstleistung wird derzeit nicht angeboten.' }
   }
 
   const riskLevel = (service as { risk_level?: string }).risk_level
@@ -131,12 +277,24 @@ export async function createBooking(input: unknown) {
   // Snapshot policy
   const policy = await snapshotPolicy(data.salonId)
 
-  // Validate promo code
+  // Promo-Code: pruefen UND das Kontingent sofort belegen.
+  //
+  // Vorher lagen Pruefung und Verbrauch weit auseinander — `validatePromoCode`
+  // hier oben, das Hochzaehlen als "best effort" nach dem Insert, und zwar als
+  // read-then-write ohne Bedingung. Zwei gleichzeitige Buchungen lasen beide
+  // used_count = 4 (max_uses = 5) und schrieben beide 5: der Deckel eines
+  // Rabattcodes war damit praktisch nicht durchsetzbar.
+  //
+  // Jetzt wird der Platz im Kontingent per Compare-and-Swap belegt, bevor der
+  // Preis faellt. Wer keinen Platz bekommt, bucht zum vollen Preis — nie
+  // umgekehrt. Schlaegt der Insert danach fehl, wird der Platz zurueckgegeben.
   let finalPriceCents = service.price_cents
+  let promoClaimed = false
   if (data.promoCode) {
-    const promo = await validatePromoCode(data.promoCode)
-    if (promo.valid) {
-      finalPriceCents = calculatePrice(service.price_cents, promo.discount, promo.type)
+    const claim = await claimPromoCode(data.promoCode)
+    if (claim.claimed) {
+      promoClaimed = true
+      finalPriceCents = calculatePrice(service.price_cents, claim.discount, claim.type)
     }
   }
 
@@ -167,26 +325,31 @@ export async function createBooking(input: unknown) {
     .single()
 
   if (bookingError || !newBooking) {
+    // Der Rabatt-Platz war schon belegt — zurueckgeben, sonst verfaellt er
+    // fuer eine Buchung, die es nie gegeben hat.
+    if (promoClaimed && data.promoCode) {
+      await releasePromoCode(data.promoCode)
+    }
     return { error: 'Buchung konnte nicht erstellt werden.' }
   }
 
-  // Step 2: Increment promo usage (best effort)
-  if (data.promoCode && finalPriceCents < service.price_cents) {
-    try {
-      const { data: promo } = await supabase
-        .from('promo_codes')
-        .select('used_count')
-        .eq('code', data.promoCode.toUpperCase())
-        .single()
-
-      await supabase
-        .from('promo_codes')
-        .update({ used_count: (promo?.used_count || 0) + 1 })
-        .eq('code', data.promoCode.toUpperCase())
-    } catch {
-      // Best effort - log but continue
-      console.error('Failed to update promo code usage')
+  // Step 2: Slot-Nachpruefung.
+  //
+  // `checkConflict` oben ist ein SELECT vor dem INSERT — zwischen beiden
+  // passt eine zweite Buchung. Fuer Miet-Buchungen faengt das der
+  // EXCLUDE-Constraint `rental_bookings_no_overlap` ab; `bookings` hat kein
+  // Gegenstueck (Migration 20260827_bookings_no_overlap liegt bereit, ist
+  // aber noch nicht angewendet). Bis dahin entscheidet die Nachpruefung:
+  // beide Seiten sehen einander jetzt, und die JUENGERE tritt zurueck. Der
+  // Vergleich ist total geordnet (created_at, dann id), also gibt genau eine
+  // von zwei kollidierenden Buchungen auf — nie beide.
+  const verlierer = await losesSlotRace(newBooking, service.duration_minutes)
+  if (verlierer) {
+    await supabase.from('bookings').delete().eq('id', newBooking.id)
+    if (promoClaimed && data.promoCode) {
+      await releasePromoCode(data.promoCode)
     }
+    return { error: 'Dieser Zeitslot ist bereits belegt.' }
   }
 
   // Step 3: Audit log (best effort)

@@ -422,10 +422,17 @@ describe('Doppelbuchung verhindern', () => {
     expect(res.status).toBe(400)
   })
 
-  it('zwei gleichzeitige Anfragen auf denselben Slot: genau eine gewinnt nicht — Race dokumentiert', async () => {
+  it('zwei gleichzeitige Anfragen auf denselben Slot: genau eine gewinnt', async () => {
     // Der Konflikt-Check ist SELECT-dann-INSERT und damit nicht atomar.
     // Anders als bei rental_bookings (EXCLUDE-Constraint) gibt es auf
-    // `bookings` KEINEN DB-seitigen Schutz — beide Requests kommen durch.
+    // `bookings` weiterhin KEINEN DB-seitigen Schutz — die Migration
+    // 20260827_bookings_no_overlap liegt bereit, ist aber nicht angewendet.
+    //
+    // Dieser Test hat den Durchschlupf bis 2026-08-27 als bekannten Defekt
+    // festgehalten ([201, 201], zwei Buchungen auf demselben Slot). Seit der
+    // Nachpruefung in createBooking (losesSlotRace) tritt die juengere
+    // Buchung zurueck: eine gewinnt, eine bekommt 400. Deterministisch
+    // ausgereizt wird der Pfad in booking-integrity.test.ts.
     const body = {
       salonId: IDS.salon,
       serviceId: IDS.service,
@@ -436,12 +443,11 @@ describe('Doppelbuchung verhindern', () => {
       createBookingRoute(postRequest('https://www.chairmatch.de/api/bookings', body), undefined),
       createBookingRoute(postRequest('https://www.chairmatch.de/api/bookings', body), undefined),
     ])
-    expect([a.status, b.status]).toEqual([201, 201])
+    expect([a.status, b.status].sort()).toEqual([201, 400])
     const sameSlot = db()
       .rows('bookings')
       .filter(x => x.booking_date === FREE_DAY && x.start_time === '14:00:00')
-    // FINDING: 2 statt 1 — dokumentiert die fehlende DB-Constraint auf bookings.
-    expect(sameSlot).toHaveLength(2)
+    expect(sameSlot).toHaveLength(1)
   })
 })
 
