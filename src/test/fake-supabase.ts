@@ -38,9 +38,11 @@
  *    auswaehlt (`.order(...).limit(1)`) statt eine beliebige Zeile zu
  *    erwischen.
  *
- * Bewusst nicht abgebildet: Joins (eine `select`-Liste mit eingebetteter
- * Ressource schaltet die Projektion ab) und RLS. Wer Policies testen will,
- * braucht eine echte Datenbank.
+ * Bewusst nicht abgebildet: der Join selbst (die eingebettete Zeile muss im
+ * Seed stehen) und RLS. Wer Policies testen will, braucht eine echte
+ * Datenbank. Die Projektion gilt seit Track 10 aber AUCH bei Einbettungen —
+ * vorher schaltete jede Klammer sie ab, und genau dort liess sich nicht
+ * belegen, dass eine Route Konto-IDs aus ihrer Antwort heraushaelt.
  */
 
 export type Row = Record<string, unknown>
@@ -102,13 +104,80 @@ function uniqueViolation(index: UniqueIndex): FakeError {
   }
 }
 
+/**
+ * Zerlegt eine PostgREST-`select`-Liste in die Schluessel, die in der Antwort
+ * stehen — eingebettete Ressourcen eingeschlossen.
+ *
+ * Bis Track 10 schaltete JEDE Klammer in der Liste die Projektion komplett ab
+ * (`columns.includes('(') -> projection = null`). Damit lieferte der Fake bei
+ * einer Abfrage wie
+ *
+ *     .select('id, rating, customer:profiles!fk(full_name)')
+ *
+ * die vollstaendige Zeile zurueck — inklusive `customer_id` und
+ * `reported_by`. Ein Test konnte deshalb genau dort NICHT belegen, dass eine
+ * Route Konto-IDs aus ihrer Antwort heraushaelt: an jeder Stelle, an der eine
+ * Einbettung im Spiel ist. Das ist die haeufigste Stelle. Echtes PostgREST
+ * wendet die Spaltenliste sehr wohl an.
+ *
+ * Abgebildet wird die Namensgebung der Antwort, nicht der Join:
+ *   - `spalte`                        -> "spalte"
+ *   - `alias:spalte`                  -> "alias"
+ *   - `alias:tabelle!hinweis(a, b)`   -> "alias"
+ *   - `tabelle(a, b)`                 -> "tabelle"
+ * Der Inhalt der Klammer wird nicht weiter zugeschnitten — die eingebettete
+ * Zeile kommt aus dem Seed, wie bisher.
+ */
+export interface SelectKey {
+  /** Der Schluessel, unter dem der Wert in der Antwort steht. */
+  key: string
+  /**
+   * Eingebettete Ressource? Die ist KEINE Spalte der abgefragten Tabelle und
+   * darf deshalb nicht gegen das Spaltenschema laufen — sonst antwortet der
+   * Fake auf `rental_equipment ... salons(id, name)` mit
+   * "column rental_equipment.salons does not exist".
+   */
+  embedded: boolean
+}
+
+export function parseSelectColumns(columns: string): SelectKey[] {
+  const keys: SelectKey[] = []
+  let tiefe = 0
+  let teil = ''
+
+  const uebernehmen = () => {
+    const roh = teil.trim()
+    teil = ''
+    if (!roh) return
+    const embedded = roh.includes('(')
+    // Alles ab der ersten Klammer gehoert zur Einbettung, nicht zum Namen.
+    const ohneKlammer = roh.split('(')[0].trim()
+    // `alias:ziel` -> der Schluessel in der Antwort ist der Alias.
+    const name = (ohneKlammer.includes(':') ? ohneKlammer.split(':')[0] : ohneKlammer)
+      // `tabelle!fk_hinweis` -> der Schluessel ist die Tabelle.
+      .split('!')[0]
+      .trim()
+    if (name) keys.push({ key: name, embedded })
+  }
+
+  for (const zeichen of columns) {
+    if (zeichen === '(') { tiefe++; teil += zeichen; continue }
+    if (zeichen === ')') { tiefe--; teil += zeichen; continue }
+    if (zeichen === ',' && tiefe === 0) { uebernehmen(); continue }
+    teil += zeichen
+  }
+  uebernehmen()
+
+  return keys
+}
+
 class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null }> {
   private op: Op = 'select'
   private payload: Row[] = []
   private patch: Row = {}
   private filters: Filter[] = []
   private rowLimit: number | null = null
-  private projection: string[] | null = null
+  private projection: SelectKey[] | null = null
   private orderBy: { column: string; ascending: boolean }[] = []
 
   constructor(
@@ -134,17 +203,15 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   }
 
   /**
-   * Merkt sich die Spaltenauswahl. Eingebettete Ressourcen
-   * (`salons(owner_id)`) schalten die Projektion ab — der Fake kann keine
-   * Joins, und eine halb angewandte Projektion waere irrefuehrender als gar
-   * keine. `*` liefert wie in PostgREST die ganze Zeile.
+   * Merkt sich die Spaltenauswahl — Einbettungen eingeschlossen. `*` liefert
+   * wie in PostgREST die ganze Zeile, auch neben einer Einbettung.
    */
   select(columns?: string) {
-    if (!columns || columns.includes('(') || columns.trim() === '*') {
+    if (!columns || columns.trim() === '*') {
       this.projection = null
       return this
     }
-    this.projection = columns.split(',').map((c) => c.trim()).filter(Boolean)
+    this.projection = parseSelectColumns(columns)
     return this
   }
 
@@ -159,13 +226,22 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   private project(rows: Row[]): Row[] {
     const columns = this.projection
     if (!columns) return rows
+    // `select('*, salons(name)')` ist erlaubt: der Stern steht fuer alle
+    // Spalten der Tabelle, die Einbettung kommt dazu. Dann gibt es nichts
+    // wegzuschneiden.
+    if (columns.some(c => c.key === '*')) return rows
     return rows.map((row) => {
       const out: Row = {}
-      for (const column of columns) {
-        if (column in row) out[column] = row[column]
+      for (const { key } of columns) {
+        if (key in row) out[key] = row[key]
       }
       return out
     })
+  }
+
+  /** Nur fuer Tests der Projektion selbst — sonst nirgends gebraucht. */
+  get selectedColumns(): string[] | null {
+    return this.projection?.map(c => c.key) ?? null
   }
 
   eq(column: string, value: unknown) {
@@ -427,8 +503,10 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
    * eine Zeile und lief nie in den Fehlerzweig.
    */
   private unknownReadColumn(): string | null {
-    for (const column of this.projection ?? []) {
-      if (!this.db.hasColumn(this.table, column)) return column
+    // Eingebettete Ressourcen sind Beziehungen, keine Spalten dieser Tabelle.
+    for (const { key, embedded } of this.projection ?? []) {
+      if (embedded || key === '*') continue
+      if (!this.db.hasColumn(this.table, key)) return key
     }
     for (const { column } of this.filters) {
       if (!this.db.hasColumn(this.table, column)) return column

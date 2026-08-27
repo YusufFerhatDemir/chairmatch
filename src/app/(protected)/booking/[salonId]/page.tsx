@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PROVS, type DemoSpec } from '@/lib/demo-data'
+import { naechsteTage } from '@/lib/booking-days'
 
 /**
  * Termin-Buchung — /booking/[salonId]
@@ -44,6 +45,33 @@ import { PROVS, type DemoSpec } from '@/lib/demo-data'
  *    Jetzt wird der Code unveraendert mitgeschickt und ausschliesslich
  *    serverseitig geprueft. Was auf der Bestaetigung steht, ist der Preis
  *    aus der angelegten Buchung (`priceCents` aus der Antwort).
+ *
+ * Track 10 nimmt sich die dritte Erfindung vor: DIE FREIEN ZEITEN.
+ *
+ * 3. EIN SLOT-RASTER AUS DEM QUELLTEXT.
+ *    Hier stand eine feste Liste `timeSlots` — 09:00 bis 18:30 in
+ *    Halbstundenschritten, zwanzig Knoepfe, alle immer anklickbar. Sie kannte
+ *    weder die Oeffnungszeiten des Salons noch seine Bestandsbuchungen noch
+ *    die Dauer der gewaehlten Leistung noch die Uhrzeit. Angeboten wurden
+ *    damit:
+ *      - Termine an Tagen, an denen der Salon geschlossen hat,
+ *      - Termine ausserhalb der Oeffnungszeiten,
+ *      - Termine, auf denen laengst eine andere Buchung liegt,
+ *      - Termine, die heute schon vorbei sind.
+ *    `createBooking` weist all das ab (Track 6), der Kunde landete also
+ *    zuverlaessig in einer Fehlermeldung — nach drei Schritten und nach
+ *    Eingabe seiner Kontaktdaten. Die zweite, gehaertete Buchungsstrecke
+ *    (/salon/[slug]/buchen) fragt seit Track 6 `/api/availability`; diese
+ *    hier hat es nie getan. Jetzt beide.
+ *
+ * 4. DAS DATUM WAR UM EINEN TAG VERSCHOBEN — ABENDS.
+ *    Der Tagesstreifen entstand aus `new Date()`, beschriftet wurde mit
+ *    `d.getDate()`/`d.getMonth()` (Ortszeit des Browsers, in Deutschland
+ *    also Berlin), abgeschickt wurde `d.toISOString().split('T')[0]` (UTC).
+ *    Zwischen 22:00 und Mitternacht Berliner Sommerzeit sind das zwei
+ *    verschiedene Tage: der Kunde tippte auf "Fr 28" und buchte den 27.
+ *    Beides kommt jetzt aus `berlinToday()` — derselben Quelle, aus der
+ *    auch die Belegungsrechnung ihren "heute"-Begriff nimmt.
  */
 
 interface Service {
@@ -101,6 +129,9 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [consentGiven, setConsentGiven] = useState(false)
+  const [slots, setSlots] = useState<string[]>([])
+  const [laedtSlots, setLaedtSlots] = useState(false)
+  const [slotFehler, setSlotFehler] = useState<string | null>(null)
 
   /**
    * Beispiel-Eintrag aus `PROVS`? Dann ist hier nichts buchbar — weder der
@@ -114,31 +145,77 @@ export default function BookingPage() {
     let abgebrochen = false
     fetch(`/api/salons/${salonId}`)
       .then(r => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then(data => { if (!abgebrochen) setSalon(data) })
+      .then((data: SalonData) => {
+        if (abgebrochen) return
+        setSalon(data)
+        /*
+         * `/listings/[slug]` verlinkt hierher als
+         * `/booking/{salonId}?service={id}` — die Leistung, auf deren Seite
+         * der Kunde gerade den Preis gelesen hat. Der Parameter wurde bis
+         * Track 10 verworfen: die Seite oeffnete mit leerer Auswahl, und der
+         * Kunde musste die Leistung erneut suchen.
+         *
+         * Uebernommen wird nur, was dieser Salon wirklich anbietet — eine
+         * Service-ID aus der URL ist eine Behauptung des Aufrufers. Gelesen
+         * wird sie hier statt ueber `useSearchParams`, weil dieser Hook in
+         * einer Client-Page eine Suspense-Grenze verlangt.
+         */
+        const gewuenscht = new URLSearchParams(window.location.search).get('service')
+        const treffer = (data.services || []).find(s => s.id === gewuenscht)
+        if (treffer) setSelectedService(treffer)
+      })
       .catch(() => { if (!abgebrochen) setError('Dieser Salon konnte nicht geladen werden.') })
     return () => { abgebrochen = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [salonId])
 
-  // Generate 7 days from today
-  const days = useMemo(() => {
-    const result: { day: string; dt: number; mo: number; full: string; iso: string }[] = []
-    const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
-    for (let i = 0; i < 7; i++) {
-      const d = new Date()
-      d.setDate(d.getDate() + i)
-      result.push({
-        day: dayNames[d.getDay()],
-        dt: d.getDate(),
-        mo: d.getMonth() + 1,
-        full: `${dayNames[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}`,
-        iso: d.toISOString().split('T')[0],
-      })
-    }
-    return result
-  }, [])
+  /**
+   * Sieben Tage ab heute — Beschriftung und ISO-Wert aus DERSELBEN Quelle.
+   * Vorher stammte das eine aus der Ortszeit und das andere aus UTC (siehe
+   * Punkt 4 im Kopfkommentar).
+   */
+  const days = useMemo(() => naechsteTage(7), [])
 
-  const timeSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']
+  const dateIso = days[selectedDay]?.iso ?? ''
+
+  /**
+   * Echte freie Zeiten. Quelle ist `/api/availability` — dieselbe Rechnung,
+   * die auch `createBooking` anstellt: Oeffnungszeiten des Salons, Dauer der
+   * Leistung, Bestandsbuchungen als Intervalle, und heute nichts, was schon
+   * vorbei ist.
+   */
+  const slotsLaden = useCallback(async () => {
+    if (!salon?.id || !selectedService?.id || !dateIso) {
+      setSlots([])
+      return
+    }
+    setLaedtSlots(true)
+    setSlotFehler(null)
+    setStartTime('')
+    try {
+      const url =
+        `/api/availability?salonId=${encodeURIComponent(salon.id)}` +
+        `&serviceId=${encodeURIComponent(selectedService.id)}` +
+        `&date=${encodeURIComponent(dateIso)}`
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) {
+        // Kein Rueckfall auf ein Raster: eine erfundene freie Zeit ist
+        // schlimmer als gar keine.
+        setSlots([])
+        setSlotFehler('Freie Zeiten konnten nicht geladen werden.')
+        return
+      }
+      const data = await res.json()
+      setSlots(Array.isArray(data?.slots) ? (data.slots as string[]) : [])
+    } catch {
+      setSlots([])
+      setSlotFehler('Verbindungsfehler — freie Zeiten konnten nicht geladen werden.')
+    } finally {
+      setLaedtSlots(false)
+    }
+  }, [salon?.id, selectedService?.id, dateIso])
+
+  useEffect(() => { void slotsLaden() }, [slotsLaden])
 
   /**
    * Listenpreis der gewaehlten Leistung — der einzige Betrag, den der Browser
@@ -175,7 +252,7 @@ export default function BookingPage() {
           salonId: salon.id,
           serviceId: selectedService.id,
           staffId: selectedSpec?.id || undefined,
-          date: days[selectedDay].iso,
+          date: dateIso,
           startTime,
           notes: notes || undefined,
           promoCode: promoCode.trim() || undefined,
@@ -197,6 +274,13 @@ export default function BookingPage() {
       // Kein stiller Erfolg: was der Server ablehnt, wird gemeldet.
       if (!res.ok || !data?.success || typeof data.bookingId !== 'string') {
         setError(data?.error || 'Buchung fehlgeschlagen.')
+        // Hat jemand den Slot zwischen Auswahl und Absenden belegt, ist die
+        // Liste im Browser veraltet — neu holen und zurueck zur Auswahl,
+        // statt den Kunden auf denselben Knopf drueckenzulassen.
+        if (String(data?.error ?? '').includes('belegt')) {
+          setStep(1)
+          await slotsLaden()
+        }
         return
       }
 
@@ -337,18 +421,39 @@ export default function BookingPage() {
 
             {/* Time Grid */}
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 10 }}>Uhrzeit</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 20 }}>
-              {timeSlots.map(t => (
-                <button key={t} onClick={() => setStartTime(t)} style={{
-                  padding: '10px 0', borderRadius: 10, fontSize: 'var(--font-sm)', fontWeight: 600, cursor: 'pointer',
-                  background: startTime === t ? 'var(--gold)' : 'var(--c2)',
-                  color: startTime === t ? '#080706' : 'var(--cream)',
-                  border: startTime === t ? '1px solid var(--gold)' : '1px solid var(--border)',
-                }}>
-                  {t}
-                </button>
-              ))}
-            </div>
+            {/*
+              Was hier steht, kommt aus /api/availability. Ein leerer Tag ist
+              eine echte Aussage (geschlossen oder ausgebucht) und wird als
+              solche gezeigt — frueher standen hier immer dieselben zwanzig
+              Knoepfe.
+            */}
+            {!selectedService ? (
+              <p style={{ fontSize: 12.5, color: 'var(--stone)', lineHeight: 1.5, marginBottom: 20 }}>
+                Wähle zuerst einen Service — die freien Zeiten hängen an seiner Dauer.
+              </p>
+            ) : laedtSlots ? (
+              <p style={{ fontSize: 12.5, color: 'var(--stone)', marginBottom: 20 }}>Freie Zeiten werden geladen …</p>
+            ) : slotFehler ? (
+              <p style={{ fontSize: 12.5, color: 'var(--red)', lineHeight: 1.5, marginBottom: 20 }}>{slotFehler}</p>
+            ) : slots.length === 0 ? (
+              <p style={{ fontSize: 12.5, color: 'var(--stone)', lineHeight: 1.5, marginBottom: 20 }}>
+                Am {days[selectedDay]?.full} ist für diesen Service nichts mehr frei —
+                der Salon hat geschlossen oder der Tag ist ausgebucht. Wähle einen anderen Tag.
+              </p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 20 }}>
+                {slots.map(t => (
+                  <button key={t} onClick={() => setStartTime(t)} style={{
+                    padding: '10px 0', borderRadius: 10, fontSize: 'var(--font-sm)', fontWeight: 600, cursor: 'pointer',
+                    background: startTime === t ? 'var(--gold)' : 'var(--c2)',
+                    color: startTime === t ? '#080706' : 'var(--cream)',
+                    border: startTime === t ? '1px solid var(--gold)' : '1px solid var(--border)',
+                  }}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <button onClick={() => { if (selectedService && startTime) setStep(2); else setError('Bitte Service und Uhrzeit wählen.') }} className="bgold">
               Weiter

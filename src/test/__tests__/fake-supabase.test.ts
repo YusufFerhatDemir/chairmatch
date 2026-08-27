@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach } from 'vitest'
-import { FakeSupabase } from '@/test/fake-supabase'
+import { FakeSupabase, parseSelectColumns } from '@/test/fake-supabase'
 import { LIVE_NOT_NULL, applyLiveSchema } from '@/test/live-schema'
 
 /**
@@ -197,5 +197,95 @@ describe('gte() / lte()', () => {
   it('meldet eine unbekannte Spalte auch hier als 42703', async () => {
     const { error } = await db.from('spanne').select('id').gte('erfunden', '2026-08-01')
     expect(error?.code).toBe('42703')
+  })
+})
+
+/**
+ * Projektion bei eingebetteten Ressourcen (Track 10).
+ *
+ * Bis hierher schaltete JEDE Klammer in der `select`-Liste die Projektion
+ * komplett ab. Eine Abfrage wie
+ *
+ *     .select('id, rating, customer:profiles!fk(full_name)')
+ *
+ * lieferte damit die volle Zeile zurueck — `customer_id` und `reported_by`
+ * inklusive. Genau an der Stelle, an der eine Route ihre Spaltenliste am
+ * dringendsten braucht, konnte kein Test belegen, dass sie wirkt: eine
+ * Einbettung ist in fast jeder PII-nahen Abfrage im Spiel. Echtes PostgREST
+ * wendet die Liste sehr wohl an.
+ */
+describe('select() mit eingebetteter Ressource', () => {
+  beforeEach(async () => {
+    db.defineSchema('reviews', ['id', 'salon_id', 'customer_id', 'rating', 'reported_by'])
+    await db.from('reviews').insert([
+      { id: 'r1', salon_id: 's1', customer_id: 'u1', rating: 5, reported_by: 'u9' },
+    ])
+    // Die eingebettete Zeile kommt wie bisher aus dem Bestand — der Fake
+    // kann den Join nicht, nur die Benennung in der Antwort.
+    db.rows('reviews')[0].customer = { full_name: 'Anna Kowalski' }
+  })
+
+  it('schneidet die Spalten trotz Einbettung zu', async () => {
+    const { data } = await db
+      .from('reviews')
+      .select('id, rating, customer:profiles!reviews_customer_id_fkey(full_name)')
+    const zeile = (data as Array<Record<string, unknown>>)[0]
+
+    expect(Object.keys(zeile).sort()).toEqual(['customer', 'id', 'rating'])
+    expect(zeile).not.toHaveProperty('customer_id')
+    expect(zeile).not.toHaveProperty('reported_by')
+    expect(zeile.customer).toEqual({ full_name: 'Anna Kowalski' })
+  })
+
+  it('haelt die Einbettung nicht gegen das Spaltenschema', async () => {
+    // `customer` ist eine Beziehung, keine Spalte von reviews. Wuerde sie
+    // geprueft, antwortete der Fake mit 42703 auf jede korrekte Abfrage.
+    const { error } = await db.from('reviews').select('id, customer:profiles(full_name)')
+    expect(error).toBeNull()
+  })
+
+  it('meldet eine erfundene echte Spalte weiterhin als 42703', async () => {
+    const { error } = await db.from('reviews').select('id, erfunden, customer:profiles(full_name)')
+    expect(error?.code).toBe('42703')
+    expect(error?.message).toContain('reviews.erfunden')
+  })
+
+  it('laesst `*` neben einer Einbettung die ganze Zeile liefern', async () => {
+    // PostgREST erlaubt das, und mehrere Routen benutzen es.
+    const { data } = await db.from('reviews').select('*, salon:salons(name)')
+    expect(data as Array<Record<string, unknown>>).toHaveLength(1)
+    expect((data as Array<Record<string, unknown>>)[0]).toMatchObject({
+      id: 'r1', customer_id: 'u1', reported_by: 'u9',
+    })
+  })
+})
+
+describe('parseSelectColumns', () => {
+  it('benennt die Schluessel so, wie sie in der Antwort stehen', () => {
+    expect(parseSelectColumns('id, name')).toEqual([
+      { key: 'id', embedded: false },
+      { key: 'name', embedded: false },
+    ])
+    expect(parseSelectColumns('id, salons(name, city)')).toEqual([
+      { key: 'id', embedded: false },
+      { key: 'salons', embedded: true },
+    ])
+    expect(parseSelectColumns('customer:profiles!reviews_customer_id_fkey(full_name)')).toEqual([
+      { key: 'customer', embedded: true },
+    ])
+  })
+
+  it('laesst sich vom Komma INNERHALB der Klammer nicht zerlegen', () => {
+    expect(parseSelectColumns('id, rental_equipment(type, salons(owner_id))')).toEqual([
+      { key: 'id', embedded: false },
+      { key: 'rental_equipment', embedded: true },
+    ])
+  })
+
+  it('behaelt den Stern als eigenen Eintrag', () => {
+    expect(parseSelectColumns('*, salons(name)')).toEqual([
+      { key: '*', embedded: false },
+      { key: 'salons', embedded: true },
+    ])
   })
 })

@@ -149,18 +149,41 @@ export async function flagReview(reviewId: string) {
  * Freischaltung ausdruecklich nicht sichtbar. Ohne den Filter hat dieser
  * Endpunkt sie ausgeliefert — inklusive der noch unveroeffentlichten — und
  * damit die gesamte Sperrlogik aus /api/reviews/rental ausgehebelt.
+ *
+ * Die Spaltenliste ist eine Positivliste, seit Track 10. Hier stand `*`, und
+ * das Ergebnis geht ueber `GET /api/reviews?salonId=` unveraendert an jeden
+ * angemeldeten Aufrufer: `customer_id` (die auth.users-ID des Bewertenden)
+ * und `reported_by` (wer die Bewertung gemeldet hat) waren damit zu jeder
+ * Bewertung abrufbar. Dieselbe Sorte Fund wie `select('*')` in
+ * /api/salons/[id] in Track 9 — deshalb dieselbe Antwort: neue Spalten sind
+ * standardmaessig NICHT oeffentlich, wer eine braucht, traegt sie hier ein.
+ *
+ * `review_type` bleibt drin, weil `isSalonReview` genau darauf filtert.
+ *
+ * Die Liste steht als ein Literal da und nicht als `[...].join(', ')`: der
+ * Typ-Parser von supabase-js liest die Spalten aus dem String-Literal und
+ * kann einen zusammengesetzten String nicht aufloesen — das Ergebnis waere
+ * `ParserError` statt der Zeilen.
  */
 export async function getReviews(salonId: string) {
   const supabase = getSupabaseAdmin()
 
   const { data } = await supabase
     .from('reviews')
-    .select(`
-      *,
-      customer:profiles!reviews_customer_id_fkey(full_name)
-    `)
+    .select(
+      'id, salon_id, booking_id, review_type, rating, comment, reply, replied_at, created_at, customer:profiles!reviews_customer_id_fkey(full_name)',
+    )
     .eq('salon_id', salonId)
     .order('created_at', { ascending: false })
 
-  return (data || []).filter(isSalonReview)
+  // PostgREST liefert fuer eine n:1-Einbettung ein Objekt, der Typ-Parser von
+  // supabase-js haelt sie bei explizit genannten Spalten aber fuer eine Liste.
+  // Statt das per Cast wegzuerklaeren wird hier beides akzeptiert und auf
+  // eine Form gebracht — die Form, die die Salonseite und `/api/reviews`
+  // ohnehin schon erwarten.
+  return (data || []).filter(isSalonReview).map(r => {
+    const roh = (r as { customer?: unknown }).customer
+    const customer = (Array.isArray(roh) ? roh[0] : roh) as { full_name: string | null } | null
+    return { ...r, customer: customer ?? null }
+  })
 }

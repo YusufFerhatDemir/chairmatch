@@ -456,12 +456,21 @@ export const NEWSLETTER_SUBSCRIBERS_AFTER_REPAIR: readonly string[] = [
  *
  * Die Liste bleibt als leeres Array stehen: sie ist die Stelle, an der ein
  * neuer Fund notiert wird.
+ *
+ * Bis Track 10 stand hier
+ *
+ *     export const MISSING_IN_PRODUCTION: readonly string[] = [] = [
+ *       'analytics_events', 'newsletter_campaigns', 'newsletter_sends',
+ *     ]
+ *
+ * — ein doppeltes `=`. Das ist gueltiges JavaScript und bedeutet etwas
+ * anderes, als es aussieht: `[] = [...]` ist eine Destrukturierung ins Leere,
+ * und der Wert dieses Ausdrucks ist die RECHTE Seite. Die Konstante trug
+ * damit genau die drei Tabellennamen, die der Kommentar darueber und die
+ * Sonde vom 27.08.2026 fuer erledigt erklaeren. Kein Test las sie, also fiel
+ * es nur ESLint auf (`no-empty-pattern`).
  */
-export const MISSING_IN_PRODUCTION: readonly string[] = [] = [
-  'analytics_events',
-  'newsletter_campaigns',
-  'newsletter_sends',
-]
+export const MISSING_IN_PRODUCTION: readonly string[] = []
 
 /**
  * Registriert das Produktionsschema auf einer Fake-Datenbank.
