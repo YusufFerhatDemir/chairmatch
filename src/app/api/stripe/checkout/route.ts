@@ -20,14 +20,30 @@ export async function POST(req: NextRequest) {
       }
 
       const supabase = getSupabaseAdmin()
+      // Auf den eigenen Termin eingegrenzt — wie im product_order- und
+      // rental-Zweig. Ohne `customer_id` konnte jede eingeloggte Person eine
+      // Checkout-Session zu einer FREMDEN Buchung erzeugen. Der Schaden lag
+      // nicht in der Zahlung selbst, sondern im Update darunter: es setzte
+      // `payment_status` der fremden Buchung auf 'pending' (auch wenn sie
+      // bereits bezahlt war) und ueberschrieb deren `stripe_session_id`, womit
+      // die echte offene Zahlung des Kunden ins Leere lief. Die Stripe-Seite
+      // zeigte ausserdem Salon, Leistung und Betrag eines Dritten.
       const { data: booking, error } = await supabase
         .from('bookings')
         .select('*, services(name), salons(name)')
         .eq('id', bookingId)
+        .eq('customer_id', session.user.id)
         .single()
 
       if (error || !booking) {
         return NextResponse.json({ error: 'Buchung nicht gefunden' }, { status: 404 })
+      }
+
+      if (booking.payment_status === 'paid') {
+        return NextResponse.json({ error: 'Buchung ist bereits bezahlt' }, { status: 409 })
+      }
+      if (['cancelled', 'no_show'].includes(String(booking.status))) {
+        return NextResponse.json({ error: 'Buchung ist nicht mehr zahlbar' }, { status: 409 })
       }
 
       const origin = req.headers.get('origin') || 'https://www.chairmatch.de'

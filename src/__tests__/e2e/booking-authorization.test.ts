@@ -34,8 +34,16 @@ vi.mock('@/lib/email', () => ({
   sendBookingConfirmation: async () => ({ ok: true }),
   sendProviderNotification: async () => ({ ok: true }),
 }))
+vi.mock('@/lib/stripe', () => ({
+  stripe: {},
+  createBookingCheckout: async () => ({ id: 'cs_test_fremd', url: 'https://checkout.stripe.com/cs_test_fremd' }),
+  createSubscriptionCheckout: async () => ({ id: 'cs_test_sub', url: 'https://checkout.stripe.com/cs_test_sub' }),
+  createProductOrderCheckout: async () => ({ id: 'cs_test_order', url: 'https://checkout.stripe.com/cs_test_order' }),
+  createRentalCheckout: async () => ({ id: 'cs_test_rental', url: 'https://checkout.stripe.com/cs_test_rental' }),
+}))
 
 import { POST as cancelRoute } from '@/app/api/bookings/[id]/cancel/route'
+import { POST as checkoutRoute } from '@/app/api/stripe/checkout/route'
 import { PATCH as patchRoute } from '@/app/api/bookings/[id]/route'
 import {
   cancelBooking,
@@ -221,5 +229,56 @@ describe('getBookings() als Server Action', () => {
     state.session = sessionFor('admin')
     const rows = (await getBookings()) as Row[]
     expect(rows).toHaveLength(1)
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+describe('Checkout zu einer fremden Buchung (POST /api/stripe/checkout)', () => {
+  const url = 'https://www.chairmatch.de/api/stripe/checkout'
+
+  it('findet die fremde Buchung nicht und laesst sie unangetastet', async () => {
+    // Regression: der booking-Zweig fragte nur nach der ID. Die Antwort war
+    // eine gueltige Stripe-URL zum Termin eines Dritten — und das Update
+    // darunter hat dessen payment_status und stripe_session_id ueberschrieben.
+    const before = { ...bookingRow(IDS.bookingConfirmed) }
+    state.session = sessionFor('otherCustomer')
+
+    const res = await checkoutRoute(
+      postRequest(url, { type: 'booking', bookingId: IDS.bookingConfirmed }),
+    )
+
+    expect(res.status).toBe(404)
+    const after = bookingRow(IDS.bookingConfirmed)
+    expect(after.payment_status).toBe(before.payment_status)
+    expect(after.stripe_session_id ?? null).toBe(before.stripe_session_id ?? null)
+  })
+
+  it('gibt der eigenen Kundin weiterhin eine Checkout-URL', async () => {
+    state.session = sessionFor('customer')
+    const res = await checkoutRoute(
+      postRequest(url, { type: 'booking', bookingId: IDS.bookingConfirmed }),
+    )
+    expect(res.status).toBe(200)
+    expect((await res.json()).url).toContain('checkout.stripe.com')
+    expect(bookingRow(IDS.bookingConfirmed).payment_status).toBe('pending')
+  })
+
+  it('laesst eine bereits bezahlte Buchung nicht erneut bezahlen', async () => {
+    bookingRow(IDS.bookingConfirmed).payment_status = 'paid'
+    state.session = sessionFor('customer')
+    const res = await checkoutRoute(
+      postRequest(url, { type: 'booking', bookingId: IDS.bookingConfirmed }),
+    )
+    expect(res.status).toBe(409)
+    expect(bookingRow(IDS.bookingConfirmed).payment_status).toBe('paid')
+  })
+
+  it('laesst eine stornierte Buchung nicht bezahlen', async () => {
+    bookingRow(IDS.bookingConfirmed).status = 'cancelled'
+    state.session = sessionFor('customer')
+    const res = await checkoutRoute(
+      postRequest(url, { type: 'booking', bookingId: IDS.bookingConfirmed }),
+    )
+    expect(res.status).toBe(409)
   })
 })
