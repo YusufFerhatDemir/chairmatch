@@ -25,6 +25,10 @@ export const IDS = {
   rentalConfirmed: '88888888-8888-4888-8888-888888888888',
   transaction: '99999999-9999-4999-8999-999999999999',
   orderOpen: '15151515-1515-4151-8151-151515151515',
+  salonZwei: '44444444-4444-4444-8444-444444444446',
+  bookingCompleted: '66666666-6666-4666-8666-666666666667',
+  bookingCompletedFremd: '66666666-6666-4666-8666-666666666668',
+  bookingCompletedSalonZwei: '66666666-6666-4666-8666-666666666669',
   unknown: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
 } as const
 
@@ -49,6 +53,11 @@ export const RELATIONS: RelationMap = {
   },
   rental_bookings: {
     rental_equipment: { table: 'rental_equipment', localKey: 'equipment_id' },
+  },
+  reviews: {
+    customer: { table: 'profiles', localKey: 'customer_id' },
+    salon: { table: 'salons', localKey: 'salon_id' },
+    salons: { table: 'salons', localKey: 'salon_id' },
   },
   rental_equipment: {
     salons: { table: 'salons', localKey: 'salon_id' },
@@ -189,6 +198,7 @@ function seed(): Record<string, Row[]> {
         created_at: '2026-08-20T09:00:00.000Z',
       },
     ],
+    reviews: [],
     rental_equipment: [
       {
         id: IDS.equipment,

@@ -2,7 +2,7 @@
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createReviewSchema, replySchema } from './review.schemas'
-import { checkEligibility, updateSalonRating } from './review.service'
+import { checkEligibility, updateSalonRating, isSalonReview, SALON_REVIEW_TYPE } from './review.service'
 import { getServerSession } from '@/modules/auth/session'
 
 export async function createReview(input: unknown) {
@@ -18,29 +18,41 @@ export async function createReview(input: unknown) {
     return { error: 'Nicht authentifiziert.' }
   }
 
-  // Check eligibility
-  if (data.bookingId) {
-    const eligibility = await checkEligibility(
-      customerId,
-      data.salonId,
-      data.bookingId,
-    )
-    if (!eligibility.eligible) {
-      return { error: eligibility.reason }
-    }
+  // Die Pruefung lief bis 2026-08-27 NUR mit Buchungsbezug. Ohne bookingId
+  // wurde gar nichts geprueft — auch nicht, ob dieselbe Person den Salon
+  // schon bewertet hat. Sie laeuft jetzt in beiden Faellen; welche Regeln
+  // greifen, entscheidet checkEligibility.
+  const eligibility = await checkEligibility(customerId, data.salonId, data.bookingId)
+  if (!eligibility.eligible) {
+    return { error: eligibility.reason }
   }
 
   const supabase = getSupabaseAdmin()
 
   // Step 1: Create review
+  //
+  // `reviewer_id` und `review_type` fehlten bisher. Das hatte zwei Folgen:
+  // der Unique-Index reviews_unique_per_reviewer_booking greift auf
+  // (reviewer_id, booking_id, review_type) und lief wegen NULL ins Leere —
+  // der Doppelbewertungs-Schutz existierte also nur in der Anwendung. Und
+  // ohne Typ war die Zeile von einer Miet-Bewertung nicht zu unterscheiden.
+  //
+  // Kundenbewertungen sind nicht double-blind (es gibt keine Gegenseite, die
+  // zurueckbewertet), deshalb published=true ab Sekunde eins — genau das,
+  // was Migration 20260515 den Altzeilen zugewiesen hat.
+  const now = new Date().toISOString()
   const { data: newReview, error: reviewError } = await supabase
     .from('reviews')
     .insert({
       customer_id: customerId,
+      reviewer_id: customerId,
+      review_type: SALON_REVIEW_TYPE,
       salon_id: data.salonId,
       booking_id: data.bookingId || null,
       rating: data.rating,
       comment: data.comment || null,
+      published: true,
+      visible_at: now,
     })
     .select()
     .single()
@@ -129,6 +141,15 @@ export async function flagReview(reviewId: string) {
   return { success: true }
 }
 
+/**
+ * Oeffentliche Bewertungen eines Salons.
+ *
+ * Der Filter auf den Bewertungstyp ist nicht kosmetisch: Miet-Bewertungen
+ * tragen dieselbe `salon_id`, sind aber double-blind und bis zur
+ * Freischaltung ausdruecklich nicht sichtbar. Ohne den Filter hat dieser
+ * Endpunkt sie ausgeliefert — inklusive der noch unveroeffentlichten — und
+ * damit die gesamte Sperrlogik aus /api/reviews/rental ausgehebelt.
+ */
 export async function getReviews(salonId: string) {
   const supabase = getSupabaseAdmin()
 
@@ -141,5 +162,5 @@ export async function getReviews(salonId: string) {
     .eq('salon_id', salonId)
     .order('created_at', { ascending: false })
 
-  return data || []
+  return (data || []).filter(isSalonReview)
 }
