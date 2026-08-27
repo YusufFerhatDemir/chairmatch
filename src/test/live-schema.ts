@@ -436,19 +436,28 @@ export const NEWSLETTER_SUBSCRIBERS_AFTER_REPAIR: readonly string[] = [
 
 /**
  * Tabellen, die der Code anspricht, die es in der Produktionsdatenbank aber
- * NICHT gibt (Stand 2026-08-24, per Spaltenprobe ueber alle 63 im Code
- * referenzierten Tabellen bestaetigt — nur diese drei fehlen).
+ * NICHT gibt.
  *
- * `notifications` fehlt bewusst in dieser Liste: der Code spricht sie seit
- * dem Fix nicht mehr an.
+ * Stand 2026-08-27: KEINE mehr. Die Sonde beantwortet alle drei frueher hier
+ * gefuehrten Tabellen ohne PGRST205 — sie existieren also inzwischen live:
  *
- * Migrationen dafuer liegen im Repo und muessen im Supabase-SQL-Editor
- * eingespielt werden:
- *   analytics_events      → 20260525_analytics_events.sql
- *   newsletter_campaigns  → 20260824_newsletter_schema_repair.sql
- *   newsletter_sends      → 20260824_newsletter_schema_repair.sql
+ *   analytics_events      vorhanden, und NICHT mehr anon-lesbar
+ *                         (42501 "permission denied for table
+ *                         analytics_events"). Der frueher belegte
+ *                         DSGVO-Lesezugriff ist damit zu.
+ *   newsletter_campaigns  vorhanden, anon lesbar, 0 Zeilen
+ *   newsletter_sends      vorhanden, anon lesbar, 0 Zeilen
+ *
+ * Die beiden Newsletter-Tabellen sind heute harmlos, weil sie leer sind.
+ * `newsletter_sends` verknuepft aber Kampagne und Abonnent — sobald dort
+ * Zeilen stehen, ist das ein oeffentlich lesbares Zustellprotokoll.
+ * `newsletter_subscribers` selbst ist zu (42501), die Adressen liegen also
+ * nicht offen. Aufraeumen gehoert in einen eigenen Track, nicht hierher.
+ *
+ * Die Liste bleibt als leeres Array stehen: sie ist die Stelle, an der ein
+ * neuer Fund notiert wird.
  */
-export const MISSING_IN_PRODUCTION: readonly string[] = [
+export const MISSING_IN_PRODUCTION: readonly string[] = [] = [
   'analytics_events',
   'newsletter_campaigns',
   'newsletter_sends',
