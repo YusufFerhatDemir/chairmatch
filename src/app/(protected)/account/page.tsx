@@ -100,6 +100,8 @@ export default function AccountPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   // Redirect als Effect, nicht während des Renderns — router.push im Render-Body
   // warf beim Prerender (keine Session) serverseitig "location is not defined".
@@ -397,27 +399,61 @@ export default function AccountPage() {
             </Link>
           ))}
 
+          {deleteError && (
+            <p role="alert" style={{ marginTop: 16, fontSize: 12, color: 'var(--red)', lineHeight: 1.6 }}>
+              {deleteError}
+            </p>
+          )}
           <button
+            disabled={deleting}
             onClick={async () => {
-              if (!confirm('Konto wirklich löschen? Nach 30 Tagen erfolgt die endgültige Löschung.')) return
+              // Der Endpunkt verlangt die eigene E-Mail als Bestaetigung — ein
+              // reines confirm() genuegt fuer eine unumkehrbare Loeschung nicht.
+              // Der Login ist danach gesperrt und die Kontaktdaten sind weg;
+              // das gehoert vorher gesagt, nicht hinterher.
+              const bestaetigung = window.prompt(
+                'Konto endgültig löschen?\n\n' +
+                  'Dein Zugang wird sofort gesperrt und deine Kontaktdaten werden gelöscht. ' +
+                  'Die endgültige Löschung erfolgt nach 30 Tagen. Das lässt sich nicht rückgängig machen.\n\n' +
+                  'Zur Bestätigung bitte die E-Mail-Adresse dieses Kontos eingeben:',
+              )
+              if (bestaetigung === null) return
+
+              if (bestaetigung.trim().toLowerCase() !== (user.email ?? '').trim().toLowerCase()) {
+                setDeleteError('Die eingegebene E-Mail-Adresse stimmt nicht mit diesem Konto überein. Das Konto wurde nicht gelöscht.')
+                return
+              }
+
+              setDeleteError(null)
+              setDeleting(true)
               try {
                 const r = await safeFetch('/api/account/delete', {
                   method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ confirmEmail: bestaetigung.trim() }),
                   timeoutMs: 10000,
                   retries: 0,
                 })
                 if (r.ok) {
                   await signOut({ callbackUrl: '/' })
                   router.push('/')
+                  return
                 }
+                // Fehlschlag nicht verschlucken: vorher blieb der Nutzer ohne
+                // jede Rueckmeldung auf der Seite und wusste nicht, ob geloescht
+                // wurde oder nicht.
+                const body = (await r.json().catch(() => null)) as { error?: string } | null
+                setDeleteError(body?.error ?? 'Das Konto konnte nicht gelöscht werden. Bitte später erneut versuchen.')
               } catch {
-                /* keep user on page — they can retry */
+                setDeleteError('Keine Verbindung zum Server. Das Konto wurde nicht gelöscht.')
+              } finally {
+                setDeleting(false)
               }
             }}
             className="boutline"
             style={{ marginTop: 16, color: 'var(--red)', borderColor: 'rgba(232, 80, 64, 0.3)', width: '100%' }}
           >
-            🗑️ Konto löschen
+            {deleting ? 'Wird gelöscht…' : '🗑️ Konto löschen'}
           </button>
           <button
             onClick={() => signOut({ callbackUrl: '/' })}
