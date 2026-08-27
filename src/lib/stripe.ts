@@ -52,7 +52,11 @@ export async function createBookingCheckout(params: {
   cancelUrl: string
 }) {
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card', 'sepa_debit', 'giropay'],
+    // giropay bewusst NICHT dabei — von Stripe zum 30.06.2024 eingestellt.
+    // Der Miet-Checkout hatte den Wert laengst entfernt (siehe unten), Termin-
+    // und Shop-Checkout schleppten ihn weiter: dieselbe Session-Erstellung,
+    // dasselbe harte Fehlschlagen.
+    payment_method_types: ['card', 'sepa_debit'],
     mode: 'payment',
     customer_email: params.customerEmail,
     line_items: [
@@ -136,7 +140,11 @@ export async function createProductOrderCheckout(params: {
   }
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card', 'sepa_debit', 'giropay'],
+    // giropay bewusst NICHT dabei — von Stripe zum 30.06.2024 eingestellt.
+    // Der Miet-Checkout hatte den Wert laengst entfernt (siehe unten), Termin-
+    // und Shop-Checkout schleppten ihn weiter: dieselbe Session-Erstellung,
+    // dasselbe harte Fehlschlagen.
+    payment_method_types: ['card', 'sepa_debit'],
     mode: 'payment',
     customer_email: params.customerEmail,
     line_items: items,

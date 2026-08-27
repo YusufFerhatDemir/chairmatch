@@ -124,25 +124,54 @@ export function rentalCheckoutSession(params: {
   }
 }
 
-/** checkout.session.completed für eine Termin-Buchung. */
+/** checkout.session.* für eine Termin-Buchung. */
 export function bookingCheckoutSession(params: {
   bookingId: string
   userId: string
   amountCents: number
-  paymentIntent?: string
+  paymentIntent?: string | null
+  paymentStatus?: 'paid' | 'unpaid'
+  sessionId?: string
 }): CheckoutSessionStub {
   return {
-    id: 'cs_test_booking',
+    id: params.sessionId ?? 'cs_test_booking',
     url: 'https://checkout.stripe.com/c/pay/cs_test_booking',
-    payment_status: 'paid',
+    payment_status: params.paymentStatus ?? 'paid',
     amount_total: params.amountCents,
     currency: 'eur',
-    payment_intent: params.paymentIntent ?? 'pi_test_booking',
+    payment_intent: params.paymentIntent === undefined ? 'pi_test_booking' : params.paymentIntent,
     payment_method_types: ['card'],
     metadata: {
       booking_id: params.bookingId,
       user_id: params.userId,
       type: 'booking_payment',
+    },
+  }
+}
+
+/** checkout.session.* für eine Shop-Bestellung. */
+export function orderCheckoutSession(params: {
+  orderId: string
+  userId: string
+  amountCents: number
+  orderNumber?: string
+  paymentIntent?: string | null
+  paymentStatus?: 'paid' | 'unpaid'
+  sessionId?: string
+}): CheckoutSessionStub {
+  return {
+    id: params.sessionId ?? 'cs_test_order',
+    url: 'https://checkout.stripe.com/c/pay/cs_test_order',
+    payment_status: params.paymentStatus ?? 'paid',
+    amount_total: params.amountCents,
+    currency: 'eur',
+    payment_intent: params.paymentIntent === undefined ? 'pi_test_order' : params.paymentIntent,
+    payment_method_types: ['card'],
+    metadata: {
+      order_id: params.orderId,
+      order_number: params.orderNumber ?? 'CM-20260901-001',
+      user_id: params.userId,
+      type: 'product_order',
     },
   }
 }

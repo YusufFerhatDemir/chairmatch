@@ -180,6 +180,248 @@ async function fulfillRentalPayment(
   }
 }
 
+/**
+ * Termin-Zahlung abschliessen (checkout.session.completed).
+ *
+ * Bis 2026-08-27 lief dieser Zweig ohne jeden Schutz: Stripe stellt Events
+ * mindestens einmal zu (bei einem 5xx oder Timeout auf unserer Seite auch
+ * mehrfach), und jede Zustellung schrieb erneut eine `payments`-Zeile, ein
+ * Audit-Log, zwei Benachrichtigungen und eine Neukunden-Provision. Der
+ * Miet-Zweig hat diese Schutzschichten laengst — hier fehlten sie.
+ *
+ *  1. Idempotenz: bereits bezahlte Buchungen werden uebersprungen. Eine
+ *     ZWEITE Zahlung mit anderem Payment-Intent wird auto-refunded.
+ *  2. Storno-Guard: Zahlung auf eine inzwischen stornierte Buchung → Refund.
+ *     Vorher setzte der Handler `status: 'confirmed'` bedingungslos und hat
+ *     damit stornierte Termine wiederbelebt.
+ *  3. CAS-Claim: der Statuswechsel unpaid→paid ist der Anspruch auf die
+ *     Buchhaltung. `.neq('payment_status', 'paid')` laesst nur eine von zwei
+ *     parallelen Zustellungen gewinnen; nur der Gewinner bucht.
+ */
+async function fulfillBookingPayment(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  session: Stripe.Checkout.Session,
+) {
+  const meta = session.metadata || {}
+  const bookingId = meta.booking_id as string
+  const paymentIntent = (session.payment_intent as string | null) || null
+
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('id, status, payment_status, stripe_payment_intent, customer_id, booking_date, start_time, salons(owner_id)')
+    .eq('id', bookingId)
+    .single()
+
+  if (!booking) {
+    console.error(`booking_payment webhook: Buchung ${bookingId} nicht gefunden`)
+    return
+  }
+
+  // (1) Idempotenz / Doppelzahlungs-Guard
+  if (booking.payment_status === 'paid') {
+    if (paymentIntent && booking.stripe_payment_intent && booking.stripe_payment_intent !== paymentIntent) {
+      console.error(`booking ${bookingId}: Doppelzahlung erkannt (PI ${paymentIntent}) — auto-refund`)
+      await createRefund(paymentIntent).catch(console.error)
+      await supabase.from('audit_logs').insert({
+        user_id: meta.user_id || null,
+        action: 'booking_duplicate_payment_refunded',
+        entity: 'booking',
+        entity_id: bookingId,
+        details: { payment_intent: paymentIntent, kept_payment_intent: booking.stripe_payment_intent },
+      })
+    }
+    return
+  }
+
+  // (2) Buchung wurde zwischenzeitlich storniert → Zahlung zurueck
+  if (['cancelled', 'no_show'].includes(String(booking.status))) {
+    console.error(`booking ${bookingId}: Zahlung auf ${booking.status}-Buchung — Refund`)
+    if (paymentIntent) await createRefund(paymentIntent).catch(console.error)
+    await supabase.from('audit_logs').insert({
+      user_id: meta.user_id || null,
+      action: 'booking_cancelled_payment_refunded',
+      entity: 'booking',
+      entity_id: bookingId,
+      details: { payment_intent: paymentIntent, booking_status: booking.status },
+    })
+    return
+  }
+
+  // (3) CAS-Claim — nur eine Zustellung darf buchen
+  const { data: claimed } = await supabase
+    .from('bookings')
+    .update({
+      payment_status: 'paid',
+      status: 'confirmed',
+      stripe_payment_intent: paymentIntent,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', bookingId)
+    .neq('payment_status', 'paid')
+    .select('id')
+
+  if (!claimed || claimed.length === 0) {
+    // Parallele Zustellung war schneller — sie bucht, wir sind fertig.
+    return
+  }
+
+  const { error: payError } = await supabase.from('payments').insert({
+    source_type: 'booking',
+    source_id: bookingId,
+    user_id: meta.user_id || null,
+    stripe_session_id: session.id,
+    stripe_payment_intent: paymentIntent,
+    amount_cents: session.amount_total || 0,
+    currency: session.currency || 'eur',
+    status: 'succeeded',
+    payment_method: session.payment_method_types?.[0] || 'card',
+  })
+  if (payError) console.error('booking payments insert failed:', payError.message)
+
+  await supabase.from('audit_logs').insert({
+    user_id: meta.user_id || null,
+    action: 'payment_completed',
+    entity: 'booking',
+    entity_id: bookingId,
+    details: { amount: session.amount_total, currency: session.currency },
+  })
+
+  // Neukunden-Provision: haengt am CAS-Gewinner, sonst wird sie bei jeder
+  // Wiederzustellung erneut in `commissions` geschrieben.
+  calculateNewCustomerCommission(bookingId).catch(console.error)
+
+  // Kunde und Saloninhaber informieren.
+  const amountEur = ((session.amount_total ?? 0) / 100).toFixed(2)
+  if (meta.user_id) {
+    await createNotification(
+      meta.user_id,
+      'Zahlung bestätigt',
+      `Deine Buchung ist bezahlt und bestätigt. Betrag: ${amountEur} €.`,
+      'payment',
+      bookingId,
+      'booking',
+    )
+  }
+  const bookingOwnerId = (booking.salons as { owner_id?: string } | null)?.owner_id
+  if (bookingOwnerId) {
+    await createNotification(
+      bookingOwnerId,
+      'Neue bezahlte Buchung',
+      `Neuer Termin am ${booking.booking_date ?? ''} ${booking.start_time ?? ''} (${amountEur} €).`,
+      'booking',
+      bookingId,
+      'booking',
+    )
+  }
+}
+
+/**
+ * Shop-Bestellung abschliessen (checkout.session.completed).
+ *
+ * Gleiche drei Schichten wie bei Termin und Miete. Zusaetzlich wird der
+ * Payment-Intent jetzt an der Bestellung hinterlegt — vorher stand er nur in
+ * `payments`, womit weder die Doppelzahlungs-Erkennung noch der
+ * `charge.refunded`-Abgleich eine Bestellung finden konnten.
+ */
+async function fulfillProductOrder(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  session: Stripe.Checkout.Session,
+) {
+  const meta = session.metadata || {}
+  const orderId = meta.order_id as string
+  const paymentIntent = (session.payment_intent as string | null) || null
+
+  const { data: order } = await supabase
+    .from('orders')
+    .select('id, status, payment_status, stripe_payment_intent, customer_id')
+    .eq('id', orderId)
+    .single()
+
+  if (!order) {
+    console.error(`product_order webhook: Bestellung ${orderId} nicht gefunden`)
+    return
+  }
+
+  // (1) Idempotenz / Doppelzahlungs-Guard
+  if (order.payment_status === 'paid') {
+    if (paymentIntent && order.stripe_payment_intent && order.stripe_payment_intent !== paymentIntent) {
+      console.error(`order ${orderId}: Doppelzahlung erkannt (PI ${paymentIntent}) — auto-refund`)
+      await createRefund(paymentIntent).catch(console.error)
+      await supabase.from('audit_logs').insert({
+        user_id: meta.user_id || null,
+        action: 'order_duplicate_payment_refunded',
+        entity: 'order',
+        entity_id: orderId,
+        details: { payment_intent: paymentIntent, kept_payment_intent: order.stripe_payment_intent },
+      })
+    }
+    return
+  }
+
+  // (2) Bestellung storniert → Zahlung zurueck
+  if (order.status === 'cancelled') {
+    console.error(`order ${orderId}: Zahlung auf stornierte Bestellung — Refund`)
+    if (paymentIntent) await createRefund(paymentIntent).catch(console.error)
+    await supabase.from('audit_logs').insert({
+      user_id: meta.user_id || null,
+      action: 'order_cancelled_payment_refunded',
+      entity: 'order',
+      entity_id: orderId,
+      details: { payment_intent: paymentIntent },
+    })
+    return
+  }
+
+  // (3) CAS-Claim
+  const { data: claimed } = await supabase
+    .from('orders')
+    .update({
+      status: 'confirmed',
+      payment_status: 'paid',
+      stripe_payment_intent: paymentIntent,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', orderId)
+    .neq('payment_status', 'paid')
+    .select('id')
+
+  if (!claimed || claimed.length === 0) return
+
+  const { error: payError } = await supabase.from('payments').insert({
+    source_type: 'order',
+    source_id: orderId,
+    user_id: meta.user_id || null,
+    stripe_session_id: session.id,
+    stripe_payment_intent: paymentIntent,
+    amount_cents: session.amount_total || 0,
+    currency: session.currency || 'eur',
+    status: 'succeeded',
+    payment_method: session.payment_method_types?.[0] || 'card',
+  })
+  if (payError) console.error('order payments insert failed:', payError.message)
+
+  await supabase.from('audit_logs').insert({
+    user_id: meta.user_id || null,
+    action: 'product_order_paid',
+    entity: 'order',
+    entity_id: orderId,
+    details: { amount: session.amount_total, order_number: meta.order_number },
+  })
+
+  const buyerId = (order.customer_id as string | null) || meta.user_id || null
+  if (buyerId) {
+    const amountEur = ((session.amount_total ?? 0) / 100).toFixed(2)
+    await createNotification(
+      buyerId,
+      'Bestellung bezahlt',
+      `Deine Bestellung ${meta.order_number || ''} ist bezahlt (${amountEur} €).`.replace('  ', ' '),
+      'payment',
+      orderId,
+      'order',
+    )
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')
@@ -208,104 +450,21 @@ export async function POST(req: NextRequest) {
       const session = event.data.object as Stripe.Checkout.Session
       const meta = session.metadata || {}
 
+      // SEPA-Lastschrift zahlt asynchron: `completed` kann mit payment_status
+      // 'unpaid' feuern. Termin und Bestellung haben das bis 2026-08-27
+      // ignoriert und die Zahlung sofort als eingegangen verbucht — bei einer
+      // spaeter platzenden Lastschrift blieb der Termin bezahlt und bestaetigt.
+      // Erfuellt wird jetzt, wie beim Miet-Zweig, erst bei echtem Geldeingang.
       if (meta.type === 'booking_payment' && meta.booking_id) {
-        // Mark booking as paid
-        await supabase
-          .from('bookings')
-          .update({
-            payment_status: 'paid',
-            stripe_payment_intent: session.payment_intent as string,
-            status: 'confirmed',
-          })
-          .eq('id', meta.booking_id)
-
-        // Create payment record
-        await supabase.from('payments').insert({
-          source_type: 'booking',
-          source_id: meta.booking_id,
-          user_id: meta.user_id || null,
-          stripe_session_id: session.id,
-          stripe_payment_intent: session.payment_intent as string,
-          amount_cents: session.amount_total || 0,
-          currency: session.currency || 'eur',
-          status: 'succeeded',
-          payment_method: session.payment_method_types?.[0] || 'card',
-        })
-
-        // Audit log
-        await supabase.from('audit_logs').insert({
-          user_id: meta.user_id || null,
-          action: 'payment_completed',
-          entity: 'booking',
-          entity_id: meta.booking_id,
-          details: { amount: session.amount_total, currency: session.currency },
-        })
-
-        // Kunde und Saloninhaber informieren.
-        const amountEur = ((session.amount_total ?? 0) / 100).toFixed(2)
-        if (meta.user_id) {
-          await createNotification(
-            meta.user_id,
-            'Zahlung bestätigt',
-            `Deine Buchung ist bezahlt und bestätigt. Betrag: ${amountEur} €.`,
-            'payment',
-            meta.booking_id,
-            'booking',
-          )
-        }
-        const { data: paidBooking } = await supabase
-          .from('bookings')
-          .select('booking_date, start_time, salons(owner_id)')
-          .eq('id', meta.booking_id)
-          .single()
-        const bookingOwnerId = (paidBooking?.salons as { owner_id?: string } | null)?.owner_id
-        if (bookingOwnerId) {
-          await createNotification(
-            bookingOwnerId,
-            'Neue bezahlte Buchung',
-            `Neuer Termin am ${paidBooking?.booking_date ?? ''} ${paidBooking?.start_time ?? ''} (${amountEur} €).`,
-            'booking',
-            meta.booking_id,
-            'booking',
-          )
+        if (session.payment_status === 'paid') {
+          await fulfillBookingPayment(supabase, session)
         }
       }
 
       if (meta.type === 'product_order' && meta.order_id) {
-        // Mark order as confirmed + paid
-        await supabase
-          .from('orders')
-          .update({
-            status: 'confirmed',
-            payment_status: 'paid',
-          })
-          .eq('id', meta.order_id)
-
-        // Create payment record
-        await supabase.from('payments').insert({
-          source_type: 'order',
-          source_id: meta.order_id,
-          user_id: meta.user_id || null,
-          stripe_session_id: session.id,
-          stripe_payment_intent: session.payment_intent as string,
-          amount_cents: session.amount_total || 0,
-          currency: session.currency || 'eur',
-          status: 'succeeded',
-          payment_method: session.payment_method_types?.[0] || 'card',
-        })
-
-        await supabase.from('audit_logs').insert({
-          user_id: meta.user_id || null,
-          action: 'product_order_paid',
-          entity: 'order',
-          entity_id: meta.order_id,
-          details: { amount: session.amount_total, order_number: meta.order_number },
-        })
-      }
-
-      // Trigger new customer commission after booking payment
-      if (meta.type === 'booking_payment' && meta.booking_id) {
-        calculateNewCustomerCommission(meta.booking_id).catch(console.error)
+        if (session.payment_status === 'paid') {
+          await fulfillProductOrder(supabase, session)
+        }
       }
 
       if (meta.type === 'rental_payment' && meta.rental_booking_id) {
@@ -385,6 +544,12 @@ export async function POST(req: NextRequest) {
       if (meta.type === 'rental_payment' && meta.rental_booking_id) {
         await fulfillRentalPayment(supabase, session)
       }
+      if (meta.type === 'booking_payment' && meta.booking_id) {
+        await fulfillBookingPayment(supabase, session)
+      }
+      if (meta.type === 'product_order' && meta.order_id) {
+        await fulfillProductOrder(supabase, session)
+      }
       break
     }
 
@@ -398,6 +563,24 @@ export async function POST(req: NextRequest) {
           .update({ status: 'cancelled', payment_status: 'failed', updated_at: new Date().toISOString() })
           .eq('id', meta.rental_booking_id)
           .eq('status', 'pending')
+      }
+      // Termin: der Zahlungsversuch ist gescheitert, der Termin selbst bleibt
+      // bestehen (der Kunde kann erneut zahlen) — nur der Zahlungsstatus faellt
+      // zurueck. `.neq('payment_status', 'paid')` schuetzt vor dem Race mit
+      // einer bereits erfolgreichen Zweitzahlung.
+      if (meta.type === 'booking_payment' && meta.booking_id) {
+        await supabase
+          .from('bookings')
+          .update({ payment_status: 'failed', updated_at: new Date().toISOString() })
+          .eq('id', meta.booking_id)
+          .neq('payment_status', 'paid')
+      }
+      if (meta.type === 'product_order' && meta.order_id) {
+        await supabase
+          .from('orders')
+          .update({ payment_status: 'failed', updated_at: new Date().toISOString() })
+          .eq('id', meta.order_id)
+          .neq('payment_status', 'paid')
       }
       break
     }
@@ -443,6 +626,28 @@ export async function POST(req: NextRequest) {
           .from('platform_transactions')
           .update({ status: 'refunded' })
           .eq('stripe_payment_intent_id', paymentIntent)
+
+        // Termin und Shop-Bestellung wurden bisher nicht nachgezogen: nach
+        // einem Refund stand die Buchung weiter auf 'paid'/'confirmed', der
+        // Kunde behielt den Termin und das Geld. Beide tragen den
+        // Payment-Intent seit 2026-08-27 selbst, sind also adressierbar.
+        await supabase
+          .from('bookings')
+          .update({
+            payment_status: 'refunded',
+            status: 'cancelled',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('stripe_payment_intent', paymentIntent)
+
+        await supabase
+          .from('orders')
+          .update({
+            payment_status: 'refunded',
+            status: 'cancelled',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('stripe_payment_intent', paymentIntent)
       }
       break
     }

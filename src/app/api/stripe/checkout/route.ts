@@ -109,6 +109,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Bestellung nicht gefunden' }, { status: 404 })
       }
 
+      // Gleiche Riegel wie im booking-Zweig. Ohne sie liess sich eine bereits
+      // bezahlte Bestellung ein zweites Mal in den Checkout schicken — das
+      // Update darunter setzte `payment_status` zurueck auf 'pending' und
+      // ueberschrieb die `stripe_session_id` der echten Zahlung.
+      if (order.payment_status === 'paid') {
+        return NextResponse.json({ error: 'Bestellung ist bereits bezahlt' }, { status: 409 })
+      }
+      if (order.status === 'cancelled') {
+        return NextResponse.json({ error: 'Bestellung ist nicht mehr zahlbar' }, { status: 409 })
+      }
+
       const items = ((order as Record<string, unknown>).order_items as { quantity: number; unit_price_cents: number; products: { name: string } | null }[]) || []
       const lineItems = items.map(i => ({
         name: i.products?.name || 'Produkt',

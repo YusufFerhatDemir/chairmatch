@@ -20,6 +20,7 @@ import {
   stripeEvent,
   rentalCheckoutSession,
   bookingCheckoutSession,
+  orderCheckoutSession,
   WEBHOOK_SECRET,
 } from './_harness/stripe-harness'
 import type { FakeSupabase, Row } from './_harness/fake-supabase'
@@ -53,6 +54,7 @@ vi.mock('@/lib/stripe', () => ({
   createRefund: (...a: unknown[]) => state.stripe.createRefund(...a),
 }))
 
+import { calculateNewCustomerCommission } from '@/modules/marketplace/commission.service'
 import { POST as checkoutRoute } from '@/app/api/stripe/checkout/route'
 import { POST as webhookRoute } from '@/app/api/stripe/webhook/route'
 import { POST as adminRefundRoute } from '@/app/api/admin/refund/route'
@@ -96,6 +98,9 @@ function webhookRequest(event: unknown, signature: string | null = 't=1,v1=tests
 }
 
 beforeEach(() => {
+  // Die Modul-Mocks (commission.service) leben ueber alle Tests der Datei
+  // hinweg — ohne clear zaehlt ein Test die Aufrufe des vorherigen mit.
+  vi.clearAllMocks()
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-09-01T09:00:00.000Z'))
   state.db = createDb()
@@ -772,5 +777,323 @@ describe('Abo- und Connect-Events', () => {
       details_submitted: true,
     })
     expect(acct?.onboarding_completed_at).toBeTruthy()
+  })
+})
+
+
+// ────────────────────────────────────────────────────────────────
+/**
+ * Regressionsschutz fuer die Zahlungsintegritaet von Termin und Shop.
+ *
+ * Beide Zweige liefen bis 2026-08-27 ohne Idempotenz, ohne Storno-Guard und
+ * ohne SEPA-Behandlung durch — im Gegensatz zum Miet-Zweig, der alle drei
+ * Schichten schon hatte. Stripe stellt Events mindestens einmal zu; jede
+ * Wiederholung schrieb eine weitere `payments`-Zeile und eine weitere
+ * Provision.
+ */
+describe('Termin-Zahlung: Idempotenz und Guards', () => {
+  const bookingEvent = (over: Partial<Parameters<typeof bookingCheckoutSession>[0]> = {}) =>
+    stripeEvent(
+      'checkout.session.completed',
+      bookingCheckoutSession({
+        bookingId: IDS.bookingConfirmed,
+        userId: IDS.customer,
+        amountCents: 5000,
+        ...over,
+      }),
+    )
+
+  it('hinterlegt den Payment-Intent an der Buchung', async () => {
+    await webhookRoute(webhookRequest(bookingEvent()))
+    expect(db().row('bookings', IDS.bookingConfirmed)?.stripe_payment_intent).toBe('pi_test_booking')
+  })
+
+  it('verbucht dieselbe Zustellung nur einmal', async () => {
+    await webhookRoute(webhookRequest(bookingEvent()))
+    await webhookRoute(webhookRequest(bookingEvent()))
+    await webhookRoute(webhookRequest(bookingEvent()))
+
+    expect(db().rows('payments')).toHaveLength(1)
+    expect(db().rows('audit_logs').filter(a => a.action === 'payment_completed')).toHaveLength(1)
+    expect(calculateNewCustomerCommission).toHaveBeenCalledTimes(1)
+    expect(state.stripe.refunds).toHaveLength(0)
+  })
+
+  it('erstattet eine zweite Zahlung mit anderem Payment-Intent zurueck', async () => {
+    await webhookRoute(webhookRequest(bookingEvent()))
+    await webhookRoute(
+      webhookRequest(bookingEvent({ paymentIntent: 'pi_test_zweitzahlung', sessionId: 'cs_test_2' })),
+    )
+
+    expect(state.stripe.refunds).toEqual([
+      { paymentIntent: 'pi_test_zweitzahlung', amountCents: undefined },
+    ])
+    // Die erste, gueltige Zahlung bleibt unangetastet
+    expect(db().row('bookings', IDS.bookingConfirmed)?.stripe_payment_intent).toBe('pi_test_booking')
+    expect(db().rows('payments')).toHaveLength(1)
+    expect(
+      db().rows('audit_logs').some(a => a.action === 'booking_duplicate_payment_refunded'),
+    ).toBe(true)
+  })
+
+  it('erstattet die Zahlung auf einen stornierten Termin und belebt ihn nicht wieder', async () => {
+    db().row('bookings', IDS.bookingConfirmed)!.status = 'cancelled'
+
+    await webhookRoute(webhookRequest(bookingEvent()))
+
+    const booking = db().row('bookings', IDS.bookingConfirmed)
+    expect(booking?.status).toBe('cancelled')
+    expect(booking?.payment_status).toBe('unpaid')
+    expect(state.stripe.refunds).toEqual([{ paymentIntent: 'pi_test_booking', amountCents: undefined }])
+    expect(db().rows('payments')).toHaveLength(0)
+    expect(calculateNewCustomerCommission).not.toHaveBeenCalled()
+  })
+
+  it('laesst einen unbekannten Termin unberuehrt, statt zu buchen', async () => {
+    await webhookRoute(webhookRequest(bookingEvent({ bookingId: IDS.unknown })))
+    expect(db().rows('payments')).toHaveLength(0)
+    expect(db().rows('audit_logs')).toHaveLength(0)
+  })
+
+  it('erfuellt bei SEPA erst, wenn die Lastschrift wirklich durch ist', async () => {
+    await webhookRoute(webhookRequest(bookingEvent({ paymentStatus: 'unpaid' })))
+    expect(db().row('bookings', IDS.bookingConfirmed)?.payment_status).toBe('unpaid')
+    expect(db().rows('payments')).toHaveLength(0)
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.async_payment_succeeded',
+          bookingCheckoutSession({
+            bookingId: IDS.bookingConfirmed,
+            userId: IDS.customer,
+            amountCents: 5000,
+          }),
+        ),
+      ),
+    )
+    expect(db().row('bookings', IDS.bookingConfirmed)?.payment_status).toBe('paid')
+    expect(db().rows('payments')).toHaveLength(1)
+  })
+
+  it('setzt den Zahlungsstatus auf failed, wenn die Lastschrift platzt — der Termin bleibt', async () => {
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.async_payment_failed',
+          bookingCheckoutSession({
+            bookingId: IDS.bookingConfirmed,
+            userId: IDS.customer,
+            amountCents: 5000,
+          }),
+        ),
+      ),
+    )
+    const booking = db().row('bookings', IDS.bookingConfirmed)
+    expect(booking?.payment_status).toBe('failed')
+    expect(booking?.status).toBe('confirmed')
+  })
+
+  it('ueberschreibt eine bereits bezahlte Buchung nicht mit einem Fehlschlag', async () => {
+    await webhookRoute(webhookRequest(bookingEvent()))
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.async_payment_failed',
+          bookingCheckoutSession({
+            bookingId: IDS.bookingConfirmed,
+            userId: IDS.customer,
+            amountCents: 5000,
+          }),
+        ),
+      ),
+    )
+    expect(db().row('bookings', IDS.bookingConfirmed)?.payment_status).toBe('paid')
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+describe('Shop-Bestellung per Webhook', () => {
+  const orderEvent = (over: Partial<Parameters<typeof orderCheckoutSession>[0]> = {}) =>
+    stripeEvent(
+      'checkout.session.completed',
+      orderCheckoutSession({
+        orderId: IDS.orderOpen,
+        userId: IDS.customer,
+        amountCents: 4499,
+        ...over,
+      }),
+    )
+
+  it('bestaetigt die Bestellung, bucht die Zahlung und hinterlegt den Payment-Intent', async () => {
+    const res = await webhookRoute(webhookRequest(orderEvent()))
+    expect(res.status).toBe(200)
+
+    expect(db().row('orders', IDS.orderOpen)).toMatchObject({
+      status: 'confirmed',
+      payment_status: 'paid',
+      stripe_payment_intent: 'pi_test_order',
+    })
+    expect(db().rows('payments')[0]).toMatchObject({
+      source_type: 'order',
+      source_id: IDS.orderOpen,
+      amount_cents: 4499,
+      status: 'succeeded',
+    })
+    expect(db().rows('audit_logs').some(a => a.action === 'product_order_paid')).toBe(true)
+  })
+
+  it('verbucht dieselbe Zustellung nur einmal', async () => {
+    await webhookRoute(webhookRequest(orderEvent()))
+    await webhookRoute(webhookRequest(orderEvent()))
+
+    expect(db().rows('payments')).toHaveLength(1)
+    expect(db().rows('audit_logs').filter(a => a.action === 'product_order_paid')).toHaveLength(1)
+    expect(state.stripe.refunds).toHaveLength(0)
+  })
+
+  it('erstattet eine zweite Zahlung mit anderem Payment-Intent zurueck', async () => {
+    await webhookRoute(webhookRequest(orderEvent()))
+    await webhookRoute(
+      webhookRequest(orderEvent({ paymentIntent: 'pi_test_order_zwei', sessionId: 'cs_test_order_2' })),
+    )
+
+    expect(state.stripe.refunds).toEqual([
+      { paymentIntent: 'pi_test_order_zwei', amountCents: undefined },
+    ])
+    expect(db().row('orders', IDS.orderOpen)?.stripe_payment_intent).toBe('pi_test_order')
+    expect(db().rows('payments')).toHaveLength(1)
+  })
+
+  it('erstattet die Zahlung auf eine stornierte Bestellung', async () => {
+    db().row('orders', IDS.orderOpen)!.status = 'cancelled'
+
+    await webhookRoute(webhookRequest(orderEvent()))
+
+    expect(db().row('orders', IDS.orderOpen)).toMatchObject({
+      status: 'cancelled',
+      payment_status: 'unpaid',
+    })
+    expect(state.stripe.refunds).toEqual([{ paymentIntent: 'pi_test_order', amountCents: undefined }])
+    expect(db().rows('payments')).toHaveLength(0)
+  })
+
+  it('erfuellt bei SEPA erst nach async_payment_succeeded', async () => {
+    await webhookRoute(webhookRequest(orderEvent({ paymentStatus: 'unpaid' })))
+    expect(db().row('orders', IDS.orderOpen)?.payment_status).toBe('unpaid')
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.async_payment_succeeded',
+          orderCheckoutSession({ orderId: IDS.orderOpen, userId: IDS.customer, amountCents: 4499 }),
+        ),
+      ),
+    )
+    expect(db().row('orders', IDS.orderOpen)?.payment_status).toBe('paid')
+    expect(db().rows('payments')).toHaveLength(1)
+  })
+
+  it('setzt den Zahlungsstatus auf failed, wenn die Lastschrift platzt', async () => {
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.async_payment_failed',
+          orderCheckoutSession({ orderId: IDS.orderOpen, userId: IDS.customer, amountCents: 4499 }),
+        ),
+      ),
+    )
+    expect(db().row('orders', IDS.orderOpen)?.payment_status).toBe('failed')
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+describe('charge.refunded zieht Termin und Bestellung nach', () => {
+  it('storniert den erstatteten Termin, statt ihn bezahlt stehen zu lassen', async () => {
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.completed',
+          bookingCheckoutSession({
+            bookingId: IDS.bookingConfirmed,
+            userId: IDS.customer,
+            amountCents: 5000,
+          }),
+        ),
+      ),
+    )
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('charge.refunded', { id: 'ch_test_1', payment_intent: 'pi_test_booking' }),
+      ),
+    )
+
+    expect(db().row('bookings', IDS.bookingConfirmed)).toMatchObject({
+      payment_status: 'refunded',
+      status: 'cancelled',
+    })
+    expect(db().rows('payments')[0]?.status).toBe('refunded')
+  })
+
+  it('storniert die erstattete Bestellung', async () => {
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.completed',
+          orderCheckoutSession({ orderId: IDS.orderOpen, userId: IDS.customer, amountCents: 4499 }),
+        ),
+      ),
+    )
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('charge.refunded', { id: 'ch_test_2', payment_intent: 'pi_test_order' }),
+      ),
+    )
+
+    expect(db().row('orders', IDS.orderOpen)).toMatchObject({
+      payment_status: 'refunded',
+      status: 'cancelled',
+    })
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+describe('Checkout fuer Shop-Bestellungen (POST /api/stripe/checkout)', () => {
+  const orderCheckout = () =>
+    postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+      type: 'product_order',
+      orderId: IDS.orderOpen,
+    })
+
+  it('lehnt eine bereits bezahlte Bestellung mit 409 ab', async () => {
+    Object.assign(db().row('orders', IDS.orderOpen)!, {
+      payment_status: 'paid',
+      stripe_session_id: 'cs_echte_zahlung',
+    })
+
+    const res = await orderCheckout()
+    const response = await checkoutRoute(res)
+    expect(response.status).toBe(409)
+    expect(state.stripe.createProductOrderCheckout).not.toHaveBeenCalled()
+    // Die Session der echten Zahlung darf nicht ueberschrieben werden
+    expect(db().row('orders', IDS.orderOpen)?.stripe_session_id).toBe('cs_echte_zahlung')
+    expect(db().row('orders', IDS.orderOpen)?.payment_status).toBe('paid')
+  })
+
+  it('lehnt eine stornierte Bestellung mit 409 ab', async () => {
+    db().row('orders', IDS.orderOpen)!.status = 'cancelled'
+    const response = await checkoutRoute(orderCheckout())
+    expect(response.status).toBe(409)
+    expect(state.stripe.createProductOrderCheckout).not.toHaveBeenCalled()
+  })
+
+  it('erzeugt keine Checkout-Session fuer eine fremde Bestellung', async () => {
+    state.session = sessionFor('otherCustomer')
+    const response = await checkoutRoute(orderCheckout())
+    expect(response.status).toBe(404)
+    expect(state.stripe.createProductOrderCheckout).not.toHaveBeenCalled()
+    expect(db().row('orders', IDS.orderOpen)?.payment_status).toBe('unpaid')
   })
 })

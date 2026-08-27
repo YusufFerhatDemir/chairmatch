@@ -24,6 +24,7 @@ export const IDS = {
   equipmentOwnSalon: '77777777-7777-4777-8777-777777777779',
   rentalConfirmed: '88888888-8888-4888-8888-888888888888',
   transaction: '99999999-9999-4999-8999-999999999999',
+  orderOpen: '15151515-1515-4151-8151-151515151515',
   unknown: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
 } as const
 
@@ -260,7 +261,25 @@ function seed(): Record<string, Row[]> {
     consent_logs: [],
     error_logs: [],
     login_attempts: [],
-    orders: [],
+    orders: [
+      {
+        id: IDS.orderOpen,
+        order_number: 'CM-20260901-001',
+        customer_id: IDS.customer,
+        subtotal_cents: 4000,
+        shipping_cents: 499,
+        total_cents: 4499,
+        status: 'pending',
+        payment_status: 'unpaid',
+        stripe_session_id: null,
+        stripe_payment_intent: null,
+        shipping_name: 'Lena Kundin',
+        shipping_street: 'Hauptstr. 1',
+        shipping_city: 'Berlin',
+        shipping_postal_code: '10115',
+        created_at: '2026-08-30T12:00:00.000Z',
+      },
+    ],
     provider_stripe_accounts: [
       {
         id: '14141414-1414-4141-8141-141414141414',
