@@ -21,8 +21,24 @@ const PHONE_PATTERNS: RegExp[] = [
 /** Email-Adressen */
 const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/
 
-/** URLs außerhalb chairmatch.de */
-const URL_PATTERN = /\bhttps?:\/\/(?!chairmatch\.de|.*\.chairmatch\.de\b)[^\s]+/i
+/**
+ * URLs ausserhalb chairmatch.de.
+ *
+ * Die Ausnahme muss auf den HOST zeigen und dort enden. Vorher stand da
+ * `(?!chairmatch\.de|.*\.chairmatch\.de\b)`, und beide Alternativen waren
+ * zu locker:
+ *
+ *   https://chairmatch.de.evil.com/phish   → galt als eigene Domain
+ *   https://evil.com/pfad/a.chairmatch.de  → `.*` fand den Namen irgendwo
+ *                                            hinten im Pfad
+ *
+ * Die erste Variante ist die gefaehrlichere: eine Lookalike-Domain lief
+ * ungeprueft durch die Nachrichten. Jetzt muss auf den Namen direkt ein
+ * Host-Ende folgen (`/`, `?`, `#`, `:` oder Stringende), Subdomains sind
+ * ueber das optionale Praefix weiterhin erlaubt.
+ */
+const URL_PATTERN =
+  /\bhttps?:\/\/(?!(?:[a-z0-9-]+\.)*chairmatch\.de(?:[:/?#]|$))[^\s]+/i
 
 /** Social-Media-Mentions / Handles */
 const SOCIAL_KEYWORDS = [

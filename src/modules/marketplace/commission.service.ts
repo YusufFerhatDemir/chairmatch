@@ -1,6 +1,17 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-/** Get commission rate from DB or use default */
+/**
+ * Provisionssatz aus `commission_rates`, sonst der Notfallwert.
+ *
+ * `|| DEFAULT` war hier falsch: ein bewusst gepflegter Satz von 0 % ist
+ * falsy und wurde damit still zu 10 %. Genau 0 % ist aber ein realer,
+ * beabsichtigter Wert — Modell C stellt Buchungen ausdruecklich
+ * provisionsfrei (siehe COMMISSION_RULES in src/lib/marketplace-rules.ts).
+ * Der Fehler war unsichtbar: die Buchung ging durch, nur der Betrag stimmte
+ * nicht. `??` greift ausschliesslich bei fehlendem Satz.
+ */
+const DEFAULT_RATE_PERCENT = 10
+
 async function getRate(type: string): Promise<number> {
   const supabase = getSupabaseAdmin()
   const { data } = await supabase
@@ -8,7 +19,12 @@ async function getRate(type: string): Promise<number> {
     .select('rate_percent')
     .eq('type', type)
     .single()
-  return data?.rate_percent || 10
+  const rate = data?.rate_percent
+  if (rate === null || rate === undefined) {
+    console.warn(`[commission] Kein Satz fuer "${type}" hinterlegt — Notfallwert ${DEFAULT_RATE_PERCENT}%`)
+    return DEFAULT_RATE_PERCENT
+  }
+  return rate
 }
 
 /** Record a commission entry */

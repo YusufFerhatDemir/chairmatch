@@ -75,6 +75,14 @@ export function validateTransition(
   )
 }
 
+/**
+ * Endpreis nach Rabatt, in Cents.
+ *
+ * Der Prozentpfad war ungedeckelt: `validatePromoCode()` reicht durch, was in
+ * `promo_codes.discount` steht, und ein Code mit 150 hat daraus einen
+ * NEGATIVEN Preis gemacht — also eine Gutschrift statt einer Zahlung. Beide
+ * Pfade enden jetzt bei 0.
+ */
 export function calculatePrice(
   basePriceCents: number,
   promoDiscount: number,
@@ -83,7 +91,7 @@ export function calculatePrice(
   if (!promoType || promoDiscount <= 0) return basePriceCents
 
   if (promoType === 'percent') {
-    return Math.round(basePriceCents * (1 - promoDiscount / 100))
+    return Math.max(0, Math.round(basePriceCents * (1 - promoDiscount / 100)))
   }
   return Math.max(0, basePriceCents - promoDiscount * 100)
 }
