@@ -3,8 +3,48 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { PROVS, getProviderSpecs, type DemoSpec } from '@/lib/demo-data'
-import { PROMO_CODES } from '@/lib/constants'
+import { PROVS, type DemoSpec } from '@/lib/demo-data'
+
+/**
+ * Termin-Buchung — /booking/[salonId]
+ *
+ * Zwei Erfindungen sassen bis Track 9 in dieser Datei, beide direkt am
+ * Geldbetrag und beide fuer den Nutzer nicht als Erfindung erkennbar.
+ *
+ * 1. STILLER ERFOLG FUER DEMO-SALONS.
+ *    `PROVS` sind dreissig erfundene Salons, die Startseite, Suche und
+ *    Kategorien tragen. Ihre IDs (p1 … p30) und ihre Leistungs-IDs stehen in
+ *    keiner Datenbank — eine Buchung darauf kann nicht gelingen. Der Code
+ *    schickte sie trotzdem los, mit `salonId: undefined`, und fing die
+ *    unvermeidliche Absage ab:
+ *
+ *        if (!res.ok) { if (demoP) { saveAndRedirectToSuccess(); return } }
+ *        catch      { if (demoP) { saveAndRedirectToSuccess(); return } }
+ *
+ *    Ergebnis: /booking/success zeigte "BESTÄTIGT!" samt Salon, Leistung,
+ *    Datum, Uhrzeit und Preis — fuer einen Termin, den es nirgends gab.
+ *    Kein Eintrag in `bookings`, keine E-Mail, kein Salon, der davon wusste.
+ *    Serverseitig war derselbe Fehler in Track 6 geschlossen worden
+ *    (createBooking meldete `success` ohne salonId); der Browser hat ihn
+ *    danach weiter selbst erzeugt.
+ *
+ *    Jetzt: ein Demo-Eintrag sagt vorab, dass er ein Beispiel ist, und
+ *    bietet gar kein Formular an. Fehlschlaege echter Buchungen werden
+ *    gemeldet, nie verschluckt.
+ *
+ * 2. RABATT AUS EINER BROWSER-KONSTANTE.
+ *    `PROMO_CODES` in src/lib/constants.ts fuehrte CHAIR2026 (15 %),
+ *    WELCOME10 (10 %) und BEAUTY5 (5 €). Der Server kennt diese Liste nicht
+ *    — er prueft `promo_codes` in der Datenbank und belegt dort ein
+ *    Kontingent (siehe claimPromoCode). Die Seite meldete "✓ Code gültig!
+ *    Du sparst 15 €" und rechnete eine "Gesamt"-Zeile aus, ohne den Server
+ *    je gefragt zu haben. Bei abgelaufenem, aufgebrauchtem oder gar nicht
+ *    existierendem Code stand dort ein Preis, den niemand zugesagt hatte.
+ *
+ *    Jetzt wird der Code unveraendert mitgeschickt und ausschliesslich
+ *    serverseitig geprueft. Was auf der Bestaetigung steht, ist der Preis
+ *    aus der angelegten Buchung (`priceCents` aus der Antwort).
+ */
 
 interface Service {
   id: string
@@ -32,14 +72,14 @@ interface SalonData {
   staff: Staff[]
 }
 
-function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
-  return (
-    <span style={{ display: 'inline-flex', gap: 1 }} role="img" aria-label={`${rating.toFixed(1)} von 5 Sternen`}>
-      {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ opacity: i <= Math.round(rating) ? 1 : 0.3, color: 'var(--gold)', fontSize: size }} aria-hidden="true">★</span>
-      ))}
-    </span>
-  )
+/** Antwort von POST /api/bookings fuer eine wirklich angelegte Buchung. */
+interface ServerBooking {
+  success: true
+  bookingId: string
+  /** Der Preis, der in der Buchung steht — inklusive eines Rabatts, den der Server anerkannt hat. */
+  priceCents: number
+  /** Wurde ein Kontingent aus `promo_codes` belegt? */
+  promoApplied?: boolean
 }
 
 export default function BookingPage() {
@@ -58,28 +98,25 @@ export default function BookingPage() {
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
   const [promoCode, setPromoCode] = useState('')
-  const [promoValid, setPromoValid] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [consentGiven, setConsentGiven] = useState(false)
 
-  // Try demo provider
+  /**
+   * Beispiel-Eintrag aus `PROVS`? Dann ist hier nichts buchbar — weder der
+   * Salon noch seine Leistungen existieren in der Datenbank. Das wird unten
+   * gesagt, statt ein Formular anzubieten, das nur scheitern kann.
+   */
   const demoP = PROVS.find(p => p.id === salonId)
-  const specs = demoP ? getProviderSpecs(demoP) : []
 
   useEffect(() => {
-    if (demoP) {
-      setSalon({
-        id: demoP.id, name: demoP.nm, category: demoP.cat, city: demoP.city,
-        services: demoP.svs.map(s => ({ id: s.id, name: s.nm, durationMinutes: s.dur, priceCents: s.pr * 100 })),
-        staff: specs.map(s => ({ id: s.id, name: s.nm, title: s.role })),
-      })
-    } else {
-      fetch(`/api/salons/${salonId}`)
-        .then(r => r.json())
-        .then(data => setSalon(data))
-        .catch(() => {})
-    }
+    if (demoP) return
+    let abgebrochen = false
+    fetch(`/api/salons/${salonId}`)
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then(data => { if (!abgebrochen) setSalon(data) })
+      .catch(() => { if (!abgebrochen) setError('Dieser Salon konnte nicht geladen werden.') })
+    return () => { abgebrochen = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [salonId])
 
@@ -103,30 +140,21 @@ export default function BookingPage() {
 
   const timeSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']
 
-  // Promo code validation
-  function checkPromo() {
-    const code = promoCode.trim().toUpperCase()
-    if (PROMO_CODES[code]) {
-      setPromoValid(true)
-    } else {
-      setPromoValid(false)
-    }
-  }
-
-  // Calculate final price
+  /**
+   * Listenpreis der gewaehlten Leistung — der einzige Betrag, den der Browser
+   * kennt. Ob ein Rabattcode greift, entscheidet allein der Server; bis die
+   * Buchung steht, wird hier deshalb kein Abzug und keine Endsumme gezeigt.
+   */
   const basePrice = selectedService ? ((selectedService.priceCents ?? selectedService.price_cents ?? 0) / 100) : 0
-  const promoDiscount = promoValid && promoCode.trim().toUpperCase() in PROMO_CODES
-    ? PROMO_CODES[promoCode.trim().toUpperCase()]
-    : null
-  const discountAmount = promoDiscount
-    ? promoDiscount.type === 'percent' ? basePrice * promoDiscount.discount / 100 : promoDiscount.discount
-    : 0
-  const finalPrice = Math.max(0, basePrice - discountAmount)
 
   const needsConsent = selectedService && ['HIGH', 'VERY_HIGH'].includes(String((selectedService as Service).risk_level ?? ''))
   const canSubmit = !needsConsent || consentGiven
 
   async function handleSubmit() {
+    if (!salon?.id) {
+      setError('Dieser Salon konnte nicht geladen werden.')
+      return
+    }
     if (!selectedService || !startTime) {
       setError('Bitte Service und Uhrzeit auswählen.')
       return
@@ -144,13 +172,13 @@ export default function BookingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          salonId: demoP ? undefined : salonId,
+          salonId: salon.id,
           serviceId: selectedService.id,
           staffId: selectedSpec?.id || undefined,
           date: days[selectedDay].iso,
           startTime,
           notes: notes || undefined,
-          promoCode: promoCode || undefined,
+          promoCode: promoCode.trim() || undefined,
           customerName: name || undefined,
           customerEmail: email || undefined,
           customerPhone: phone || undefined,
@@ -158,50 +186,87 @@ export default function BookingPage() {
         }),
       })
 
-      if (!res.ok) {
-        // For demo providers, just simulate success
-        if (demoP) {
-          saveAndRedirectToSuccess()
-          return
-        }
-        const data = await res.json()
-        setError(data.error || 'Buchung fehlgeschlagen.')
+      const data = await res.json().catch(() => ({}))
+
+      if (res.status === 401) {
+        setError('Bitte melde dich an, um zu buchen.')
+        router.push(`/auth?callbackUrl=${encodeURIComponent(`/booking/${salonId}`)}` as never)
         return
       }
 
-      saveAndRedirectToSuccess()
-    } catch {
-      // For demo, just show success
-      if (demoP) {
-        saveAndRedirectToSuccess()
+      // Kein stiller Erfolg: was der Server ablehnt, wird gemeldet.
+      if (!res.ok || !data?.success || typeof data.bookingId !== 'string') {
+        setError(data?.error || 'Buchung fehlgeschlagen.')
         return
       }
-      setError('Verbindungsfehler.')
+
+      saveAndRedirectToSuccess(data as ServerBooking)
+    } catch {
+      setError('Verbindungsfehler — die Buchung wurde nicht gespeichert.')
     } finally {
       setLoading(false)
     }
   }
 
   const BOOKING_SUCCESS_KEY = 'cm_booking_success'
-  function saveAndRedirectToSuccess() {
+
+  /**
+   * Wird ausschliesslich mit der Antwort einer wirklich angelegten Buchung
+   * aufgerufen. Preis und Rabatt kommen aus dieser Antwort, nicht aus dem
+   * Browser — die Bestaetigung zeigt damit den Betrag, der in `bookings`
+   * steht.
+   */
+  function saveAndRedirectToSuccess(gebucht: ServerBooking) {
+    const listenpreis = basePrice
+    const gezahlt = gebucht.priceCents / 100
     const payload = {
-      salonId,
+      bookingId: gebucht.bookingId,
+      salonId: salon?.id ?? salonId,
       salonName: salon?.name ?? '',
       serviceName: selectedService?.name ?? '',
       durationMinutes: selectedService?.durationMinutes ?? selectedService?.duration_minutes ?? 0,
       dateFull: days[selectedDay]?.full ?? '',
       bookingDate: days[selectedDay]?.iso ?? '',
       startTime,
-      finalPrice,
-      discountAmount,
+      finalPrice: gezahlt,
+      discountAmount: Math.max(0, listenpreis - gezahlt),
       specName: selectedSpec?.nm,
-      hasPromo: !!promoDiscount,
+      hasPromo: gebucht.promoApplied === true,
       salonPhone: salon?.phone ?? '',
     }
     try {
       sessionStorage.setItem(BOOKING_SUCCESS_KEY, JSON.stringify(payload))
     } catch {}
     router.replace('/booking/success')
+  }
+
+  /*
+   * Beispiel-Eintrag: kein Formular. Frueher lief hier der volle Ablauf
+   * durch und endete in einer erfundenen Bestaetigung (siehe Kopfkommentar).
+   */
+  if (demoP) {
+    return (
+      <div className="shell">
+        <div className="screen" style={{ padding: 'var(--pad)' }}>
+          <Link href={`/salon/${salonId}`} style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', textDecoration: 'none' }}>← Zurück</Link>
+          <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 700, color: 'var(--cream)', marginTop: 12, marginBottom: 4 }}>Termin buchen</h1>
+          <p style={{ color: 'var(--stone)', fontSize: 'var(--font-sm)', marginBottom: 16 }}>{demoP.nm}</p>
+          <div className="card" style={{ padding: 16 }}>
+            <p style={{ fontSize: 13.5, color: 'var(--cream)', fontWeight: 700, marginBottom: 8 }}>
+              Dieser Eintrag ist ein Beispiel
+            </p>
+            <p style={{ fontSize: 12.5, color: 'var(--stone)', lineHeight: 1.6, margin: 0 }}>
+              {demoP.nm} zeigt, wie ein Salonprofil bei ChairMatch aussieht. Es ist kein echter Betrieb —
+              hier lässt sich kein Termin buchen. Echte Salons in {demoP.city} findest du über die Suche.
+            </p>
+          </div>
+          <Link href={`/search?q=${encodeURIComponent(demoP.city)}`} className="bgold" style={{ display: 'block', textAlign: 'center', marginTop: 16, textDecoration: 'none' }}>
+            Salons in {demoP.city} suchen
+          </Link>
+          <div style={{ height: 40 }} />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -296,20 +361,7 @@ export default function BookingPage() {
           <div>
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 10 }}>Spezialist wählen</p>
             <div style={{ display: 'flex', gap: 10, marginBottom: 20, overflowX: 'auto', paddingBottom: 4 }}>
-              {specs.length > 0 ? specs.map(spec => (
-                <button key={spec.id} onClick={() => setSelectedSpec(spec)} style={{
-                  flexShrink: 0, width: 106, padding: '13px 10px', borderRadius: 16, textAlign: 'center', cursor: 'pointer',
-                  background: selectedSpec?.id === spec.id ? 'rgba(176,144,96,.08)' : 'var(--c2)',
-                  border: selectedSpec?.id === spec.id ? '1.5px solid var(--gold)' : '1px solid var(--border)',
-                }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: spec.col, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, margin: '0 auto 6px', color: 'var(--cream)' }}>
-                    {spec.ini}
-                  </div>
-                  <p style={{ fontSize: 11, fontWeight: 700, marginBottom: 2, color: 'var(--cream)' }}>{spec.nm}</p>
-                  <p style={{ fontSize: 9, color: 'var(--stone)', marginBottom: 4 }}>{spec.role}</p>
-                  <Stars rating={spec.rt} size={10} />
-                </button>
-              )) : (salon?.staff || []).map(m => (
+              {(salon?.staff || []).map(m => (
                 <button key={m.id} onClick={() => setSelectedSpec({ id: m.id, nm: m.name, role: m.title || '', rt: 0, cat: '', ini: m.name.split(' ').map(n => n[0]).join('').slice(0, 2), col: 'var(--c3)' })} style={{
                   flexShrink: 0, width: 106, padding: '13px 10px', borderRadius: 16, textAlign: 'center', cursor: 'pointer',
                   background: selectedSpec?.id === m.id ? 'rgba(176,144,96,.08)' : 'var(--c2)',
@@ -325,7 +377,9 @@ export default function BookingPage() {
             </div>
 
             <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 16, textAlign: 'center' }}>
-              {!selectedSpec ? 'Tippe auf einen Spezialisten oder überspringe' : `${selectedSpec.nm} ausgewählt`}
+              {(salon?.staff || []).length === 0
+                ? 'Für diesen Salon sind keine Mitarbeitenden hinterlegt — der Termin wird ohne Zuordnung gebucht.'
+                : !selectedSpec ? 'Tippe auf einen Spezialisten oder überspringe' : `${selectedSpec.nm} ausgewählt`}
             </p>
 
             <div style={{ display: 'flex', gap: 10 }}>
@@ -375,36 +429,13 @@ export default function BookingPage() {
               </div>
             </div>
 
-            {/* Promo Code */}
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Promo-Code</p>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <input className="inp" placeholder="Code eingeben" value={promoCode} onChange={e => { setPromoCode(e.target.value); setPromoValid(null) }} style={{ flex: 1 }} />
-              <button onClick={checkPromo} className="boutline" style={{ padding: '10px 16px', fontSize: 12, cursor: 'pointer' }}>Prüfen</button>
-            </div>
-            {promoValid === true && (
-              <p style={{ fontSize: 12, color: '#6ABF80', marginBottom: 16 }}>✓ Code gültig! Du sparst {discountAmount.toFixed(0)} €</p>
-            )}
-            {promoValid === false && (
-              <p style={{ fontSize: 12, color: 'var(--red)', marginBottom: 16 }}>✕ Ungültiger Code</p>
-            )}
-
-            {/* Final Price */}
-            {promoDiscount && (
-              <div className="card" style={{ padding: 14, marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                  <span style={{ color: 'var(--stone)' }}>Zwischensumme</span>
-                  <span style={{ color: 'var(--cream)' }}>{basePrice.toFixed(0)} €</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                  <span style={{ color: '#6ABF80' }}>Rabatt</span>
-                  <span style={{ color: '#6ABF80' }}>−{discountAmount.toFixed(0)} €</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--gold2)' }}>Gesamt</span>
-                  <span style={{ fontWeight: 800, color: 'var(--gold2)' }}>{finalPrice.toFixed(0)} €</span>
-                </div>
-              </div>
-            )}
+            {/* Promo-Code — geprueft wird ausschliesslich beim Buchen, serverseitig. */}
+            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Promo-Code (optional)</p>
+            <input className="inp" placeholder="Code eingeben" value={promoCode} onChange={e => setPromoCode(e.target.value)} style={{ width: '100%', marginBottom: 8 }} />
+            <p style={{ fontSize: 11.5, color: 'var(--stone)', lineHeight: 1.5, marginBottom: 16 }}>
+              Der Code wird beim Buchen geprüft. Greift er, steht der ermäßigte Preis auf der Bestätigung —
+              vorher steht hier der Listenpreis.
+            </p>
 
             {/* Storno-Policy (AGB § 4a) */}
             <div style={{ marginBottom: 16, padding: 14, background: 'var(--c2)', border: '1px solid var(--border)', borderRadius: 12 }}>

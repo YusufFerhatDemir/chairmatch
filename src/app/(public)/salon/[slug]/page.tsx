@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import SalonDetailClient from '@/components/SalonDetailClient'
 import { PROVS } from '@/lib/demo-data'
+import { getReviews } from '@/modules/reviews/review.actions'
 import { salonSchema, geoMeta, cityToSlug, type BreadcrumbItem, jsonLd as jsonLdScript } from '@/lib/seo'
 import { getCityBySlug } from '@/lib/seo-data/cities'
 
@@ -189,12 +190,31 @@ export default async function SalonDetailPage({ params }: Props) {
 
     if (!salon) notFound()
 
-    const [servicesRes, reviewsRes, staffRes, rentalsRes] = await Promise.all([
+    /*
+     * Bewertungen kommen ueber `getReviews`, NICHT ueber eine eigene Abfrage.
+     *
+     * Hier stand bis Track 9 ein direktes
+     * `from('reviews').select('*, customer:profiles(full_name)')` ohne jeden
+     * Filter auf den Bewertungstyp. Miet-Bewertungen tragen aus
+     * Legacy-Gruenden dieselbe `salon_id`, sind aber double-blind: sie werden
+     * erst sichtbar, wenn beide Seiten bewertet haben oder 14 Tage vergangen
+     * sind (`published`, /api/cron/publish-reviews). Diese Seite hat sie
+     * ausnahmslos veroeffentlicht — auch die noch gesperrten, mit dem Namen
+     * des Bewertenden daneben. Genau die Sperre, die /api/reviews/rental und
+     * /api/reviews/aggregate sorgfaeltig durchsetzen, war ueber die
+     * oeffentliche Salonseite zu umgehen.
+     *
+     * `getReviews` haelt die Regel an einer Stelle (`isSalonReview`). Die
+     * Begrenzung auf zehn passiert NACH dem Filter — vorher haette ein Salon
+     * mit zehn Miet-Bewertungen gar keine Kundenbewertung mehr gezeigt.
+     */
+    const [servicesRes, alleSalonReviews, staffRes, rentalsRes] = await Promise.all([
       supabase.from('services').select('*').eq('salon_id', salon.id).eq('is_active', true).order('sort_order', { ascending: true }),
-      supabase.from('reviews').select('*, customer:profiles(full_name)').eq('salon_id', salon.id).order('created_at', { ascending: false }).limit(10),
+      getReviews(salon.id),
       supabase.from('staff').select('*').eq('salon_id', salon.id).eq('is_active', true),
       supabase.from('rental_equipment').select('*').eq('salon_id', salon.id).eq('is_available', true),
     ])
+    const reviewsSichtbar = alleSalonReviews.slice(0, 10)
 
     const salonData = {
       id: salon.id,
@@ -239,7 +259,7 @@ export default async function SalonDetailPage({ params }: Props) {
         salon={salonData}
         services={(servicesRes.data || []).map(s => ({ id: s.id, name: s.name, duration_minutes: s.duration_minutes, price_cents: s.price_cents }))}
         staff={(staffRes.data || []).map(m => ({ id: m.id, name: m.name, title: m.title, avatar_url: m.avatar_url }))}
-        reviews={(reviewsRes.data || []).map(r => ({ id: r.id, rating: r.rating, comment: r.comment, reply: r.reply, customer: r.customer, created_at: r.created_at }))}
+        reviews={reviewsSichtbar.map(r => ({ id: r.id, rating: r.rating, comment: r.comment, reply: r.reply, customer: r.customer, created_at: r.created_at }))}
         rentals={(rentalsRes.data || []).map(r => ({ id: r.id, type: r.type, name: r.name, price_per_day_cents: r.price_per_day_cents, description: r.description }))}
         breadcrumbs={salonBreadcrumbs(salon.name, slug, salon.city)}
       />

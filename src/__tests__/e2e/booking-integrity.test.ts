@@ -196,6 +196,41 @@ describe('Rabatt-Kontingent', () => {
     expect(res.status).toBe(201)
     expect(neueBuchungen(vorher)[0].price_cents).toBe(5000)
   })
+
+  /*
+   * Die Antwort traegt den Preis, damit die Bestaetigungsseite ihn nicht
+   * selbst rechnen muss. Sie hat es bis Track 9 getan — aus einer
+   * hartcodierten Rabattliste im Browser, die mit `promo_codes` nichts zu tun
+   * hatte. Ein Code, den es serverseitig nicht (mehr) gab, ergab dort
+   * trotzdem einen Rabatt und eine Endsumme, die niemand zugesagt hatte.
+   */
+  it('meldet den Preis zurueck, der wirklich in der Buchung steht', async () => {
+    const vorher = db().rows('bookings').length
+    const res = await book(gueltig({ promoCode: SOMMER }))
+    const body = (await res.json()) as { priceCents: number; promoApplied: boolean }
+
+    expect(body.priceCents).toBe(neueBuchungen(vorher)[0].price_cents)
+    expect(body.priceCents).toBe(4500)
+    expect(body.promoApplied).toBe(true)
+  })
+
+  it('meldet promoApplied=false, wenn das Kontingent erschoepft war', async () => {
+    const vorher = db().rows('bookings').length
+    const res = await book(gueltig({ promoCode: AUSGESCHOEPFT }))
+    const body = (await res.json()) as { priceCents: number; promoApplied: boolean }
+
+    // Genau der Fall, in dem der Browser frueher trotzdem einen Rabatt zeigte.
+    expect(body.promoApplied).toBe(false)
+    expect(body.priceCents).toBe(5000)
+    expect(body.priceCents).toBe(neueBuchungen(vorher)[0].price_cents)
+  })
+
+  it('meldet promoApplied=false, wenn gar kein Code angegeben war', async () => {
+    const res = await book(gueltig({}))
+    const body = (await res.json()) as { priceCents: number; promoApplied: boolean }
+    expect(body.promoApplied).toBe(false)
+    expect(body.priceCents).toBe(5000)
+  })
 })
 
 // ────────────────────────────────────────────────────────────────

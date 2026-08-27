@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { normalizeE164 } from '@/lib/sms'
 import { withApi, apiError } from '@/lib/api-wrapper'
 import { getServerSession } from '@/modules/auth/session'
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 
 /**
@@ -20,7 +21,38 @@ const schema = z.object({
   code: z.string().regex(/^\d{6}$/, 'Code muss 6 Ziffern sein'),
 })
 
-const MAX_ATTEMPTS_PER_WINDOW = 5
+/**
+ * Brute-Force-Riegel.
+ *
+ * Hier stand bis Track 9 eine Abfrage, die sich als solcher las und keiner
+ * war:
+ *
+ *     count(*) FROM phone_verifications
+ *     WHERE phone = ? AND verified = false AND created_at >= vor 10 Min
+ *     ... if (count > MAX_ATTEMPTS_PER_WINDOW * 3) -> 429
+ *
+ * Gezaehlt wurden damit NICHT die Fehlversuche, sondern die noch nicht
+ * eingeloesten Codes. Fehlversuche schreibt niemand irgendwohin. Und
+ * /api/auth/phone/send laesst hoechstens DREI Codes je Nummer und
+ * Zehnminutenfenster zu — der Zaehler konnte also nie ueber 3 steigen,
+ * die Schwelle lag bei 15. Der Riegel hat in keinem einzigen Fall gegriffen.
+ *
+ * Was jetzt greift: ein echter Zaehler ueber die tatsaechlichen Versuche.
+ * Er liegt im Speicher der Instanz (siehe src/lib/rate-limit.ts) und haelt
+ * damit die Schleife aus einer Quelle auf, nicht den verteilten Angriff.
+ *
+ * Der verbleibende Rest ist bekannt und hier nicht geschlossen: ein
+ * ausgegebener Code erlaubt weiterhin beliebig viele Versuche, wenn sie ueber
+ * genug Instanzen gestreut werden. Ein harter Deckel braucht einen Zaehler
+ * PRO CODE in der Datenbank — `phone_verifications` hat live keine solche
+ * Spalte (Sonde 2026-08-27: `attempts`, `attempt_count`, `failed_attempts`
+ * antworten alle mit 42703). Das ist eine Migration, keine Codeaenderung,
+ * und dieser Track legt keine weitere unangewendete Migration nach.
+ *
+ * Der Schaden bleibt derweil klein: ein erratener Code setzt `profiles.phone`
+ * des ANRUFENDEN Kontos, es gibt keinen Login ueber die Telefonnummer.
+ */
+const MAX_ATTEMPTS_PER_WINDOW = 10
 const ATTEMPT_WINDOW_MIN = 10
 
 export const POST = withApi(async (req: Request) => {
@@ -34,16 +66,14 @@ export const POST = withApi(async (req: Request) => {
 
   const admin = getSupabaseAdmin()
 
-  // Brute-Force-Schutz: max 5 falsche Versuche pro Nummer/10 Min
-  const since = new Date(Date.now() - ATTEMPT_WINDOW_MIN * 60_000).toISOString()
-  const { count: failCount } = await admin
-    .from('phone_verifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('phone', phone)
-    .eq('verified', false)
-    .gte('created_at', since)
-  if ((failCount ?? 0) > MAX_ATTEMPTS_PER_WINDOW * 3) {
-    return apiError('Zu viele fehlgeschlagene Versuche. Bitte später erneut.', 429)
+  // Jeder Versuch zaehlt — der richtige wie der falsche.
+  const limit = checkRateLimit(phone, {
+    scope: 'phone-verify',
+    max: MAX_ATTEMPTS_PER_WINDOW,
+    windowMs: ATTEMPT_WINDOW_MIN * 60_000,
+  })
+  if (limit.limited) {
+    return rateLimitResponse(limit, 'Zu viele Versuche. Bitte später erneut.')
   }
 
   // Aktuellsten gültigen, nicht-verbrauchten Code für diese Nummer holen

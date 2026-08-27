@@ -470,7 +470,21 @@ export async function createBooking(input: unknown) {
     console.error('Failed to send booking emails')
   }
 
-  return { success: true, bookingId: newBooking.id }
+  /*
+   * Der Preis geht mit zurueck, und zwar der, der wirklich in der Zeile
+   * steht. Die Bestaetigungsseite hat ihn bis Track 9 selbst gerechnet — aus
+   * einer hartcodierten Rabattliste im Browser, die mit der Tabelle
+   * `promo_codes` nichts zu tun hatte. Wer einen Code eingab, den es
+   * serverseitig nicht (mehr) gibt, sah trotzdem einen Rabatt und eine
+   * Endsumme, die nie jemand berechnet hatte. `promoApplied` sagt, ob das
+   * Kontingent tatsaechlich belegt wurde — nicht, ob der Code eingetippt war.
+   */
+  return {
+    success: true,
+    bookingId: newBooking.id,
+    priceCents: finalPriceCents,
+    promoApplied: promoClaimed,
+  }
 }
 
 export async function cancelBooking(input: unknown) {

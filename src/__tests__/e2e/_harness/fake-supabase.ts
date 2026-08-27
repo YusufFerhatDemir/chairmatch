@@ -110,6 +110,8 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
   private conflictKeys: string[] | null = null
   /** Spalten aus `select('a, b')` — null bei `*` oder eingebetteten Relationen. */
   private selectedColumns: string[] | null = null
+  /** Der Select-String im Original — entscheidet, WELCHE Relationen eingebettet werden. */
+  private rawSelect: string | null = null
 
   constructor(
     private readonly db: FakeSupabase,
@@ -117,6 +119,7 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
   ) {}
 
   select(_columns?: string, options?: { count?: string; head?: boolean }): this {
+    this.rawSelect = _columns ?? null
     this.selectedColumns =
       !_columns || _columns.includes('(') || _columns.trim() === '*'
         ? null
@@ -325,8 +328,8 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
       }
       if (!this.returnRows) return { data: null, error: null }
       return this.wantSingle
-        ? { data: this.db.embed(this.tableName, inserted[0]), error: null }
-        : { data: inserted.map(r => this.db.embed(this.tableName, r)), error: null }
+        ? { data: this.db.embed(this.tableName, inserted[0], 0, this.rawSelect), error: null }
+        : { data: inserted.map(r => this.db.embed(this.tableName, r, 0, this.rawSelect)), error: null }
     }
 
     if (this.op === 'update') {
@@ -346,8 +349,8 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
       for (const r of hit) Object.assign(r, patch)
       if (!this.returnRows) return { data: null, error: null }
       return this.wantSingle
-        ? { data: hit[0] ? this.db.embed(this.tableName, hit[0]) : null, error: hit[0] ? null : NO_ROWS }
-        : { data: hit.map(r => this.db.embed(this.tableName, r)), error: null }
+        ? { data: hit[0] ? this.db.embed(this.tableName, hit[0], 0, this.rawSelect) : null, error: hit[0] ? null : NO_ROWS }
+        : { data: hit.map(r => this.db.embed(this.tableName, r, 0, this.rawSelect)), error: null }
     }
 
     if (this.op === 'delete') {
@@ -369,7 +372,7 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
 
     if (this.headOnly) return { data: null, error: null, count: hit.length }
 
-    const embedded = hit.map(r => this.db.embed(this.tableName, r))
+    const embedded = hit.map(r => this.project(this.db.embed(this.tableName, r, 0, this.rawSelect) ?? r))
 
     if (this.wantSingle) {
       if (embedded.length === 0 && this.allowNoRows) return { data: null, error: null }
@@ -380,6 +383,29 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     return this.wantCount
       ? { data: embedded, error: null, count: embedded.length }
       : { data: embedded, error: null }
+  }
+
+  /**
+   * Auf die in `select('a, b')` genannten Spalten reduzieren.
+   *
+   * Der Nachbau gab bis Track 9 IMMER die ganze Zeile zurueck, egal was im
+   * Select stand. Damit war eine ganze Fehlerklasse unsichtbar: eine Route,
+   * die `select('*')` auf eine Tabelle mit PII macht und das Ergebnis
+   * oeffentlich ausliefert, sah im Test genauso aus wie eine mit sauberer
+   * Positivliste — beide lieferten dieselben Felder. Genau so lag
+   * `salons.email` unter GET /api/salons/[id] offen, waehrend die Suite
+   * gruen war.
+   *
+   * `*` und eingebettete Relationen setzen `selectedColumns` auf null; dort
+   * bleibt alles wie bisher.
+   */
+  private project(row: Row): Row {
+    if (!this.selectedColumns) return row
+    const out: Row = {}
+    for (const column of this.selectedColumns) {
+      if (column in row) out[column] = row[column]
+    }
+    return out
   }
 
   /**
@@ -618,13 +644,31 @@ export class FakeSupabase {
     return found.error
   }
 
-  /** Relationen gemäß RelationMap einbetten (max. 3 Ebenen tief) */
-  embed(table: string, row: Row | undefined, depth = 0): Row | null {
+  /**
+   * Relationen gemäß RelationMap einbetten (max. 3 Ebenen tief).
+   *
+   * Auf der obersten Ebene wird nur eingebettet, was der Select-String auch
+   * nennt. Vorher haengte der Nachbau JEDE definierte Beziehung an jede
+   * Zeile — auch bei `select('*')`, wo PostgREST nichts einbettet. Das ist
+   * nicht nur unrealistisch, es versteckt Lecks: eine Route, die
+   * `rental_equipment` mit `select('*')` oeffentlich ausliefert, trug im Test
+   * den vollstaendigen Salon samt `owner_id` und `email` mit sich, ohne dass
+   * das im Produktivcode so passiert waere — oder eben umgekehrt: der Test
+   * konnte nicht unterscheiden, ob ein Feld aus der Route kommt oder aus dem
+   * Nachbau.
+   *
+   * Tiefere Ebenen bleiben wie bisher: was ein Select einmal eingebettet hat,
+   * bringt seine eigenen Beziehungen mit.
+   */
+  embed(table: string, row: Row | undefined, depth = 0, select?: string | null): Row | null {
     if (!row) return null
     const rels = this.relations[table]
     if (!rels || depth > 2) return { ...row }
     const out: Row = { ...row }
     for (const [alias, def] of Object.entries(rels)) {
+      if (depth === 0 && select != null && !new RegExp(`(^|[\\s,(!])${alias}\\s*[(!:]`).test(select)) {
+        continue
+      }
       const fk = row[def.localKey]
       const target = fk === null || fk === undefined ? undefined : this.row(def.table, fk)
       out[alias] = target ? this.embed(def.table, target, depth + 1) : null

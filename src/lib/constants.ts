@@ -1,4 +1,4 @@
-import type { CategoryInfo, Notification, PromoCode } from './types'
+import type { CategoryInfo } from './types'
 
 export const CATEGORIES: CategoryInfo[] = [
   { id: 'barber', label: 'Barbershop', sub: 'Fade · Cut · Bart' },
@@ -35,18 +35,26 @@ export const RENTAL_ICONS: Record<string, string> = {
   opraum: '/icons/09_op_raum_512x384.png',
 }
 
-export const PROMO_CODES: Record<string, PromoCode> = {
-  CHAIR2026: { code: 'CHAIR2026', discount: 15, type: 'percent' },
-  WELCOME10: { code: 'WELCOME10', discount: 10, type: 'percent' },
-  BEAUTY5: { code: 'BEAUTY5', discount: 5, type: 'fixed' },
-}
-
-export const DEFAULT_NOTIFICATIONS: Notification[] = [
-  { id: 'n1', title: 'Termin morgen!', body: 'Skin Fade bei BlackLabel · Mi 10:00', time: 'vor 2 Std.', read: false, icon: '📅' },
-  { id: 'n2', title: '15% Rabatt', body: 'Exklusiv für dich bei King\'s Cut Berlin', time: 'vor 5 Std.', read: false, icon: '🎉' },
-  { id: 'n3', title: 'Neue Bewertung', body: 'Tobias K. hat BlackLabel bewertet', time: 'Gestern', read: true, icon: '⭐' },
-  { id: 'n4', title: 'Willkommen!', body: 'Entdecke die besten Salons in deiner Nähe', time: 'vor 2 Tagen', read: true, icon: '👋' },
-]
+/*
+ * Hier standen bis Track 9 zwei Bestaende, die nirgends her kamen und nach
+ * aussen wie Daten aussahen:
+ *
+ *   PROMO_CODES — CHAIR2026 (15 %), WELCOME10 (10 %), BEAUTY5 (5 €). Die
+ *   Buchungsseite hat daraus "✓ Code gültig! Du sparst 15 €" und eine
+ *   Endsumme gerechnet. Der Server kennt diese Liste nicht; er prueft die
+ *   Tabelle `promo_codes` und belegt dort ein Kontingent (claimPromoCode in
+ *   src/modules/booking/booking.actions.ts). Wer einen Code eintippte, den es
+ *   serverseitig nicht oder nicht mehr gab, sah trotzdem einen Rabatt — und
+ *   bezahlte den vollen Preis.
+ *
+ *   DEFAULT_NOTIFICATIONS — vier erfundene Meldungen ("Termin morgen! Skin
+ *   Fade bei BlackLabel · Mi 10:00"). Sie wurden zuletzt von nichts mehr
+ *   importiert; echte Benachrichtigungen liegen in `notification_log` und
+ *   kommen ueber GET /api/notifications.
+ *
+ * Beide sind ersatzlos entfernt. Rabatte gibt es dort, wo sie verwaltet
+ * werden: in der Datenbank.
+ */
 
 export const SVC_CATALOG: Record<string, { nm: string; dur: number; pr: number }[]> = {
   barber: [
