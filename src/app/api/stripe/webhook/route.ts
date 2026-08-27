@@ -4,6 +4,13 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { calculateNewCustomerCommission, calculateRentalCommission } from '@/modules/marketplace/commission.service'
 import { calculateCommission } from '@/lib/marketplace-rules'
 import { createNotification } from '@/lib/notifications'
+import {
+  FREE_TIER,
+  entitlementForStatus,
+  isTier,
+  tierForPriceId,
+  type Tier,
+} from '@/lib/subscription-tier'
 import type Stripe from 'stripe'
 
 // Disable body parsing — Stripe needs raw body
@@ -422,6 +429,207 @@ async function fulfillProductOrder(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Abo-Lebenszyklus
+// ---------------------------------------------------------------------------
+
+/** Stripe liefert `customer` je nach Expansion als ID oder als Objekt. */
+function stripeId(ref: string | { id?: string } | null | undefined): string | null {
+  if (!ref) return null
+  return typeof ref === 'string' ? ref : ref.id ?? null
+}
+
+/**
+ * Wem gehoert dieses Abo?
+ *
+ * Zwei Wege, in dieser Reihenfolge:
+ *  1. `subscription.metadata.user_id` — seit 2026-08-27 von
+ *     `createSubscriptionCheckout` ueber `subscription_data.metadata` gesetzt.
+ *  2. `profiles.stripe_customer_id` — fuer Abos, die vor dieser Aenderung
+ *     entstanden sind. Die Spalte wird jetzt beim Checkout beschrieben; fuer
+ *     Altbestand bleibt sie leer, deshalb ist das der Rueckfall und nicht der
+ *     Hauptweg.
+ */
+async function resolveSubscriptionOwner(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  subscription: { metadata?: Stripe.Metadata | null; customer?: string | Stripe.Customer | Stripe.DeletedCustomer | null },
+): Promise<string | null> {
+  const fromMetadata = subscription.metadata?.user_id
+  if (typeof fromMetadata === 'string' && fromMetadata) return fromMetadata
+
+  const customerId = stripeId(subscription.customer as string | { id?: string } | null)
+  if (!customerId) return null
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('stripe_customer_id', customerId)
+    .limit(1)
+
+  return (data?.[0]?.id as string | undefined) ?? null
+}
+
+/**
+ * Kundennummer am Profil festhalten.
+ *
+ * Ohne sie ist jedes Abo, das nicht ueber unseren eigenen Checkout entstanden
+ * ist (Stripe-Dashboard, Kundenportal, Migration), fuer uns anonym.
+ */
+async function rememberStripeCustomer(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+  customerId: string | null,
+) {
+  if (!customerId) return
+  const { error } = await supabase
+    .from('profiles')
+    .update({ stripe_customer_id: customerId })
+    .eq('id', userId)
+  if (error) console.error('stripe_customer_id konnte nicht gespeichert werden:', error.message)
+}
+
+/**
+ * Stufe des Salons setzen, protokollieren, den Anbieter informieren.
+ *
+ * `salons.subscription_tier` haengt am `owner_id` — ein Konto mit mehreren
+ * Salons stuft also alle gemeinsam um. Das ist der Bestand, nicht neu: das
+ * Abo wird pro Konto gebucht, nicht pro Salon.
+ */
+async function applyTier(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  params: {
+    userId: string
+    tier: Tier
+    action: string
+    details: Record<string, unknown>
+    notify?: { title: string; body: string }
+  },
+) {
+  const { error } = await supabase
+    .from('salons')
+    .update({ subscription_tier: params.tier })
+    .eq('owner_id', params.userId)
+
+  if (error) {
+    console.error(`Abo-Stufe ${params.tier} fuer ${params.userId} fehlgeschlagen:`, error.message)
+    return
+  }
+
+  await supabase.from('audit_logs').insert({
+    user_id: params.userId,
+    action: params.action,
+    entity: 'profile',
+    entity_id: params.userId,
+    details: { tier: params.tier, ...params.details },
+  })
+
+  if (params.notify) {
+    await createNotification(
+      params.userId,
+      params.notify.title,
+      params.notify.body,
+      'system',
+      params.userId,
+      'profile',
+    )
+  }
+}
+
+/**
+ * `customer.subscription.created` / `.updated` / `.deleted`.
+ *
+ * Bis 2026-08-27 gab es nur `.deleted`, und dort nur den Rueckfall ueber
+ * `stripe_customer_id`. Was damit alles nicht durchschlug:
+ *
+ *  - Ein Stufenwechsel im Stripe-Kundenportal (Gold → Premium) — die App zeigte
+ *    weiter Gold.
+ *  - Ein Abo, das Stripe nach erfolgloser Mahnkette auf `unpaid` setzt oder
+ *    kuendigt — die Stufe blieb bezahlt-Niveau, unbegrenzt.
+ *  - Die Kuendigung selbst, weil das Profil ueber eine nie beschriebene
+ *    Spalte gesucht wurde.
+ */
+async function handleSubscriptionChange(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  subscription: Stripe.Subscription,
+  eventType: string,
+) {
+  const userId = await resolveSubscriptionOwner(supabase, subscription)
+  if (!userId) {
+    console.error(
+      `${eventType}: kein Profil zu Abo ${subscription.id} (customer ${stripeId(subscription.customer as string | { id?: string } | null) ?? '—'}) — Stufe unveraendert`,
+    )
+    return
+  }
+
+  await rememberStripeCustomer(
+    supabase,
+    userId,
+    stripeId(subscription.customer as string | { id?: string } | null),
+  )
+
+  // Gekuendigt ist gekuendigt — unabhaengig vom zuletzt gemeldeten Status.
+  const entitlement =
+    eventType === 'customer.subscription.deleted'
+      ? 'revoked'
+      : entitlementForStatus(subscription.status)
+
+  if (entitlement === 'grace') {
+    // Zahlung haengt, Stripe mahnt noch. Nichts umstellen, aber sichtbar machen.
+    await supabase.from('audit_logs').insert({
+      user_id: userId,
+      action: 'subscription_grace',
+      entity: 'profile',
+      entity_id: userId,
+      details: { subscription_id: subscription.id, status: subscription.status },
+    })
+    return
+  }
+
+  if (entitlement === 'revoked') {
+    await applyTier(supabase, {
+      userId,
+      tier: FREE_TIER,
+      action: 'subscription_downgraded',
+      details: { subscription_id: subscription.id, status: subscription.status, event: eventType },
+      notify: {
+        title: 'Abo beendet',
+        body: `Dein ChairMatch-Abo ist beendet. Dein Profil laeuft ab sofort auf der Stufe ${FREE_TIER}.`,
+      },
+    })
+    return
+  }
+
+  // entitled: die Stufe kommt aus dem tatsaechlich gebuchten Preis. Sie aus
+  // `metadata.tier` zu nehmen waere falsch — bei einem Wechsel im
+  // Kundenportal steht dort noch die Stufe der urspruenglichen Buchung.
+  const priceId = subscription.items?.data?.[0]?.price?.id ?? null
+  const tier = tierForPriceId(priceId)
+
+  if (!tier) {
+    // Preis gehoert zu keiner konfigurierten Stufe (unbekannter Preis, oder
+    // STRIPE_PRICE_* fehlt in dieser Umgebung). Lieber gar nichts umstellen
+    // als eine Stufe raten.
+    console.error(
+      `${eventType}: Preis ${priceId ?? '—'} gehoert zu keiner konfigurierten Stufe — Stufe unveraendert`,
+    )
+    await supabase.from('audit_logs').insert({
+      user_id: userId,
+      action: 'subscription_price_unknown',
+      entity: 'profile',
+      entity_id: userId,
+      details: { subscription_id: subscription.id, price_id: priceId, status: subscription.status },
+    })
+    return
+  }
+
+  await applyTier(supabase, {
+    userId,
+    tier,
+    action: 'subscription_synced',
+    details: { subscription_id: subscription.id, status: subscription.status, price_id: priceId, event: eventType },
+  })
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')
@@ -476,19 +684,47 @@ export async function POST(req: NextRequest) {
       }
 
       if (meta.type === 'provider_subscription' && meta.user_id) {
-        // Update salon subscription tier (subscription_tier lives on salons, not profiles)
-        const tier = meta.tier || 'starter'
-        await supabase
-          .from('salons')
-          .update({ subscription_tier: tier })
-          .eq('owner_id', meta.user_id)
+        // Die Kundennummer wird IMMER festgehalten — auch wenn die Zahlung
+        // noch aussteht. Sie ist der einzige Rueckfall, ueber den spaetere
+        // `customer.subscription.*`-Ereignisse dieses Konto wiederfinden.
+        await rememberStripeCustomer(
+          supabase,
+          meta.user_id,
+          stripeId(session.customer as string | { id?: string } | null),
+        )
 
-        await supabase.from('audit_logs').insert({
-          user_id: meta.user_id,
+        // SEPA-Lastschrift zahlt asynchron: `completed` kann mit
+        // payment_status 'unpaid' feuern. Termin, Bestellung und Miete pruefen
+        // das laengst; der Abo-Zweig hat bis 2026-08-27 bedingungslos
+        // freigeschaltet und die Stufe auch dann behalten, wenn die
+        // Lastschrift nie durchging. Freigeschaltet wird jetzt erst, wenn das
+        // Abo laut Stripe wirklich laeuft — das meldet
+        // `customer.subscription.created/updated` mit Status `active`.
+        if (session.payment_status === 'unpaid') {
+          await supabase.from('audit_logs').insert({
+            user_id: meta.user_id,
+            action: 'subscription_awaiting_payment',
+            entity: 'profile',
+            entity_id: meta.user_id,
+            details: { tier: meta.tier ?? null, subscription_id: session.subscription },
+          })
+          break
+        }
+
+        // `meta.tier` stammt aus unserem eigenen Checkout und ist dort gegen
+        // die Liste geprueft — trotzdem nicht blind uebernehmen: ein Wert
+        // ausserhalb der drei Stufen wuerde sonst als Stufe in der Datenbank
+        // landen und jede spaetere Auswertung verderben.
+        const tier: Tier = isTier(meta.tier) ? meta.tier : FREE_TIER
+        await applyTier(supabase, {
+          userId: meta.user_id,
+          tier,
           action: 'subscription_activated',
-          entity: 'profile',
-          entity_id: meta.user_id,
-          details: { tier, subscription_id: session.subscription },
+          details: { subscription_id: session.subscription, checkout_session_id: session.id },
+          notify: {
+            title: 'Abo aktiv',
+            body: `Dein ChairMatch-Abo (${tier}) ist aktiv.`,
+          },
         })
       }
       break
@@ -496,44 +732,52 @@ export async function POST(req: NextRequest) {
 
     case 'invoice.payment_failed': {
       const invoice = event.data.object as Stripe.Invoice
-      const customerId = invoice.customer as string
 
-      // Find user by Stripe customer ID and downgrade
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('stripe_customer_id', customerId)
-        .limit(1)
+      // Der Kommentar hier sagte "and downgrade" — heruntergestuft wurde nie.
+      // Das ist auch richtig so: Stripe mahnt nach einem Fehlversuch mehrfach
+      // nach. Die Rueckstufung gehoert an das Ende der Mahnkette, und die
+      // meldet Stripe als `customer.subscription.updated` mit `unpaid` oder
+      // als `.deleted`. Hier wird protokolliert und der Anbieter gewarnt.
+      const userId = await resolveSubscriptionOwner(supabase, {
+        metadata: (invoice as unknown as { subscription_details?: { metadata?: Stripe.Metadata | null } })
+          .subscription_details?.metadata,
+        customer: invoice.customer,
+      })
 
-      if (profiles?.[0]) {
-        await supabase.from('audit_logs').insert({
-          user_id: profiles[0].id,
-          action: 'payment_failed',
-          entity: 'profile',
-          entity_id: profiles[0].id,
-          details: { invoice_id: invoice.id },
-        })
+      if (!userId) {
+        console.error(
+          `invoice.payment_failed: kein Profil zu customer ${stripeId(invoice.customer as string | { id?: string } | null) ?? '—'} (Rechnung ${invoice.id})`,
+        )
+        break
       }
+
+      await supabase.from('audit_logs').insert({
+        user_id: userId,
+        action: 'payment_failed',
+        entity: 'profile',
+        entity_id: userId,
+        details: { invoice_id: invoice.id, amount_due: invoice.amount_due ?? null },
+      })
+
+      await createNotification(
+        userId,
+        'Abo-Zahlung fehlgeschlagen',
+        'Deine letzte Abo-Zahlung konnte nicht eingezogen werden. Bitte pruefe deine Zahlungsdaten — sonst endet das Abo nach den Wiederholversuchen.',
+        'payment',
+        userId,
+        'profile',
+      )
       break
     }
 
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated':
     case 'customer.subscription.deleted': {
-      const subscription = event.data.object as Stripe.Subscription
-      const customerId = subscription.customer as string
-
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('stripe_customer_id', customerId)
-        .limit(1)
-
-      if (profiles?.[0]) {
-        // Downgrade salon subscription (subscription_tier lives on salons, not profiles)
-        await supabase
-          .from('salons')
-          .update({ subscription_tier: 'starter' })
-          .eq('owner_id', profiles[0].id)
-      }
+      await handleSubscriptionChange(
+        supabase,
+        event.data.object as Stripe.Subscription,
+        event.type,
+      )
       break
     }
 

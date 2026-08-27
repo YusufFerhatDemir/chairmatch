@@ -37,10 +37,10 @@ type Phase = 'slides' | 'roleSelect' | 'login' | 'customerSetup' | 'provSetup'
 
 interface ProfileData {
   vn: string; nn: string; email: string; phone: string; city: string
-  biz: string; street: string; plz: string; iban: string; ustid: string
+  biz: string; street: string; plz: string; ustid: string
 }
 
-const emptyProfile: ProfileData = { vn: '', nn: '', email: '', phone: '', city: '', biz: '', street: '', plz: '', iban: '', ustid: '' }
+const emptyProfile: ProfileData = { vn: '', nn: '', email: '', phone: '', city: '', biz: '', street: '', plz: '', ustid: '' }
 
 function isValidEmail(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
 
@@ -133,7 +133,12 @@ export default function OnboardingGate({ slides, children }: Props) {
             vn: profile.vn, nn: profile.nn, em: profile.email, tel: profile.phone || '',
             geschaeft: profile.biz || `${profile.vn} ${profile.nn}`,
             st: profile.street || '', plz: profile.plz || '', city: profile.city || '',
-            kat: provCat || 'friseur', iban: profile.iban || '', gb: true,
+            kat: provCat || 'friseur',
+            // `gb: true` stand hier fest verdrahtet — dieser Ablauf fragt den
+            // Gewerbeschein gar nicht ab. Die Angabe wird seit Track 11 im
+            // Einwilligungs-Protokoll mitgeschrieben; eine erfundene Zusage
+            // gehoert dort nicht hinein.
+            gb: false,
             chair: false, agb: true, dsgvo: true,
           }),
         })
@@ -560,7 +565,15 @@ export default function OnboardingGate({ slides, children }: Props) {
           </div>
           {role === 'B2B' && (
             <>
-              <input className="inp" placeholder="IBAN (für Auszahlungen)" value={profile.iban} onChange={e => updateProfile('iban', e.target.value)} />
+              {/*
+                Hier stand eine IBAN-Eingabe. Der Wert ging an zwei Stellen:
+                in `localStorage` unter `cm_setup_profile` und als `iban` an
+                /api/register-provider — dort wurde er entgegengenommen und
+                nie verwendet. Bankdaten lagen damit ausschliesslich im
+                Browser des Nutzers, und das Formular sah so aus, als waeren
+                sie hinterlegt. Auszahlungsdaten werden nach der Anmeldung
+                unter /api/me/payout-account hinterlegt.
+              */}
               <input className="inp" placeholder="USt-IdNr." value={profile.ustid} onChange={e => updateProfile('ustid', e.target.value)} />
             </>
           )}

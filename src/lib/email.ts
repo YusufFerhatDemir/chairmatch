@@ -206,6 +206,16 @@ export async function sendBookingReminder(to: string, details: BookingEmailDetai
 
 /**
  * Send a welcome email to a newly registered user.
+ *
+ * Hier stand bis Track 11: „Nutze den Code WELCOME10 für 10% auf deine erste
+ * Buchung!" — an JEDEN neu registrierten Nutzer. WELCOME10 war einer von drei
+ * Codes aus der Browser-Konstante `PROMO_CODES`, die Track 9 als erfunden
+ * entfernt hat: der Server kennt sie nicht, er prüft die Tabelle `promo_codes`
+ * und belegt dort ein Kontingent (`claimPromoCode`). Die Konstante ist weg,
+ * das Versprechen war noch da — wer den Code eingab, zahlte den vollen Preis.
+ *
+ * Rabatte werden dort zugesagt, wo sie verwaltet werden. Diese Mail sagt
+ * keinen zu.
  */
 export async function sendWelcomeEmail(to: string, name: string) {
   const subject = 'Willkommen bei ChairMatch!'
@@ -233,7 +243,34 @@ export async function sendWelcomeEmail(to: string, name: string) {
       </table>
     </div>
     ${goldButton('Jetzt entdecken', 'https://www.chairmatch.de')}
-    <p style="font-size:13px;color:#777;margin-top:24px">Nutze den Code <strong style="color:#D4AF37">WELCOME10</strong> für 10% auf deine erste Buchung!</p>
+  `)
+
+  return send(to, subject, html)
+}
+
+/**
+ * Begrüßung für neu registrierte Anbieter.
+ *
+ * Bis Track 11 bekamen Anbieter die Kunden-Mail von oben: "Salon entdecken →
+ * Termin buchen → Beauty genießen" — der Ablauf der Gegenseite. Und sie
+ * versprach einen Rabattcode, den es serverseitig nicht gibt (siehe unten).
+ *
+ * Diese Mail sagt stattdessen, was als Nächstes wirklich passiert: Passwort
+ * setzen (die dafür nötige Mail schickt Supabase separat), Prüfung des
+ * Eintrags, danach Freischaltung.
+ */
+export async function sendProviderWelcomeEmail(to: string, name: string, businessName: string) {
+  const subject = 'Deine Anbieter-Registrierung bei ChairMatch'
+  const html = baseLayout(subject, `
+    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Willkommen, ${esc(name)}!</h2>
+    <p>Wir haben die Registrierung für <strong style="color:#D4AF37">${esc(businessName)}</strong> erhalten.</p>
+    <p style="margin-top:16px">So geht es weiter:</p>
+    <ol style="margin:12px 0 0;padding-left:20px;color:#e0e0e0;font-size:14px;line-height:1.9">
+      <li><strong>Passwort festlegen.</strong> Du bekommst dazu eine separate E-Mail von uns mit einem Link. Erst danach kannst du dich anmelden.</li>
+      <li><strong>Prüfung deiner Angaben.</strong> Dein Eintrag ist bis dahin nicht öffentlich sichtbar.</li>
+      <li><strong>Profil vervollständigen.</strong> Leistungen, Öffnungszeiten, Fotos und — falls du vermietest — deine Mietobjekte.</li>
+    </ol>
+    <p style="font-size:13px;color:#777;margin-top:24px">Keine Passwort-Mail erhalten? Fordere sie über „Passwort vergessen" auf der Anmeldeseite erneut an.</p>
   `)
 
   return send(to, subject, html)

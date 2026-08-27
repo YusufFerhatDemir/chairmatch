@@ -21,17 +21,47 @@ export const GET = withApi(async () => {
   const since30d = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString()
   const since60d = new Date(now - 60 * 24 * 60 * 60 * 1000).toISOString()
 
-  // Defensive Helper: count mit Fallback
+  /**
+   * Zaehler, der einen Fehlschlag NICHT als 0 ausgibt.
+   *
+   * Vorher lieferte jeder Fehler hier eine glatte 0 zurueck — eine fehlende
+   * Tabelle, ein Rechtefehler, ein Timeout. Im Cockpit war das nicht von
+   * "es gibt wirklich keine" zu unterscheiden: "Buchungen 30d: 0" konnte
+   * heissen, dass niemand gebucht hat, oder dass die Abfrage gar nicht erst
+   * lief. Genau diese Verwechslung stand in Track 10 schon einmal im
+   * Anbieter-Dashboard.
+   *
+   * `null` heisst jetzt "unbekannt" und faerbt jede daraus abgeleitete Quote
+   * ebenfalls auf `null`. Was danebengeht, steht in `errors`.
+   */
+  const failures: string[] = []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const safeCount = async (table: string, builder: (q: any) => any): Promise<number> => {
+  const safeCount = async (table: string, builder: (q: any) => any, label?: string): Promise<number | null> => {
+    const name = label ?? table
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const q: any = supabase.from(table).select('*', { count: 'exact', head: true })
       const res = await builder(q)
-      return (res?.count as number | null) ?? 0
-    } catch {
-      return 0
+      if (res?.error) {
+        failures.push(`${name}: ${res.error.message}`)
+        return null
+      }
+      const count = res?.count as number | null | undefined
+      if (count === null || count === undefined) {
+        failures.push(`${name}: kein count in der Antwort`)
+        return null
+      }
+      return count
+    } catch (e) {
+      failures.push(`${name}: ${e instanceof Error ? e.message : String(e)}`)
+      return null
     }
+  }
+
+  /** Prozentsatz nur, wenn beide Seiten bekannt sind. */
+  const ratio = (part: number | null, whole: number | null): number | null => {
+    if (part === null || whole === null || whole <= 0) return null
+    return Math.round((part / whole) * 100)
   }
 
   // === FUNNEL: Signups → Listings → Sichtbarkeit → Conversations → Bookings ===
@@ -70,14 +100,15 @@ export const GET = withApi(async () => {
   )
 
   // Bookings-Wachstum (30d vs. previous 30d)
-  const bookingsGrowth = bookingsPrev30d > 0
-    ? Math.round(((bookings30d - bookingsPrev30d) / bookingsPrev30d) * 100)
-    : (bookings30d > 0 ? 100 : 0)
+  const bookingsGrowth =
+    bookings30d === null || bookingsPrev30d === null
+      ? null
+      : bookingsPrev30d > 0
+        ? Math.round(((bookings30d - bookingsPrev30d) / bookingsPrev30d) * 100)
+        : (bookings30d > 0 ? 100 : 0)
 
   // Conversion-Rates
-  const convToBookingRate = convs30d > 0
-    ? Math.round((bookings30d / convs30d) * 100)
-    : 0
+  const convToBookingRate = ratio(bookings30d, convs30d)
 
   // === MARKETPLACE-GESUNDHEIT ===
 
@@ -89,13 +120,10 @@ export const GET = withApi(async () => {
   // Reviews (7d)
   const reviews7d = await safeCount('reviews', (q) => q.gte('created_at', since7d))
 
-  // Affiliate-Klicks (wenn Tabelle existiert)
-  let affiliateClicks7d = 0
-  try {
-    affiliateClicks7d = await safeCount('affiliate_clicks', (q) => q.gte('created_at', since7d))
-  } catch {
-    // ok
-  }
+  // Affiliate-Klicks (Tabelle existiert evtl. nicht — dann null, nicht 0)
+  const affiliateClicks7d = await safeCount('affiliate_clicks', (q) =>
+    q.gte('created_at', since7d)
+  )
 
   // === SEO / INDEXING ===
 
@@ -111,33 +139,66 @@ export const GET = withApi(async () => {
 
   // === RETENTION / ENGAGEMENT ===
 
-  // DAU (Daily Active Users) — User mit Login in den letzten 24h
-  let dau = 0
-  try {
-    dau = await safeCount('login_attempts', (q) =>
-      q.eq('success', true).gte('created_at', since1d)
-    )
-  } catch {
-    // ok
+  /**
+   * DAU/WAU — aktive PERSONEN, nicht Anmeldevorgaenge.
+   *
+   * Hier stand `safeCount('login_attempts', ...)`: die Zahl der Zeilen mit
+   * `success = true` im Fenster, beschriftet als "Daily Active Users". Wer
+   * sich an einem Tag fuenfmal anmeldet — Handy, Rechner, abgelaufene
+   * Session — zaehlte fuenfmal. DAU war damit systematisch zu hoch, und
+   * `dau_wau_ratio` (die Kennzahl, an der Stickiness gemessen wird) aus zwei
+   * verschieden stark ueberzeichneten Zahlen gebildet.
+   *
+   * `login_attempts` hat live KEINE `user_id` (Spaltensonde 2026-08-27), die
+   * Person steckt nur in `email`. Also: Adressen holen und eindeutig zaehlen.
+   * Die Obergrenze schuetzt den Speicher; wird sie erreicht, sagt die Antwort
+   * das (`capped`), statt eine zu kleine Zahl als Wahrheit auszugeben.
+   */
+  const ACTIVE_USER_SCAN_LIMIT = 20_000
+
+  const distinctActiveUsers = async (
+    since: string,
+    label: string,
+  ): Promise<{ count: number | null; capped: boolean }> => {
+    try {
+      const { data, error } = await supabase
+        .from('login_attempts')
+        .select('email')
+        .eq('success', true)
+        .gte('created_at', since)
+        .limit(ACTIVE_USER_SCAN_LIMIT)
+
+      if (error) {
+        failures.push(`${label}: ${error.message}`)
+        return { count: null, capped: false }
+      }
+
+      const rows = (data ?? []) as { email: string | null }[]
+      const unique = new Set(
+        rows
+          .map((r) => (r.email ?? '').trim().toLowerCase())
+          .filter((e) => e.length > 0),
+      )
+      return { count: unique.size, capped: rows.length >= ACTIVE_USER_SCAN_LIMIT }
+    } catch (e) {
+      failures.push(`${label}: ${e instanceof Error ? e.message : String(e)}`)
+      return { count: null, capped: false }
+    }
   }
 
-  // WAU
-  let wau = 0
-  try {
-    wau = await safeCount('login_attempts', (q) =>
-      q.eq('success', true).gte('created_at', since7d)
-    )
-  } catch {
-    // ok
-  }
+  const dauResult = await distinctActiveUsers(since1d, 'dau')
+  const wauResult = await distinctActiveUsers(since7d, 'wau')
 
   // === MILESTONE-TRACKING ===
   // Aus docs/seo/07-execution-plan.md: 50 Listings = Phase 2
+  const progressTo = (threshold: number): number | null =>
+    listingsActive === null ? null : Math.min(100, Math.round((listingsActive / threshold) * 100))
+
   const milestones = {
     phase_2_threshold: 50,
-    phase_2_progress: Math.min(100, Math.round((listingsActive / 50) * 100)),
+    phase_2_progress: progressTo(50),
     phase_3_threshold: 500,
-    phase_3_progress: Math.min(100, Math.round((listingsActive / 500) * 100)),
+    phase_3_progress: progressTo(500),
   }
 
   return NextResponse.json({
@@ -168,10 +229,18 @@ export const GET = withApi(async () => {
       newsletter_subscribers: newsletterSubs,
     },
     engagement: {
-      dau,
-      wau,
-      dau_wau_ratio: wau > 0 ? Math.round((dau / wau) * 100) : 0,
+      // Eindeutige Adressen mit erfolgreicher Anmeldung im Fenster.
+      dau: dauResult.count,
+      wau: wauResult.count,
+      dau_wau_ratio: ratio(dauResult.count, wauResult.count),
+      // true = die Rohdatengrenze wurde erreicht, die Zahl ist eine Untergrenze.
+      capped: dauResult.capped || wauResult.capped,
     },
     milestones,
+    /**
+     * Was nicht ermittelt werden konnte. Leer heisst: jede Zahl oben ist
+     * gemessen. Jedes `null` oben hat hier seinen Grund.
+     */
+    errors: failures,
   })
 })

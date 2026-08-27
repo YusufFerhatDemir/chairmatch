@@ -416,7 +416,20 @@ export default function HomeClient({ categories, dbSalons, topOfferPercent }: Pr
             <p className="cinzel text-gold-metallic" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3, marginBottom: 4 }}>
               {t('home.saveUpTo', { percent: topOfferPercent })}<br />{t('home.onFirstBooking')}
             </p>
-            <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 12 }}>Code: CHAIR2026</p>
+            {/*
+              Hier stand "Code: CHAIR2026" — fest im Quelltext, auf der
+              Startseite, fuer jeden Besucher. Der Code war einer der drei aus
+              der Browser-Konstante `PROMO_CODES`, die Track 9 als erfunden
+              entfernt hat: der Server kennt ihn nicht, er prueft die Tabelle
+              `promo_codes` und weist alles ab, was dort nicht steht. Wer ihn
+              eingab, zahlte den vollen Preis.
+
+              Der Prozentsatz darueber ist echt (`offers.discount_percent`,
+              hoechstes aktives Angebot). Einen Code gibt es dazu nicht:
+              `offers` hat live keine Spalte `code` (Sonde 2026-08-27). Also
+              fuehrt der Knopf zu den Angeboten, statt eine Eingabe zu
+              versprechen, die niemand einloest.
+            */}
             <Link href="/offers" className="bgold" style={{ width: 'auto', padding: '11px 22px', fontSize: 13, display: 'inline-block', textDecoration: 'none' }}>
               {t('home.bookNow')}
             </Link>

@@ -130,7 +130,11 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
    */
   salons: ['id', 'owner_id', 'name', 'city', 'slug', 'gallery', 'logo_url', 'created_at', 'updated_at',
            'category', 'is_active', 'opening_hours', 'state', 'street', 'house_number', 'postal_code',
-           'avg_rating', 'review_count', 'description', 'phone'],
+           'avg_rating', 'review_count', 'description', 'phone',
+           // Sonde 2026-08-27 (Track 11): der Abo-Webhook schreibt
+           // `subscription_tier`, die Anbieter-Registrierung `chair_rental`
+           // und `chair_price_day` (numeric, Euro — KEIN _cents).
+           'subscription_tier', 'is_verified', 'chair_rental', 'chair_price_day'],
 
   /**
    * Termin-Buchungen — Spaltensonde 2026-08-27.
@@ -296,6 +300,11 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
     'is_active',
     'deleted_at',
     'delete_requested_at',
+    // Sonde 2026-08-27 (Track 11). Die Spalte existiert live seit Migration
+    // 20260317 — beschrieben hat sie bis Track 11 NIEMAND. Der Abo-Webhook
+    // suchte das Profil darueber und fand deshalb nie eines.
+    'stripe_customer_id',
+    'phone',
   ],
 
   payout_accounts: ['user_id', 'context', 'account_holder'],

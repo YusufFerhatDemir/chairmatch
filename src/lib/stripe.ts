@@ -102,6 +102,24 @@ export async function createSubscriptionCheckout(params: {
       tier: params.tier,
       type: 'provider_subscription',
     },
+    // Dieselben Angaben AM ABO, nicht nur an der Checkout-Session.
+    //
+    // Die Session-Metadaten sieht ausschliesslich `checkout.session.completed`.
+    // Jedes spaetere Ereignis im Leben des Abos — Kuendigung, Stufenwechsel,
+    // geplatzte Verlaengerung — kommt als `customer.subscription.*` und traegt
+    // die Session gar nicht mehr. Bis 2026-08-27 blieb dort nur
+    // `subscription.customer`, und die Zuordnung lief ueber
+    // `profiles.stripe_customer_id` — eine Spalte, die im gesamten
+    // Produktivcode nie beschrieben wurde. Die Kuendigung fand deshalb
+    // garantiert kein Profil und stufte nie zurueck.
+    subscription_data: {
+      metadata: {
+        user_id: params.userId,
+        tier: params.tier,
+        type: 'provider_subscription',
+      },
+    },
+    client_reference_id: params.userId,
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     locale: 'de',

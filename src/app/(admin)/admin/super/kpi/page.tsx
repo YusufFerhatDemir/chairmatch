@@ -10,42 +10,64 @@ import { useRouter } from 'next/navigation'
  * Marketplace-Health + Milestones (Phase 2 / Phase 3).
  */
 
+/**
+ * `null` heisst hier "nicht ermittelt", nicht "null Stueck".
+ *
+ * Die Route lieferte bis Track 11 fuer jeden fehlgeschlagenen Zaehler eine
+ * glatte 0 — im Cockpit nicht von einem echten Nullbestand zu unterscheiden.
+ * Jetzt kommt `null`, und diese Seite zeigt dafuer "—" statt einer Zahl, die
+ * niemand gemessen hat. Was fehlgeschlagen ist, steht in `errors`.
+ */
+type Count = number | null
+
 interface KpiData {
   timestamp: string
   funnel: {
-    signups: { d1: number; d7: number; d30: number }
-    salons: { total: number; active: number; new_7d: number }
-    listings: { total: number; active: number; new_7d: number }
-    conversations: { d7: number; d30: number }
+    signups: { d1: Count; d7: Count; d30: Count }
+    salons: { total: Count; active: Count; new_7d: Count }
+    listings: { total: Count; active: Count; new_7d: Count }
+    conversations: { d7: Count; d30: Count }
     bookings: {
-      d1: number
-      d7: number
-      d30: number
-      prev_30d: number
-      growth_pct: number
+      d1: Count
+      d7: Count
+      d30: Count
+      prev_30d: Count
+      growth_pct: Count
     }
-    conversion: { conv_to_booking_pct: number }
+    conversion: { conv_to_booking_pct: Count }
   }
   marketplace_health: {
-    bypass_blocked_7d: number
-    reviews_7d: number
-    affiliate_clicks_7d: number
+    bypass_blocked_7d: Count
+    reviews_7d: Count
+    affiliate_clicks_7d: Count
   }
   seo: {
-    salons_indexable: number
-    newsletter_subscribers: number
+    salons_indexable: Count
+    newsletter_subscribers: Count
   }
   engagement: {
-    dau: number
-    wau: number
-    dau_wau_ratio: number
+    dau: Count
+    wau: Count
+    dau_wau_ratio: Count
+    capped: boolean
   }
   milestones: {
     phase_2_threshold: number
-    phase_2_progress: number
+    phase_2_progress: Count
     phase_3_threshold: number
-    phase_3_progress: number
+    phase_3_progress: Count
   }
+  errors: string[]
+}
+
+/** Zahl oder "—". Niemals eine erfundene 0. */
+function num(value: Count): string {
+  return value === null ? '—' : String(value)
+}
+
+/** Prozentwert oder "—". */
+function pct(value: Count): string {
+  return value === null ? '—' : `${value}%`
 }
 
 export default function KpiPage() {
@@ -82,8 +104,15 @@ export default function KpiPage() {
   }
 
   const growth = data.funnel.bookings.growth_pct
-  const growthColor = growth >= 20 ? 'var(--green)' : growth >= 0 ? 'var(--gold)' : 'var(--red)'
-  const phase2Color = data.milestones.phase_2_progress >= 100 ? 'var(--green)' : 'var(--gold2)'
+  const growthColor =
+    growth === null ? 'var(--stone)'
+      : growth >= 20 ? 'var(--green)'
+        : growth >= 0 ? 'var(--gold)' : 'var(--red)'
+  const phase2Color =
+    data.milestones.phase_2_progress !== null && data.milestones.phase_2_progress >= 100
+      ? 'var(--green)'
+      : 'var(--gold2)'
+  const failures = data.errors ?? []
 
   return (
     <div className="shell">
@@ -109,13 +138,13 @@ export default function KpiPage() {
           </h2>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
             <span style={{ fontSize: 42, fontWeight: 800, color: 'var(--gold2)' }}>
-              {data.funnel.bookings.d30}
+              {num(data.funnel.bookings.d30)}
             </span>
             <span style={{ fontSize: 18, fontWeight: 700, color: growthColor }}>
-              {growth >= 0 ? '+' : ''}{growth}%
+              {growth === null ? '—' : `${growth >= 0 ? '+' : ''}${growth}%`}
             </span>
             <span style={{ fontSize: 12, color: 'var(--stone)' }}>
-              vs. vorherige 30d ({data.funnel.bookings.prev_30d})
+              vs. vorherige 30d ({num(data.funnel.bookings.prev_30d)})
             </span>
           </div>
         </section>
@@ -138,36 +167,67 @@ export default function KpiPage() {
         {/* FUNNEL */}
         <h3 style={{ color: 'var(--cream)', fontSize: 15, margin: '24px 0 10px' }}>Akquise-Funnel</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-          <Stat label="Signups 7d" value={data.funnel.signups.d7} sub={`30d: ${data.funnel.signups.d30}`} />
-          <Stat label="Anbieter aktiv" value={data.funnel.salons.active} sub={`+${data.funnel.salons.new_7d} (7d)`} />
-          <Stat label="Listings aktiv" value={data.funnel.listings.active} sub={`+${data.funnel.listings.new_7d} (7d)`} />
-          <Stat label="Conversations 30d" value={data.funnel.conversations.d30} sub={`7d: ${data.funnel.conversations.d7}`} />
-          <Stat label="Bookings 7d" value={data.funnel.bookings.d7} sub={`1d: ${data.funnel.bookings.d1}`} />
-          <Stat label="Conv→Booking" value={`${data.funnel.conversion.conv_to_booking_pct}%`} sub="(letzte 30d)" highlight />
+          <Stat label="Signups 7d" value={num(data.funnel.signups.d7)} sub={`30d: ${num(data.funnel.signups.d30)}`} />
+          <Stat label="Anbieter aktiv" value={num(data.funnel.salons.active)} sub={`7d: ${num(data.funnel.salons.new_7d)}`} />
+          <Stat label="Listings aktiv" value={num(data.funnel.listings.active)} sub={`7d: ${num(data.funnel.listings.new_7d)}`} />
+          <Stat label="Conversations 30d" value={num(data.funnel.conversations.d30)} sub={`7d: ${num(data.funnel.conversations.d7)}`} />
+          <Stat label="Bookings 7d" value={num(data.funnel.bookings.d7)} sub={`1d: ${num(data.funnel.bookings.d1)}`} />
+          <Stat label="Conv→Booking" value={pct(data.funnel.conversion.conv_to_booking_pct)} sub="(letzte 30d)" highlight />
         </div>
 
         {/* MARKETPLACE-HEALTH */}
         <h3 style={{ color: 'var(--cream)', fontSize: 15, margin: '24px 0 10px' }}>Marketplace-Gesundheit</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-          <Stat label="Bypass-Blocks 7d" value={data.marketplace_health.bypass_blocked_7d} warning={data.marketplace_health.bypass_blocked_7d > 20} />
-          <Stat label="Reviews 7d" value={data.marketplace_health.reviews_7d} />
-          <Stat label="Affiliate-Klicks 7d" value={data.marketplace_health.affiliate_clicks_7d} />
+          <Stat
+            label="Bypass-Blocks 7d"
+            value={num(data.marketplace_health.bypass_blocked_7d)}
+            warning={(data.marketplace_health.bypass_blocked_7d ?? 0) > 20}
+          />
+          <Stat label="Reviews 7d" value={num(data.marketplace_health.reviews_7d)} />
+          <Stat label="Affiliate-Klicks 7d" value={num(data.marketplace_health.affiliate_clicks_7d)} />
         </div>
 
         {/* ENGAGEMENT */}
         <h3 style={{ color: 'var(--cream)', fontSize: 15, margin: '24px 0 10px' }}>Engagement</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-          <Stat label="DAU" value={data.engagement.dau} sub="(Logins 24h)" />
-          <Stat label="WAU" value={data.engagement.wau} sub="(Logins 7d)" />
-          <Stat label="Stickiness" value={`${data.engagement.dau_wau_ratio}%`} sub="DAU/WAU" highlight={data.engagement.dau_wau_ratio >= 20} />
+          {/*
+            Die Unterzeilen sagten "(Logins 24h)" — und genau das wurde auch
+            gezaehlt: Anmeldevorgaenge, nicht Personen. Beides steht jetzt
+            richtig da, weil die Route eindeutige Adressen zaehlt.
+          */}
+          <Stat label="DAU" value={num(data.engagement.dau)} sub="Personen, 24h" />
+          <Stat label="WAU" value={num(data.engagement.wau)} sub="Personen, 7d" />
+          <Stat
+            label="Stickiness"
+            value={pct(data.engagement.dau_wau_ratio)}
+            sub="DAU/WAU"
+            highlight={(data.engagement.dau_wau_ratio ?? 0) >= 20}
+          />
         </div>
 
         {/* SEO */}
         <h3 style={{ color: 'var(--cream)', fontSize: 15, margin: '24px 0 10px' }}>SEO & Reichweite</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-          <Stat label="Indexierbare Salons" value={data.seo.salons_indexable} sub="in Sitemap" />
-          <Stat label="Newsletter-Abos" value={data.seo.newsletter_subscribers} sub="confirmed" />
+          <Stat label="Indexierbare Salons" value={num(data.seo.salons_indexable)} sub="in Sitemap" />
+          <Stat label="Newsletter-Abos" value={num(data.seo.newsletter_subscribers)} sub="confirmed" />
         </div>
+
+        {data.engagement.capped && (
+          <p style={{ fontSize: 11, color: 'var(--gold2)', marginTop: 16 }}>
+            DAU/WAU: die Rohdatengrenze wurde erreicht — die Werte sind Untergrenzen.
+          </p>
+        )}
+
+        {failures.length > 0 && (
+          <section style={{ marginTop: 20, background: 'rgba(232,80,64,0.08)', border: '1px solid rgba(232,80,64,0.3)', borderRadius: 10, padding: 12 }}>
+            <p style={{ fontSize: 12, color: 'var(--red)', fontWeight: 700, margin: '0 0 6px' }}>
+              Nicht ermittelt ({failures.length}) — die betroffenen Felder stehen oben als „—"
+            </p>
+            <ul style={{ margin: 0, paddingLeft: 18, color: 'var(--stone)', fontSize: 11, lineHeight: 1.7 }}>
+              {failures.map((f, i) => <li key={i}>{f}</li>)}
+            </ul>
+          </section>
+        )}
 
         <p style={{ fontSize: 10, color: 'var(--stone2)', marginTop: 32, textAlign: 'center' }}>
           KPI-Framework: siehe docs/seo/07-kpi-dashboard.md
@@ -190,20 +250,23 @@ function Stat({ label, value, sub, highlight, warning }: {
   )
 }
 
-function MilestoneBar({ label, value, color }: { label: string; value: number; color: string }) {
+function MilestoneBar({ label, value, color }: { label: string; value: Count; color: string }) {
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
         <span style={{ fontSize: 12, color: 'var(--cream)' }}>{label}</span>
-        <span style={{ fontSize: 12, color, fontWeight: 700 }}>{value}%</span>
+        <span style={{ fontSize: 12, color, fontWeight: 700 }}>{pct(value)}</span>
       </div>
       <div style={{ background: 'var(--c2)', height: 10, borderRadius: 6, overflow: 'hidden' }}>
-        <div style={{
-          width: `${value}%`,
-          height: '100%',
-          background: color,
-          transition: 'width .3s ease',
-        }} />
+        {/* Kein Balken ohne Messwert — ein Balken auf 0 % behauptet einen Stand. */}
+        {value !== null && (
+          <div style={{
+            width: `${value}%`,
+            height: '100%',
+            background: color,
+            transition: 'width .3s ease',
+          }} />
+        )}
       </div>
     </div>
   )

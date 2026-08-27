@@ -66,7 +66,7 @@ function getRentalLabels(kat: string) {
 
 interface RegData {
   vn: string; nn: string; em: string; tel: string
-  geschaeft: string; st: string; plz: string; city: string; kat: string; iban: string; gb: boolean
+  geschaeft: string; st: string; plz: string; city: string; kat: string; gb: boolean
   chair: boolean; cpr: string
   agb: boolean; dsgvo: boolean
 }
@@ -76,9 +76,11 @@ export default function AnbieterRegisterPage() {
   const [done, setDone] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  /** Meldet die Route, dass die Passwort-Mail raus ist? `null` = noch nichts gesendet. */
+  const [passwordEmailSent, setPasswordEmailSent] = useState<boolean | null>(null)
   const [f, setF] = useState<RegData>({
     vn: '', nn: '', em: '', tel: '',
-    geschaeft: '', st: '', plz: '', city: '', kat: '', iban: '', gb: false,
+    geschaeft: '', st: '', plz: '', city: '', kat: '', gb: false,
     chair: false, cpr: '',
     agb: false, dsgvo: false,
   })
@@ -95,9 +97,25 @@ export default function AnbieterRegisterPage() {
             <BrandLogo size={80} variant="dark" animateStar />
           </div>
           <h2 className="cinzel" style={{ fontSize: 22, marginBottom: 8, color: 'var(--gold2)' }}>Eingereicht!</h2>
-          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 18, lineHeight: 1.7 }}>
-            Prüfung innerhalb 24h.<br />E-Mail-Bestätigung folgt.
+          {/*
+            Hier stand nur „Prüfung innerhalb 24h. E-Mail-Bestätigung folgt."
+            Das Konto war zu diesem Zeitpunkt angelegt, aber unbenutzbar: die
+            Route erzeugte ein Zufallspasswort, das niemand je zu sehen bekam,
+            und es gab keinen Hinweis, wie man hineinkommt. Jetzt löst die
+            Registrierung eine Passwort-Mail aus, und hier steht, dass sie
+            kommt — und was zu tun ist, wenn sie es nicht tut.
+          */}
+          <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 10, lineHeight: 1.7 }}>
+            {passwordEmailSent === false
+              ? <>Dein Konto ist angelegt. Die E-Mail zum Festlegen deines Passworts konnte nicht verschickt werden — fordere sie bitte über „Passwort vergessen" an.</>
+              : <>Wir haben dir eine E-Mail geschickt, mit der du dein <strong style={{ color: 'var(--cream)' }}>Passwort festlegst</strong>. Erst danach kannst du dich anmelden.</>}
           </p>
+          <p style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 18, lineHeight: 1.7 }}>
+            Dein Eintrag wird geprüft und ist bis zur Freischaltung nicht öffentlich sichtbar.
+          </p>
+          <Link href="/auth/forgot-password" style={{ fontSize: 12, color: 'var(--gold2)', textDecoration: 'underline', marginBottom: 14, display: 'block' }}>
+            Keine E-Mail erhalten? Erneut anfordern
+          </Link>
           <Link href="/" className="bgold" style={{ textDecoration: 'none', display: 'block' }}>Zurück zur App</Link>
         </div>
       </div>
@@ -165,10 +183,17 @@ export default function AnbieterRegisterPage() {
                   ))}
                 </div>
               </div>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>IBAN</label>
-                <input className="inp" value={f.iban} onChange={e => upd('iban', e.target.value)} placeholder="DE89 3704 ..." />
-              </div>
+              {/*
+                Hier stand ein IBAN-Feld. Die Registrierungs-Route hat den Wert
+                entgegengenommen, validiert und danach nie verwendet — er kam
+                in keiner Tabelle an. Ein Formular, das Bankdaten erfragt und
+                wegwirft, ist schlechter als eines, das nicht danach fragt.
+
+                Auszahlungsdaten werden nach der Anmeldung im Konto hinterlegt
+                (/api/me/payout-account, Tabelle `payout_accounts`); die volle
+                IBAN verlaesst den Server danach nie wieder, herausgegeben
+                werden nur die letzten vier Stellen.
+              */}
               <div
                 onClick={() => upd('gb', !f.gb)}
                 style={{
@@ -326,6 +351,7 @@ export default function AnbieterRegisterPage() {
                     if (!res.ok) {
                       setSubmitError(data.error || 'Registrierung fehlgeschlagen')
                     } else {
+                      setPasswordEmailSent(data.passwordEmailSent !== false)
                       setDone(true)
                     }
                   } catch {

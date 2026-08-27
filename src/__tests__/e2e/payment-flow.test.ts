@@ -757,6 +757,207 @@ describe('Abo- und Connect-Events', () => {
     expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('starter')
   })
 
+  /**
+   * Der Abo-Lebenszyklus war bis Track 11 eine Einbahnstrasse.
+   *
+   * Freigeschaltet wurde beim Checkout. Danach kam nichts mehr an:
+   *
+   *  - `customer.subscription.deleted` suchte das Profil ueber
+   *    `profiles.stripe_customer_id` — eine Spalte, die im GESAMTEN
+   *    Produktivcode nie beschrieben wurde (nur in dieser Testdatei, Zeile
+   *    "db().row('profiles', IDS.owner)!.stripe_customer_id = ..."). Der
+   *    Bestandstest darunter war gruen, weil er den Wert selbst gesetzt hat.
+   *    In Produktion fand die Kuendigung nie ein Profil: wer kuendigte,
+   *    behielt Premium oder Gold unbegrenzt.
+   *  - `customer.subscription.updated` gab es gar nicht. Ein Stufenwechsel im
+   *    Stripe-Kundenportal und das Ende einer Mahnkette (`unpaid`) schlugen
+   *    nicht durch.
+   *  - Der Abo-Zweig im Checkout pruefte als einziger der vier Zweige
+   *    `session.payment_status` nicht. Eine noch nicht eingezogene
+   *    SEPA-Lastschrift schaltete sofort frei.
+   */
+  // Die Preis→Stufe-Zuordnung liest dieselben ENV wie SUBSCRIPTION_PRICES.
+  const PRICE_ENV = ['STRIPE_PRICE_STARTER', 'STRIPE_PRICE_PREMIUM', 'STRIPE_PRICE_GOLD'] as const
+  const priceEnvBackup: Partial<Record<(typeof PRICE_ENV)[number], string | undefined>> = {}
+
+  beforeEach(() => {
+    for (const key of PRICE_ENV) priceEnvBackup[key] = process.env[key]
+    process.env.STRIPE_PRICE_STARTER = 'price_live_starter'
+    process.env.STRIPE_PRICE_PREMIUM = 'price_live_premium'
+    process.env.STRIPE_PRICE_GOLD = 'price_live_gold'
+  })
+
+  afterEach(() => {
+    for (const key of PRICE_ENV) {
+      const value = priceEnvBackup[key]
+      if (value === undefined) delete process.env[key]
+      else process.env[key] = value
+    }
+  })
+
+  const subscriptionObject = (over: Record<string, unknown> = {}) => ({
+    id: 'sub_test_1',
+    customer: 'cus_test_owner',
+    status: 'active',
+    metadata: { type: 'provider_subscription', user_id: IDS.owner, tier: 'premium' },
+    items: { data: [{ price: { id: 'price_live_premium' } }] },
+    ...over,
+  })
+
+  it('haelt die Stripe-Kundennummer am Profil fest', async () => {
+    expect(db().row('profiles', IDS.owner)?.stripe_customer_id).toBeUndefined()
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('checkout.session.completed', {
+          id: 'cs_test_sub',
+          payment_status: 'paid',
+          customer: 'cus_test_owner',
+          subscription: 'sub_test_1',
+          metadata: { type: 'provider_subscription', user_id: IDS.owner, tier: 'premium' },
+        }),
+      ),
+    )
+
+    expect(db().row('profiles', IDS.owner)?.stripe_customer_id).toBe('cus_test_owner')
+  })
+
+  it('schaltet bei noch nicht eingezogener Lastschrift NICHT frei', async () => {
+    db().row('salons', IDS.salon)!.subscription_tier = 'starter'
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('checkout.session.completed', {
+          id: 'cs_test_sub_sepa',
+          payment_status: 'unpaid',
+          customer: 'cus_test_owner',
+          subscription: 'sub_test_1',
+          metadata: { type: 'provider_subscription', user_id: IDS.owner, tier: 'gold' },
+        }),
+      ),
+    )
+
+    expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('starter')
+    // Die Kundennummer wird trotzdem festgehalten — sonst findet das spaetere
+    // `customer.subscription.updated` das Konto nicht.
+    expect(db().row('profiles', IDS.owner)?.stripe_customer_id).toBe('cus_test_owner')
+    expect(
+      db().rows('audit_logs').some(a => a.action === 'subscription_awaiting_payment'),
+    ).toBe(true)
+  })
+
+  it('uebernimmt keine erfundene Stufe aus den Metadaten', async () => {
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('checkout.session.completed', {
+          id: 'cs_test_sub_platin',
+          payment_status: 'paid',
+          customer: 'cus_test_owner',
+          subscription: 'sub_test_1',
+          metadata: { type: 'provider_subscription', user_id: IDS.owner, tier: 'platin' },
+        }),
+      ),
+    )
+
+    expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('starter')
+  })
+
+  it('kuendigt ohne stripe_customer_id — ueber die Metadaten am Abo', async () => {
+    // KEIN `stripe_customer_id` am Profil: genau der Produktionszustand, in
+    // dem die Kuendigung bisher wirkungslos war.
+    db().row('salons', IDS.salon)!.subscription_tier = 'gold'
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('customer.subscription.deleted', subscriptionObject({ status: 'canceled' })),
+      ),
+    )
+
+    expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('starter')
+    expect(
+      db().rows('audit_logs').some(a => a.action === 'subscription_downgraded'),
+    ).toBe(true)
+  })
+
+  it('zieht einen Stufenwechsel aus dem Kundenportal nach', async () => {
+    db().row('salons', IDS.salon)!.subscription_tier = 'premium'
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'customer.subscription.updated',
+          subscriptionObject({ items: { data: [{ price: { id: 'price_live_gold' } }] } }),
+        ),
+      ),
+    )
+
+    expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('gold')
+  })
+
+  it('stuft bei endgueltig unbezahltem Abo zurueck', async () => {
+    db().row('salons', IDS.salon)!.subscription_tier = 'gold'
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('customer.subscription.updated', subscriptionObject({ status: 'unpaid' })),
+      ),
+    )
+
+    expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('starter')
+  })
+
+  it('laesst die Stufe waehrend der Mahnkette stehen', async () => {
+    db().row('salons', IDS.salon)!.subscription_tier = 'gold'
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('customer.subscription.updated', subscriptionObject({ status: 'past_due' })),
+      ),
+    )
+
+    expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('gold')
+    expect(db().rows('audit_logs').some(a => a.action === 'subscription_grace')).toBe(true)
+  })
+
+  it('raet keine Stufe, wenn der Preis zu keiner gehoert', async () => {
+    db().row('salons', IDS.salon)!.subscription_tier = 'premium'
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'customer.subscription.updated',
+          subscriptionObject({ items: { data: [{ price: { id: 'price_voellig_unbekannt' } }] } }),
+        ),
+      ),
+    )
+
+    expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('premium')
+    expect(
+      db().rows('audit_logs').some(a => a.action === 'subscription_price_unknown'),
+    ).toBe(true)
+  })
+
+  it('stuft bei fehlgeschlagenem Einzug nicht zurueck, warnt aber den Anbieter', async () => {
+    db().row('profiles', IDS.owner)!.stripe_customer_id = 'cus_test_owner'
+    db().row('salons', IDS.salon)!.subscription_tier = 'gold'
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('invoice.payment_failed', {
+          id: 'in_test_1',
+          customer: 'cus_test_owner',
+          amount_due: 4900,
+        }),
+      ),
+    )
+
+    expect(db().row('salons', IDS.salon)?.subscription_tier).toBe('gold')
+    expect(db().rows('audit_logs').some(a => a.action === 'payment_failed')).toBe(true)
+    expect(
+      db().rows('notification_log').some(n => n.user_id === IDS.owner && n.type === 'payment'),
+    ).toBe(true)
+  })
+
   it('synchronisiert den Connect-Onboarding-Status des Anbieters', async () => {
     await webhookRoute(
       webhookRequest(
