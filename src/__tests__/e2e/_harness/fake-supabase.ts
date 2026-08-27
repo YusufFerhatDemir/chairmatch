@@ -100,6 +100,8 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
   private filters: Filter[] = []
   private payload: Row[] = []
   private wantSingle = false
+  /** maybeSingle(): 0 Zeilen sind erlaubt und KEIN Fehler. */
+  private allowNoRows = false
   private returnRows = false
   private headOnly = false
   private wantCount = false
@@ -211,8 +213,18 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     return this
   }
 
+  /**
+   * `maybeSingle()` war bis 2026-08-27 ein Alias auf `single()`. Damit lieferte
+   * der Harness bei null Treffern PGRST116 — echtes supabase-js gibt dort
+   * `{ data: null, error: null }` zurueck. Jeder Produktivcode, der
+   * `maybeSingle()` benutzt und `if (error)` prueft, wurde deshalb falsch
+   * getestet: der Testlauf sah einen Fehler, wo live keiner ist, und ein
+   * "nicht gefunden" liess sich nicht von einem echten Ausfall unterscheiden.
+   */
   maybeSingle(): this {
-    return this.single()
+    this.single()
+    this.allowNoRows = true
+    return this
   }
 
   then<TResult1 = Result<unknown>, TResult2 = never>(
@@ -360,6 +372,7 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     const embedded = hit.map(r => this.db.embed(this.tableName, r))
 
     if (this.wantSingle) {
+      if (embedded.length === 0 && this.allowNoRows) return { data: null, error: null }
       if (embedded.length !== 1) return { data: null, error: NO_ROWS }
       return { data: embedded[0], error: null }
     }

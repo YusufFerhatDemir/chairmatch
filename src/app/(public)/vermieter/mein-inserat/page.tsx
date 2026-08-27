@@ -5,6 +5,7 @@ import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
+import DashboardStats, { useDashboardStats } from '@/components/DashboardStats'
 
 type Action = { id: string; lbl: string; sub: string; icon: React.JSX.Element; badge?: number; wide?: boolean }
 
@@ -20,18 +21,18 @@ export default function MeinInseratPage() {
   const router = useRouter()
   const t = useTranslations()
 
-  const STATS = [
-    { v: '5',   l: t('meinInserat.stat1') },
-    { v: '22',  l: t('meinInserat.stat2') },
-    { v: '€90', l: t('meinInserat.stat3') },
-  ]
+  // Erfundene Zahlen entfernt (Track 8): hier standen fest '5', '22' und
+  // '€90' — bei jedem Vermieter dieselben.
+  const stats = useDashboardStats('vermieter')
+  const offeneAnfragen =
+    stats.daten && stats.daten.role === 'vermieter' ? stats.daten.anfragenOffen ?? 0 : null
 
   const ACTIONS: Action[] = [
-    { id: 'fotos',          lbl: t('meinInserat.photos'),      sub: t('meinInserat.photosSub', { n: 3 }), icon: <Icon><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></Icon> },
-    { id: 'ausstattung',    lbl: t('meinInserat.equipment'),   sub: t('meinInserat.equipmentSub', { n: 7 }), icon: <Icon><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></Icon> },
+    { id: 'fotos',          lbl: t('meinInserat.photos'),      sub: '', icon: <Icon><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></Icon> },
+    { id: 'ausstattung',    lbl: t('meinInserat.equipment'),   sub: '', icon: <Icon><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></Icon> },
     { id: 'preise',         lbl: t('meinInserat.prices'),      sub: t('meinInserat.pricesSub'), icon: <Icon><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></Icon> },
     { id: 'verfuegbarkeit', lbl: t('meinInserat.availability'),sub: t('meinInserat.availabilitySub'), icon: <Icon><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></Icon> },
-    { id: 'anfragen',       lbl: t('meinInserat.requests'),    sub: t('meinInserat.requestsOpen', { n: 5 }), badge: 5, icon: <Icon><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></Icon> },
+    { id: 'anfragen',       lbl: t('meinInserat.requests'),    sub: offeneAnfragen === null ? '' : t('meinInserat.requestsOpen', { count: offeneAnfragen }), badge: offeneAnfragen ?? undefined, icon: <Icon><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></Icon> },
     { id: 'inserate',       lbl: t('meinInserat.listings'),    sub: t('meinInserat.listingsSub'), icon: <Icon><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></Icon> },
     { id: 'auszahlung',     lbl: t('meinInserat.payout'),      sub: t('meinInserat.payoutSub'), icon: <Icon><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></Icon> },
     { id: 'vorschau',       lbl: t('meinInserat.preview'),     sub: t('meinInserat.previewSub'), wide: true, icon: <Icon><circle cx="12" cy="12" r="3"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/></Icon> },
@@ -84,14 +85,11 @@ export default function MeinInseratPage() {
           <p style={{ fontSize: 13, color: 'var(--stone)' }}>{t('meinInserat.subtitle')}</p>
         </div>
 
-        <div style={{ margin: '0 20px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-          {STATS.map((s, i) => (
-            <div key={i} style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.12)', borderRadius: 14, padding: '12px 6px', textAlign: 'center' }}>
-              <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>{s.v}</div>
-              <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
+        <DashboardStats
+          rolle="vermieter"
+          zustand={stats}
+          labels={[t('meinInserat.stat1'), t('meinInserat.stat2'), t('meinInserat.stat3')]}
+        />
 
         <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
           {ACTIONS.map((a) => (

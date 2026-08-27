@@ -5,6 +5,7 @@ import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
+import DashboardStats, { useDashboardStats } from '@/components/DashboardStats'
 
 type Action = { id: string; lbl: string; sub: string; icon: React.JSX.Element; badge?: number; wide?: boolean }
 
@@ -20,19 +21,19 @@ export default function MeinBereichPage() {
   const router = useRouter()
   const t = useTranslations()
 
-  const STATS = [
-    { v: '8',    l: t('meinBereich.stat1') },
-    { v: '2',    l: t('meinBereich.stat2') },
-    { v: '€85',  l: t('meinBereich.stat3') },
-  ]
+  // Erfundene Zahlen entfernt (Track 8): hier standen fest '8', '2' und '€85'
+  // — bei jedem Mieter dieselben.
+  const stats = useDashboardStats('mieter')
+  const neueAnfragen =
+    stats.daten && stats.daten.role === 'mieter' ? stats.daten.anfragenOffen : null
 
   const ACTIONS: Action[] = [
-    { id: 'suchen',     lbl: t('meinBereich.search'),    sub: t('meinBereich.searchSub', { n: 8 }), icon: <Icon><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Icon> },
-    { id: 'favoriten',  lbl: t('meinBereich.favorites'), sub: t('meinBereich.favoritesSub', { n: 4 }), icon: <Icon><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></Icon> },
-    { id: 'anfragen',   lbl: t('meinBereich.requests'),  sub: t('meinBereich.requestsNew', { n: 2 }), badge: 2, icon: <Icon><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></Icon> },
+    { id: 'suchen',     lbl: t('meinBereich.search'),    sub: '', icon: <Icon><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Icon> },
+    { id: 'favoriten',  lbl: t('meinBereich.favorites'), sub: '', icon: <Icon><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></Icon> },
+    { id: 'anfragen',   lbl: t('meinBereich.requests'),  sub: neueAnfragen === null ? '' : t('meinBereich.requestsNew', { count: neueAnfragen }), badge: neueAnfragen ?? undefined, icon: <Icon><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></Icon> },
     { id: 'profil',     lbl: t('meinBereich.profile'),   sub: t('meinBereich.profileSub'), icon: <Icon><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></Icon> },
     { id: 'verlauf',    lbl: t('meinBereich.history'),   sub: t('meinBereich.historySub'), icon: <Icon><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon> },
-    { id: 'radius',     lbl: t('meinBereich.radius'),    sub: t('meinBereich.radiusSub', { km: 10, city: 'Köln' }), icon: <Icon><circle cx="12" cy="10" r="3"/><path d="M12 22s-8-7-8-13a8 8 0 0 1 16 0c0 6-8 13-8 13z"/></Icon> },
+    { id: 'radius',     lbl: t('meinBereich.radius'),    sub: '', icon: <Icon><circle cx="12" cy="10" r="3"/><path d="M12 22s-8-7-8-13a8 8 0 0 1 16 0c0 6-8 13-8 13z"/></Icon> },
     { id: 'angebote',   lbl: t('meinBereich.offers'),    sub: t('meinBereich.offersSub'), wide: true, icon: <Icon><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></Icon> },
   ]
 
@@ -83,14 +84,11 @@ export default function MeinBereichPage() {
           <p style={{ fontSize: 13, color: 'var(--stone)' }}>{t('meinBereich.subtitle')}</p>
         </div>
 
-        <div style={{ margin: '0 20px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-          {STATS.map((s, i) => (
-            <div key={i} style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.12)', borderRadius: 14, padding: '12px 6px', textAlign: 'center' }}>
-              <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>{s.v}</div>
-              <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
+        <DashboardStats
+          rolle="mieter"
+          zustand={stats}
+          labels={[t('meinBereich.stat1'), t('meinBereich.stat2'), t('meinBereich.stat3')]}
+        />
 
         <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
           {ACTIONS.map((a) => (

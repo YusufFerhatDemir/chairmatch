@@ -110,4 +110,55 @@ BEGIN
   END IF;
 END $$;
 
+-- ══════════════════════════════════════════════════════════════════════
+-- 3. Newsletter-Tabellen: ausschliesslich service_role
+-- ══════════════════════════════════════════════════════════════════════
+-- Punkt 1 nimmt `anon` das Recht. Fuer die drei Newsletter-Tabellen soll
+-- darueber hinaus auch `authenticated` nichts koennen: sie werden laut ihrer
+-- anlegenden Migration (20260824_newsletter_schema_repair) ausnahmslos
+-- serverseitig ueber getSupabaseAdmin() angefasst — auch die oeffentliche
+-- Anmeldung und die Abmeldeseite. Im Code bestaetigt: newsletter-sender.ts,
+-- api/newsletter/webhook und api/admin/newsletter/* benutzen alle
+-- getSupabaseAdmin(), keine einzige Stelle den ANON- oder User-Client.
+--
+-- `newsletter_sends` ist dabei der Grund fuer diesen Abschnitt: die Tabelle
+-- verknuepft Kampagne und Abonnent und fuehrt Zustellstatus, Oeffnungs- und
+-- Klickzeitpunkt. Waere sie lesbar, laege damit offen, WER welche Mail
+-- bekommen, geoeffnet und angeklickt hat — ein Verhaltensprotokoll ueber
+-- namentlich bekannte Empfaenger.
+--
+-- service_role ist von REVOKE hier nicht betroffen: die Rolle haelt ihre
+-- Rechte unabhaengig davon und umgeht RLS ohnehin (BYPASSRLS).
+DO $$
+DECLARE
+  t text;
+  nur_service text[] := ARRAY[
+    'newsletter_sends',
+    'newsletter_campaigns',
+    'newsletter_subscribers'
+  ];
+BEGIN
+  FOREACH t IN ARRAY nur_service LOOP
+    IF EXISTS (
+      SELECT 1 FROM pg_class c
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = 'public' AND c.relname = t AND c.relkind = 'r'
+    ) THEN
+      EXECUTE format('REVOKE ALL ON TABLE public.%I FROM anon, authenticated', t);
+      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
+      -- Bewusst KEINE Policy: ohne Policy laesst RLS niemanden durch, und
+      -- service_role braucht keine (die Rolle umgeht RLS per BYPASSRLS). Eine
+      -- Policy "fuer service_role" waere wirkungslose Dekoration und wuerde
+      -- suggerieren, hier duerfe noch jemand anders lesen.
+      --
+      -- Bewusst KEIN `FORCE ROW LEVEL SECURITY`: das wuerde RLS auch dem
+      -- Tabellen-Eigentuemer aufzwingen. Wer die Tabellen live besitzt, ist
+      -- von hier aus nicht pruefbar, und ein gesperrter Eigentuemer legt
+      -- Wartung und Migrationen still. Der Riegel steht ohnehin schon eine
+      -- Ebene frueher: ohne GRANT kommt anon/authenticated gar nicht bis zu
+      -- RLS.
+    END IF;
+  END LOOP;
+END $$;
+
 COMMIT;

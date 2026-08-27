@@ -217,3 +217,115 @@ describe('Demo-Konten sind ausserhalb der lokalen Entwicklung tot', () => {
     expect(config).toMatch(/\} : \{\}/)
   })
 })
+
+// ══════════════════════════════════════════════════════════════════════
+// C) Newsletter: ausschliesslich service_role
+// ══════════════════════════════════════════════════════════════════════
+
+describe('newsletter-Tabellen sind service_role-only', () => {
+  const migration = lies('supabase/migrations/20260827_anon_grant_lockdown.sql')
+
+  it('entzieht anon UND authenticated die Rechte auf allen drei Tabellen', () => {
+    const block = migration.match(/nur_service text\[\] := ARRAY\[([\s\S]*?)\]/)
+    expect(block, 'nur_service-Block nicht gefunden').not.toBeNull()
+    const tabellen = [...block![1].matchAll(/'([a-z0-9_]+)'/g)].map((m) => m[1])
+    expect([...tabellen].sort()).toEqual([
+      'newsletter_campaigns',
+      'newsletter_sends',
+      'newsletter_subscribers',
+    ])
+    expect(migration).toMatch(/REVOKE ALL ON TABLE public\.%I FROM anon, authenticated/)
+  })
+
+  it('setzt keine Policy, die den Riegel wieder aufmacht', () => {
+    // Ohne Policy laesst RLS niemanden durch; service_role braucht keine.
+    // Eine Policy "fuer service_role" waere Dekoration und laedt dazu ein,
+    // sie spaeter zu erweitern.
+    const nurServiceTeil = migration.slice(migration.indexOf('nur_service'))
+    expect(nurServiceTeil).not.toMatch(/CREATE POLICY/)
+  })
+
+  it('erzwingt RLS nicht auch fuer den Tabellen-Eigentuemer', () => {
+    // FORCE ROW LEVEL SECURITY wuerde Wartung und Migrationen stilllegen,
+    // falls der Eigentuemer live ein anderer ist als angenommen — und von
+    // hier aus ist das nicht pruefbar.
+    expect(migration).not.toMatch(/EXECUTE format\('ALTER TABLE public\.%I FORCE ROW LEVEL/)
+  })
+})
+
+describe('Negativtest-Skript', () => {
+  const skript = lies('scripts/negativtest-anon-lesen.sh')
+
+  it('prueft genau die Tabellen, die die Migration sperrt', () => {
+    const block = skript.match(/TABELLEN=\(([\s\S]*?)\n\)/)
+    expect(block, 'TABELLEN-Block nicht gefunden').not.toBeNull()
+    const imSkript = block![1]
+      .split('\n')
+      .map((z) => z.trim().split(/\s+/)[0])
+      .filter((z) => /^[a-z0-9_]+$/.test(z))
+    expect([...imSkript].sort()).toEqual([...NIE_FUER_ANON].sort())
+  })
+
+  it('wertet 200 als durchgefallen — nicht die Zeilenzahl', () => {
+    // Der ganze Punkt: eine leere Tabelle mit offenem Recht ist NICHT sicher.
+    expect(skript).toMatch(/\[ "\$C" = "401" \]/)
+    expect(skript).toMatch(/DURCHGEFALLEN/)
+    expect(skript).toMatch(/exit 1/)
+  })
+})
+
+// ══════════════════════════════════════════════════════════════════════
+// D) Rollen-Dashboards: keine fest verdrahteten Kennzahlen
+// ══════════════════════════════════════════════════════════════════════
+
+const DASHBOARDS = [
+  'src/app/(public)/anbieter/mein-salon/page.tsx',
+  'src/app/(public)/vermieter/mein-inserat/page.tsx',
+  'src/app/(public)/mieter/mein-bereich/page.tsx',
+]
+
+describe('Rollen-Dashboards zeigen echte Zahlen', () => {
+  it('haelt keine festen Kennzahlen mehr im Quelltext', () => {
+    const treffer: string[] = []
+    for (const p of DASHBOARDS) {
+      const text = ohneKommentare(lies(p))
+      // Die alten Kacheln: { v: '12', l: ... } / { v: '€480', ... }
+      if (/\{\s*v:\s*'/.test(text)) treffer.push(`${p} → feste Kachel { v: '…' }`)
+      if (/const STATS\s*=/.test(text)) treffer.push(`${p} → STATS-Konstante`)
+      // Erfundene Eurobetraege
+      if (/€\s*\d/.test(text)) treffer.push(`${p} → fester Eurobetrag`)
+    }
+    expect(treffer).toEqual([])
+  })
+
+  it('setzt keine festen Badge-Zahlen mehr an die Kacheln', () => {
+    // "5 offene Anfragen" an einer Kachel, hinter der seit Track 7 die echte
+    // (leere) Liste liegt, ist eine Behauptung ueber offene Vorgaenge.
+    const treffer: string[] = []
+    for (const p of DASHBOARDS) {
+      const text = ohneKommentare(lies(p))
+      const feste = [...text.matchAll(/badge:\s*(\d+)/g)].map((m) => m[0])
+      if (feste.length) treffer.push(`${p} → ${feste.join(', ')}`)
+      // t('…', { n: 8 }) — erfundene Zaehler in den Unterzeilen
+      const zaehler = [...text.matchAll(/\{\s*n:\s*\d+\s*\}/g)].map((m) => m[0])
+      if (zaehler.length) treffer.push(`${p} → ${zaehler.join(', ')}`)
+    }
+    expect(treffer).toEqual([])
+  })
+
+  it('bezieht die Zahlen aus der echten Route', () => {
+    for (const p of DASHBOARDS) {
+      expect(ohneKommentare(lies(p))).toMatch(/useDashboardStats\(/)
+    }
+  })
+
+  it('erfindet in der Anzeige keinen Ersatzwert, wenn eine Zahl fehlt', () => {
+    const komponente = ohneKommentare(lies('src/components/DashboardStats.tsx'))
+    // Vier ehrliche Zustaende statt eines erfundenen.
+    expect(komponente).toMatch(/nichtAngemeldet/)
+    expect(komponente).toMatch(/role="alert"/)
+    expect(komponente).toMatch(/hasSalon/)
+    // Keine Platzhalter-Werte
+    expect(komponente).not.toMatch(/'—'|'n\/a'|'0,0★'/)
+  })
+})

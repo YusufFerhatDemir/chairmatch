@@ -11,11 +11,16 @@ export default async function FavoritesPage() {
 
   const supabase = getSupabaseAdmin()
 
-  const { data: favorites } = await supabase
+  // Der Fehler wurde bis 2026-08-27 nicht ausgewertet: `const { data }` ohne
+  // `error`. Jeder Ausfall landete als "Noch keine Favoriten gespeichert" auf
+  // dem Bildschirm — dieselbe Verwechslung von "kaputt" und "leer", die in
+  // Track 6/7 schon Termine und Anfragen unsichtbar gemacht hat.
+  const { data: favorites, error: ladeFehler } = await supabase
     .from('favorites')
     .select('*, salon:salons(id, name, slug, category, city, avg_rating, description)')
     .eq('customer_id', session.user.id)
 
+  if (ladeFehler) console.error('[favorites] Seite konnte nicht laden:', ladeFehler)
   const favs = favorites ?? []
 
   return (
@@ -26,7 +31,16 @@ export default async function FavoritesPage() {
         </div>
 
         <section style={{ padding: '0 var(--pad)' }}>
-          {favs.length === 0 ? (
+          {ladeFehler ? (
+            <div role="alert" style={{ textAlign: 'center', padding: '40px 0' }}>
+              <p style={{ color: 'var(--red)', fontSize: 'var(--font-md)' }}>
+                Deine Favoriten konnten gerade nicht geladen werden.
+              </p>
+              <p style={{ color: 'var(--stone2)', fontSize: 'var(--font-sm)', marginTop: 4 }}>
+                Das heißt nicht, dass die Liste leer ist — bitte später erneut versuchen.
+              </p>
+            </div>
+          ) : favs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <div style={{ fontSize: 48, marginBottom: 12, opacity: 0.5 }}>❤️</div>
               <p style={{ color: 'var(--stone)', fontSize: 'var(--font-md)' }}>Noch keine Favoriten gespeichert.</p>

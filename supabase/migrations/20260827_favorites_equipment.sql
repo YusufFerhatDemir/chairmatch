@@ -54,4 +54,27 @@ CREATE INDEX IF NOT EXISTS idx_favorites_equipment
   ON public.favorites(equipment_id)
   WHERE equipment_id IS NOT NULL;
 
+-- ══════════════════════════════════════════════════════════════════════
+-- RLS und Rechte
+-- ══════════════════════════════════════════════════════════════════════
+-- `favorites` hat seit 20260307_ensure_tables RLS an und die Policy
+--   "Users manage own favorites"  FOR ALL USING (auth.uid() = customer_id)
+-- Sie greift ueber `customer_id` und deckt damit BEIDE Zielarten ab — eine
+-- eigene Policy fuer Inserats-Favoriten waere weder noetig noch richtig.
+--
+-- Zu WITH CHECK: die Policy hat keins. PostgreSQL nimmt dann den USING-
+-- Ausdruck auch fuer INSERT/UPDATE, ein Eintrag auf fremden Namen ist also
+-- ebenfalls ausgeschlossen. Hier steht das nur, damit beim naechsten Lesen
+-- niemand ein fehlendes WITH CHECK fuer eine Luecke haelt.
+--
+-- Der Riegel im Code ist unabhaengig davon noetig: /api/favorites arbeitet mit
+-- service_role und umgeht RLS. Dort kommt `customer_id` ausschliesslich aus
+-- der Session, nie aus dem Request.
+ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
+
+-- anon hat auf favorites bereits kein Recht (Live-Sonde 2026-08-27: HTTP 401
+-- "permission denied for table favorites"). Der REVOKE steht trotzdem hier,
+-- damit ein spaeteres GRANT nicht unbemerkt bleibt.
+REVOKE ALL ON TABLE public.favorites FROM anon;
+
 COMMIT;

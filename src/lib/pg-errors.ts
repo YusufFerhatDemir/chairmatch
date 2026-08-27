@@ -71,3 +71,12 @@ export function isUniqueViolation(err: PgErrorLike | null | undefined): boolean 
 export function isNotNullViolation(err: PgErrorLike | null | undefined): boolean {
   return (err?.code ?? undefined) === '23502'
 }
+
+/**
+ * 23503 — Fremdschluessel verletzt: die referenzierte Zeile gibt es nicht
+ * (oder nicht mehr). Fuer eine API heisst das 400/404, nicht 500: der
+ * Aufrufer hat eine ID geschickt, zu der nichts existiert.
+ */
+export function isForeignKeyViolation(err: PgErrorLike | null | undefined): boolean {
+  return (err?.code ?? undefined) === '23503'
+}

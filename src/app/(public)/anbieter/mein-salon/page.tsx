@@ -8,6 +8,7 @@ import BottomNav from '@/components/BottomNav'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useTranslations } from '@/i18n/client'
+import DashboardStats, { useDashboardStats } from '@/components/DashboardStats'
 
 type Action = { id: string; lbl: string; sub: string; icon: React.JSX.Element; badge?: number; wide?: boolean }
 
@@ -37,19 +38,18 @@ export default function MeinSalonPage() {
     } catch {}
   }, [])
 
-  const STATS = [
-    { v: '12',     l: t('meinSalon.stat1') },
-    { v: '4,9★',   l: t('meinSalon.stat2') },
-    { v: '€480',   l: t('meinSalon.stat3') },
-  ]
+  // Erfundene Zahlen entfernt (Track 8): hier standen fest '12', '4,9★' und
+  // '€480' — bei jedem Anbieter dieselben.
+  const stats = useDashboardStats('anbieter')
+  const anbieterDaten = stats.daten && stats.daten.role === 'anbieter' ? stats.daten : null
 
   const ACTIONS: Action[] = [
     { id: 'logo',           lbl: t('meinSalon.logo'),        sub: t('meinSalon.logoSub'),       icon: <Icon><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></Icon> },
     { id: 'galerie',        lbl: t('meinSalon.galerie'),     sub: t('meinSalon.galerieSub'),    icon: <Icon><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></Icon> },
     { id: 'beschreibung',   lbl: t('meinSalon.description'), sub: t('meinSalon.descriptionSub'),icon: <Icon><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></Icon> },
-    { id: 'services',       lbl: t('meinSalon.services'),    sub: t('meinSalon.servicesActive', { n: 8 }), icon: <Icon><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></Icon> },
+    { id: 'services',       lbl: t('meinSalon.services'),    sub: anbieterDaten ? t('meinSalon.servicesActive', { count: anbieterDaten.aktiveServices ?? 0 }) : '', icon: <Icon><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></Icon> },
     { id: 'oeffnungszeiten',lbl: t('meinSalon.hours'),       sub: t('meinSalon.hoursSub'),      icon: <Icon><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></Icon> },
-    { id: 'bewertungen',    lbl: t('meinSalon.reviews'),     sub: t('meinSalon.reviewsNew', { n: 3 }), badge: 3, icon: <Icon><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></Icon> },
+    { id: 'bewertungen',    lbl: t('meinSalon.reviews'),     sub: anbieterDaten ? t('meinSalon.reviewsNew', { count: anbieterDaten.bewertungAnzahl ?? 0 }) : '', icon: <Icon><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></Icon> },
     { id: 'auszahlung',     lbl: t('meinSalon.payout'),      sub: t('meinSalon.payoutSub'),     icon: <Icon><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></Icon> },
     { id: 'vorschau',       lbl: t('meinSalon.preview'),     sub: t('meinSalon.previewSub'),    wide: true, icon: <Icon><circle cx="12" cy="12" r="3"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/></Icon> },
   ]
@@ -123,17 +123,11 @@ export default function MeinSalonPage() {
           <p style={{ fontSize: 13, color: 'var(--stone)' }}>{t('meinSalon.subtitle')}</p>
         </div>
 
-        <div style={{ margin: '0 20px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-          {STATS.map((s, i) => (
-            <div key={i} style={{
-              background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.12)',
-              borderRadius: 14, padding: '12px 6px', textAlign: 'center',
-            }}>
-              <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>{s.v}</div>
-              <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
+        <DashboardStats
+          rolle="anbieter"
+          zustand={stats}
+          labels={[t('meinSalon.stat1'), t('meinSalon.stat2'), t('meinSalon.stat3')]}
+        />
 
         <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
           {needsHygiene && (
