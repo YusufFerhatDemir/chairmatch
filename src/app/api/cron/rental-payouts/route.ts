@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { isAuthorizedCron } from '@/lib/cron-auth'
 import { getStripe, isStripeConfigured } from '@/lib/stripe'
 
 // Zombie-Pendings freigeben. Regulär erledigt das der
@@ -38,9 +39,7 @@ async function cleanupStalePendings(
  * Vercel Cron: vercel.json "crons": [{ "path": "/api/cron/rental-payouts", "schedule": "0 4 * * *" }]
  */
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCron(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

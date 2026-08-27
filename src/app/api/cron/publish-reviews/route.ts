@@ -9,17 +9,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { isAuthorizedCron } from '@/lib/cron-auth'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  // Fehlt CRON_SECRET, wird der Vergleichswert zum String "Bearer undefined"
-  // — den kann jeder schicken. Die anderen beiden Cron-Routen fangen das mit
-  // `!cronSecret` ab, hier fehlte der Riegel.
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCron(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

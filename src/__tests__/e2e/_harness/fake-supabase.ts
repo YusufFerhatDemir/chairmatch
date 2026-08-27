@@ -51,11 +51,25 @@ export interface CallLogEntry {
   payload?: unknown
 }
 
-type FilterOp = 'eq' | 'neq' | 'in' | 'lte' | 'gte' | 'gt' | 'lt' | 'is'
+type FilterOp = 'eq' | 'neq' | 'in' | 'lte' | 'gte' | 'gt' | 'lt' | 'is' | 'not'
 interface Filter {
   op: FilterOp
   column: string
   value: unknown
+  /** nur fuer op 'not': der negierte Operator, z.B. `.not(col, 'is', null)` */
+  negated?: FilterOp
+}
+
+/**
+ * NULL in der Fake-DB.
+ *
+ * PostgREST liefert fuer eine nicht gesetzte Spalte `null`; die Seed-Zeilen
+ * hier lassen den Schluessel oft einfach weg. Fuer `.is(col, null)` muessen
+ * beide dasselbe bedeuten — sonst findet ein `.is('deleted_at', null)` genau
+ * die Zeilen nicht, um die es geht.
+ */
+function istNull(v: unknown): boolean {
+  return v === null || v === undefined
 }
 
 export function pgError(code: string, message: string): PostgrestError {
@@ -169,6 +183,11 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     this.filters.push({ op: 'is', column, value })
     return this
   }
+  /** `.not(col, 'is', null)` / `.not(col, 'eq', x)` — negiert den Operator. */
+  not(column: string, operator: string, value: unknown): this {
+    this.filters.push({ op: 'not', column, value, negated: operator as FilterOp })
+    return this
+  }
 
   order(column: string, options?: { ascending?: boolean }): this {
     this.orderBy = { column, ascending: options?.ascending !== false }
@@ -198,27 +217,35 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
   }
 
   private matches(row: Row): boolean {
-    return this.filters.every(f => {
-      const v = row[f.column]
-      switch (f.op) {
-        case 'eq':
-          return v === f.value
-        case 'neq':
-          return v !== f.value
-        case 'in':
-          return Array.isArray(f.value) && (f.value as unknown[]).includes(v)
-        case 'is':
-          return v === f.value
-        case 'lte':
-          return cmp(v, f.value) <= 0
-        case 'gte':
-          return cmp(v, f.value) >= 0
-        case 'lt':
-          return cmp(v, f.value) < 0
-        case 'gt':
-          return cmp(v, f.value) > 0
-      }
-    })
+    return this.filters.every(f => this.matchesFilter(row, f))
+  }
+
+  private matchesFilter(row: Row, f: Filter): boolean {
+    const v = row[f.column]
+    switch (f.op) {
+      case 'eq':
+        return v === f.value
+      case 'neq':
+        return v !== f.value
+      case 'in':
+        return Array.isArray(f.value) && (f.value as unknown[]).includes(v)
+      case 'is':
+        return istNull(f.value) ? istNull(v) : v === f.value
+      case 'not':
+        return !this.matchesFilter(row, {
+          op: f.negated ?? 'eq',
+          column: f.column,
+          value: f.value,
+        })
+      case 'lte':
+        return cmp(v, f.value) <= 0
+      case 'gte':
+        return cmp(v, f.value) >= 0
+      case 'lt':
+        return cmp(v, f.value) < 0
+      case 'gt':
+        return cmp(v, f.value) > 0
+    }
   }
 
   private async exec(): Promise<Result<unknown>> {

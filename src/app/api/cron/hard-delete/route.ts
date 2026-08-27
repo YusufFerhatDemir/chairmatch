@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { isAuthorizedCron } from '@/lib/cron-auth'
 
 /**
  * Cron: Hard-Delete nach 30 Tagen (DSGVO)
@@ -7,9 +8,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  * Oder: Vercel Dashboard → Cron Jobs
  */
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCron(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -18,17 +17,39 @@ export async function GET(req: NextRequest) {
   cutoff.setDate(cutoff.getDate() - 30)
   const cutoffIso = cutoff.toISOString()
 
+  // `.is('deleted_at', null)` fehlte: bereits hart geloeschte Profile wurden
+  // in JEDEM naechtlichen Lauf erneut aufgegriffen. Zwei Folgen — der Aufruf
+  // `auth.admin.deleteUser` lief dauerhaft gegen nicht mehr existierende
+  // Nutzer und produzierte Fehlerrauschen, und `deleted_at` wurde jede Nacht
+  // neu gestempelt: der Zeitpunkt der tatsaechlichen Loeschung, den man fuer
+  // eine Auskunft nach Art. 15 braucht, ging damit verloren.
   const { data: toDelete } = await supabase
     .from('profiles')
     .select('id')
     .not('delete_requested_at', 'is', null)
+    .is('deleted_at', null)
     .lte('delete_requested_at', cutoffIso)
 
   let deleted = 0
   const errors: string[] = []
   for (const row of toDelete ?? []) {
-    // 1. Mark profile as deleted
-    const { error } = await supabase.from('profiles').update({ deleted_at: new Date().toISOString() }).eq('id', row.id)
+    // 1. Profil als geloescht markieren und die Kontaktdaten sicher entfernen.
+    //
+    // Regulaer hat /api/account/delete das schon beim Antrag getan. Dieser
+    // Schritt ist der Rueckfall fuer Profile, die auf anderem Weg zur
+    // Loeschung markiert wurden (Admin, Migration, Altbestand) — bisher hat
+    // der Cron nur `deleted_at` gesetzt und die PII stehen lassen.
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        deleted_at: new Date().toISOString(),
+        is_active: false,
+        email: null,
+        full_name: 'Gelöscht',
+        phone: null,
+      })
+      .eq('id', row.id)
+      .is('deleted_at', null)
     if (error) {
       errors.push(`profile ${row.id}: ${error.message}`)
       continue
