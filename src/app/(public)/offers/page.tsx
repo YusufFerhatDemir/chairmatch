@@ -3,7 +3,7 @@ export const revalidate = 3600 // ISR statt force-dynamic — Marketing-Seite, 1
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Link from 'next/link'
-import { itemListSchema } from '@/lib/seo'
+import { itemListSchema, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = {
@@ -67,7 +67,7 @@ export default async function OffersPage() {
           <script
             type="application/ld+json"
             // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema({
+            dangerouslySetInnerHTML={{ __html: jsonLd(itemListSchema({
               url: '/offers',
               name: 'Beauty-Angebote & Rabatte — Stuhlmiete, Termine, Behandlungen',
               items: offers.map((o) => ({

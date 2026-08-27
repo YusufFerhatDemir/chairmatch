@@ -9,7 +9,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MASTER_FAQS, toFaqItems } from '@/lib/seo-data/faq-master'
-import { faqSchema, speakableSchema } from '@/lib/seo'
+import { faqSchema, speakableSchema, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
@@ -72,7 +72,7 @@ export default function FaqPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          dangerouslySetInnerHTML={{ __html: jsonLd({
             '@context': 'https://schema.org',
             '@graph': [
               faqSchema(visibleFaqItems),

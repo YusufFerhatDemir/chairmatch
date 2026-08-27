@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import type { Route } from 'next'
-import { breadcrumbSchema, type BreadcrumbItem } from '@/lib/seo'
+import { breadcrumbSchema, type BreadcrumbItem, jsonLd } from '@/lib/seo'
 
 /**
  * Breadcrumbs-Komponente mit JSON-LD BreadcrumbList Schema.
@@ -35,7 +35,7 @@ export function Breadcrumbs({
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema(fullChain)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema(fullChain)) }}
       />
       <ol style={{ display: 'flex', flexWrap: 'wrap', gap: 4, listStyle: 'none', padding: 0, margin: 0 }}>
         {fullChain.map((item, idx) => {

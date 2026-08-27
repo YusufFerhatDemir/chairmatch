@@ -11,7 +11,7 @@
  */
 
 import Link from 'next/link'
-import { faqSchema, serviceAreaSchema, speakableSchema, type FaqItem } from '@/lib/seo'
+import { faqSchema, serviceAreaSchema, speakableSchema, type FaqItem, jsonLd as jsonLdScript } from '@/lib/seo'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 
 // ─────────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ export function HomeSEOFooterContent() {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
 
       {/* "Was ist ChairMatch?" — für AI-Engines extraktierbar */}

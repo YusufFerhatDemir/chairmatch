@@ -14,7 +14,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { listingSchema, listingProductSchema, speakableSchema } from '@/lib/seo'
+import { listingSchema, listingProductSchema, speakableSchema, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -241,7 +241,7 @@ export default async function ListingDetailPage({ params }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          dangerouslySetInnerHTML={{ __html: jsonLd({
             '@context': 'https://schema.org',
             '@graph': [
               schemaJson,

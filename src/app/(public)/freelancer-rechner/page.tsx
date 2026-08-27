@@ -10,6 +10,7 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { CalculatorClient } from './CalculatorClient'
+import { jsonLd } from '@/lib/seo'
 
 // GEO/SEO: natürlichsprachliche, zitierbare Antworten rund um den Rechner —
 // sichtbar als Accordion + FAQPage-Schema (Featured Snippets / AI-Antworten).
@@ -87,7 +88,7 @@ export default function CalculatorPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(APP_SCHEMA) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(APP_SCHEMA) }}
         />
 
         <Breadcrumbs items={[{ name: 'Freelancer-Rechner', url: '/freelancer-rechner' }]} />

@@ -17,7 +17,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getCityBySlug, PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { getVerticalBySlug } from '@/lib/seo-data/verticals'
 import { getAssetBySlug, PHASE_1B_ASSET_COMBOS } from '@/lib/seo-data/assets'
-import { robotsForListingPage, geoMeta, cityPlace, parsePriceRange, salonSchema, slugToCity } from '@/lib/seo'
+import { robotsForListingPage, geoMeta, cityPlace, parsePriceRange, salonSchema, slugToCity, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -163,7 +163,7 @@ export default async function CityVerticalAssetPage({ params }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          dangerouslySetInnerHTML={{ __html: jsonLd({
             '@context': 'https://schema.org',
             '@type': 'Service',
             name: `${assetDisplay} mieten in ${city.name}`,
@@ -186,7 +186,7 @@ export default async function CityVerticalAssetPage({ params }: Props) {
             key={s.id}
             type="application/ld+json"
             // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(salonSchema({
+            dangerouslySetInnerHTML={{ __html: jsonLd(salonSchema({
               // category = Slug (nicht Display-Name), damit der spezifische
               // @type (BarberShop/HairSalon/…) aus der Map greift.
               id: s.id, name: s.name, slug: s.slug, description: s.description,

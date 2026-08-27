@@ -5,6 +5,30 @@
  * Single source of truth für SEO-Logik.
  */
 
+/**
+ * JSON-LD sicher in ein Inline-`<script>` schreiben.
+ *
+ * `JSON.stringify()` allein reicht dafuer NICHT: die Funktion escapet `<`
+ * und `>` nicht. Steht in einem Datenfeld die Zeichenfolge `</script>` —
+ * und Produkt-, Salon- und Inseratsnamen kommen aus Nutzereingaben —, dann
+ * beendet der HTML-Parser das Script-Element genau dort und liest den Rest
+ * als Markup. Zusammen mit `script-src 'unsafe-inline'` in der CSP
+ * (next.config.ts) ist das gespeichertes XSS.
+ *
+ * Die \uXXXX-Form bleibt gueltiges JSON und wird von Suchmaschinen
+ * identisch geparst — am ausgelieferten Schema aendert sich nichts.
+ *
+ * Immer diese Funktion nutzen, nie `JSON.stringify` direkt in `__html`.
+ */
+export function jsonLd(schema: unknown): string {
+  return JSON.stringify(schema)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029')
+}
+
 /** Schwelle für Soft-404-Schutz: Stadt/Vertical wird nur indexiert,
  *  wenn min. so viele Listings vorhanden sind. */
 export const INDEX_THRESHOLD = 3

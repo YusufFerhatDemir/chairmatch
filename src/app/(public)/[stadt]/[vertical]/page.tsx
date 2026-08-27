@@ -13,7 +13,7 @@ import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getCityBySlug, PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { getVerticalBySlug, VERTICALS } from '@/lib/seo-data/verticals'
-import { robotsForListingPage, geoMeta, cityPlace, parsePriceRange, slugToCity, salonSchema } from '@/lib/seo'
+import { robotsForListingPage, geoMeta, cityPlace, parsePriceRange, slugToCity, salonSchema, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -119,7 +119,7 @@ export default async function CityVerticalPage({ params }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          dangerouslySetInnerHTML={{ __html: jsonLd({
             '@context': 'https://schema.org',
             '@type': 'Service',
             name: `${v.name}-${v.assetLabel} mieten in ${city.name}`,
@@ -142,7 +142,7 @@ export default async function CityVerticalPage({ params }: Props) {
             key={s.id}
             type="application/ld+json"
             // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(salonSchema({
+            dangerouslySetInnerHTML={{ __html: jsonLd(salonSchema({
               // category = Slug (nicht Display-Name), damit der spezifische
               // @type (BarberShop/HairSalon/…) aus der Map greift.
               id: s.id, name: s.name, slug: s.slug, description: s.description,

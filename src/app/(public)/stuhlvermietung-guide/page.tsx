@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MAGAZIN_ARTIKEL, getMagazinArtikel, type MagazinArtikel } from '@/lib/seo-data/magazin'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
-import { speakableSchema } from '@/lib/seo'
+import { speakableSchema, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -114,7 +114,7 @@ export default function StuhlvermietungGuidePage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableSchema(
+          dangerouslySetInnerHTML={{ __html: jsonLd(speakableSchema(
             URL,
             'Stuhlvermietung Guide 2026 — Stuhl mieten & vermieten in der Beauty-Branche',
             'Der komplette Ratgeber zur Stuhlvermietung: Kosten, Mietmodelle, Verträge, Recht und Praxis-Guides für alle Beauty-Berufsgruppen.',

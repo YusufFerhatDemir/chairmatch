@@ -10,6 +10,7 @@ import { PHASE_1_CITIES } from "@/lib/seo-data/cities"
 import { slugToCity, speakableSchema } from "@/lib/seo"
 import { Breadcrumbs } from "@/components/seo/Breadcrumbs"
 import { FAQ } from "@/components/seo/FAQ"
+import { jsonLd } from '@/lib/seo'
 
 interface Props { verticalSlug: string }
 
@@ -49,7 +50,7 @@ export function VerticalHubContent({ verticalSlug }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          dangerouslySetInnerHTML={{ __html: jsonLd({
             '@context': 'https://schema.org',
             '@graph': [
               serviceSchema,

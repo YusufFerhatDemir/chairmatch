@@ -20,6 +20,7 @@ import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
+import { jsonLd } from '@/lib/seo'
 
 export const revalidate = 3600 // 1h
 
@@ -109,7 +110,7 @@ export default function HaartransplantationPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(SERVICE_SCHEMA) }}
         />
 
         <div style={{ marginBottom: 14 }}>

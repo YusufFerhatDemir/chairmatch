@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MAGAZIN_ARTIKEL } from '@/lib/seo-data/magazin'
-import { itemListSchema } from '@/lib/seo'
+import { itemListSchema, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = {
@@ -34,7 +34,7 @@ export default function MagazinIndexPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema({
+          dangerouslySetInnerHTML={{ __html: jsonLd(itemListSchema({
             url: '/magazin',
             name: 'ChairMatch Magazin — Praxis-Wissen für Beauty-Selbstständige',
             items: MAGAZIN_ARTIKEL.map((a) => ({

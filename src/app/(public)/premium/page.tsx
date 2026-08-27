@@ -14,6 +14,7 @@ import {
   Sparkles, Scissors, Smile, Eye, Snowflake, Syringe,
   type LucideIcon,
 } from 'lucide-react'
+import { jsonLd } from '@/lib/seo'
 
 export const revalidate = 3600
 
@@ -116,7 +117,7 @@ export default function PremiumHubPage() {
         {/* BreadcrumbList-Schema kommt aus der <Breadcrumbs>-Komponente — hier bewusst kein zweites. */}
         <script type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(SERVICE_SCHEMA) }} />
+          dangerouslySetInnerHTML={{ __html: jsonLd(SERVICE_SCHEMA) }} />
 
         <div style={{ marginBottom: 14 }}>
           <BackButton href="/" label="Zurück zur Startseite" />

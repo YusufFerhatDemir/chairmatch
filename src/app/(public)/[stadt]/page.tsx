@@ -20,7 +20,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getCityBySlug, getNearbyCities, PHASE_1_CITIES, type CityData } from '@/lib/seo-data/cities'
 import { getCityGuide } from '@/lib/seo-data/city-guides'
 import { VERTICALS } from '@/lib/seo-data/verticals'
-import { shouldIndex, serviceAreaSchema, cityLocalBusinessSchema, speakableSchema, geoMeta, slugToCity } from '@/lib/seo'
+import { shouldIndex, serviceAreaSchema, cityLocalBusinessSchema, speakableSchema, geoMeta, slugToCity, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 
@@ -177,18 +177,18 @@ export default async function CityHubPage({ params }: Props) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceAreaSchema(city, undefined, city.priceRange.stuhl)) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(serviceAreaSchema(city, undefined, city.priceRange.stuhl)) }}
         />
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(cityLocalBusinessSchema(city, city.priceRange.stuhl)) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(cityLocalBusinessSchema(city, city.priceRange.stuhl)) }}
         />
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(speakableSchema(
+            __html: jsonLd(speakableSchema(
               pageUrl,
               h1,
               `Stuhlvermietung in ${city.name} für Friseure, Barber, Kosmetiker:innen und Nageldesigner:innen — Arbeitsplätze tageweise mieten, Preise ab ${city.priceRange.stuhl.split('-')[0].trim()} €.`,

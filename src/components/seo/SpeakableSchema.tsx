@@ -1,4 +1,4 @@
-import { speakableSchema } from '@/lib/seo'
+import { speakableSchema, jsonLd } from '@/lib/seo'
 
 /**
  * SpeakableSchema — WebPage-Node mit SpeakableSpecification (GEO).
@@ -30,7 +30,7 @@ export function SpeakableSchema({
     <script
       type="application/ld+json"
       // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableSchema(url, name, description)) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(speakableSchema(url, name, description)) }}
     />
   )
 }

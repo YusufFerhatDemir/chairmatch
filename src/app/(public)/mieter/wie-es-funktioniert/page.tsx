@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { serviceAreaSchema, howToSchema, speakableSchema } from '@/lib/seo'
+import { serviceAreaSchema, howToSchema, speakableSchema, jsonLd as jsonLdScript } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FAQ } from '@/components/seo/FAQ'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
@@ -74,7 +74,7 @@ export default function TenantHowItWorksPage() {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
         />
 
         <Breadcrumbs items={[{ name: 'Stuhl mieten', url: '/mieter/wie-es-funktioniert' }]} />

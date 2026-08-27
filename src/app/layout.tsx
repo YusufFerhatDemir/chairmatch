@@ -13,7 +13,7 @@ import FloatingLanguageSwitcher from '@/components/FloatingLanguageSwitcher'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import NetworkBanner from '@/components/NetworkBanner'
 import PageReadyWatcher from '@/components/PageReadyWatcher'
-import { organizationSchema, websiteSchema } from '@/lib/seo'
+import { organizationSchema, websiteSchema, jsonLd } from '@/lib/seo'
 import './globals.css'
 
 
@@ -118,11 +118,11 @@ export default function RootLayout({
             (Brand, Slogan, Founder, knowsAbout) Single-Source-of-Truth. */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema()) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(organizationSchema()) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema()) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(websiteSchema()) }}
         />
         <DynamicTheme />
         <NetworkBanner />

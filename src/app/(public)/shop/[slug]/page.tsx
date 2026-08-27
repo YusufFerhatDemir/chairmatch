@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import ProductDetailClient from './ProductDetailClient'
+import { jsonLd } from '@/lib/seo'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -82,7 +83,7 @@ export default async function ProductPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(productSchema) }}
       />
       <ProductDetailClient product={product} />
     </>

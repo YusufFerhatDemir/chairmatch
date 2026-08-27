@@ -5,7 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import SalonDetailClient from '@/components/SalonDetailClient'
 import { PROVS } from '@/lib/demo-data'
-import { salonSchema, geoMeta, cityToSlug, type BreadcrumbItem } from '@/lib/seo'
+import { salonSchema, geoMeta, cityToSlug, type BreadcrumbItem, jsonLd as jsonLdScript } from '@/lib/seo'
 import { getCityBySlug } from '@/lib/seo-data/cities'
 
 interface Props {
@@ -151,7 +151,7 @@ export default async function SalonDetailPage({ params }: Props) {
 
     return (
       <>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
         <SalonDetailClient
           salon={salonData}
           services={services}
@@ -234,7 +234,7 @@ export default async function SalonDetailPage({ params }: Props) {
 
     return (
       <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(dbJsonLd) }} />
       <SalonDetailClient
         salon={salonData}
         services={(servicesRes.data || []).map(s => ({ id: s.id, name: s.name, duration_minutes: s.duration_minutes, price_cents: s.price_cents }))}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { faqSchema, type FaqItem } from '@/lib/seo'
+import { faqSchema, type FaqItem, jsonLd } from '@/lib/seo'
 
 /**
  * FAQ-Komponente mit Accordion + JSON-LD FAQPage Schema.
@@ -32,7 +32,7 @@ export function FAQ({
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(items)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema(items)) }}
       />
       {title && (
         <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 16, fontWeight: 600 }}>

@@ -6,6 +6,7 @@ import type { Metadata } from 'next'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import BreakEvenClient from './BreakEvenClient'
+import { jsonLd } from '@/lib/seo'
 
 export const metadata: Metadata = {
   // Layout-Template fügt "| ChairMatch" auto an.
@@ -221,7 +222,7 @@ export default async function PreisvergleichPage() {
       <div className="screen">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(faqJsonLd) }}
         />
         {/* ---------------------------------------------------------------- */}
         {/* (a) Headline + Intro                                              */}
