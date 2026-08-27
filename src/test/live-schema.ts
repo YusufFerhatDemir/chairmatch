@@ -241,7 +241,44 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
     'used_count',
   ],
 
-  rental_bookings: ['id', 'equipment_id', 'status', 'created_at'],
+  /**
+   * Miet-Buchungen — Spaltensonde 2026-08-27.
+   *
+   * Die Liste stand bis dahin auf vier Spalten, weil nur so viele angefasst
+   * wurden. Track 7 liest sie fuer die Umsatzseite des Vermieters komplett,
+   * deshalb hier der volle Ist-Zustand.
+   *
+   * Ausdruecklich NICHT vorhanden (42703 bei der Sonde): `salon_id`,
+   * `user_id`, `customer_id`, `price_cents`, `days`. Der Mieter heisst
+   * `renter_id`, und ein Salonbezug existiert NUR ueber
+   * `equipment_id -> rental_equipment.salon_id`. Wer die Buchungen eines
+   * Salons will, muss erst dessen Mietobjekte holen — ein direkter Filter
+   * auf `salon_id` laeuft in 42703.
+   */
+  rental_bookings: [
+    'id',
+    'equipment_id',
+    'renter_id',
+    'start_date',
+    'end_date',
+    'total_cents',
+    'status',
+    'payment_status',
+    'stripe_session_id',
+    'created_at',
+    'updated_at',
+  ],
+
+  /**
+   * Merkliste — Spaltensonde 2026-08-27.
+   *
+   * ACHTUNG: `equipment_id` gibt es NICHT (42703). Die Merkliste kann
+   * ausschliesslich SALONS aufnehmen, keine einzelnen Mietobjekte. Die
+   * Mieter-Merkliste unter /mieter/mein-bereich/favoriten arbeitet deshalb
+   * geraetelokal weiter und sagt das auch — serverseitig speicherbar waere
+   * sie erst nach einer Migration.
+   */
+  favorites: ['id', 'customer_id', 'salon_id', 'created_at'],
 
   /**
    * `deleted_at`, `delete_requested_at`, `is_active` und `avatar_url` sind

@@ -1,8 +1,34 @@
 'use client'
 
 import MeinBereichSubPage, { TippsBox } from '@/components/MeinBereichSubPage'
-import { supabase } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
+import { apiGet, ApiError } from '@/lib/client-api'
+import type { RentalRevenueResponse } from '@/modules/rentals/rental-listing.types'
+
+/**
+ * Umsatz & Auslastung (Vermieter) — /vermieter/mein-inserat/umsatz
+ *
+ * Diese Seite hat bis 2026-08-27 JEDEM Vermieter erfundene Zahlen als seine
+ * eigenen vorgelegt: Monatsbalken, "Einnahmen gesamt", eine Auslastung und
+ * daraus abgeleitet den Rat, den Tagessatz zu erhoehen — alles aus
+ * `buildDemoData`.
+ *
+ * Der Grund war ein einziger Aufruf: `supabase.auth.getSession()`. Angemeldet
+ * wird bei ChairMatch aber ueber NextAuth (`signIn('credentials')` in /auth);
+ * der Browser-Supabase-Client bekommt dabei NIE eine Session. Der Aufruf gab
+ * also ausnahmslos `null` zurueck, die Ladefunktion warf "keine Session", und
+ * der `catch`-Zweig setzte die Demo-Daten. Der kleine Hinweis
+ * "Beispieldaten — verbinde dein Inserat" stand zwar darueber, aber die
+ * Kacheln darunter lasen sich wie ein Kontoauszug.
+ *
+ * Zweiter, unabhaengiger Grund: `rental_bookings` ist mit dem ANON-Key
+ * ueberhaupt nicht lesbar. Selbst MIT Supabase-Session waere die Abfrage an
+ * RLS gescheitert.
+ *
+ * Jetzt: GET /api/me/rental-revenue (Server-Session, Service-Client,
+ * Eigentuemerpruefung ueber salons.owner_id). Gerechnet wird nur mit echten
+ * Buchungen. Gibt es keine, sagt die Seite genau das.
+ */
 
 /* ── Typen ──────────────────────────────────────────────────── */
 
@@ -17,7 +43,10 @@ type Booking = {
 
 type Equipment = { id: string; name: string }
 
-type Loaded = { demo: boolean; bookings: Booking[]; equipment: Equipment[] }
+type Loaded = { bookings: Booking[]; equipment: Equipment[] }
+
+/** Was der Nutzer sieht, wenn es (noch) nichts zu rechnen gibt. */
+type LeerGrund = 'kein-salon' | 'kein-objekt' | 'keine-buchung'
 
 type MonthBar = { label: string; euros: number; isCurrent: boolean }
 
@@ -62,40 +91,6 @@ function overlapDays(start: Date, end: Date, monthStart: Date, monthEnd: Date): 
   const e = end < monthEnd ? end : monthEnd
   if (e < s) return 0
   return Math.round((e.getTime() - s.getTime()) / DAY_MS) + 1
-}
-
-function toIso(d: Date): string {
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}-${m}-${day}`
-}
-
-/* ── Demo-Daten (Fallback) ──────────────────────────────────── */
-
-function buildDemoData(now: Date): Loaded {
-  // Pro Objekt: Tagessatz + gebuchte Tage je Monat (ältester → aktueller Monat)
-  const plan: { id: string; name: string; daily: number; days: number[] }[] = [
-    { id: 'demo-1', name: 'Friseurstuhl am Fenster', daily: 90, days: [12, 14, 15, 17, 18, 16] },
-    { id: 'demo-2', name: 'Beauty-Platz hinten', daily: 75, days: [6, 9, 8, 11, 12, 13] },
-    { id: 'demo-3', name: 'Nagel-Arbeitsplatz', daily: 55, days: [3, 4, 6, 5, 7, 8] },
-  ]
-  const bookings: Booking[] = []
-  plan.forEach((eq) => {
-    eq.days.forEach((d, i) => {
-      const monthOffset = -(eq.days.length - 1 - i)
-      const start = new Date(now.getFullYear(), now.getMonth() + monthOffset, 2)
-      const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + d - 1)
-      bookings.push({
-        id: `${eq.id}-m${i}`,
-        equipmentId: eq.id,
-        start: toIso(start),
-        end: toIso(end),
-        totalCents: d * eq.daily * 100,
-        status: monthOffset === 0 ? 'confirmed' : 'completed',
-      })
-    })
-  })
-  return { demo: true, bookings, equipment: plan.map((p) => ({ id: p.id, name: p.name })) }
 }
 
 /* ── Statistik ──────────────────────────────────────────────── */
@@ -250,6 +245,9 @@ function RevenueChart({ monthly }: { monthly: MonthBar[] }) {
 export default function Page() {
   const [data, setData] = useState<Loaded | null>(null)
   const [now, setNow] = useState<Date | null>(null)
+  const [laedt, setLaedt] = useState(true)
+  const [fehler, setFehler] = useState<string | null>(null)
+  const [leer, setLeer] = useState<LeerGrund | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -257,58 +255,73 @@ export default function Page() {
 
     async function load() {
       try {
-        const { data: sessionData } = await supabase.auth.getSession()
-        const userId = sessionData.session?.user.id
-        if (!userId) throw new Error('keine Session')
-
-        const { data: salonsRaw, error: salonErr } = await supabase
-          .from('salons').select('id').eq('owner_id', userId)
-        const salons = (salonsRaw ?? []) as Array<{ id: string }>
-        if (salonErr || salons.length === 0) throw new Error('kein Salon')
-
-        const { data: equipmentRaw, error: eqErr } = await supabase
-          .from('rental_equipment').select('id, name')
-          .in('salon_id', salons.map((s) => s.id))
-        const equipment = (equipmentRaw ?? []) as Array<{ id: string; name: string | null }>
-        if (eqErr || equipment.length === 0) throw new Error('kein Equipment')
-
-        const { data: bookingsRaw, error: bkErr } = await supabase
-          .from('rental_bookings')
-          .select('id, equipment_id, start_date, end_date, total_cents, status')
-          .in('equipment_id', equipment.map((e) => e.id))
-        const bookings = (bookingsRaw ?? []) as Array<{
-          id: string
-          equipment_id: string
-          start_date: string
-          end_date: string
-          total_cents: number | null
-          status: string | null
-        }>
-        if (bkErr || bookings.length === 0) throw new Error('keine Buchungen')
-
+        const res = await apiGet<RentalRevenueResponse>('/api/me/rental-revenue')
         if (cancelled) return
-        setData({
-          demo: false,
-          equipment: equipment.map((e) => ({ id: e.id, name: e.name ?? 'Objekt' })),
-          bookings: bookings.map((b) => ({
-            id: b.id,
-            equipmentId: b.equipment_id,
-            start: b.start_date,
-            end: b.end_date,
-            totalCents: b.total_cents ?? 0,
-            status: b.status ?? 'pending',
-          })),
-        })
-      } catch {
-        if (!cancelled) setData(buildDemoData(today))
+
+        if (!res.hasSalon) {
+          setLeer('kein-salon')
+        } else if (res.equipment.length === 0) {
+          setLeer('kein-objekt')
+        } else if (res.bookings.length === 0) {
+          setLeer('keine-buchung')
+        } else {
+          setLeer(null)
+          setData({
+            equipment: res.equipment.map((e) => ({ id: e.id, name: e.name })),
+            // Stornierte und erstattete Buchungen fliegen schon hier raus —
+            // die Route markiert sie, und was kein Umsatz ist, soll auch in
+            // keiner Auslastung auftauchen.
+            bookings: res.bookings
+              .filter((b) => b.countsAsRevenue && b.startDate && b.endDate)
+              .map((b) => ({
+                id: b.id,
+                equipmentId: b.equipmentId,
+                start: b.startDate as string,
+                end: b.endDate as string,
+                totalCents: b.totalCents,
+                status: b.status,
+              })),
+          })
+        }
+        setFehler(null)
+      } catch (err) {
+        if (cancelled) return
+        // KEIN Ersatzbestand. Vorher stand hier buildDemoData() — erfundene
+        // Einnahmen, die der Vermieter fuer seine eigenen halten musste.
+        setData(null)
+        setFehler(
+          err instanceof ApiError && err.status === 401
+            ? 'Bitte melde dich an, um deine Einnahmen zu sehen.'
+            : err instanceof Error
+              ? err.message
+              : 'Umsatzdaten konnten nicht geladen werden',
+        )
       } finally {
-        if (!cancelled) setNow(today)
+        if (!cancelled) {
+          setNow(today)
+          setLaedt(false)
+        }
       }
     }
 
     load()
     return () => { cancelled = true }
   }, [])
+
+  const LEER_TEXTE: Record<LeerGrund, { title: string; body: string }> = {
+    'kein-salon': {
+      title: 'Noch kein Salon hinterlegt',
+      body: 'Lege zuerst deinen Salon an. Danach erscheinen hier die Einnahmen deiner Mietobjekte.',
+    },
+    'kein-objekt': {
+      title: 'Noch kein Mietobjekt',
+      body: 'Stelle unter „Meine Inserate" einen Platz ein — sobald er gebucht wird, steht der Umsatz hier.',
+    },
+    'keine-buchung': {
+      title: 'Noch keine Miet-Buchung',
+      body: 'Deine Inserate sind online, aber es hat noch niemand gebucht. Sobald die erste Buchung bezahlt ist, erscheinen hier echte Zahlen.',
+    },
+  }
 
   const stats = data && now ? computeStats(data.bookings, data.equipment, now) : null
 
@@ -338,7 +351,7 @@ export default function Page() {
       showSave={false}
       role="vermieter"
     >
-      {!stats && (
+      {laedt && (
         <div style={{
           background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)',
           borderRadius: 14, padding: '28px 16px', textAlign: 'center',
@@ -348,23 +361,32 @@ export default function Page() {
         </div>
       )}
 
+      {!laedt && fehler && (
+        <div role="alert" style={{
+          background: 'rgba(232,80,64,0.06)', border: '1px solid rgba(232,80,64,0.25)',
+          borderRadius: 14, padding: '22px 16px', textAlign: 'center',
+          fontSize: 13, color: '#FF8888', lineHeight: 1.6,
+        }}>
+          {fehler}
+        </div>
+      )}
+
+      {!laedt && !fehler && leer && (
+        <div style={{
+          background: 'var(--c1)', border: '1px dashed rgba(196,168,106,0.28)',
+          borderRadius: 16, padding: '28px 18px', textAlign: 'center',
+        }}>
+          <p className="cinzel text-gold-metallic" style={{ fontSize: 17, fontWeight: 600, marginBottom: 8 }}>
+            {LEER_TEXTE[leer].title}
+          </p>
+          <p style={{ fontSize: 12.5, color: 'var(--stone)', lineHeight: 1.6 }}>
+            {LEER_TEXTE[leer].body}
+          </p>
+        </div>
+      )}
+
       {stats && data && (
         <>
-          {data.demo && (
-            <div style={{
-              alignSelf: 'flex-start',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(196,168,106,0.10)',
-              border: '1px solid rgba(196,168,106,0.3)',
-              borderRadius: 999, padding: '5px 12px',
-              fontSize: 10, fontWeight: 700, letterSpacing: 0.8,
-              color: 'var(--gold2)', textTransform: 'uppercase',
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold2)', flexShrink: 0 }} />
-              Beispieldaten — verbinde dein Inserat
-            </div>
-          )}
-
           {/* KPI-Karten */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
             {kpis.map((k) => (
@@ -423,23 +445,27 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Prognose */}
-          <div style={{
-            background: 'linear-gradient(145deg, rgba(191,149,63,0.05) 0%, var(--c1) 50%, rgba(179,135,40,0.03) 100%)',
-            border: '1px solid rgba(191,149,63,0.22)',
-            borderRadius: 18, padding: '18px 16px', textAlign: 'center',
-          }}>
-            <p style={{ fontSize: 10, letterSpacing: 2, color: 'var(--stone)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>
-              Prognose nächster Monat
-            </p>
-            <div className="cinzel text-gold-metallic" style={{ fontSize: 26, fontWeight: 600 }}>
-              {eur0.format(stats.forecastEuros)}
+          {/* Prognose — nur, wenn es ueberhaupt etwas zu extrapolieren gibt.
+              Eine "Prognose: 0 €" aus drei leeren Monaten ist keine Prognose,
+              sondern eine leere Zeile mit Anspruch. */}
+          {stats.avg3Euros > 0 && (
+            <div style={{
+              background: 'linear-gradient(145deg, rgba(191,149,63,0.05) 0%, var(--c1) 50%, rgba(179,135,40,0.03) 100%)',
+              border: '1px solid rgba(191,149,63,0.22)',
+              borderRadius: 18, padding: '18px 16px', textAlign: 'center',
+            }}>
+              <p style={{ fontSize: 10, letterSpacing: 2, color: 'var(--stone)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>
+                Prognose nächster Monat
+              </p>
+              <div className="cinzel text-gold-metallic" style={{ fontSize: 26, fontWeight: 600 }}>
+                {eur0.format(stats.forecastEuros)}
+              </div>
+              <p style={{ fontSize: 11.5, color: 'var(--stone)', lineHeight: 1.5, marginTop: 8 }}>
+                Basierend auf dem Durchschnitt der letzten drei Monate ({eur0.format(stats.avg3Euros)}) und deinem aktuellen Trend
+                erwarten wir für {stats.forecastMonthLabel} rund {eur0.format(stats.forecastEuros)}.
+              </p>
             </div>
-            <p style={{ fontSize: 11.5, color: 'var(--stone)', lineHeight: 1.5, marginTop: 8 }}>
-              Basierend auf dem Durchschnitt der letzten drei Monate ({eur0.format(stats.avg3Euros)}) und deinem aktuellen Trend
-              erwarten wir für {stats.forecastMonthLabel} rund {eur0.format(stats.forecastEuros)}.
-            </p>
-          </div>
+          )}
 
           {/* Tipp */}
           <TippsBox title="Tipp zur Auslastung" tipps={[tip]} />

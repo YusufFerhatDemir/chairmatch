@@ -57,7 +57,7 @@ type Op = 'select' | 'insert' | 'update' | 'delete'
  * lexikografisch — fuer ISO-8601-Zeitstempel (immer UTC, feste Breite) ist
  * das dieselbe Ordnung wie in Postgres.
  */
-type FilterOp = 'eq' | 'neq' | 'lt' | 'gt' | 'is' | 'in'
+type FilterOp = 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'gte' | 'is' | 'in'
 
 interface Filter {
   column: string
@@ -188,6 +188,25 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     return this
   }
 
+  /**
+   * Kleiner-gleich / groesser-gleich.
+   *
+   * Nachgetragen fuer die Zeitraum-Filter des Miet-Marktplatzes: die
+   * Ueberschneidungspruefung in /api/rental-bookings und die Monatsfenster
+   * der Umsatzseite bestehen ausschliesslich aus diesen beiden Operatoren.
+   * Solange der Fake sie nicht kannte, war jeder Test, der sie braucht,
+   * gar nicht erst schreibbar.
+   */
+  lte(column: string, value: unknown) {
+    this.filters.push({ column, op: 'lte', value })
+    return this
+  }
+
+  gte(column: string, value: unknown) {
+    this.filters.push({ column, op: 'gte', value })
+    return this
+  }
+
   is(column: string, value: unknown) {
     this.filters.push({ column, op: 'is', value })
     return this
@@ -277,6 +296,10 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
           return cell != null && value != null && String(cell) < String(value)
         case 'gt':
           return cell != null && value != null && String(cell) > String(value)
+        case 'lte':
+          return cell != null && value != null && String(cell) <= String(value)
+        case 'gte':
+          return cell != null && value != null && String(cell) >= String(value)
         case 'is':
           return value === null ? cell == null : cell === value
         case 'neq':

@@ -25,7 +25,6 @@ type OpenBooking = {
 }
 
 type Loaded = {
-  demo: boolean
   avgRating: number | null
   reviewCount: number
   received: ReceivedReview[]
@@ -34,36 +33,20 @@ type Loaded = {
 
 type Feedback = { type: 'ok' | 'err'; msg: string }
 
-/* ── Demo-Daten (Fallback, damit die Seite nie leer wirkt) ──── */
-
-function buildDemoData(): Loaded {
-  const now = new Date()
-  const iso = (daysAgo: number) => {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo)
-    return d.toISOString()
-  }
-  return {
-    demo: true,
-    avgRating: 4.8,
-    reviewCount: 12,
-    received: [
-      { id: 'demo-r1', rating: 5, comment: 'Sehr zuverlässig, hinterlässt den Platz top gepflegt. Jederzeit wieder!', reviewType: 'provider_to_tenant', visibleAt: iso(6), createdAt: iso(6) },
-      { id: 'demo-r2', rating: 5, comment: 'Pünktlich, professionell und super im Umgang mit Kundinnen.', reviewType: 'provider_to_tenant', visibleAt: iso(21), createdAt: iso(21) },
-      { id: 'demo-r3', rating: 4, comment: 'Angenehme Zusammenarbeit, klare Kommunikation.', reviewType: 'provider_to_tenant', visibleAt: iso(48), createdAt: iso(48) },
-    ],
-    open: [
-      {
-        bookingId: 'demo-b1',
-        role: 'mieter',
-        equipmentName: 'Friseurstuhl am Fenster',
-        salonName: 'Salon Anna · Köln',
-        startDate: iso(9).slice(0, 10),
-        endDate: iso(8).slice(0, 10),
-        totalCents: 8500,
-      },
-    ],
-  }
-}
+/**
+ * Meine Reputation (Mieter) — /mieter/mein-bereich/bewertungen
+ *
+ * Bis 2026-08-27 hing an dieser Seite ein `buildDemoData()`-Fallback: schlug
+ * der Abruf fehl — und ohne Anmeldung schlug er IMMER fehl —, zeigte die
+ * Seite "4,8 ★" und "12 Bewertungen" als die eigene Reputation, dazu drei
+ * erfundene Lobtexte und eine erfundene offene Buchung. Wer darin eine
+ * Bewertung abgab, bekam ein "Beispielmodus"-Zettelchen; gespeichert wurde
+ * nichts.
+ *
+ * Eine erfundene Reputation ist die unangenehmste Sorte Erfindung: sie sagt
+ * dem Nutzer, wie andere ihn sehen. Der Fallback ist ersatzlos weg — ohne
+ * Daten steht hier "Neu dabei" oder die Fehlermeldung des Servers.
+ */
 
 /* ── Formatierung ───────────────────────────────────────────── */
 
@@ -117,23 +100,6 @@ function StarPicker({ value, onChange, disabled }: { value: number; onChange: (v
   )
 }
 
-function DemoBadge() {
-  return (
-    <div style={{
-      alignSelf: 'flex-start',
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'rgba(196,168,106,0.10)',
-      border: '1px solid rgba(196,168,106,0.3)',
-      borderRadius: 999, padding: '5px 12px',
-      fontSize: 10, fontWeight: 700, letterSpacing: 0.8,
-      color: 'var(--gold2)', textTransform: 'uppercase',
-    }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold2)', flexShrink: 0 }} />
-      Beispieldaten
-    </div>
-  )
-}
-
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p style={{ fontSize: 10, letterSpacing: 2, color: 'var(--stone)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>
@@ -145,10 +111,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 /* ── Offene Bewertung (Inline-Formular) ─────────────────────── */
 
 function OpenBookingCard({
-  booking, demo, onDone,
+  booking, onDone,
 }: {
   booking: OpenBooking
-  demo: boolean
   onDone: () => void
 }) {
   const [rating, setRating] = useState(0)
@@ -166,13 +131,6 @@ function OpenBookingCard({
     setSubmitting(true)
     setFeedback(null)
     try {
-      if (demo) {
-        await new Promise((r) => setTimeout(r, 450))
-        setDone(true)
-        setFeedback({ type: 'ok', msg: 'Beispielmodus — deine Bewertung wurde nicht gespeichert. Melde dich an, um echte Bewertungen abzugeben.' })
-        onDone()
-        return
-      }
       const res = await fetch('/api/reviews/rental', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -273,6 +231,8 @@ function OpenBookingCard({
 
 export default function Page() {
   const [data, setData] = useState<Loaded | null>(null)
+  const [laedt, setLaedt] = useState(true)
+  const [fehler, setFehler] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -280,24 +240,29 @@ export default function Page() {
     async function load() {
       try {
         const res = await fetch('/api/reviews/rental?me=1', { cache: 'no-store' })
-        if (!res.ok) throw new Error('nicht angemeldet oder Fehler')
+        if (res.status === 401) throw new Error('Bitte melde dich an, um deine Reputation zu sehen.')
+        if (!res.ok) throw new Error('Reputation konnte nicht geladen werden.')
         const body = (await res.json()) as {
           ok?: boolean
           reputation?: { avgRatingAsTenant: number | null; reviewCountAsTenant: number }
           receivedReviews?: ReceivedReview[]
           openBookings?: OpenBooking[]
         }
-        if (!body.ok) throw new Error('API-Fehler')
+        if (!body.ok) throw new Error('Reputation konnte nicht geladen werden.')
         if (cancelled) return
         setData({
-          demo: false,
           avgRating: body.reputation?.avgRatingAsTenant ?? null,
           reviewCount: body.reputation?.reviewCountAsTenant ?? 0,
           received: body.receivedReviews ?? [],
           open: body.openBookings ?? [],
         })
-      } catch {
-        if (!cancelled) setData(buildDemoData())
+        setFehler(null)
+      } catch (err) {
+        if (cancelled) return
+        setData(null)
+        setFehler(err instanceof Error ? err.message : 'Reputation konnte nicht geladen werden.')
+      } finally {
+        if (!cancelled) setLaedt(false)
       }
     }
 
@@ -314,7 +279,7 @@ export default function Page() {
       showSave={false}
       role="mieter"
     >
-      {!data && (
+      {laedt && (
         <div style={{
           background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)',
           borderRadius: 14, padding: '28px 16px', textAlign: 'center',
@@ -324,10 +289,18 @@ export default function Page() {
         </div>
       )}
 
+      {!laedt && fehler && (
+        <div role="alert" style={{
+          background: 'rgba(232,80,64,0.06)', border: '1px solid rgba(232,80,64,0.25)',
+          borderRadius: 14, padding: '22px 16px', textAlign: 'center',
+          fontSize: 13, color: '#FF8888', lineHeight: 1.6,
+        }}>
+          {fehler}
+        </div>
+      )}
+
       {data && (
         <>
-          {data.demo && <DemoBadge />}
-
           {/* Hero-Karte */}
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
@@ -367,7 +340,7 @@ export default function Page() {
               <SectionLabel>Offene Bewertungen</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {data.open.map((b) => (
-                  <OpenBookingCard key={b.bookingId} booking={b} demo={data.demo} onDone={() => {}} />
+                  <OpenBookingCard key={b.bookingId} booking={b} onDone={() => {}} />
                 ))}
               </div>
               <p style={{ fontSize: 10.5, color: 'var(--stone)', lineHeight: 1.5, marginTop: 8 }}>

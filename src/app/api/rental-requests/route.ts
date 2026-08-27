@@ -324,6 +324,19 @@ export async function POST(req: NextRequest) {
  * Anfragen des eingeloggten Nutzers.
  * `?role=recipient` liefert die eingegangenen (Vermieter-Sicht),
  * sonst die selbst gestellten (Mieter-Sicht).
+ *
+ * Jede Anfrage traegt die Gegenseite als `counterpart`: aus Vermietersicht
+ * der Anfragende, aus Mietersicht der Vermieter. Ohne das stand der
+ * Vermieter vor einer namenlosen Anfrage und konnte gar nicht entscheiden,
+ * wem er da zusagt — die Seite hat die Luecke bis 2026-08-27 mit fuenf
+ * erfundenen Interessentinnen ueberdeckt.
+ *
+ * Die Profile werden BEWUSST in einem zweiten Schritt geladen und nicht
+ * eingebettet: `rental_requests` hat zwei Fremdschluessel auf `profiles`
+ * (requester_id, recipient_id), PostgREST verlangt dafuer den Namen des
+ * Constraints, und faellt der einmal anders aus, antwortet die ganze Route
+ * mit 400 statt mit dem Postfach. Zwei Abfragen sind hier billiger als eine
+ * Abfrage, die an einem Constraint-Namen haengt.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -333,7 +346,9 @@ export async function GET(req: NextRequest) {
     }
 
     const role = new URL(req.url).searchParams.get('role')
-    const column = role === 'recipient' ? 'recipient_id' : 'requester_id'
+    const asRecipient = role === 'recipient'
+    const column = asRecipient ? 'recipient_id' : 'requester_id'
+    const counterpartColumn = asRecipient ? 'requester_id' : 'recipient_id'
 
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
@@ -348,7 +363,46 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Anfragen konnten nicht geladen werden' }, { status: 500 })
     }
 
-    return NextResponse.json({ requests: data ?? [] })
+    const rows = (data ?? []) as Array<Record<string, unknown>>
+    const counterpartIds = Array.from(
+      new Set(
+        rows
+          .map((r) => r[counterpartColumn])
+          .filter((v): v is string => typeof v === 'string' && v.length > 0),
+      ),
+    )
+
+    const names = new Map<string, string | null>()
+    if (counterpartIds.length > 0) {
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', counterpartIds)
+
+      // Kein harter Fehler: die Anfragen sind wichtiger als der Name daneben.
+      // Faellt der Lookup aus, bleibt `counterpart` null und die Oberflaeche
+      // sagt "Name nicht hinterlegt" — statt sich einen auszudenken.
+      if (profileError) {
+        console.error('rental-requests profile lookup failed:', profileError)
+      } else {
+        for (const p of (profiles ?? []) as Array<{ id: string; full_name: string | null }>) {
+          names.set(p.id, p.full_name ?? null)
+        }
+      }
+    }
+
+    const requests = rows.map((r) => {
+      const id = r[counterpartColumn]
+      return {
+        ...r,
+        counterpart:
+          typeof id === 'string' && names.has(id)
+            ? { id, fullName: names.get(id) ?? null }
+            : null,
+      }
+    })
+
+    return NextResponse.json({ requests })
   } catch (err) {
     console.error('rental-requests GET error:', err)
     return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })

@@ -68,7 +68,9 @@ staff|id salon_id name title is_active
 consents|id user_id booking_id type given created_at
 audit_logs|id user_id action entity entity_id details created_at
 promo_codes|id code discount type is_active expires_at max_uses used_count
-rental_bookings|id equipment_id status created_at
+rental_bookings|id equipment_id renter_id start_date end_date total_cents status payment_status stripe_session_id created_at updated_at
+favorites|id customer_id salon_id created_at
+profiles|id email full_name avatar_url role is_active deleted_at delete_requested_at
 conversations|id salon_id created_at last_message_at
 conversation_participants|id conversation_id user_id
 messages|id conversation_id sender_id content is_read created_at

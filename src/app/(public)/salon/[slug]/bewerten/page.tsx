@@ -5,7 +5,6 @@ import { useRouter, useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { BrandLogo } from '@/components/BrandLogo'
 import { useTranslations } from '@/i18n/client'
-import { supabase } from '@/lib/supabase'
 
 /**
  * Bewerten-Seite — /salon/[slug]/bewerten
@@ -40,19 +39,34 @@ export default function BewertenPage() {
   const [salonId, setSalonId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  // Lookup salonId via slug
+  /**
+   * Slug -> Salon-ID.
+   *
+   * Das lief bis 2026-08-27 ueber den Browser-Supabase-Client auf `salons`.
+   * Live beantwortet PostgREST das mit
+   *
+   *   42501  permission denied for function is_admin_or_super
+   *
+   * — die RLS-Policy ruft eine Funktion auf, die `anon` nicht ausfuehren
+   * darf. `salonId` blieb also IMMER null, und weil der Absenden-Zweig an
+   * `if (salonId && session?.user?.id)` haengt, wurde er nie betreten: jede
+   * Bewertung endete in der allgemeinen Fehlermeldung, egal wie richtig sie
+   * ausgefuellt war. Das Bewertungsformular war damit komplett tot.
+   *
+   * GET /api/salons/[slug] loest denselben Slug serverseitig auf (die Route
+   * probiert Slug zuerst, dann ID) und kommt an der kaputten anon-Policy
+   * vorbei.
+   */
   useEffect(() => {
     if (!slug) return
     let cancelled = false
     ;(async () => {
       try {
-        const { data } = await supabase
-          .from('salons')
-          .select('id')
-          .eq('slug', slug)
-          .maybeSingle<{ id: string }>()
-        if (!cancelled && data?.id) setSalonId(data.id)
-      } catch { /* ignore, fallback to localStorage */ }
+        const res = await fetch(`/api/salons/${encodeURIComponent(slug)}`, { cache: 'no-store' })
+        if (!res.ok) return
+        const body = (await res.json()) as { id?: string }
+        if (!cancelled && typeof body.id === 'string') setSalonId(body.id)
+      } catch { /* Der Absenden-Zweig meldet den Fehlschlag sichtbar. */ }
     })()
     return () => { cancelled = true }
   }, [slug])
@@ -113,8 +127,9 @@ export default function BewertenPage() {
     // Ohne salonId oder ohne Anmeldung gibt es keinen Empfaenger — auch hier
     // wird kein Erfolg vorgetaeuscht. Die Auth-Pflicht oben leitet nicht
     // angemeldete Nutzer bereits nach /auth um; dieser Zweig faengt den Rest
-    // (z. B. Demo-Salons ohne UUID) ehrlich ab.
-    setErrorMsg(t('reviews.errSubmit'))
+    // (z. B. Salons, die es unter diesem Pfad nicht gibt) ehrlich ab — und
+    // sagt jetzt auch, WAS fehlt, statt einmal "Fehler" fuer alles.
+    setErrorMsg(salonId ? t('reviews.errSubmit') : 'Dieser Salon konnte nicht geladen werden. Bitte lade die Seite neu.')
     setSubmitting(false)
   }
 

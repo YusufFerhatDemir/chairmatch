@@ -158,3 +158,44 @@ describe('order()', () => {
     expect(error?.code).toBe('42703')
   })
 })
+
+describe('gte() / lte()', () => {
+  beforeEach(async () => {
+    db.defineSchema('spanne', ['id', 'start_date', 'end_date'])
+    await db.from('spanne').insert([
+      { id: 'frueh', start_date: '2026-08-01', end_date: '2026-08-03' },
+      { id: 'mitte', start_date: '2026-08-10', end_date: '2026-08-12' },
+      { id: 'spaet', start_date: '2026-08-20', end_date: '2026-08-22' },
+    ])
+  })
+
+  async function ids(query: PromiseLike<{ data: unknown }>): Promise<string[]> {
+    const { data } = await query
+    return ((data ?? []) as Array<{ id: string }>).map((r) => r.id)
+  }
+
+  it('schliesst den Grenzwert ein — das unterscheidet lte von lt', async () => {
+    expect(await ids(db.from('spanne').select('id, start_date').lte('start_date', '2026-08-10')))
+      .toEqual(['frueh', 'mitte'])
+    expect(await ids(db.from('spanne').select('id, start_date').lt('start_date', '2026-08-10')))
+      .toEqual(['frueh'])
+  })
+
+  it('bildet die Ueberschneidungspruefung der Miet-Buchungen ab', async () => {
+    // existing.start <= new.end AND existing.end >= new.start — genau die
+    // Bedingung aus /api/rental-bookings. Ohne gte/lte im Fake liess sich
+    // dieser Pfad gar nicht testen.
+    expect(
+      await ids(
+        db.from('spanne').select('id, start_date, end_date')
+          .lte('start_date', '2026-08-11')
+          .gte('end_date', '2026-08-11'),
+      ),
+    ).toEqual(['mitte'])
+  })
+
+  it('meldet eine unbekannte Spalte auch hier als 42703', async () => {
+    const { error } = await db.from('spanne').select('id').gte('erfunden', '2026-08-01')
+    expect(error?.code).toBe('42703')
+  })
+})
