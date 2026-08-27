@@ -38,11 +38,19 @@ const ROLE_MAP: Record<string, Role> = {
   super_admin: ROLES.SUPER_ADMIN,
 }
 
+/**
+ * Aufsteigende Rechteleiter.
+ *
+ * INVESTOR steht bewusst NICHT darin. Als Leitersprosse zwischen
+ * BUSINESS_OWNER und ADMIN war jedes Investor-Konto automatisch auch
+ * `isProviderOrAbove()` und `isBusinessOwnerOrAbove()` — es kam also durch die
+ * Middleware in `/provider`, `/owner` und die zugehoerigen API-Routen. Das
+ * Investoren-Portal ist eine Leseansicht neben der Leiter, kein Rang darin.
+ */
 const HIERARCHY: Role[] = [
   ROLES.CUSTOMER,
   ROLES.PROVIDER,
   ROLES.BUSINESS_OWNER,
-  ROLES.INVESTOR,
   ROLES.ADMIN,
   ROLES.SUPER_ADMIN,
 ]
@@ -54,12 +62,19 @@ export function toSpecRole(dbRole: string | null | undefined): Role {
   return r ?? ROLES.CUSTOMER
 }
 
-/** Hat role1 mindestens die Rechte von role2? */
+/**
+ * Hat role1 mindestens die Rechte von role2?
+ *
+ * Rollen ausserhalb der Leiter (INVESTOR) vergleichen sich mit niemandem —
+ * weder nach oben noch nach unten. Wer sie abfragen will, nutzt
+ * `isInvestorOrAbove()`.
+ */
 export function hasRoleOrAbove(role1: Role | string, role2: Role | string): boolean {
   const r1 = typeof role1 === 'string' ? toSpecRole(role1) : role1
   const r2 = typeof role2 === 'string' ? toSpecRole(role2) : role2
   const i1 = HIERARCHY.indexOf(r1)
   const i2 = HIERARCHY.indexOf(r2)
+  if (i1 < 0 || i2 < 0) return false
   return i1 >= i2
 }
 
@@ -83,9 +98,14 @@ export function isAdminOrAbove(role: string | null | undefined): boolean {
   return hasRoleOrAbove(role ?? '', ROLES.ADMIN)
 }
 
-/** Darf Investor-Portal? (investor, admin, super_admin) */
+/**
+ * Darf Investor-Portal? (investor, admin, super_admin)
+ *
+ * Explizit statt ueber die Leiter — INVESTOR liegt daneben.
+ */
 export function isInvestorOrAbove(role: string | null | undefined): boolean {
-  return hasRoleOrAbove(role ?? '', ROLES.INVESTOR)
+  const r = toSpecRole(role)
+  return r === ROLES.INVESTOR || hasRoleOrAbove(r, ROLES.ADMIN)
 }
 
 /** Darf SUPER_ADMIN? */

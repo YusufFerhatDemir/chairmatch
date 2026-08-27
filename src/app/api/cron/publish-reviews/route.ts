@@ -14,8 +14,12 @@ import { logger } from '@/lib/logger'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get('authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Fehlt CRON_SECRET, wird der Vergleichswert zum String "Bearer undefined"
+  // — den kann jeder schicken. Die anderen beiden Cron-Routen fangen das mit
+  // `!cronSecret` ab, hier fehlte der Riegel.
+  const authHeader = request.headers.get('authorization')
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

@@ -17,7 +17,11 @@ export async function POST(
     const result = await cancelBooking({ bookingId: id, reason: body.reason })
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
+      // Die Action liefert 401/403 mit, wenn der Aufrufer weder Kunde noch
+      // Saloninhaber/Admin dieser Buchung ist. Ohne diese Weitergabe wuerde
+      // eine Berechtigungsverweigerung als 400 "Bad Request" erscheinen.
+      const status = (result as { status?: number }).status ?? 400
+      return NextResponse.json({ error: result.error }, { status })
     }
 
     return NextResponse.json(result)

@@ -219,10 +219,18 @@ const publicPrefixes = [
   '/apple-touch-icon',
 ]
 
-const providerPaths = ['/provider']
-const ownerPaths = ['/owner']
-const investorPaths = ['/investor']
-const adminPaths = ['/admin']
+// Seiten- UND API-Praefixe pro Rolle.
+//
+// Die API-Pfade fehlten hier bis 2026-08-27. Der RBAC-Block unten prueft mit
+// `pathname.startsWith('/admin')` — `/api/admin/...` faengt damit nicht an,
+// also kam JEDE eingeloggte Person (auch eine Kundin) durch die Middleware bis
+// in den Admin-Handler. Dass nichts durchschlug, lag allein daran, dass jede
+// einzelne Route ihre Rolle nochmal selbst prueft: ein vergessener Check in
+// einer neuen Route waere sofort offen gewesen. Jetzt greift beides.
+const providerPaths = ['/provider', '/api/provider']
+const ownerPaths = ['/owner', '/api/owner']
+const investorPaths = ['/investor', '/api/investor']
+const adminPaths = ['/admin', '/api/admin']
 // Bereiche, die eine Session voraussetzen, aber keine spezifische Rolle
 // (Route-Group (protected): /account, /booking, /favorites).
 const authOnlyPaths = ['/account', '/booking', '/favorites']

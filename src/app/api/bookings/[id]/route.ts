@@ -99,7 +99,8 @@ export async function PATCH(
     }
 
     if ('error' in result) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
+      const status = (result as { status?: number }).status ?? 400
+      return NextResponse.json({ error: result.error }, { status })
     }
 
     // Statuswechsel ist fuer den Kunden die eigentliche Nachricht — bisher

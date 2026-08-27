@@ -6,6 +6,80 @@ import { checkConflict, snapshotPolicy, validateTransition, validatePromoCode, c
 import { getServerSession } from '@/modules/auth/session'
 import { sendBookingConfirmation, sendProviderNotification } from '@/lib/email'
 
+/** Rolle des Aufrufers gegenueber einer konkreten Buchung. */
+type BookingActor = 'customer' | 'provider'
+
+/** Fehlerform der Actions: `status` faellt in den Routen auf 400 zurueck. */
+type ActionFailure = { error: string; status?: number }
+
+type ActorResult =
+  | ActionFailure
+  | { booking: Record<string, string | null>; actor: BookingActor; userId: string }
+
+/**
+ * Laedt eine Buchung UND bestimmt, in welcher Rolle der eingeloggte Nutzer
+ * darauf zugreift.
+ *
+ * Ohne diese Pruefung war jede Buchung fuer jeden eingeloggten Nutzer
+ * angreifbar:
+ *
+ *   - `cancelBooking` schloss aus "nicht der Kunde" direkt auf "also der
+ *     Anbieter" und liess damit jeden Fremden mit Anbieter-Rechten stornieren.
+ *   - `confirmBooking`, `completeBooking` und `markNoShow` pruefen bis hier
+ *     ueberhaupt keinen Bezug zwischen Nutzer und Buchung.
+ *
+ * Der Handler `/api/bookings/[id]` pruefte den Besitz zwar selbst, `/cancel`
+ * aber nur die blosse Existenz einer Session — und beide Actions sind als
+ * Server Actions ohnehin auch direkt aufrufbar. Die Autorisierung gehoert
+ * deshalb in die Action, nicht in den Handler.
+ */
+async function resolveBookingActor(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  bookingId: string,
+): Promise<ActorResult> {
+  const session = await getServerSession()
+  const userId = session?.user?.id
+  if (!userId) return { error: 'Nicht authentifiziert.', status: 401 }
+
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', bookingId)
+    .single()
+
+  if (!booking) return { error: 'Buchung nicht gefunden.' }
+
+  if (booking.customer_id === userId) {
+    return { booking, actor: 'customer', userId }
+  }
+
+  const role = (session.user as { role?: string }).role || ''
+  if (['admin', 'super_admin'].includes(role)) {
+    return { booking, actor: 'provider', userId }
+  }
+
+  const { data: salon } = await supabase
+    .from('salons')
+    .select('owner_id')
+    .eq('id', booking.salon_id)
+    .single()
+
+  if (salon && salon.owner_id === userId) {
+    return { booking, actor: 'provider', userId }
+  }
+
+  return { error: 'Keine Berechtigung fuer diese Buchung.', status: 403 }
+}
+
+/** Nur Saloninhaber/Admin duerfen den Status setzen — nie der Kunde. */
+function requireProviderActor(result: ActorResult): ActionFailure | null {
+  if ('error' in result) return result
+  if (result.actor !== 'provider') {
+    return { error: 'Nur Saloninhaber oder Admins koennen den Status aendern.', status: 403 }
+  }
+  return null
+}
+
 export async function createBooking(input: unknown) {
   const parsed = createBookingSchema.safeParse(input)
   if (!parsed.success) {
@@ -206,24 +280,15 @@ export async function cancelBooking(input: unknown) {
     return { error: parsed.error.issues[0].message }
   }
 
-  const session = await getServerSession()
   const { bookingId, reason } = parsed.data
 
   const supabase = getSupabaseAdmin()
 
-  const { data: booking } = await supabase
-    .from('bookings')
-    .select('*')
-    .eq('id', bookingId)
-    .single()
-
-  if (!booking) {
-    return { error: 'Buchung nicht gefunden.' }
-  }
-
-  // Determine actor
-  const isCustomer = session?.user?.id === booking.customer_id
-  const actor: 'customer' | 'provider' = isCustomer ? 'customer' : 'provider'
+  // Kunde, Saloninhaber oder Admin — sonst 403. Der Actor kommt aus der
+  // echten Beziehung, nicht aus "ist nicht der Kunde".
+  const resolved = await resolveBookingActor(supabase, bookingId)
+  if ('error' in resolved) return resolved
+  const { booking, actor, userId } = resolved
 
   const currentStatus = booking.status?.toUpperCase() || 'PENDING'
   if (!validateTransition(currentStatus, 'CANCELLED', actor)) {
@@ -241,7 +306,7 @@ export async function cancelBooking(input: unknown) {
 
   try {
     await supabase.from('audit_logs').insert({
-      user_id: session?.user?.id || null,
+      user_id: userId,
       action: 'BOOKING_CANCELLED',
       entity: 'booking',
       entity_id: bookingId,
@@ -255,18 +320,12 @@ export async function cancelBooking(input: unknown) {
 }
 
 export async function confirmBooking(bookingId: string) {
-  const session = await getServerSession()
-  if (!session?.user) return { error: 'Nicht authentifiziert.' }
-
   const supabase = getSupabaseAdmin()
 
-  const { data: booking } = await supabase
-    .from('bookings')
-    .select('*')
-    .eq('id', bookingId)
-    .single()
-
-  if (!booking) return { error: 'Buchung nicht gefunden.' }
+  const resolved = await resolveBookingActor(supabase, bookingId)
+  const denied = requireProviderActor(resolved)
+  if (denied) return denied
+  const { booking, userId } = resolved as Exclude<ActorResult, ActionFailure>
 
   const currentStatus = booking.status?.toUpperCase() || 'PENDING'
   if (!validateTransition(currentStatus, 'CONFIRMED', 'provider')) {
@@ -280,7 +339,7 @@ export async function confirmBooking(bookingId: string) {
 
   try {
     await supabase.from('audit_logs').insert({
-      user_id: session.user.id,
+      user_id: userId,
       action: 'BOOKING_CONFIRMED',
       entity: 'booking',
       entity_id: bookingId,
@@ -293,18 +352,12 @@ export async function confirmBooking(bookingId: string) {
 }
 
 export async function completeBooking(bookingId: string) {
-  const session = await getServerSession()
-  if (!session?.user) return { error: 'Nicht authentifiziert.' }
-
   const supabase = getSupabaseAdmin()
 
-  const { data: booking } = await supabase
-    .from('bookings')
-    .select('*')
-    .eq('id', bookingId)
-    .single()
-
-  if (!booking) return { error: 'Buchung nicht gefunden.' }
+  const resolved = await resolveBookingActor(supabase, bookingId)
+  const denied = requireProviderActor(resolved)
+  if (denied) return denied
+  const { booking, userId } = resolved as Exclude<ActorResult, ActionFailure>
 
   const currentStatus = booking.status?.toUpperCase() || 'PENDING'
   if (!validateTransition(currentStatus, 'COMPLETED', 'provider')) {
@@ -318,7 +371,7 @@ export async function completeBooking(bookingId: string) {
 
   try {
     await supabase.from('audit_logs').insert({
-      user_id: session.user.id,
+      user_id: userId,
       action: 'BOOKING_COMPLETED',
       entity: 'booking',
       entity_id: bookingId,
@@ -331,18 +384,12 @@ export async function completeBooking(bookingId: string) {
 }
 
 export async function markNoShow(bookingId: string) {
-  const session = await getServerSession()
-  if (!session?.user) return { error: 'Nicht authentifiziert.' }
-
   const supabase = getSupabaseAdmin()
 
-  const { data: booking } = await supabase
-    .from('bookings')
-    .select('*')
-    .eq('id', bookingId)
-    .single()
-
-  if (!booking) return { error: 'Buchung nicht gefunden.' }
+  const resolved = await resolveBookingActor(supabase, bookingId)
+  const denied = requireProviderActor(resolved)
+  if (denied) return denied
+  const { booking, userId } = resolved as Exclude<ActorResult, ActionFailure>
 
   const currentStatus = booking.status?.toUpperCase() || 'PENDING'
   if (!validateTransition(currentStatus, 'NO_SHOW', 'provider')) {
@@ -356,7 +403,7 @@ export async function markNoShow(bookingId: string) {
 
   try {
     await supabase.from('audit_logs').insert({
-      user_id: session.user.id,
+      user_id: userId,
       action: 'BOOKING_NO_SHOW',
       entity: 'booking',
       entity_id: bookingId,
@@ -368,8 +415,41 @@ export async function markNoShow(bookingId: string) {
   return { success: true }
 }
 
+/**
+ * Buchungen lesen — immer auf den Aufrufer eingegrenzt.
+ *
+ * Vorher hatte diese Action keinerlei Session-Pruefung: ein Aufruf ohne
+ * Filter gab mit dem Service-Role-Client saemtliche Buchungen der Plattform
+ * zurueck (Kundennamen, Termine, Salons). Als Export einer `'use server'`-
+ * Datei ist sie ein eigener Endpunkt, der Schutz im Route-Handler
+ * `/api/bookings` reichte also nicht.
+ */
 export async function getBookings(filters?: { customerId?: string; salonId?: string }) {
+  const session = await getServerSession()
+  const userId = session?.user?.id
+  if (!userId) return []
+
   const supabase = getSupabaseAdmin()
+  const role = (session.user as { role?: string }).role || ''
+  const isAdmin = ['admin', 'super_admin'].includes(role)
+
+  // Nicht-Admins duerfen nur eigene Buchungen und Buchungen in eigenen
+  // Salons sehen. Ein fremder `customerId`-Filter liefert eine leere Liste,
+  // kein fremdes Ergebnis.
+  const scoped: { customerId?: string; salonId?: string } = { ...filters }
+  if (!isAdmin) {
+    if (scoped.salonId) {
+      const { data: salon } = await supabase
+        .from('salons')
+        .select('owner_id')
+        .eq('id', scoped.salonId)
+        .single()
+      if (!salon || salon.owner_id !== userId) return []
+    } else {
+      if (scoped.customerId && scoped.customerId !== userId) return []
+      scoped.customerId = userId
+    }
+  }
 
   let query = supabase
     .from('bookings')
@@ -380,11 +460,11 @@ export async function getBookings(filters?: { customerId?: string; salonId?: str
     `)
     .order('created_at', { ascending: false })
 
-  if (filters?.customerId) {
-    query = query.eq('customer_id', filters.customerId)
+  if (scoped.customerId) {
+    query = query.eq('customer_id', scoped.customerId)
   }
-  if (filters?.salonId) {
-    query = query.eq('salon_id', filters.salonId)
+  if (scoped.salonId) {
+    query = query.eq('salon_id', scoped.salonId)
   }
 
   const { data } = await query
