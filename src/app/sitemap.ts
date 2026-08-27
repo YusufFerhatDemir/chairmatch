@@ -1,6 +1,5 @@
 import { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { PROVS } from '@/lib/demo-data'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
 import { VERTICALS } from '@/lib/seo-data/verticals'
 import { MAGAZIN_ARTIKEL } from '@/lib/seo-data/magazin'
@@ -89,12 +88,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }))
 
-    // Demo-Salons (PROVS) auch indexieren bis echte Provider live sind
-    const demoPages: MetadataRoute.Sitemap = PROVS.map(p => ({
-      url: `${base}/salon/${p.id}`,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
+    /*
+     * Bis 2026-08-27 wurden hier zusaetzlich die 30 Demo-Salons aus
+     * `PROVS` als /salon/p1 … /salon/p30 in die Sitemap geschrieben —
+     * "bis echte Provider live sind". Inzwischen sind echte Salons live
+     * (salonPages oben), und die Demo-URLs zeigen auf frei erfundene
+     * Betriebe mit erfundenen Adressen, Preisen und Bewertungen
+     * ("BlackLabel Barbershop, Münchener Str. 17, 4.9 aus 412 Bewertungen").
+     *
+     * Eine Sitemap ist eine Zusage an Suchmaschinen, dass die genannten
+     * Seiten echte Inhalte dieser Website sind. Erfundene lokale Betriebe
+     * mit Adresse und Bewertungsschnitt dort einzutragen, laesst Google
+     * Ortsangaben indexieren, die es nicht gibt. Die Seiten selbst bleiben
+     * erreichbar (die Demo-Anzeige ist eine eigene Frage, siehe
+     * src/lib/demo-data.ts) — sie werden nur nicht mehr aktiv zur
+     * Indexierung angemeldet.
+     */
 
     // Vertical-Deutschland-Hubs (alle Phase 1 — immer indexiert)
     const verticalHubs: MetadataRoute.Sitemap = VERTICALS.map((v) => ({
@@ -240,18 +249,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     ]
 
-    return [...staticPages, ...catPages, ...salonPages, ...demoPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages, ...assetPages, ...magazinPages, ...listingPages, ...productPages, ...toolPages]
+    return [...staticPages, ...catPages, ...salonPages, ...verticalHubs, ...cityHubs, ...cityVerticalPages, ...assetPages, ...magazinPages, ...listingPages, ...productPages, ...toolPages]
   } catch {
-    const demoPages: MetadataRoute.Sitemap = PROVS.map(p => ({
-      url: `${base}/salon/${p.id}`,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
+    // Auch im Fehlerfall keine erfundenen Salon-URLs anmelden: lieber eine
+    // kurze Sitemap aus dem, was ohne DB sicher stimmt.
     const verticalHubs: MetadataRoute.Sitemap = VERTICALS.map((v) => ({
       url: `${base}/${v.slug}-deutschland`,
       changeFrequency: 'weekly' as const,
       priority: 0.85,
     }))
-    return [...staticPages, ...catPages, ...demoPages, ...verticalHubs]
+    return [...staticPages, ...catPages, ...verticalHubs]
   }
 }

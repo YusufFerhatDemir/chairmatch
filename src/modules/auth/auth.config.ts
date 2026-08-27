@@ -19,8 +19,24 @@ async function logLoginAttempt(ip: string, email: string, success: boolean) {
   }
 }
 
-// Demo accounts — only active in development
-const IS_DEV = process.env.NODE_ENV === 'development'
+/*
+ * Demo-Konten — ausschliesslich fuer die lokale Entwicklung.
+ *
+ * Die Liste unten enthaelt feste Passwoerter im Klartext, darunter eines mit
+ * der Rolle `super_admin`. Sie ist im Repository und damit fuer jeden lesbar,
+ * der den Code sieht. Der einzige Schutz ist dieses Gate — es traegt also die
+ * gesamte Last und wird deshalb doppelt gesetzt:
+ *
+ *  1. NODE_ENV === 'development'. Next.js setzt das nur bei `next dev`;
+ *     jeder Build (auch Vercel-Preview) laeuft mit 'production'.
+ *  2. Kein VERCEL. Falls NODE_ENV in einer Deploy-Umgebung je auf
+ *     'development' stuende — durch eine gesetzte Environment-Variable, ein
+ *     geaendertes Startkommando, einen Container, der `next dev` faehrt —
+ *     waere Punkt 1 allein weg, und `super@chairmatch.de` mit dem Passwort
+ *     aus dieser Datei haette Super-Admin-Zugang zur Produktionsdatenbank.
+ *     Vercel setzt VERCEL='1' in jeder Umgebung, auch in Preview.
+ */
+const IS_DEV = process.env.NODE_ENV === 'development' && !process.env.VERCEL
 const DEMO_ACCOUNTS: Record<string, { password: string; id: string; name: string; role: string }> = IS_DEV ? {
   'kunde@chairmatch.de':    { password: 'Cm!Kunde#2026xQ',    id: 'dddddddd-0001-4000-a000-000000000001', name: 'Demo Kunde',       role: 'kunde' },
   'anbieter@chairmatch.de': { password: 'Cm!Anbieter#2026xQ', id: 'dddddddd-0002-4000-a000-000000000002', name: 'Demo Anbieter',    role: 'anbieter' },

@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
 import { supabase } from '@/lib/supabase'
+import { safeFetch } from '@/lib/safe-fetch'
 
 interface User {
   name: string
@@ -25,6 +26,8 @@ export default function KontoPage() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [agbOk, setAgbOk] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     // Check supabase session first (preferred over localStorage)
@@ -140,6 +143,75 @@ export default function KontoPage() {
     showToast(t('toast.signedOut'), 'ok')
   }
 
+  /**
+   * Konto-Loeschung (DSGVO Art. 17).
+   *
+   * Bis 2026-08-27 stand hier ausschliesslich `localStorage.clear()`, gefolgt
+   * von `setUser(null)` und der Erfolgsmeldung t('toast.deleted'). Es wurde
+   * NICHTS geloescht: kein Request, kein Profil angefasst, das Supabase-Konto
+   * unveraendert. Der Nutzer sah "geloescht", meldete sich am naechsten Tag
+   * mit denselben Zugangsdaten wieder an und seine Daten lagen vollstaendig
+   * vor. Das ist die schlimmste Form der Schein-Persistenz: sie betrifft
+   * genau die Zusage, auf die sich jemand verlaesst, wenn er geht.
+   *
+   * Jetzt laeuft der echte Endpunkt /api/account/delete — derselbe, den
+   * /account benutzt: Bestaetigung per eigener E-Mail-Adresse, Sperre und
+   * Loeschung der Kontaktdaten sofort, Hard-Delete nach 30 Tagen.
+   *
+   * Zu wissen: dieser Endpunkt haengt an der NextAuth-Sitzung, /konto meldet
+   * aber ueber supabase.auth an. Wer nur hier eingeloggt ist, bekommt darum
+   * 401 zurueck — und liest das jetzt als klaren Hinweis, statt eine
+   * Loeschung geglaubt zu haben, die nie stattfand.
+   */
+  async function handleDelete() {
+    if (!user) return
+    const bestaetigung = prompt(
+      'Konto endgültig löschen?\n\n' +
+        'Dein Zugang wird sofort gesperrt und deine Kontaktdaten werden gelöscht. ' +
+        'Die endgültige Löschung erfolgt nach 30 Tagen. Das lässt sich nicht rückgängig machen.\n\n' +
+        'Zur Bestätigung bitte die E-Mail-Adresse dieses Kontos eingeben:',
+    )
+    if (bestaetigung === null) return
+    if (bestaetigung.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
+      setDeleteError('Die eingegebene E-Mail-Adresse stimmt nicht mit diesem Konto überein. Das Konto wurde nicht gelöscht.')
+      return
+    }
+
+    setDeleteError(null)
+    setDeleting(true)
+    try {
+      const r = await safeFetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmEmail: bestaetigung.trim() }),
+        timeoutMs: 10000,
+        retries: 0,
+      })
+      if (r.ok) {
+        // Erst jetzt lokal aufraeumen — vorher war das Aufraeumen die ganze
+        // "Loeschung".
+        try { await supabase.auth.signOut() } catch {}
+        try { localStorage.removeItem('cm_user') } catch {}
+        setUser(null)
+        showToast(t('toast.deleted'), 'ok')
+        return
+      }
+      if (r.status === 401) {
+        setDeleteError(
+          'Für die Löschung ist eine Anmeldung über die Anmeldeseite nötig. ' +
+            'Das Konto wurde NICHT gelöscht.',
+        )
+        return
+      }
+      const body = (await r.json().catch(() => null)) as { error?: string } | null
+      setDeleteError(body?.error ?? 'Das Konto konnte nicht gelöscht werden. Bitte später erneut versuchen.')
+    } catch {
+      setDeleteError('Keine Verbindung zum Server. Das Konto wurde NICHT gelöscht.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const roleLabel: Record<User['role'], string> = {
     anbieter:  t('konto.roleAnbieter'),
     vermieter: t('konto.roleVermieter'),
@@ -237,9 +309,15 @@ export default function KontoPage() {
                 style={{ width: '100%', padding: 14, borderRadius: 14, background: 'transparent', color: 'var(--gold2)', border: '1px solid rgba(196,168,106,0.3)', fontFamily: 'inherit', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               ><span>↩</span><span>{t('buttons.logout')}</span></button>
 
-              <button onClick={() => { if (confirm(t('konto.deleteConfirm'))) { try { localStorage.clear() } catch {}; setUser(null); showToast(t('toast.deleted'), 'ok') } }}
-                style={{ width: '100%', padding: 14, borderRadius: 14, background: 'transparent', color: '#FF8888', border: '1px solid rgba(232,80,64,0.3)', fontFamily: 'inherit', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-              ><span>🗑</span><span>{t('buttons.deleteAccount')}</span></button>
+              <button onClick={handleDelete} disabled={deleting}
+                style={{ width: '100%', padding: 14, borderRadius: 14, background: 'transparent', color: '#FF8888', border: '1px solid rgba(232,80,64,0.3)', fontFamily: 'inherit', fontWeight: 600, fontSize: 13, cursor: deleting ? 'wait' : 'pointer', opacity: deleting ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              ><span>🗑</span><span>{deleting ? 'Wird gelöscht …' : t('buttons.deleteAccount')}</span></button>
+
+              {deleteError && (
+                <p role="alert" style={{ color: '#FF8888', fontSize: 12, marginTop: 10, lineHeight: 1.45 }}>
+                  {deleteError}
+                </p>
+              )}
             </div>
           </>
         ) : (

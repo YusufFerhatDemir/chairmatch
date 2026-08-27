@@ -37,11 +37,27 @@ interface RentalRow {
   } | null
 }
 
-const DEMO_LISTINGS: MapListing[] = [
-  { id: 'demo-b', name: 'Friseurstuhl Mitte', type: 'stuhl', priceDayCents: 4500, city: 'Berlin', lat: 52.5233, lng: 13.4127, salonName: 'Beispiel-Salon', salonSlug: null, verified: true, rating: 4.8, beispiel: true },
-  { id: 'demo-h', name: 'Kosmetik-Kabine', type: 'raum', priceDayCents: 5500, city: 'Hamburg', lat: 53.5511, lng: 9.9937, salonName: 'Beispiel-Studio', salonSlug: null, verified: true, rating: 4.9, beispiel: true },
-  { id: 'demo-m', name: 'Barber-Stuhl Glockenbach', type: 'stuhl', priceDayCents: 6500, city: 'München', lat: 48.1351, lng: 11.582, salonName: 'Beispiel-Barbershop', salonSlug: null, verified: false, rating: 4.7, beispiel: true },
-]
+/*
+ * Bis 2026-08-27 stand hier `DEMO_LISTINGS`: drei erfundene Inserate mit
+ * erfundenen Tagespreisen (45/55/65 EUR), erfundenen Bewertungen (4.7-4.9)
+ * und erfundenen Salons ("Beispiel-Salon", "Beispiel-Studio",
+ * "Beispiel-Barbershop"). Sie wurden immer dann eingeblendet, wenn
+ * `listings.length === 0` war — und das galt fuer BEIDE voellig verschiedenen
+ * Faelle:
+ *
+ *   a) die Abfrage ist gescheitert (DB weg, Rechte weg, Timeout)
+ *   b) es gibt wirklich keine Inserate mit Kartenposition
+ *
+ * Der `catch`-Zweig schluckte den Fehler, und die Seite meldete in beiden
+ * Faellen "Gerade keine Live-Inserate mit Kartenposition". Im Fall (a) ist
+ * das schlicht falsch: die Inserate sind da, nur die Abfrage kam nicht durch
+ * — genau der Fehlschlag, den Track 7 fuer die Mieter-Suche aufgedeckt hat.
+ *
+ * Erfundene Preise auf einer oeffentlichen Seite sind ausserdem nichts, was
+ * ein Marktplatz zeigen darf: sie sehen aus wie Marktpreise von ChairMatch.
+ *
+ * Jetzt gibt es keinen Ersatzbestand mehr. Die Seite sagt, was Sache ist.
+ */
 
 const FILTERS = [
   { key: 'stuhl', label: 'Stühle' },
@@ -57,9 +73,9 @@ interface Props {
 export default async function KartePage({ searchParams }: Props) {
   const { type: filterType } = await searchParams
 
-  let listings: MapListing[] = []
+  const listings: MapListing[] = []
   let ohnePosition = 0
-  let demo = false
+  let ladefehler = false
 
   try {
     const supabase = getSupabaseAdmin()
@@ -96,13 +112,12 @@ export default async function KartePage({ searchParams }: Props) {
         rating: row.salon?.avg_rating ?? null,
       })
     }
-  } catch {
-    // DB nicht erreichbar — unten Demo-Fallback
-  }
-
-  if (listings.length === 0) {
-    listings = filterType ? DEMO_LISTINGS.filter(d => d.type === filterType) : DEMO_LISTINGS
-    demo = true
+  } catch (e) {
+    // Nicht verschlucken: ohne diese Zeile ist ein Rechte- oder
+    // Verbindungsfehler in den Logs unsichtbar und sieht auf der Seite aus
+    // wie "es gibt gerade nichts".
+    console.error('[karte] rental_equipment konnte nicht geladen werden:', e)
+    ladefehler = true
   }
 
   return (
@@ -136,10 +151,21 @@ export default async function KartePage({ searchParams }: Props) {
             })}
           </div>
 
-          {demo && (
-            <p style={{ color: 'var(--stone)', fontSize: 12, marginTop: 10, background: 'var(--c1)', borderRadius: 10, padding: '8px 12px' }}>
-              Gerade keine Live-Inserate mit Kartenposition — du siehst Beispiel-Pins.
-              Alle echten Angebote findest du in der <Link href="/rentals" style={{ color: 'var(--gold2)' }}>Listenansicht</Link>.
+          {ladefehler && (
+            <p role="alert" style={{ color: '#FF8888', fontSize: 12, marginTop: 10, background: 'var(--c1)', borderRadius: 10, padding: '8px 12px', lineHeight: 1.45 }}>
+              Die Karte konnte gerade nicht geladen werden — das heißt nicht, dass es keine Angebote gibt.
+              Bitte gleich noch einmal versuchen oder die{' '}
+              <Link href="/rentals" style={{ color: 'var(--gold2)' }}>Listenansicht</Link> nutzen.
+            </p>
+          )}
+
+          {!ladefehler && listings.length === 0 && (
+            <p style={{ color: 'var(--stone)', fontSize: 12, marginTop: 10, background: 'var(--c1)', borderRadius: 10, padding: '8px 12px', lineHeight: 1.45 }}>
+              {filterType
+                ? 'Für diesen Filter gibt es aktuell kein Inserat mit Kartenposition.'
+                : 'Aktuell ist kein Inserat mit Kartenposition eingetragen.'}{' '}
+              Alle Angebote stehen in der{' '}
+              <Link href="/rentals" style={{ color: 'var(--gold2)' }}>Listenansicht</Link>.
             </p>
           )}
         </div>
