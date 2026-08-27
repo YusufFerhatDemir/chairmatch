@@ -10,7 +10,6 @@ export default function AdminPageLoading() {
           animation: 'spin 0.8s linear infinite',
           margin: '0 auto 16px',
         }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         <div style={{ color: 'var(--stone)', fontSize: 14 }}>Wird geladen...</div>
       </div>
     </div>

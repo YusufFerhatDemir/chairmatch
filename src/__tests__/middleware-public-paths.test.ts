@@ -67,6 +67,13 @@ describe('isPublicPath — oeffentliche API-Pfade', () => {
     expect(isPublicPath('/api/uploads')).toBe(false)
   })
 
+  it('nimmt CSP-Reports ohne Session an', () => {
+    // Der Browser schickt Violation-Reports der Report-Only-Policy ohne
+    // Credentials. Faellt der Pfad in den Default-Deny, beantwortet die
+    // Middleware jeden Report mit 401 und die Meldestelle bleibt blind.
+    expect(isPublicPath('/api/csp-report')).toBe(true)
+  })
+
   it('verwechselt aehnlich benannte Routen nicht mit den freigegebenen', () => {
     // `/api/upload` (Singular) ist eine andere Route und war nie freigegeben.
     expect(isPublicPath('/api/upload')).toBe(false)

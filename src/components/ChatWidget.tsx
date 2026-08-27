@@ -1010,25 +1010,6 @@ export default function ChatWidget() {
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes chatSlideUp {
-          from { transform: translateY(100%); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes cmTypingBlink {
-          0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
-          40% { opacity: 1; transform: translateY(-2px); }
-        }
-        .cm-typing-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #C4A86A;
-          display: inline-block;
-          animation: cmTypingBlink 1.1s infinite ease-in-out;
-        }
-      `}</style>
     </>
   )
 }

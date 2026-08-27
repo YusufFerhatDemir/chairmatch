@@ -330,7 +330,6 @@ export default function MISPage() {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ width: 40, height: 40, border: `3px solid ${GOLD_DIM}`, borderTop: `3px solid ${GOLD}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         <div style={{ color: TEXT_DIM, fontSize: 14 }}>MIS Dashboard wird geladen...</div>
       </div>
     </div>

@@ -429,6 +429,18 @@ export default function VertragClient() {
     }
   }, [state, geladen])
 
+  // Die @media-print-Regeln der Vertragsansicht liegen seit dem CSP-Umbau in
+  // globals.css (kein Inline-<style> mehr, siehe src/lib/csp.ts). Weil das
+  // Stylesheet global ist, sind die Regeln dort auf `body.cm-vertrag-print`
+  // eingegrenzt — ohne diese Klasse wuerde `body * { visibility: hidden }`
+  // beim Drucken JEDE Seite der App leeren. Die Klasse haengt deshalb genau
+  // an der Vertragsansicht.
+  useEffect(() => {
+    if (modus !== 'vertrag') return
+    document.body.classList.add('cm-vertrag-print')
+    return () => document.body.classList.remove('cm-vertrag-print')
+  }, [modus])
+
   const set = <K extends keyof FormState>(key: K, wert: FormState[K]) =>
     setState(prev => ({ ...prev, [key]: wert }))
 
@@ -455,27 +467,6 @@ export default function VertragClient() {
   if (modus === 'vertrag') {
     return (
       <div style={{ padding: '20px var(--pad) 0' }}>
-        <style>{`
-          @media print {
-            @page { size: A4; margin: 16mm; }
-            body * { visibility: hidden !important; }
-            #vertrag-print-sheet, #vertrag-print-sheet * { visibility: visible !important; }
-            #vertrag-print-sheet {
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100% !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              border-radius: 0 !important;
-              box-shadow: none !important;
-              background: #ffffff !important;
-              font-size: 11pt !important;
-            }
-            .no-print { display: none !important; }
-          }
-        `}</style>
-
         <div className="no-print" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           <button
             type="button"

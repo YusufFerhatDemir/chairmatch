@@ -75,9 +75,27 @@
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - API-Routes: `X-Robots-Tag: noindex` + `Cache-Control: no-store`
 
+**Update 2026-08-27 (CSP-Track, Phase 2):**
+- `'unsafe-eval'` ist aus der Produktions-Policy entfernt — nur der Dev-Server
+  behält es (Webpack-HMR). Gegenprobe: kein `new Function(` in den
+  Client-Bundles.
+- `style-src` ist aufgeteilt: `style-src-elem` kommt ohne `'unsafe-inline'` aus
+  (drei SHA-256-Hashes für die verbliebenen Inline-Blöcke), `style-src-attr`
+  behält es für Reacts `style={{…}}`.
+- Ausführbares eigenes Inline-JS gibt es nicht mehr (Service-Worker-Kill-Switch
+  ist jetzt eine Client-Component).
+- `'unsafe-inline'` in `script-src` **bleibt** und ist keine offene Aufgabe,
+  sondern eine bewusste Entscheidung: Next.js legt in jede der 256
+  vorgerenderten Seiten ~42 Inline-Bootstrap-Scripts, und ein Nonce in
+  `script-src` deaktiviert `'unsafe-inline'` in derselben Direktive. Nonces und
+  ISR schließen sich aus — Begründung und Messung in
+  [`docs/adr/0002-csp-nonce-vs-isr.md`](docs/adr/0002-csp-nonce-vs-isr.md).
+- Die strikte Nonce-Policy (`'strict-dynamic'`, `script-src-attr 'none'`) läuft
+  als **Report-Only** auf allen `force-dynamic`-Pfaden mit und meldet an
+  `/api/csp-report`. Das ist der Messpunkt für eine spätere Durchsetzung auf
+  dem `/provider`-Teilbaum.
+
 **Empfehlung 🟡:**
-- CSP enthält `'unsafe-inline'` und `'unsafe-eval'` für Scripts (nötig für Next.js Hydration + Stripe.js). 
-  - Bei zukünftigem Next.js 16 mit Strict-CSP-Support migrieren auf Nonces.
 - Hinweis: Das frühere Attest zu `webContentsDebuggingEnabled: false` (capacitor.config.ts) ist obsolet — das Capacitor-Setup wurde am 2026-07-04 entfernt. Die native Expo-App (`mobile/`) rendert ohne WebView; ein eigenes Audit steht aus.
 
 ---

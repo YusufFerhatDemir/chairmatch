@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 import { auth } from '@/modules/auth/auth.config'
 import { isProviderOrAbove, isBusinessOwnerOrAbove, isInvestorOrAbove, isAdminOrAbove } from '@/lib/rbac'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
+import { buildReportOnlyCsp, generateNonce } from '@/lib/csp'
 
 // SEO-Stadt-Slugs aus der zentralen Datenquelle — eine hartcodierte Liste hier
 // hatte Phase-2-Städte (/leipzig etc.) auf den Auth-Redirect laufen lassen.
@@ -164,6 +165,10 @@ const publicPrefixes = [
   '/api/availability',
   '/api/stripe/webhook',
   '/api/errors',
+  // Der Browser schickt CSP-Violation-Reports ohne Credentials. Ohne diesen
+  // Eintrag beantwortet der Default-Deny jeden Report mit 401 — der Nonce-Track
+  // haette dann eine Meldestelle, die nie etwas zu sehen bekommt.
+  '/api/csp-report',
   '/api/cron/',
   '/api/reviews/aggregate',
   '/api/salons/',
@@ -286,118 +291,199 @@ export function isPublicPath(pathname: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// CSP-Nonce-Kanarienvogel
+// ---------------------------------------------------------------------------
+
+/**
+ * Wo die strikte Nonce-Policy zusaetzlich als Report-Only mitlaeuft
+ * (das Gesamtbild steht in `src/lib/csp.ts`).
+ *
+ * Warum nicht ueberall: ein Nonce landet beim Rendern im HTML, der Header wird
+ * pro Request neu erzeugt. Auf einer ISR- oder prerender-gecachten Seite passt
+ * beides nach dem ersten Request nicht mehr zusammen — jede Auslieferung aus
+ * dem Cache wuerde einen Verstoss melden, den es gar nicht gibt, und der
+ * Endpunkt saehe vor lauter Rauschen die echten Treffer nicht.
+ *
+ * Aufgenommen wird deshalb nur, was `export const dynamic = 'force-dynamic'`
+ * traegt und damit garantiert pro Request rendert. Alle Eintraege haengen am
+ * selben Root-Layout wie der Rest der App (JSON-LD-Bloecke, GA4, Meta-Pixel,
+ * DynamicTheme, ChatWidget) — was hier meldet, meldet ueberall.
+ *
+ * Erweitern: erst `force-dynamic` auf dem Ziel pruefen, dann eintragen.
+ */
+
+/** Genau diese Pfade — Unterpfade sind teils statisch (z.B. /rentals/[id]/buchen). */
+export const CSP_NONCE_CANARY_PATHS = [
+  '/search',
+  '/karte',
+  '/preisvergleich',
+  '/rentals',
+] as const
+
+/** Ganze Teilbaeume: /provider hat force-dynamic auf Layout-Ebene. */
+export const CSP_NONCE_CANARY_PREFIXES = ['/provider'] as const
+
+/** Bekommt dieser Pfad die Report-Only-Nonce-Policy? */
+export function usesNonceCanary(pathname: string): boolean {
+  if ((CSP_NONCE_CANARY_PATHS as readonly string[]).includes(pathname)) return true
+  return CSP_NONCE_CANARY_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(p + '/'),
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
-  // ------ Rate Limiting (nur für API-Routen) ------
-  // H1-Fix: NextAuth-Polling-Routen (/session, /csrf, /providers, /callback) bekommen KEIN Rate-Limit
-  // Sonst läuft jeder Tab-Wechsel oder Page-Reload in 429-Fehler.
-  const NEXTAUTH_INTERNAL = ['/api/auth/session', '/api/auth/csrf', '/api/auth/providers', '/api/auth/callback', '/api/auth/_log']
-  const isNextAuthInternal = NEXTAUTH_INTERNAL.some(p => pathname.startsWith(p))
+  // ------ CSP: Nonce-Track (Report-Only) ------
+  // Die durchgesetzte Policy kommt aus next.config.ts und ist nonce-frei.
+  // Hier kommt nur die strikte Zielpolicy als Report-Only obendrauf, und auch
+  // die nur auf dem Kanarienvogel-Teilbaum.
+  const nonce = usesNonceCanary(pathname) ? generateNonce() : null
+  const reportOnlyCsp = nonce
+    ? buildReportOnlyCsp({ nonce, isDev: process.env.NODE_ENV === 'development' })
+    : null
 
-  if (pathname.startsWith('/api/') && !isNextAuthInternal) {
-    const ip = getClientIp(req)
-    // B5-Fix: Sensitive Auth-Routes nur bei POST/PUT/PATCH/DELETE rate-limiten.
-    // Sonst können bereits GETs (z.B. /api/auth/2fa/setup für Account-Render)
-    // den User in 429 sperren.
-    const isWriteMethod = req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS'
-    const isSensitiveAuth = isWriteMethod && (
-      pathname === '/api/auth/register' ||
-      pathname === '/api/auth/forgot-password' ||
-      pathname.startsWith('/api/auth/2fa/') ||
-      pathname.startsWith('/api/auth/phone/')
-    )
-
-    if (isSensitiveAuth) {
-      if (isRateLimited(ip, 'auth', RATE_LIMIT_AUTH)) {
-        return rateLimitResponse()
-      }
-    } else if (pathname.startsWith('/api/availability')) {
-      // M4-Fix: Public Availability-Endpoint hat eigenen, kleineren Bucket —
-      // verhindert Bot-Scraping aller Salon-Slots.
-      if (isRateLimited(ip, 'availability', RATE_LIMIT_AVAILABILITY)) {
-        return rateLimitResponse()
-      }
-    } else {
-      if (isRateLimited(ip, 'api', RATE_LIMIT_API)) {
-        return rateLimitResponse()
-      }
-    }
+  /**
+   * `NextResponse.next()` — auf den Kanarienvogel-Pfaden mit angereicherten
+   * Request-Headern.
+   *
+   * Next.js liest den Nonce aus dem Request-Header und haengt ihn an seine
+   * eigenen Inline-Scripts (app-render.js prueft 'content-security-policy'
+   * und faellt auf '-report-only' zurueck). `x-nonce` steht zusaetzlich fuer
+   * eigene Server-Components bereit.
+   *
+   * Ohne Nonce bleibt es beim schlichten `next()`: das Umschreiben der
+   * Request-Header kostet auf jedem Aufruf etwas und braucht hier niemand.
+   */
+  const pass = () => {
+    if (!nonce || !reportOnlyCsp) return NextResponse.next()
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set('x-nonce', nonce)
+    requestHeaders.set('content-security-policy-report-only', reportOnlyCsp)
+    return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
-  // ------ Öffentliche Routen ------
-  if (isPublicPath(pathname)) return NextResponse.next()
+  /** Haengt die Report-Only-Policy an jede Antwort — auch an 401/403/429. */
+  const withCsp = (res: NextResponse): NextResponse => {
+    if (reportOnlyCsp) res.headers.set('Content-Security-Policy-Report-Only', reportOnlyCsp)
+    return res
+  }
 
-  // ------ Auth-Prüfung ------
-  const session = req.auth
-  if (!session) {
-    // API-Routen: 401 JSON statt Redirect (Default-Deny für nicht-öffentliche APIs bleibt).
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'Nicht authentifiziert', code: 'UNAUTHORIZED' },
-        { status: 401 }
+  return withCsp(route())
+
+  function route(): NextResponse {
+
+    // ------ Rate Limiting (nur für API-Routen) ------
+    // H1-Fix: NextAuth-Polling-Routen (/session, /csrf, /providers, /callback) bekommen KEIN Rate-Limit
+    // Sonst läuft jeder Tab-Wechsel oder Page-Reload in 429-Fehler.
+    const NEXTAUTH_INTERNAL = ['/api/auth/session', '/api/auth/csrf', '/api/auth/providers', '/api/auth/callback', '/api/auth/_log']
+    const isNextAuthInternal = NEXTAUTH_INTERNAL.some(p => pathname.startsWith(p))
+
+    if (pathname.startsWith('/api/') && !isNextAuthInternal) {
+      const ip = getClientIp(req)
+      // B5-Fix: Sensitive Auth-Routes nur bei POST/PUT/PATCH/DELETE rate-limiten.
+      // Sonst können bereits GETs (z.B. /api/auth/2fa/setup für Account-Render)
+      // den User in 429 sperren.
+      const isWriteMethod = req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS'
+      const isSensitiveAuth = isWriteMethod && (
+        pathname === '/api/auth/register' ||
+        pathname === '/api/auth/forgot-password' ||
+        pathname.startsWith('/api/auth/2fa/') ||
+        pathname.startsWith('/api/auth/phone/')
       )
+
+      if (isSensitiveAuth) {
+        if (isRateLimited(ip, 'auth', RATE_LIMIT_AUTH)) {
+          return rateLimitResponse()
+        }
+      } else if (pathname.startsWith('/api/availability')) {
+        // M4-Fix: Public Availability-Endpoint hat eigenen, kleineren Bucket —
+        // verhindert Bot-Scraping aller Salon-Slots.
+        if (isRateLimited(ip, 'availability', RATE_LIMIT_AVAILABILITY)) {
+          return rateLimitResponse()
+        }
+      } else {
+        if (isRateLimited(ip, 'api', RATE_LIMIT_API)) {
+          return rateLimitResponse()
+        }
+      }
     }
-    // Seiten-Routen: NUR echte geschützte Bereiche auf die Login-Wall schicken.
-    // Jeder andere (unbekannte oder öffentliche) Pfad wird durchgelassen → Next.js
-    // rendert die Seite oder eine saubere 404, statt 307 → /auth. Verhindert, dass
-    // Crawler/Backlinks auf der Login-Wall landen (die Ursache für 0 indexierte Seiten).
-    const needsAuth = authRequiredPaths.some(
-      (p) => pathname === p || pathname.startsWith(p + '/'),
-    )
-    if (!needsAuth) return NextResponse.next()
 
-    const loginUrl = new URL('/auth', req.url)
-    loginUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
+    // ------ Öffentliche Routen ------
+    if (isPublicPath(pathname)) return pass()
 
-  const role = (session.user as { role?: string })?.role || ''
-  const mustChangePw = !!(session.user as { passwordMustChange?: boolean })?.passwordMustChange
-
-  // ------ Force Password Change ------
-  // Wenn das Flag gesetzt ist (z.B. Provider mit Initial-Passwort), darf der User
-  // NUR auf /auth/change-password und einige whitelist-Routen. Alles andere → Redirect.
-  if (mustChangePw && !pathname.startsWith('/auth/change-password') && !pathname.startsWith('/api/auth/')) {
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'Passwort muss geändert werden', code: 'PW_MUST_CHANGE' },
-        { status: 403 }
+    // ------ Auth-Prüfung ------
+    const session = req.auth
+    if (!session) {
+      // API-Routen: 401 JSON statt Redirect (Default-Deny für nicht-öffentliche APIs bleibt).
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json(
+          { error: 'Nicht authentifiziert', code: 'UNAUTHORIZED' },
+          { status: 401 }
+        )
+      }
+      // Seiten-Routen: NUR echte geschützte Bereiche auf die Login-Wall schicken.
+      // Jeder andere (unbekannte oder öffentliche) Pfad wird durchgelassen → Next.js
+      // rendert die Seite oder eine saubere 404, statt 307 → /auth. Verhindert, dass
+      // Crawler/Backlinks auf der Login-Wall landen (die Ursache für 0 indexierte Seiten).
+      const needsAuth = authRequiredPaths.some(
+        (p) => pathname === p || pathname.startsWith(p + '/'),
       )
+      if (!needsAuth) return pass()
+
+      const loginUrl = new URL('/auth', req.url)
+      loginUrl.searchParams.set('callbackUrl', pathname)
+      return NextResponse.redirect(loginUrl)
     }
-    const url = new URL('/auth/change-password', req.url)
-    url.searchParams.set('forced', '1')
-    url.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(url)
-  }
 
-  // ------ RBAC ------
-  const forbidden = () => pathname.startsWith('/api/')
-    ? NextResponse.json({ error: 'Keine Berechtigung', code: 'FORBIDDEN' }, { status: 403 })
-    : NextResponse.redirect(new URL('/', req.url))
+    const role = (session.user as { role?: string })?.role || ''
+    const mustChangePw = !!(session.user as { passwordMustChange?: boolean })?.passwordMustChange
 
-  if (providerPaths.some(p => pathname.startsWith(p))) {
-    if (!isProviderOrAbove(role)) return forbidden()
-  }
-
-  if (ownerPaths.some(p => pathname.startsWith(p))) {
-    if (!isBusinessOwnerOrAbove(role) && !isProviderOrAbove(role)) {
-      return forbidden()
+    // ------ Force Password Change ------
+    // Wenn das Flag gesetzt ist (z.B. Provider mit Initial-Passwort), darf der User
+    // NUR auf /auth/change-password und einige whitelist-Routen. Alles andere → Redirect.
+    if (mustChangePw && !pathname.startsWith('/auth/change-password') && !pathname.startsWith('/api/auth/')) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json(
+          { error: 'Passwort muss geändert werden', code: 'PW_MUST_CHANGE' },
+          { status: 403 }
+        )
+      }
+      const url = new URL('/auth/change-password', req.url)
+      url.searchParams.set('forced', '1')
+      url.searchParams.set('callbackUrl', pathname)
+      return NextResponse.redirect(url)
     }
-  }
 
-  if (investorPaths.some(p => pathname.startsWith(p))) {
-    if (!isInvestorOrAbove(role)) return forbidden()
-  }
+    // ------ RBAC ------
+    const forbidden = () => pathname.startsWith('/api/')
+      ? NextResponse.json({ error: 'Keine Berechtigung', code: 'FORBIDDEN' }, { status: 403 })
+      : NextResponse.redirect(new URL('/', req.url))
 
-  if (adminPaths.some(p => pathname.startsWith(p))) {
-    if (!isAdminOrAbove(role)) return forbidden()
-  }
+    if (providerPaths.some(p => pathname.startsWith(p))) {
+      if (!isProviderOrAbove(role)) return forbidden()
+    }
 
-  return NextResponse.next()
+    if (ownerPaths.some(p => pathname.startsWith(p))) {
+      if (!isBusinessOwnerOrAbove(role) && !isProviderOrAbove(role)) {
+        return forbidden()
+      }
+    }
+
+    if (investorPaths.some(p => pathname.startsWith(p))) {
+      if (!isInvestorOrAbove(role)) return forbidden()
+    }
+
+    if (adminPaths.some(p => pathname.startsWith(p))) {
+      if (!isAdminOrAbove(role)) return forbidden()
+    }
+
+    return pass()
+  }
 })
 
 export const config = {

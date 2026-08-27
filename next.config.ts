@@ -1,5 +1,17 @@
 import type { NextConfig } from 'next'
 import { getAllMagazinSlugs } from './src/lib/seo-data/magazin'
+import { buildEnforcedCsp } from './src/lib/csp'
+import { styleElemHashes } from './src/lib/csp-hash'
+
+// Durchgesetzte CSP. Der Nonce-Track laeuft parallel als Report-Only-Policy in
+// src/middleware.ts — Begruendung fuer die Aufteilung steht in src/lib/csp.ts.
+// Hier statt in der Middleware, damit die Policy auch dann auf der Response
+// liegt, wenn die Middleware fuer einen Pfad gar nicht laeuft (matcher) oder
+// ausfaellt.
+const ENFORCED_CSP = buildEnforcedCsp({
+  isDev: process.env.NODE_ENV === 'development',
+  styleElemHashes: styleElemHashes(),
+})
 
 // Bekannte Magazin-Slugs als Regex-Alternation für redirects(). Slugs sind
 // [a-z0-9-], brauchen daher kein Escaping. Nur diese Slugs dürfen 1:1 auf
@@ -120,29 +132,7 @@ const nextConfig: NextConfig = {
           // Cross-Origin-Policies: Schutz gegen Spectre-artige Side-Channel-Angriffe
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
           { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
-              // OpenStreetMap-Tiles für die interaktive Stuhl-Karte (/karte)
-              "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.sentry.io https://www.google-analytics.com https://www.googletagmanager.com https://*.facebook.com https://*.facebook.net https://*.tile.openstreetmap.org https://tile.openstreetmap.org",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://vitals.vercel-insights.com https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io https://*.sentry.io https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://connect.facebook.net https://*.facebook.com",
-              // maps.google.com/www.google.com: SalonMap bettet Google-Maps-iframe ein
-              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://maps.google.com https://www.google.com",
-              // frame-ancestors blockt Einbettung in Iframes (Clickjacking-Schutz; moderner als X-Frame-Options)
-              "frame-ancestors 'none'",
-              "worker-src 'self' blob:",
-              "manifest-src 'self'",
-              "media-src 'self' blob:",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "upgrade-insecure-requests",
-            ].join('; '),
-          },
+          { key: 'Content-Security-Policy', value: ENFORCED_CSP },
         ],
       },
       // Spezielle Header für API-Routes

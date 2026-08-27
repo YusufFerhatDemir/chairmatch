@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { GLOBAL_ERROR_CSS } from '@/lib/inline-css'
 
 /**
  * Next.js 15 global error handler.
@@ -67,56 +68,12 @@ export default function GlobalError({
           href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=DM+Sans:wght@400;600&display=swap"
           rel="stylesheet"
         />
-        <style>{`
-          *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-          html, body { background: #080706; }
-          body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #e0e0e0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-          }
-          .cinzel { font-family: 'Cinzel', serif; letter-spacing: 2px; }
-          @keyframes cmPulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(200,168,75,0.25)); }
-            50%      { transform: scale(1.04); filter: drop-shadow(0 0 18px rgba(200,168,75,0.45)); }
-          }
-          .cm-pin {
-            animation: cmPulse 2.6s ease-in-out infinite;
-          }
-          .cm-btn {
-            padding: 12px 28px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: transform 0.12s ease, box-shadow 0.18s ease;
-            font-family: inherit;
-          }
-          .cm-btn:hover:not(:disabled) { transform: translateY(-1px); }
-          .cm-btn:disabled { opacity: 0.6; cursor: default; }
-          .cm-btn-gold {
-            background: linear-gradient(135deg, #c8a84b, #e8d06a);
-            color: #080706;
-            border: none;
-          }
-          .cm-btn-outline {
-            background: transparent;
-            color: #c8a84b;
-            border: 1.5px solid rgba(200,168,75,0.4);
-            text-decoration: none;
-            display: inline-block;
-          }
-          .cm-btn-ghost {
-            background: transparent;
-            color: #999;
-            border: 1px solid rgba(255,255,255,0.08);
-          }
-        `}</style>
+        {/* Inhalt liegt in src/lib/inline-css.ts, damit next.config.ts denselben
+            String hashen kann — style-src-elem laesst dieses Element nur ueber
+            seinen SHA-256-Hash zu. dangerouslySetInnerHTML statt {`…`}, weil
+            der Browser exakt den Textinhalt hasht und JSX sonst Whitespace
+            einbauen koennte. */}
+        <style dangerouslySetInnerHTML={{ __html: GLOBAL_ERROR_CSS }} />
       </head>
       <body>
         <div

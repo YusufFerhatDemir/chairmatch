@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Cinzel } from 'next/font/google'
 import { Providers } from './providers'
-import DynamicTheme from '@/components/DynamicTheme'
+import DynamicTheme, { themeStyleVars } from '@/components/DynamicTheme'
 import ConsentBanner from '@/components/ConsentBanner'
 import VisitTracker from '@/components/VisitTracker'
 import ConsentModeBootstrap from '@/components/analytics/ConsentModeBootstrap'
@@ -13,6 +13,7 @@ import FloatingLanguageSwitcher from '@/components/FloatingLanguageSwitcher'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import NetworkBanner from '@/components/NetworkBanner'
 import PageReadyWatcher from '@/components/PageReadyWatcher'
+import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import { organizationSchema, websiteSchema, jsonLd } from '@/lib/seo'
 import './globals.css'
 
@@ -102,13 +103,24 @@ export const viewport: Viewport = {
   themeColor: '#080706',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Theme-Overrides aus app_settings als Custom-Properties am <html>-Element,
+  // statt wie frueher in einem Inline-<style> (siehe DynamicTheme + lib/csp.ts).
+  // getCachedSettings ist unstable_cache-gedeckt — kein zusaetzlicher DB-Treffer
+  // und kein Wechsel auf dynamisches Rendering.
+  const themeVars = await themeStyleVars()
+
   return (
-    <html lang="de" dir="ltr" className={`${dmSans.variable} ${cinzel.variable}`}>
+    <html
+      lang="de"
+      dir="ltr"
+      className={`${dmSans.variable} ${cinzel.variable}`}
+      style={themeVars}
+    >
       <head>
         <ConsentModeBootstrap />
       </head>
@@ -139,22 +151,7 @@ export default function RootLayout({
         </Providers>
         <GA4 />
         <MetaPixel />
-        <script dangerouslySetInnerHTML={{ __html: `
-          /* SERVICE WORKER KILL-SWITCH
-             Ehemals registrierte SWs werden deinstalliert + alle Caches geleert.
-             So lange der Cache-Stress eingependelt ist, KEIN SW. Bei Bedarf
-             später wieder aktivieren (Offline-Modus etc.). */
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(regs => {
-              regs.forEach(r => r.unregister().catch(() => {}));
-            }).catch(() => {});
-            if (typeof caches !== 'undefined') {
-              caches.keys().then(keys => {
-                keys.forEach(k => caches.delete(k).catch(() => {}));
-              }).catch(() => {});
-            }
-          }
-        ` }} />
+        <ServiceWorkerCleanup />
       </body>
     </html>
   )
