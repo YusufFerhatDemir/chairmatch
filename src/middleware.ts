@@ -194,7 +194,6 @@ const publicPrefixes = [
   // Eigentuemer. `/api/uploads` OHNE Slash (Liste, Upload) bleibt geschuetzt.
   '/api/uploads/',
   '/api/register-provider', // B2-Fix: Public Provider-Signup
-  '/api/debug-auth',        // TEMP: Debug-Endpoint, bald wieder weg
   '/unsubscribe',           // DSGVO: Newsletter ohne Login abmeldbar
   '/shop/',
   '/register/',
