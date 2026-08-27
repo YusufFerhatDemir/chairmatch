@@ -629,6 +629,7 @@
     "back": "Back",
     "close": "Close",
     "send": "Send",
+    "sendFailed": "Message could not be sent.",
     "loading": "Loading …",
     "inputPlaceholder": "Write a message …",
     "assistantInputPlaceholder": "Type a question …",

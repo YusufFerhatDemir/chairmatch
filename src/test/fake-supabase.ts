@@ -25,6 +25,19 @@
  *    ein Test belegen kann, dass eine Route interne Felder (Storage-Pfade,
  *    Fingerprints) NICHT mit ausliefert.
  *
+ *  - NOT-NULL-Spalten pro Tabelle. Ein Insert, der eine davon auslaesst,
+ *    scheitert mit 23502 — wie in Postgres. Ohne das war die Spaltenliste
+ *    allein nicht genug: sie faengt eine ERFUNDENE Spalte, aber nicht eine
+ *    VERGESSENE. Genau daran lief die Nachrichten-Kette. `messages` verlangt
+ *    live `receiver_id`, `conversations` verlangt `customer_id` und
+ *    `provider_id` — der Code schrieb keine davon, jeder INSERT lief in
+ *    23502, und die Suite war trotzdem gruen.
+ *
+ *  - `order()` sortiert wirklich. Vorher merkte es sich nur die Spalte; ein
+ *    Test konnte damit nicht belegen, dass eine Route deterministisch
+ *    auswaehlt (`.order(...).limit(1)`) statt eine beliebige Zeile zu
+ *    erwischen.
+ *
  * Bewusst nicht abgebildet: Joins (eine `select`-Liste mit eingebetteter
  * Ressource schaltet die Projektion ab) und RLS. Wer Policies testen will,
  * braucht eine echte Datenbank.
@@ -74,6 +87,14 @@ function undefinedColumn(table: string, column: string): FakeError {
   return { code: '42703', message: `column ${table}.${column} does not exist` }
 }
 
+/** Was Postgres liefert, wenn eine NOT-NULL-Spalte leer bleibt. */
+function notNullViolation(table: string, column: string): FakeError {
+  return {
+    code: '23502',
+    message: `null value in column "${column}" of relation "${table}" violates not-null constraint`,
+  }
+}
+
 function uniqueViolation(index: UniqueIndex): FakeError {
   return {
     code: '23505',
@@ -88,7 +109,7 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   private filters: Filter[] = []
   private rowLimit: number | null = null
   private projection: string[] | null = null
-  private orderColumns: string[] = []
+  private orderBy: { column: string; ascending: boolean }[] = []
 
   constructor(
     private readonly db: FakeSupabase,
@@ -188,18 +209,25 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   }
 
   /**
-   * Merkt sich die Sortierspalte. Sortiert wird nicht — die Tests hier
-   * pruefen Zustand, keine Reihenfolge — aber die Spalte wird gegen das
-   * Schema gehalten.
+   * Sortiert das Ergebnis — und haelt die Spalte gegen das Schema.
    *
-   * Warum das zaehlt: PostgREST beantwortet `?order=updated_at` mit 42703,
-   * wenn es die Spalte nicht gibt. Genau darauf lief GET /api/messages —
-   * `conversations` heisst live `last_message_at` — und lieferte jedem
-   * eingeloggten Nutzer 500 statt seines Postfachs, waehrend hier alles
-   * gruen war.
+   * Beides zaehlt. Die Schemapruefung, weil PostgREST `?order=updated_at`
+   * mit 42703 beantwortet, wenn es die Spalte nicht gibt: genau darauf lief
+   * GET /api/messages (`conversations` heisst live `last_message_at`) und
+   * lieferte jedem eingeloggten Nutzer 500 statt seines Postfachs, waehrend
+   * hier alles gruen war.
+   *
+   * Und die Sortierung selbst, weil `.order(...).limit(1)` eine
+   * Auswahlentscheidung ist. Solange der Fake nur die Spalte notierte,
+   * konnte kein Test den Unterschied zwischen „nimmt die aelteste" und
+   * „nimmt irgendeine" zeigen.
+   *
+   * NULL sortiert immer ans Ende — Postgres macht das bei ASC ebenso, bei
+   * DESC nicht. Wo diese Unterscheidung die Korrektheit traegt, reicht der
+   * Fake nicht; das ist bewusst so und gehoert dann in einen DB-Test.
    */
-  order(column: string, _opts?: unknown) {
-    this.orderColumns.push(column)
+  order(column: string, opts?: { ascending?: boolean }) {
+    this.orderBy.push({ column, ascending: opts?.ascending !== false })
     return this
   }
 
@@ -294,6 +322,8 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
             : {}),
           ...raw,
         }
+        const missing = this.db.findMissingNotNull(this.table, row)
+        if (missing) return { data: null, error: notNullViolation(this.table, missing) }
         const violated = this.db.findUniqueViolation(this.table, row)
         if (violated) return { data: null, error: uniqueViolation(violated) }
         rows.push(row)
@@ -307,6 +337,14 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
         this.db.findUnknownColumn(this.table, this.patch) ?? this.unknownReadColumn()
       if (unknownColumn) return { data: null, error: undefinedColumn(this.table, unknownColumn) }
 
+      // Ein UPDATE darf eine NOT-NULL-Spalte nicht leeren. Geprueft wird nur,
+      // was der Patch anfasst — was er nicht nennt, bleibt wie es war.
+      for (const [column, value] of Object.entries(this.patch)) {
+        if (value == null && this.db.isNotNull(this.table, column)) {
+          return { data: null, error: notNullViolation(this.table, column) }
+        }
+      }
+
       const hit = rows.filter((row) => this.matches(row))
       for (const row of hit) Object.assign(row, this.patch)
       return { data: this.project(hit), error: null }
@@ -319,8 +357,37 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     }
 
     let hit = rows.filter((row) => this.matches(row))
+    hit = this.sort(hit)
     if (this.rowLimit != null) hit = hit.slice(0, this.rowLimit)
     return { data: this.project(hit), error: null }
+  }
+
+  /**
+   * Wendet die per `order()` gemerkten Sortierschluessel an — der erste
+   * zuerst, spaetere nur bei Gleichstand. Ohne `order()` bleibt die
+   * Einfuegereihenfolge, so wie eine unsortierte Postgres-Abfrage keine
+   * Reihenfolge zusichert.
+   */
+  private sort(rows: Row[]): Row[] {
+    if (this.orderBy.length === 0) return rows
+    return [...rows].sort((a, b) => {
+      for (const { column, ascending } of this.orderBy) {
+        const left = a[column]
+        const right = b[column]
+        if (left == null && right == null) continue
+        if (left == null) return 1
+        if (right == null) return -1
+        if (left === right) continue
+        const cmp =
+          typeof left === 'number' && typeof right === 'number'
+            ? left - right
+            : String(left) < String(right)
+              ? -1
+              : 1
+        return ascending ? cmp : -cmp
+      }
+      return 0
+    })
   }
 
   /**
@@ -343,7 +410,7 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     for (const { column } of this.filters) {
       if (!this.db.hasColumn(this.table, column)) return column
     }
-    for (const column of this.orderColumns) {
+    for (const { column } of this.orderBy) {
       if (!this.db.hasColumn(this.table, column)) return column
     }
     return null
@@ -443,6 +510,8 @@ export class FakeSupabase {
   private uniques: UniqueIndex[] = []
   /** Tabelle -> erlaubte Spalten. Fehlt ein Eintrag, wird nicht geprueft. */
   private schema = new Map<string, Set<string>>()
+  /** Tabelle -> Spalten mit NOT NULL und ohne DEFAULT. */
+  private notNullColumns = new Map<string, Set<string>>()
   private idCounter = 0
   private clock = 0
 
@@ -493,6 +562,42 @@ export class FakeSupabase {
     return null
   }
 
+  /**
+   * Legt fest, welche Spalten einer Tabelle NOT NULL sind und keinen DEFAULT
+   * haben. Danach scheitert jeder Insert, der eine davon auslaesst, mit
+   * 23502.
+   *
+   * Der Unterschied zu `defineSchema` ist der, an dem die Nachrichten-Kette
+   * gescheitert ist: eine Spaltenliste faengt die ERFUNDENE Spalte, aber
+   * nicht die VERGESSENE. `messages.receiver_id`,
+   * `conversations.customer_id` und `.provider_id` sind live NOT NULL, der
+   * Code schrieb keine davon — und der Fake nahm den unvollstaendigen Insert
+   * bereitwillig an.
+   */
+  defineNotNull(table: string, columns: readonly string[]) {
+    this.notNullColumns.set(table, new Set(columns))
+    return this
+  }
+
+  /** Ist diese Spalte als NOT NULL registriert? */
+  isNotNull(table: string, column: string): boolean {
+    return this.notNullColumns.get(table)?.has(column) ?? false
+  }
+
+  /**
+   * Erste NOT-NULL-Spalte, die in `row` fehlt oder null ist — oder null.
+   * Geprueft wird die fertige Zeile, also nach den Defaults, die der Fake
+   * selbst vergibt (`id`, `created_at`).
+   */
+  findMissingNotNull(table: string, row: Row): string | null {
+    const required = this.notNullColumns.get(table)
+    if (!required) return null
+    for (const column of required) {
+      if (row[column] == null) return column
+    }
+    return null
+  }
+
   addUniqueIndex(table: string, columns: string[], name: string) {
     this.uniques.push({ table, columns, name })
     return this
@@ -539,6 +644,7 @@ export class FakeSupabase {
     this.access = []
     this.uniques = []
     this.schema.clear()
+    this.notNullColumns.clear()
     this.storage.clear()
     this.idCounter = 0
     this.clock = 0

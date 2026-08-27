@@ -629,6 +629,7 @@
     "back": "رجوع",
     "close": "إغلاق",
     "send": "إرسال",
+    "sendFailed": "تعذّر إرسال الرسالة.",
     "loading": "جارٍ التحميل …",
     "inputPlaceholder": "اكتب رسالة …",
     "assistantInputPlaceholder": "اكتب سؤالًا …",

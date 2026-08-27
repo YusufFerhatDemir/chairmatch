@@ -40,6 +40,12 @@ interface Message {
 
 interface ConversationDetail {
   conversationId: string
+  /**
+   * Wer gerade zusieht. Die eigene Seite wurde vorher aus
+   * `sender_id !== otherUser?.id` erschlossen — mit `otherUser: null` galt
+   * damit jede Nachricht als selbst geschrieben.
+   */
+  currentUserId: string
   salonId: string | null
   salonName: string | null
   otherUser: OtherUser | null
@@ -141,6 +147,9 @@ export default function ChatWidget() {
   const [loading, setLoading] = useState(false)
   const [msgInput, setMsgInput] = useState('')
   const [sending, setSending] = useState(false)
+  // Der Sendefehler wurde vorher komplett verschluckt (`catch { }`) — die
+  // Nachricht verschwand aus dem Eingabefeld und tauchte nirgends wieder auf.
+  const [sendError, setSendError] = useState<string | null>(null)
 
   // KI-Assistent (FAQ-basiert)
   const [assistantMsgs, setAssistantMsgs] = useState<AssistantMsg[]>([])
@@ -216,6 +225,7 @@ export default function ChatWidget() {
   const openConversation = async (conversationId: string) => {
     try {
       setLoading(true)
+      setSendError(null)
       const res = await fetch(`/api/messages/${conversationId}`)
       if (!res.ok) return
       const data: ConversationDetail = await res.json()
@@ -283,25 +293,32 @@ export default function ChatWidget() {
   const handleSend = async () => {
     if (!msgInput.trim() || !activeConv || sending) return
     const content = msgInput.trim()
-    setMsgInput('')
     setSending(true)
+    setSendError(null)
     try {
-      const receiverId = activeConv.otherUser?.id
-      if (!receiverId) return
+      // Ueber die Konversation, nicht ueber `otherUser.id`: der war in der
+      // Liste immer null, und dann brach das Senden hier ab — nachdem das
+      // Eingabefeld schon geleert war.
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          receiverId,
+          conversationId: activeConv.conversationId,
           content,
-          salonId: activeConv.salonId ?? undefined,
         }),
       })
-      if (res.ok) {
-        await openConversation(activeConv.conversationId)
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}))
+        setSendError(
+          typeof payload?.error === 'string' ? payload.error : t('sendFailed'),
+        )
+        return
       }
+      // Erst jetzt leeren — sonst ist der Text bei einem Fehlschlag weg.
+      setMsgInput('')
+      await openConversation(activeConv.conversationId)
     } catch {
-      /* silently fail */
+      setSendError(t('sendFailed'))
     } finally {
       setSending(false)
     }
@@ -683,7 +700,7 @@ export default function ChatWidget() {
                     </p>
                   )}
                   {activeConv.messages.map((msg) => {
-                    const isMine = msg.sender_id !== activeConv.otherUser?.id
+                    const isMine = msg.sender_id === activeConv.currentUserId
                     return (
                       <div
                         key={msg.id}
@@ -734,6 +751,23 @@ export default function ChatWidget() {
                   })}
                   <div ref={messagesEndRef} />
                 </div>
+
+                {sendError && (
+                  <p
+                    role="alert"
+                    style={{
+                      margin: 0,
+                      padding: '8px 16px',
+                      background: 'rgba(232,80,64,0.12)',
+                      borderTop: '1px solid rgba(232,80,64,0.3)',
+                      color: '#F2A79C',
+                      fontSize: 12,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {sendError}
+                  </p>
+                )}
 
                 {/* Input */}
                 <div

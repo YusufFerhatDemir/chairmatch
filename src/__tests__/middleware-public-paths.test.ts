@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest'
-import { isPublicPath } from '@/middleware'
+import { isPublicPath, decideAuthAccess } from '@/middleware'
 
 /**
  * Welche API-Pfade ohne Session erreichbar sind (Track 7b, Punkt 7).
@@ -105,6 +105,34 @@ describe('isPublicPath — Seiten', () => {
       expect(isPublicPath(pathname)).toBe(false)
     },
   )
+
+  it('haelt das Postfach hinter dem Login', () => {
+    // `/nachrichten` stand bis 2026-08-27 in `publicPrefixes` — richtig,
+    // solange die Seite fest verdrahtete Beispiel-Chats zeigte. Seit sie am
+    // echten Postfach haengt, ist sie ein privater Bereich.
+    expect(isPublicPath('/nachrichten')).toBe(false)
+    expect(isPublicPath('/nachrichten/44444444-4444-4444-8444-444444444444')).toBe(false)
+  })
+})
+
+describe('decideAuthAccess — Postfach', () => {
+  it('schickt anonyme Besucher zum Login statt sie durchzulassen', () => {
+    // Fuer Seiten-Pfade gibt es keinen Default-Deny: was nicht in
+    // `authRequiredPaths` steht, kommt ohne Session durch. Nicht oeffentlich
+    // zu sein reicht hier also nicht — beides muss zusammenpassen.
+    expect(decideAuthAccess({ pathname: '/nachrichten', session: null })).toEqual({
+      kind: 'login_redirect',
+    })
+    expect(
+      decideAuthAccess({ pathname: '/nachrichten/abc', session: null }),
+    ).toEqual({ kind: 'login_redirect' })
+  })
+
+  it('laesst jede Rolle mit Session durch — das Postfach ist rollenfrei', () => {
+    expect(decideAuthAccess({ pathname: '/nachrichten', session: { role: 'customer' } })).toEqual({
+      kind: 'pass',
+    })
+  })
 })
 
 describe('isPublicPath — die Ketten dieses Auftrags', () => {

@@ -58,3 +58,16 @@ export function isSchemaMismatch(err: PgErrorLike | null | undefined): boolean {
 export function isUniqueViolation(err: PgErrorLike | null | undefined): boolean {
   return (err?.code ?? undefined) === '23505'
 }
+
+/**
+ * NOT-NULL-Verletzung (Postgres `not_null_violation`).
+ *
+ * Gehoert in dieselbe Familie wie `isSchemaMismatch`: der Aufruf sieht
+ * gesund aus, die Tabelle ist da, und trotzdem kommt keine Zeile zustande —
+ * weil der Code eine Pflichtspalte gar nicht kennt. Die Nachrichten-Kette
+ * lief bis 2026-08-27 genau so: `messages.receiver_id` und
+ * `conversations.customer_id`/`.provider_id` wurden nie geschrieben.
+ */
+export function isNotNullViolation(err: PgErrorLike | null | undefined): boolean {
+  return (err?.code ?? undefined) === '23502'
+}

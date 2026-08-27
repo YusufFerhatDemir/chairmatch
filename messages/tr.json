@@ -629,6 +629,7 @@
     "back": "Geri",
     "close": "Kapat",
     "send": "Gönder",
+    "sendFailed": "Mesaj gönderilemedi.",
     "loading": "Yükleniyor …",
     "inputPlaceholder": "Mesaj yaz …",
     "assistantInputPlaceholder": "Soru yaz …",

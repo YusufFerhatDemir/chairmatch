@@ -4,7 +4,14 @@ import { getServerSession } from '@/modules/auth/session'
 
 /**
  * GET /api/messages/[conversationId]
- * Fetch all messages for a conversation. Marks unread messages as read for the current user.
+ * Verlauf einer Konversation. Markiert fremde ungelesene Nachrichten als
+ * gelesen.
+ *
+ * Die Antwort nennt `currentUserId`. Das ChatWidget hat die eigene Seite
+ * vorher ueber `msg.sender_id !== otherUser?.id` bestimmt — war `otherUser`
+ * null (geloeschtes Profil, oder ein Faden ohne zweiten Teilnehmer), ergab
+ * der Vergleich fuer JEDE Nachricht `true` und der ganze Verlauf erschien
+ * als selbst geschrieben, inklusive der Nachrichten des Gegenuebers.
  */
 export async function GET(
   _request: NextRequest,
@@ -26,9 +33,13 @@ export async function GET(
       .select('id')
       .eq('conversation_id', conversationId)
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
 
-    if (partError || !participant) {
+    if (partError) {
+      console.error('GET /api/messages/[conversationId]:', partError)
+      return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
+    }
+    if (!participant) {
       return NextResponse.json({ error: 'Zugriff verweigert' }, { status: 403 })
     }
 
@@ -93,6 +104,7 @@ export async function GET(
 
     return NextResponse.json({
       conversationId,
+      currentUserId: userId,
       salonId: conv?.salon_id ?? null,
       salonName,
       otherUser,

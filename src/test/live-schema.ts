@@ -125,7 +125,23 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
 
   rental_bookings: ['id', 'equipment_id', 'status', 'created_at'],
 
-  profiles: ['id', 'email', 'full_name'],
+  /**
+   * `deleted_at`, `delete_requested_at`, `is_active` und `avatar_url` sind
+   * live vorhanden (Spaltensonde 2026-08-27). Sie stehen hier, weil der
+   * Nachrichten-Versand den Empfaenger gegen sie prueft: an ein
+   * geloeschtes oder zur Loeschung angemeldetes Konto geht keine Nachricht
+   * mehr.
+   */
+  profiles: [
+    'id',
+    'email',
+    'full_name',
+    'avatar_url',
+    'role',
+    'is_active',
+    'deleted_at',
+    'delete_requested_at',
+  ],
 
   payout_accounts: ['user_id', 'context', 'account_holder'],
 
@@ -134,12 +150,34 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
    * 2026-08-24 nach `updated_at` sortiert und geschrieben; GET /api/messages
    * antwortete deshalb jedem eingeloggten Nutzer mit 500, und eine neue
    * Konversation liess sich gar nicht anlegen.
+   *
+   * `customer_id` und `provider_id` standen bis 2026-08-27 nicht in dieser
+   * Liste — nicht, weil es sie nicht gibt, sondern weil der Code sie nicht
+   * anfasste und die Liste nur aufzaehlte, was er anfasst. Beide sind live
+   * vorhanden (Spaltensonde 2026-08-27) und laut der Migration, die die
+   * Tabelle angelegt hat, NOT NULL. Siehe LIVE_NOT_NULL.
    */
-  conversations: ['id', 'salon_id', 'created_at', 'last_message_at'],
+  conversations: [
+    'id',
+    'customer_id',
+    'provider_id',
+    'salon_id',
+    'created_at',
+    'last_message_at',
+  ],
 
   conversation_participants: ['id', 'conversation_id', 'user_id'],
 
-  messages: ['id', 'conversation_id', 'sender_id', 'content', 'is_read', 'created_at'],
+  /** `receiver_id` — dieselbe Geschichte wie oben. Siehe LIVE_NOT_NULL. */
+  messages: [
+    'id',
+    'conversation_id',
+    'sender_id',
+    'receiver_id',
+    'content',
+    'is_read',
+    'created_at',
+  ],
 
   /**
    * Live vorhanden: `severity` — NICHT `level`. `logError()` schreibt
@@ -172,6 +210,40 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
     'unsubscribed_at',
     'is_active',
   ],
+}
+
+/**
+ * Spalten, die live NOT NULL sind und keinen DEFAULT haben — ein INSERT ohne
+ * sie scheitert mit 23502.
+ *
+ * Warum es diese Liste braucht: LIVE_SCHEMA faengt die erfundene Spalte
+ * (42703), aber nicht die vergessene. Die Nachrichten-Kette lief genau
+ * dagegen. `messages.receiver_id`, `conversations.customer_id` und
+ * `.provider_id` werden im Code nirgends geschrieben, obwohl die Migration,
+ * die die Tabellen angelegt hat (20260317_payments_and_compliance.sql,
+ * identisch in _BUNDLED_FOR_PROD.sql), sie als NOT NULL fuehrt. Damit war
+ * jedes POST /api/messages ein 23502 → 500, und das ChatWidget verschluckt
+ * den Fehlschlag wortlos.
+ *
+ * Zur Belastbarkeit, ehrlich: dass die drei Spalten LIVE EXISTIEREN, ist per
+ * Spaltensonde am 2026-08-27 belegt. Dass sie live auch NOT NULL sind, ist
+ * NICHT direkt geprueft — der Service-Role-Key ist tot, der ANON-Key hat auf
+ * diesen Tabellen kein Leserecht (42501), und die OpenAPI-Beschreibung
+ * antwortet mit 401. Belegt ist der Migrationstext, und keine Migration im
+ * Repo lockert das NOT NULL wieder.
+ *
+ * Der Fix haengt an dieser Unsicherheit nicht: die Spalten zu schreiben ist
+ * in beiden Faellen richtig. Waeren sie nullable, blieben `receiver_id` und
+ * `customer_id`/`provider_id` leer — und damit sowohl der Index
+ * `idx_messages_receiver_unread` als auch die RLS-Policies `messages_select`
+ * (`receiver_id = auth.uid()`) und `conversations_select`
+ * (`customer_id = auth.uid() OR provider_id = auth.uid()`) dauerhaft
+ * wirkungslos.
+ */
+export const LIVE_NOT_NULL: Record<string, readonly string[]> = {
+  conversations: ['customer_id', 'provider_id'],
+  conversation_participants: ['conversation_id', 'user_id'],
+  messages: ['conversation_id', 'sender_id', 'receiver_id', 'content'],
 }
 
 /**
@@ -228,8 +300,17 @@ export const MISSING_IN_PRODUCTION: readonly string[] = [
  */
 export function applyLiveSchema(db: {
   defineSchema: (table: string, columns: readonly string[]) => unknown
+  defineNotNull?: (table: string, columns: readonly string[]) => unknown
 }): void {
   for (const [table, columns] of Object.entries(LIVE_SCHEMA)) {
     db.defineSchema(table, columns)
+  }
+  // Optional, weil es zwei Fake-Implementierungen gibt und nur eine das
+  // heute kann (src/test/fake-supabase.ts). Wer die andere benutzt, verliert
+  // die 23502-Pruefung — nicht mehr und nicht weniger.
+  if (db.defineNotNull) {
+    for (const [table, columns] of Object.entries(LIVE_NOT_NULL)) {
+      db.defineNotNull(table, columns)
+    }
   }
 }

@@ -155,7 +155,6 @@ const publicPrefixes = [
   '/vermieter/',        // NEU: Vermieter-Onboarding (Public-Whitelist)
   '/konto',             // Konto-Seite (Login/Register/Profil)
   '/inserat/',          // Inserat-Detail + Mietanfrage
-  '/nachrichten',       // Chat-Liste + Chat-Detail
   '/termine',           // Kunde-Termine
   '/auth/',
   '/api/auth/',
@@ -237,7 +236,14 @@ const investorPaths = ['/investor', '/api/investor']
 const adminPaths = ['/admin', '/api/admin']
 // Bereiche, die eine Session voraussetzen, aber keine spezifische Rolle
 // (Route-Group (protected): /account, /booking, /favorites).
-const authOnlyPaths = ['/account', '/booking', '/favorites']
+//
+// `/nachrichten` stand bis 2026-08-27 in `publicPrefixes`. Das war richtig,
+// solange die Seite fest verdrahtete Beispiel-Chats zeigte — es gab nichts zu
+// schuetzen. Seit sie am echten Postfach haengt, ist es ein privater Bereich:
+// ohne Session gehoert der Besucher zum Login, nicht auf eine Seite, die ihm
+// nur 401 aus dem eigenen Fetch zurueckmeldet. In robots.ts ist der Pfad
+// ohnehin schon gesperrt, SEO verliert also nichts.
+const authOnlyPaths = ['/account', '/booking', '/favorites', '/nachrichten']
 
 // Vollständige Liste aller Pfade, die überhaupt eine Session verlangen.
 // ALLES außerhalb dieser Liste ist für anonyme Besucher zugänglich — es gibt

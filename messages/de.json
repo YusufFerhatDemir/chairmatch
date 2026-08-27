@@ -629,6 +629,7 @@
     "back": "Zurück",
     "close": "Schließen",
     "send": "Senden",
+    "sendFailed": "Nachricht konnte nicht gesendet werden.",
     "loading": "Laden …",
     "inputPlaceholder": "Nachricht schreiben …",
     "assistantInputPlaceholder": "Frage eingeben …",
