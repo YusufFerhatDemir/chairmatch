@@ -1,39 +1,74 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
+import { berlinToday } from '@/lib/berlin-time'
 
-// Mock services (später aus DB)
-const MOCK_SERVICES = [
-  { id: 'damen', name: 'Damenschnitt', duration: 60, price: 45, sub: 'inkl. Waschen & Föhnen' },
-  { id: 'herren', name: 'Herrenschnitt', duration: 30, price: 25, sub: 'klassisch oder modern' },
-  { id: 'faerben', name: 'Färben (kurz)', duration: 90, price: 60, sub: 'Premium-Farben' },
-  { id: 'balayage', name: 'Balayage', duration: 180, price: 130, sub: 'komplett' },
-]
+/**
+ * Termin buchen — /salon/[slug]/buchen
+ *
+ * Diese Seite war bis Track 6 vollstaendig erfunden, und zwar in jedem
+ * Schritt:
+ *
+ *  - Schritt 1 zeigte vier fest verdrahtete Leistungen mit erfundenen Preisen
+ *    (`MOCK_SERVICES`) — bei JEDEM Salon dieselben. Was der Salon wirklich
+ *    anbietet und was es kostet, stand daneben in der Datenbank.
+ *  - Schritt 2 zeigte eine fest verdrahtete Slot-Liste (`TIME_SLOTS`) mit
+ *    erfundenen `free`-Flags. Jeder Besucher sah dieselben "freien" Zeiten,
+ *    unabhaengig von Salon, Datum und Bestandsbuchungen. Genau das ist die
+ *    Doppelbuchung: 09:30 galt als frei, auch wenn dort laengst ein Termin
+ *    lag — und `/api/availability`, das die echte Belegung kennt, wurde nie
+ *    gefragt.
+ *  - Schritt 3 leitete mit dem erfundenen Preis in der URL auf die
+ *    Bezahlseite, die die "Buchung" in `localStorage` legte und meldete, sie
+ *    sei gespeichert. In der Datenbank stand nie etwas; der Salon erfuhr von
+ *    keinem einzigen dieser Termine.
+ *
+ * Jetzt: Leistungen und Preise aus `/api/salons/[slug]`, freie Zeiten aus
+ * `/api/availability` (dieselbe Belegungsrechnung, die auch `createBooking`
+ * benutzt), und gebucht wird ueber `POST /api/bookings` — mit Slot-Pruefung,
+ * Nachpruefung und, sobald die Migration eingespielt ist, dem
+ * EXCLUDE-Constraint dahinter.
+ */
 
-const TIME_SLOTS = [
-  { t: '09:00', free: false }, { t: '09:30', free: true }, { t: '10:00', free: true },
-  { t: '10:30', free: false }, { t: '11:00', free: true }, { t: '11:30', free: false },
-  { t: '12:00', free: false }, { t: '12:30', free: false }, { t: '13:00', free: true },
-  { t: '13:30', free: true }, { t: '14:00', free: true }, { t: '14:30', free: true },
-  { t: '15:00', free: true }, { t: '15:30', free: true }, { t: '16:00', free: true },
-  { t: '16:30', free: false }, { t: '17:00', free: true }, { t: '17:30', free: false },
-]
+interface ApiService {
+  id: string
+  name: string
+  description?: string | null
+  duration_minutes?: number | null
+  price_cents?: number | null
+  risk_level?: string | null
+}
+
+interface ApiSalon {
+  id: string
+  name?: string
+  services?: ApiService[]
+}
 
 const DAY_NAMES = ['Mo','Di','Mi','Do','Fr','Sa','So']
 const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 
 function buildCalendar(year: number, month: number): Array<number | null> {
-  const first = new Date(year, month, 1)
-  const last = new Date(year, month + 1, 0).getDate()
-  // Map Sunday=0 to 6, Monday=1 to 0
-  const offset = (first.getDay() + 6) % 7
+  const first = new Date(Date.UTC(year, month, 1))
+  const last = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
+  const offset = (first.getUTCDay() + 6) % 7
   const days: Array<number | null> = []
   for (let i = 0; i < offset; i++) days.push(null)
   for (let d = 1; d <= last; d++) days.push(d)
   return days
+}
+
+function iso(y: number, m: number, d: number): string {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
+/** Preis nur zeigen, wenn der Salon einen hinterlegt hat — nie einen erfinden. */
+function priceLabel(cents: number | null | undefined): string | null {
+  if (typeof cents !== 'number' || !Number.isFinite(cents)) return null
+  return `${(cents / 100).toFixed(2).replace('.', ',')} €`
 }
 
 export default function BuchenPage() {
@@ -42,45 +77,169 @@ export default function BuchenPage() {
   const slug = (params?.slug as string) || ''
 
   const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [salon, setSalon] = useState<ApiSalon | null>(null)
+  const [salonFehler, setSalonFehler] = useState<string | null>(null)
+  const [laedtSalon, setLaedtSalon] = useState(true)
+
   const [serviceId, setServiceId] = useState<string>('')
   const [date, setDate] = useState<{ y: number; m: number; d: number } | null>(null)
   const [timeSlot, setTimeSlot] = useState<string>('')
-  const [submitting, setSubmitting] = useState(false)
 
-  const today = new Date()
-  const [calYear, setCalYear] = useState(today.getFullYear())
-  const [calMonth, setCalMonth] = useState(today.getMonth())
+  const [slots, setSlots] = useState<string[]>([])
+  const [laedtSlots, setLaedtSlots] = useState(false)
+  const [slotFehler, setSlotFehler] = useState<string | null>(null)
+
+  const [submitting, setSubmitting] = useState(false)
+  const [fehler, setFehler] = useState<string | null>(null)
+  const [einwilligung, setEinwilligung] = useState(false)
+
+  const heute = berlinToday()
+  const [heuteY, heuteM, heuteD] = heute.split('-').map(Number)
+  const [calYear, setCalYear] = useState(heuteY)
+  const [calMonth, setCalMonth] = useState(heuteM - 1)
 
   const calendar = useMemo(() => buildCalendar(calYear, calMonth), [calYear, calMonth])
-  const service = MOCK_SERVICES.find(s => s.id === serviceId)
+  const services = salon?.services ?? []
+  const service = services.find(s => s.id === serviceId) ?? null
+  const dateIso = date ? iso(date.y, date.m, date.d) : ''
+
+  // ── Salon + echte Leistungen laden ────────────────────────────────
+  useEffect(() => {
+    let abgebrochen = false
+    setLaedtSalon(true)
+    fetch(`/api/salons/${encodeURIComponent(slug)}`, { cache: 'no-store' })
+      .then(async res => {
+        if (!res.ok) throw new Error(String(res.status))
+        return res.json()
+      })
+      .then((data: ApiSalon) => {
+        if (abgebrochen) return
+        setSalon(data)
+        setSalonFehler(null)
+      })
+      .catch(() => {
+        if (abgebrochen) return
+        // Frueher fiel dieser Pfad auf erfundene Leistungen zurueck. Ein
+        // ehrlicher Fehler ist besser als ein Angebot, das es nicht gibt.
+        setSalonFehler('Dieser Salon konnte nicht geladen werden.')
+      })
+      .finally(() => {
+        if (!abgebrochen) setLaedtSalon(false)
+      })
+    return () => { abgebrochen = true }
+  }, [slug])
+
+  // ── Echte freie Zeiten laden ──────────────────────────────────────
+  const slotsLaden = useCallback(async () => {
+    if (!salon?.id || !serviceId || !dateIso) return
+    setLaedtSlots(true)
+    setSlotFehler(null)
+    setTimeSlot('')
+    try {
+      const url = `/api/availability?salonId=${encodeURIComponent(salon.id)}&serviceId=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(dateIso)}`
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) {
+        setSlots([])
+        setSlotFehler('Freie Zeiten konnten nicht geladen werden.')
+        return
+      }
+      const data = await res.json()
+      const roh: string[] = Array.isArray(data?.slots) ? data.slots : []
+
+      // Heute keine Zeiten anbieten, die schon vorbei sind. Der Server weist
+      // sie ohnehin ab (`startsInPast`); sie erst gar nicht anzuklicken zu
+      // geben, erspart dem Kunden die Fehlermeldung.
+      const jetzt = new Date()
+      const vergangen =
+        dateIso === berlinToday()
+          ? (t: string) => {
+              const [h, m] = t.split(':').map(Number)
+              const berlinJetzt = new Intl.DateTimeFormat('de-DE', {
+                timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hour12: false,
+              }).format(jetzt)
+              const [jh, jm] = berlinJetzt.split(':').map(Number)
+              return h * 60 + m <= jh * 60 + jm
+            }
+          : () => false
+
+      setSlots(roh.filter(t => !vergangen(t)))
+    } catch {
+      setSlots([])
+      setSlotFehler('Verbindungsfehler — freie Zeiten konnten nicht geladen werden.')
+    } finally {
+      setLaedtSlots(false)
+    }
+  }, [salon?.id, serviceId, dateIso])
+
+  useEffect(() => {
+    if (step === 2 && dateIso) void slotsLaden()
+  }, [step, dateIso, slotsLaden])
+
+  const brauchtEinwilligung = ['HIGH', 'VERY_HIGH'].includes(String(service?.risk_level ?? ''))
 
   function canNext(): boolean {
     if (step === 1) return !!serviceId
     if (step === 2) return !!date && !!timeSlot
-    return true
+    return !brauchtEinwilligung || einwilligung
   }
 
   function goNext() {
     if (!canNext()) return
     if (step < 3) setStep((step + 1) as 1 | 2 | 3)
-    else submit()
+    else void buchen()
   }
 
-  function submit() {
-    // Weiterleitung zur Bezahl-Seite (Schritt 3 wird auf /zahlen erweitert).
-    // Buchung wird erst nach Bezahlen gespeichert. Service/Datum/Slot/Preis via Query.
-    if (!service || !date || !timeSlot) return
+  /**
+   * Echte Buchung. Der Preis wird NICHT mitgeschickt — er kommt serverseitig
+   * aus `services.price_cents`. Ein Preis aus dem Browser waere ein Preis, den
+   * der Kunde selbst setzen kann.
+   */
+  async function buchen() {
+    if (!salon?.id || !service || !dateIso || !timeSlot) return
     setSubmitting(true)
-    const priceCents = Math.round(service.price * 100)
-    const params = new URLSearchParams({
-      service: service.name,
-      price: String(priceCents),
-      y: String(date.y),
-      m: String(date.m),
-      d: String(date.d),
-      t: timeSlot,
-    })
-    router.push(`/salon/${slug}/buchen/zahlen?${params.toString()}` as never)
+    setFehler(null)
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          salonId: salon.id,
+          serviceId: service.id,
+          date: dateIso,
+          startTime: timeSlot,
+          consentGiven: brauchtEinwilligung ? einwilligung : undefined,
+        }),
+      })
+
+      if (res.status === 401) {
+        // Buchen setzt ein Konto voraus (die Buchung haengt an `customer_id`).
+        // Statt nur zu melden, dass es nicht ging, direkt zum Login — mit
+        // Rueckweg, damit die getroffene Auswahl nicht umsonst war.
+        setFehler('Bitte melde dich an, um zu buchen — wir leiten dich weiter.')
+        router.push(`/auth?next=${encodeURIComponent(`/salon/${slug}/buchen`)}` as never)
+        return
+      }
+
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.success) {
+        // Kein stiller Erfolg mehr: frueher lief der Fehlerfall in eine
+        // "Buchung gespeichert"-Meldung, egal was der Server antwortete.
+        setFehler(data?.error || 'Buchung fehlgeschlagen.')
+        if (String(data?.error ?? '').includes('belegt')) {
+          await slotsLaden()
+          setStep(2)
+        }
+        return
+      }
+
+      // Ziel ist die echte Terminliste — dort steht die Buchung, die gerade
+      // wirklich entstanden ist.
+      router.push('/termine' as never)
+    } catch {
+      setFehler('Verbindungsfehler — die Buchung wurde nicht gespeichert.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   function changeMonth(delta: number) {
@@ -90,15 +249,9 @@ export default function BuchenPage() {
     else setCalMonth(nm)
   }
 
-  const isOff = (d: number): boolean => {
-    const dt = new Date(calYear, calMonth, d)
-    const tt = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    return dt < tt
-  }
-
-  const dateLabel = date
-    ? `${date.d}. ${MONTHS[date.m]} ${date.y}`
-    : ''
+  const isOff = (d: number): boolean => iso(calYear, calMonth, d) < heute
+  const dateLabel = date ? `${date.d}. ${MONTHS[date.m]} ${date.y}` : ''
+  const preis = priceLabel(service?.price_cents)
 
   return (
     <div style={{
@@ -113,7 +266,6 @@ export default function BuchenPage() {
         boxShadow: '0 50px 120px rgba(0,0,0,0.78)',
         marginBottom: 24,
       }}>
-        {/* Top */}
         <div style={{ padding: '16px 20px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
             onClick={() => step > 1 ? setStep((step - 1) as 1 | 2 | 3) : router.back()}
@@ -131,7 +283,6 @@ export default function BuchenPage() {
           </span>
         </div>
 
-        {/* Logo */}
         <div style={{ padding: '4px 20px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <BrandLogo size={54} variant="glow" animateStar={false} priority={true} />
           <div>
@@ -142,14 +293,12 @@ export default function BuchenPage() {
           </div>
         </div>
 
-        {/* Progress */}
         <div style={{ padding: '0 20px 14px', display: 'flex', gap: 6 }}>
-          <div style={{ flex: 1, height: 4, borderRadius: 2, background: step >= 1 ? 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 22%, #B38728 45%, #FBF5B7 67%, #AA771C 100%)' : 'rgba(255,255,255,0.08)' }}></div>
-          <div style={{ flex: 1, height: 4, borderRadius: 2, background: step >= 2 ? 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 22%, #B38728 45%, #FBF5B7 67%, #AA771C 100%)' : 'rgba(255,255,255,0.08)' }}></div>
-          <div style={{ flex: 1, height: 4, borderRadius: 2, background: step >= 3 ? 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 22%, #B38728 45%, #FBF5B7 67%, #AA771C 100%)' : 'rgba(255,255,255,0.08)' }}></div>
+          {[1, 2, 3].map(s => (
+            <div key={s} style={{ flex: 1, height: 4, borderRadius: 2, background: step >= s ? 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 22%, #B38728 45%, #FBF5B7 67%, #AA771C 100%)' : 'rgba(255,255,255,0.08)' }}></div>
+          ))}
         </div>
 
-        {/* Title */}
         <div style={{ padding: '0 20px 16px' }}>
           <span style={{
             display: 'inline-block', fontSize: 9, letterSpacing: 2, fontWeight: 700, padding: '3px 9px', borderRadius: 6,
@@ -162,45 +311,74 @@ export default function BuchenPage() {
             {step === 3 && 'Bestätigung'}
           </h2>
           <p style={{ fontSize: 13, color: 'var(--stone)' }}>
-            {step === 1 && 'Was möchtest du buchen?'}
+            {step === 1 && (salon?.name || 'Was möchtest du buchen?')}
             {step === 2 && 'Wann passt es dir?'}
             {step === 3 && 'Alles korrekt? Dann buchen.'}
           </p>
         </div>
 
         <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* STEP 1: Service */}
+          {fehler && (
+            <div style={{ padding: '10px 14px', borderRadius: 12, background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.3)', color: '#FF8888', fontSize: 12.5, lineHeight: 1.5 }}>
+              {fehler}
+            </div>
+          )}
+
+          {/* STEP 1: echte Leistungen */}
           {step === 1 && (
             <>
-              {MOCK_SERVICES.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setServiceId(s.id)}
-                  style={{
-                    background: serviceId === s.id
-                      ? 'linear-gradient(145deg, rgba(191,149,63,0.08) 0%, var(--c1) 50%, rgba(179,135,40,0.04) 100%)'
-                      : 'var(--c1)',
-                    border: serviceId === s.id ? '1.5px solid var(--gold2)' : '1px solid rgba(196,168,106,0.18)',
-                    borderRadius: 14, padding: 14, cursor: 'pointer',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
-                    fontFamily: 'inherit', textAlign: 'left',
-                    boxShadow: serviceId === s.id ? '0 0 14px rgba(191,149,63,0.12)' : 'none',
-                  }}
-                >
-                  <div>
-                    <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--cream)' }}>{s.name}</p>
-                    <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 2 }}>{s.duration} Min · {s.sub}</p>
-                  </div>
-                  <span className="cinzel text-gold-metallic" style={{ fontSize: 16, fontWeight: 700 }}>{s.price} €</span>
-                </button>
-              ))}
+              {laedtSalon && (
+                <p style={{ fontSize: 13, color: 'var(--stone)', padding: '20px 0', textAlign: 'center' }}>Leistungen werden geladen …</p>
+              )}
+              {!laedtSalon && salonFehler && (
+                <div style={{ padding: '14px', borderRadius: 12, background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.3)', color: '#FF8888', fontSize: 12.5 }}>
+                  {salonFehler}
+                </div>
+              )}
+              {!laedtSalon && !salonFehler && services.length === 0 && (
+                <div style={{ padding: 24, textAlign: 'center', background: 'rgba(176,144,96,0.04)', border: '1px dashed rgba(176,144,96,0.25)', borderRadius: 18 }}>
+                  <p className="cinzel" style={{ fontSize: 16, color: 'var(--gold2)', marginBottom: 8 }}>Keine Leistungen hinterlegt</p>
+                  <p style={{ fontSize: 12.5, color: 'var(--stone)', lineHeight: 1.6 }}>
+                    Dieser Salon hat noch keine buchbaren Leistungen eingestellt. Bitte nimm direkt Kontakt auf.
+                  </p>
+                </div>
+              )}
+              {services.map(s => {
+                const p = priceLabel(s.price_cents)
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => { setServiceId(s.id); setTimeSlot(''); setEinwilligung(false) }}
+                    style={{
+                      background: serviceId === s.id
+                        ? 'linear-gradient(145deg, rgba(191,149,63,0.08) 0%, var(--c1) 50%, rgba(179,135,40,0.04) 100%)'
+                        : 'var(--c1)',
+                      border: serviceId === s.id ? '1.5px solid var(--gold2)' : '1px solid rgba(196,168,106,0.18)',
+                      borderRadius: 14, padding: 14, cursor: 'pointer',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+                      fontFamily: 'inherit', textAlign: 'left',
+                      boxShadow: serviceId === s.id ? '0 0 14px rgba(191,149,63,0.12)' : 'none',
+                    }}
+                  >
+                    <div>
+                      <p style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--cream)' }}>{s.name}</p>
+                      <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 2 }}>
+                        {s.duration_minutes ? `${s.duration_minutes} Min` : 'Dauer auf Anfrage'}
+                        {s.description ? ` · ${s.description}` : ''}
+                      </p>
+                    </div>
+                    <span className="cinzel text-gold-metallic" style={{ fontSize: 16, fontWeight: 700, flexShrink: 0 }}>
+                      {p ?? 'auf Anfrage'}
+                    </span>
+                  </button>
+                )
+              })}
             </>
           )}
 
-          {/* STEP 2: Datum + Uhrzeit */}
+          {/* STEP 2: Kalender + ECHTE freie Zeiten */}
           {step === 2 && (
             <>
-              {/* Calendar */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <button onClick={() => changeMonth(-1)} style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}>‹</button>
@@ -214,7 +392,7 @@ export default function BuchenPage() {
                   {calendar.map((d, i) => {
                     if (d === null) return <div key={i}></div>
                     const off = isOff(d)
-                    const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear()
+                    const isToday = iso(calYear, calMonth, d) === heute
                     const isSelected = date?.d === d && date?.m === calMonth && date?.y === calYear
                     return (
                       <button
@@ -237,38 +415,50 @@ export default function BuchenPage() {
                 </div>
               </div>
 
-              {/* Slots */}
               {date && (
                 <div>
                   <p className="cinzel" style={{ fontSize: 11, letterSpacing: 2, color: 'var(--gold2)', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>
                     Freie Slots · {dateLabel}
                   </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                    {TIME_SLOTS.map(s => (
-                      <button
-                        key={s.t}
-                        onClick={() => s.free && setTimeSlot(s.t)}
-                        disabled={!s.free}
-                        style={{
-                          padding: '10px 6px', borderRadius: 10,
-                          background: timeSlot === s.t ? 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 22%, #B38728 45%, #FBF5B7 67%, #AA771C 100%)' : 'var(--c1)',
-                          border: timeSlot === s.t ? 'none' : '0.5px solid rgba(196,168,106,0.15)',
-                          color: timeSlot === s.t ? '#1a1000' : 'var(--cream)',
-                          fontSize: 13, fontWeight: timeSlot === s.t ? 700 : 600,
-                          cursor: s.free ? 'pointer' : 'not-allowed',
-                          opacity: s.free ? 1 : 0.3,
-                          textDecoration: s.free ? 'none' : 'line-through',
-                          fontFamily: 'inherit',
-                        }}
-                      >{s.t}</button>
-                    ))}
-                  </div>
+
+                  {laedtSlots && <p style={{ fontSize: 12.5, color: 'var(--stone)' }}>Freie Zeiten werden geladen …</p>}
+
+                  {!laedtSlots && slotFehler && (
+                    <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.3)', color: '#FF8888', fontSize: 12 }}>
+                      {slotFehler}
+                    </div>
+                  )}
+
+                  {!laedtSlots && !slotFehler && slots.length === 0 && (
+                    <p style={{ fontSize: 12.5, color: 'var(--stone)', lineHeight: 1.6 }}>
+                      An diesem Tag ist nichts mehr frei. Bitte einen anderen Tag wählen.
+                    </p>
+                  )}
+
+                  {!laedtSlots && slots.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                      {slots.map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setTimeSlot(t)}
+                          style={{
+                            padding: '10px 6px', borderRadius: 10,
+                            background: timeSlot === t ? 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 22%, #B38728 45%, #FBF5B7 67%, #AA771C 100%)' : 'var(--c1)',
+                            border: timeSlot === t ? 'none' : '0.5px solid rgba(196,168,106,0.15)',
+                            color: timeSlot === t ? '#1a1000' : 'var(--cream)',
+                            fontSize: 13, fontWeight: timeSlot === t ? 700 : 600,
+                            cursor: 'pointer', fontFamily: 'inherit',
+                          }}
+                        >{t}</button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </>
           )}
 
-          {/* STEP 3: Confirmation */}
+          {/* STEP 3: Bestaetigung mit echtem Preis */}
           {step === 3 && service && date && (
             <>
               <div style={{
@@ -277,8 +467,9 @@ export default function BuchenPage() {
                 borderRadius: 18, padding: 18,
               }}>
                 {[
+                  ['Salon', salon?.name ?? '—'],
                   ['Service', service.name],
-                  ['Dauer', `${service.duration} Minuten`],
+                  ['Dauer', service.duration_minutes ? `${service.duration_minutes} Minuten` : 'auf Anfrage'],
                   ['Datum', dateLabel],
                   ['Uhrzeit', `${timeSlot} Uhr`],
                 ].map(([l, v]) => (
@@ -289,17 +480,28 @@ export default function BuchenPage() {
                 ))}
                 <div style={{ marginTop: 6, paddingTop: 12, borderTop: '2px solid rgba(196,168,106,0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, color: 'var(--cream)', fontWeight: 700 }}>Gesamt</span>
-                  <span className="cinzel text-gold-metallic" style={{ fontSize: 22, fontWeight: 700 }}>{service.price} €</span>
+                  <span className="cinzel text-gold-metallic" style={{ fontSize: 22, fontWeight: 700 }}>{preis ?? 'auf Anfrage'}</span>
                 </div>
               </div>
 
+              {brauchtEinwilligung && (
+                <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(232,80,64,0.06)', border: '1px solid rgba(232,80,64,0.25)', borderRadius: 12, padding: '12px 14px', fontSize: 11.5, color: 'var(--cream)', lineHeight: 1.55, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={einwilligung}
+                    onChange={e => setEinwilligung(e.target.checked)}
+                    style={{ marginTop: 2, flexShrink: 0 }}
+                  />
+                  <span>Ich bestätige die Risikoaufklärung und die Hinweise zu Kontraindikationen für diese Behandlung.</span>
+                </label>
+              )}
+
               <div style={{ background: 'rgba(176,144,96,0.06)', border: '1px solid rgba(176,144,96,0.18)', borderRadius: 12, padding: '12px 14px', fontSize: 11.5, color: 'var(--cream)', lineHeight: 1.55 }}>
-                <strong style={{ color: 'var(--gold2)' }}>Vor Ort bezahlen</strong> · Du kannst kostenlos bis 24 Std. vorher absagen. Bestätigungs-Mail nach Buchung.
+                <strong style={{ color: 'var(--gold2)' }}>Vor Ort bezahlen</strong> · Der Termin gilt zunächst als angefragt, bis der Salon ihn bestätigt. Absagen kannst du jederzeit unter „Meine Buchungen" — je nach Frist des Salons kostenfrei.
               </div>
             </>
           )}
 
-          {/* Footer Buttons */}
           <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
             {step > 1 && (
               <button

@@ -8,6 +8,7 @@
 
 import type { NextRequest } from 'next/server'
 import { FakeSupabase, type RelationMap, type Row } from './fake-supabase'
+import { applyLiveSchema } from '@/test/live-schema'
 
 export const IDS = {
   customer: '11111111-1111-4111-8111-111111111111',
@@ -333,6 +334,73 @@ export function enableOverlapConstraint(db: FakeSupabase): void {
       code: '23P01',
       message:
         'conflicting key value violates exclusion constraint "rental_bookings_no_overlap"',
+      details: null,
+      hint: null,
+    }
+  })
+}
+
+/**
+ * Schaltet die Spaltenpruefung des Produktionsschemas ein.
+ *
+ * Warum opt-in und nicht in `createDb()`: die Listen in
+ * `src/test/live-schema.ts` decken die Tabellen ab, die wirklich per
+ * Spaltensonde erhoben wurden. Sie global scharf zu schalten wuerde
+ * Bestandstests an Tabellen scheitern lassen, ueber deren Live-Schema hier
+ * niemand etwas Belegtes weiss — und ein geratenes Schema ist schlechter als
+ * keins.
+ *
+ * Wer sie einschaltet, bekommt beides, was einer gruenen Suite bei den
+ * Nachrichten gefehlt hat: 42703 fuer die ERFUNDENE Spalte und 23502 fuer die
+ * VERGESSENE.
+ */
+export function enableLiveSchema(db: FakeSupabase): void {
+  applyLiveSchema(db)
+}
+
+/**
+ * DB mit aktivem EXCLUDE-Constraint `bookings_no_overlap`
+ * (Migration 20260827_bookings_no_overlap.sql — im Repo, live NICHT
+ * angewendet).
+ *
+ * Genau deshalb steht der hier: die App-seitige Nachpruefung `losesSlotRace`
+ * traegt heute die Last, aber sobald der Constraint eingespielt ist,
+ * entscheidet die Datenbank — mit 23P01 statt mit einer Zeile. Ohne diesen
+ * Schalter koennte kein Test belegen, dass `createBooking` daraus "Zeitslot
+ * belegt" macht und nicht "Buchung konnte nicht erstellt werden".
+ *
+ * Abgrenzung wie in der Migration: nur `pending` und `confirmed` belegen.
+ */
+export function enableBookingOverlapConstraint(db: FakeSupabase): void {
+  const belegend = ['pending', 'confirmed']
+  const minuten = (t: unknown): number => {
+    const m = /^(\d{1,2}):(\d{2})/.exec(String(t))
+    return m ? Number(m[1]) * 60 + Number(m[2]) : NaN
+  }
+
+  db.onInsert((table, row) => {
+    if (table !== 'bookings') return null
+    if (!belegend.includes(String(row.status))) return null
+
+    const start = minuten(row.start_time)
+    const ende = minuten(row.end_time)
+    if (Number.isNaN(start) || Number.isNaN(ende)) return null
+
+    const kollision = db.rows('bookings').some(vorhanden => {
+      if (vorhanden.id === row.id) return false
+      if (vorhanden.salon_id !== row.salon_id) return false
+      if (vorhanden.booking_date !== row.booking_date) return false
+      if (!belegend.includes(String(vorhanden.status))) return false
+      const vStart = minuten(vorhanden.start_time)
+      const vEnde = minuten(vorhanden.end_time)
+      if (Number.isNaN(vStart) || Number.isNaN(vEnde)) return false
+      return start < vEnde && ende > vStart
+    })
+
+    if (!kollision) return null
+    return {
+      code: '23P01',
+      message: 'conflicting key value violates exclusion constraint "bookings_no_overlap"',
       details: null,
       hint: null,
     }

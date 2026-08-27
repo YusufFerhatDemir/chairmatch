@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { minutesOfDay, overlaps, BLOCKING_STATUSES } from '@/modules/booking/booking.service'
+import { berlinToday } from '@/lib/berlin-time'
 
 const SLOT_STEP = 15 // minutes
 
@@ -74,33 +76,60 @@ export async function GET(req: NextRequest) {
     const range = parseHours(oh[dayKey] ?? oh[dayKey.toLowerCase()] ?? null)
     if (!range) return NextResponse.json({ slots: [] })
 
-    const { data: existing } = await supabase
+    const { data: existing, error: belegungFehler } = await supabase
       .from('bookings')
       .select('start_time, end_time')
       .eq('salon_id', salonId)
       .eq('booking_date', date)
-      .in('status', ['pending', 'confirmed'])
+      .in('status', [...BLOCKING_STATUSES])
 
-    const blocked = new Set<string>()
+    // Faellt die Belegungsabfrage aus, ist JEDER Slot frei — das ist genau die
+    // Antwort, die zu Doppelbuchungen fuehrt. Lieber ehrlich nichts anbieten.
+    if (belegungFehler) {
+      return NextResponse.json(
+        { error: 'Belegung konnte nicht geladen werden.' },
+        { status: 503 },
+      )
+    }
+
+    // Belegte Zeitraeume als Intervalle, nicht als Raster-Punkte.
+    //
+    // Vorher wurde jede Bestandsbuchung in Punkte im 15-Minuten-Raster
+    // zerlegt (`blocked.add(...)`) und ein Kandidat gegen dieselben Punkte
+    // geprueft. Das haelt nur, solange jede Buchung exakt auf dem Raster
+    // liegt. Eine Buchung von 09:10 bis 09:40 belegte die Punkte 9:10 und
+    // 9:25 — ein Kandidat um 09:00 prueft 9:00 und 9:15, trifft keinen davon
+    // und galt als frei, obwohl er sich 30 Minuten lang ueberschneidet.
+    // Genau diese Buchung liess der Kalender dann zu.
+    const belegt: { start: number; end: number }[] = []
     for (const b of existing ?? []) {
-      const [sh, sm] = String(b.start_time).split(':').map(Number)
-      const [eh, em] = String(b.end_time).split(':').map(Number)
-      const startMin = sh * 60 + sm
-      const endMin = eh * 60 + em
-      for (let t = startMin; t < endMin; t += SLOT_STEP) {
-        blocked.add(`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`)
-      }
+      const start = minutesOfDay(b.start_time)
+      const end = minutesOfDay(b.end_time)
+      if (Number.isNaN(start) || Number.isNaN(end)) continue
+      belegt.push({ start, end })
     }
 
     const allSlots = generateSlots(date, range.start, range.end, durationMin, SLOT_STEP)
+
+    // Heute nichts anbieten, was schon vorbei ist — `createBooking` weist es
+    // ohnehin ab (`startsInPast`), und ein anklickbarer Slot in der
+    // Vergangenheit ist ein Versprechen, das die Buchung nicht halten kann.
+    const jetztMinuten =
+      date === berlinToday()
+        ? (() => {
+            const uhr = new Intl.DateTimeFormat('de-DE', {
+              timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hour12: false,
+            }).format(new Date())
+            return minutesOfDay(uhr)
+          })()
+        : null
+
     const freeSlots = allSlots.filter((slot) => {
-      const [h, m] = slot.split(':').map(Number)
-      const slotStart = h * 60 + m
-      for (let t = slotStart; t < slotStart + durationMin; t += SLOT_STEP) {
-        const k = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
-        if (blocked.has(k)) return false
-      }
-      return true
+      const slotStart = minutesOfDay(slot)
+      if (Number.isNaN(slotStart)) return false
+      if (jetztMinuten !== null && slotStart <= jetztMinuten) return false
+      const slotEnd = slotStart + durationMin
+      return !belegt.some(b => overlaps(slotStart, slotEnd, b.start, b.end))
     })
 
     return NextResponse.json({ slots: freeSlots, durationMinutes: durationMin })
@@ -135,7 +164,7 @@ export async function GET(req: NextRequest) {
       .from('rental_bookings')
       .select('start_date, end_date')
       .eq('equipment_id', resourceId)
-      .in('status', ['pending', 'confirmed'])
+      .in('status', [...BLOCKING_STATUSES])
 
     for (const b of existing ?? []) {
       if (date >= b.start_date && date <= b.end_date) {

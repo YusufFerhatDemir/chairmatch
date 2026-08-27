@@ -27,7 +27,7 @@
  */
 
 /** Verifiziert am 2026-08-24 gegen die Produktionsdatenbank. */
-export const LIVE_SCHEMA_VERIFIED_AT = '2026-08-24'
+export const LIVE_SCHEMA_VERIFIED_AT = '2026-08-27'
 
 export const LIVE_SCHEMA: Record<string, readonly string[]> = {
   rental_requests: [
@@ -121,7 +121,125 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
     'created_at',
   ],
 
-  salons: ['id', 'owner_id', 'name', 'city', 'slug', 'gallery', 'logo_url', 'created_at', 'updated_at'],
+  /**
+   * Um die Spalten erweitert, die der Buchungspfad liest (Sonde
+   * 2026-08-27): `category` fuer die Terminliste, `opening_hours` und
+   * `state` fuer die Slot-Berechnung, die Adressfelder fuer den
+   * ICS-Export, `is_active` fuer die Frage, ob ein Salon ueberhaupt noch
+   * Termine annimmt.
+   */
+  salons: ['id', 'owner_id', 'name', 'city', 'slug', 'gallery', 'logo_url', 'created_at', 'updated_at',
+           'category', 'is_active', 'opening_hours', 'state', 'street', 'house_number', 'postal_code',
+           'avg_rating', 'review_count', 'description', 'phone'],
+
+  /**
+   * Termin-Buchungen — Spaltensonde 2026-08-27.
+   *
+   * Diese Liste ist der Grund, warum Track 6 ueberhaupt eine Sonde gefahren
+   * hat: `supabase-setup.sql` fuehrt eine voellig ANDERE `bookings`-Tabelle
+   * (`user_id`, `provider_id`, `service_name`, `date`, `time_slot`,
+   * `price NUMERIC`). Waere das der Live-Stand, liefe jede einzelne Buchung
+   * in 42703. Die Sonde sagt: es ist die Fassung aus dem Modulcode
+   * (`customer_id`, `salon_id`, `booking_date`, `start_time`, `end_time`,
+   * `price_cents`). `supabase-setup.sql` beschreibt einen Zustand, den es
+   * live nicht (mehr) gibt.
+   *
+   * Ausdruecklich NICHT vorhanden (42703 bei der Sonde) — hier steht, was
+   * fehlt, damit niemand es "einfach schreibt":
+   *   user_id, cancelled_at, cancelled_by, cancellation_fee_cents,
+   *   fee_cents, deposit_cents, service_name, date, time_slot
+   *
+   * Die letzten drei sind die Legacy-Namen aus supabase-setup.sql, die
+   * ersten sechs sind Spalten, die eine Stornogebuehr aufnehmen wuerden. Es
+   * gibt sie nicht: eine Gebuehr laesst sich heute nirgends festschreiben.
+   * Die Frist-Logik in `cancelBooking` meldet deshalb nur, OB die Frist
+   * gerissen ist — sie beziffert nichts.
+   *
+   * `provider_id`, `resource_id`, `booking_type` und `is_first_visit` sind
+   * live vorhanden (aus 20260311_spec_v2 / 20260321_marketplace), werden vom
+   * Code aber nirgends geschrieben. Alle vier kamen per
+   * `ADD COLUMN IF NOT EXISTS` ohne NOT NULL dazu — sie stehen deshalb NICHT
+   * in LIVE_NOT_NULL, und ihr Fehlen im INSERT ist kein 23502.
+   */
+  bookings: [
+    'id',
+    'customer_id',
+    'salon_id',
+    'service_id',
+    'staff_id',
+    'booking_date',
+    'start_time',
+    'end_time',
+    'status',
+    'price_cents',
+    'notes',
+    'cancellation_reason',
+    'created_at',
+    'updated_at',
+    'provider_id',
+    'resource_id',
+    'booking_type',
+    'payment_status',
+    'stripe_session_id',
+    'stripe_payment_intent',
+    'is_first_visit',
+  ],
+
+  /**
+   * Leistungen — Spaltensonde 2026-08-27, zusaetzlich per anon-Lesezugriff
+   * vollstaendig bestaetigt (die Tabelle ist oeffentlich lesbar).
+   */
+  services: [
+    'id',
+    'salon_id',
+    'name',
+    'description',
+    'category',
+    'duration_minutes',
+    'price_cents',
+    'currency',
+    'is_active',
+    'sort_order',
+    'created_at',
+    'risk_level',
+    'slug',
+  ],
+
+  /**
+   * Stornofrist und Anzahlung je Salon — Spaltensonde 2026-08-27.
+   *
+   * ACHTUNG: `cancellation_fee_cents` und `late_cancel_fee_cents` gibt es
+   * NICHT (beide 42703). Die einzige Gebuehr, die hier festgeschrieben
+   * werden kann, ist `no_show_fee_cents` — und die gilt fuer Nichterscheinen,
+   * nicht fuer eine verspaetete Absage. Wer eine Storno-Gebuehr betragsmaessig
+   * ausweisen will, braucht zuerst eine Migration.
+   */
+  booking_policies: [
+    'id',
+    'salon_id',
+    'deposit_percent',
+    'cancellation_hours',
+    'no_show_fee_cents',
+    'created_at',
+    'updated_at',
+  ],
+
+  staff: ['id', 'salon_id', 'name', 'title', 'is_active'],
+
+  consents: ['id', 'user_id', 'booking_id', 'type', 'given', 'created_at'],
+
+  audit_logs: ['id', 'user_id', 'action', 'entity', 'entity_id', 'details', 'created_at'],
+
+  promo_codes: [
+    'id',
+    'code',
+    'discount',
+    'type',
+    'is_active',
+    'expires_at',
+    'max_uses',
+    'used_count',
+  ],
 
   rental_bookings: ['id', 'equipment_id', 'status', 'created_at'],
 
@@ -239,6 +357,14 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
  * (`receiver_id = auth.uid()`) und `conversations_select`
  * (`customer_id = auth.uid() OR provider_id = auth.uid()`) dauerhaft
  * wirkungslos.
+ *
+ * `bookings` steht hier BEWUSST NICHT drin. Die Spaltensonde belegt, welche
+ * Spalten es gibt, nicht welche NOT NULL sind — und fuer `bookings` gibt es
+ * im Repo kein `CREATE TABLE`, aus dem sich das ableiten liesse
+ * (`supabase-setup.sql` beschreibt eine andere Tabelle, siehe LIVE_SCHEMA).
+ * Eine geratene NOT-NULL-Liste waere schlimmer als keine: sie wuerde Tests
+ * gruen oder rot faerben, ohne dass irgendetwas davon belegt ist. Der
+ * INSERT in `createBooking` setzt ohnehin jede fachlich noetige Spalte.
  */
 export const LIVE_NOT_NULL: Record<string, readonly string[]> = {
   conversations: ['customer_id', 'provider_id'],

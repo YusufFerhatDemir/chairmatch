@@ -2,7 +2,19 @@
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createBookingSchema, cancelBookingSchema } from './booking.schemas'
-import { checkConflict, snapshotPolicy, validateTransition, validatePromoCode, calculatePrice } from './booking.service'
+import {
+  checkConflict,
+  snapshotPolicy,
+  validateTransition,
+  validatePromoCode,
+  calculatePrice,
+  endTimeFor,
+  startsInPast,
+  overlaps,
+  minutesOfDay,
+  BLOCKING_STATUSES,
+  evaluateCancellationWindow,
+} from './booking.service'
 import { getServerSession } from '@/modules/auth/session'
 import { sendBookingConfirmation, sendProviderNotification } from '@/lib/email'
 
@@ -80,12 +92,6 @@ function requireProviderActor(result: ActorResult): ActionFailure | null {
   return null
 }
 
-/** Minuten seit Mitternacht aus "HH:MM[:SS]". */
-function minutesOfDay(time: unknown): number {
-  const [h, m] = String(time).split(':').map(Number)
-  return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0)
-}
-
 /**
  * Hat die frisch angelegte Buchung ein Rennen um denselben Slot verloren?
  *
@@ -105,20 +111,23 @@ async function losesSlotRace(
     .select('id, start_time, end_time, created_at')
     .eq('salon_id', neu.salon_id as string)
     .eq('booking_date', neu.booking_date as string)
-    .in('status', ['confirmed', 'pending'])
+    .in('status', [...BLOCKING_STATUSES])
     .neq('id', neu.id as string)
 
   if (!others || others.length === 0) return false
 
   const start = minutesOfDay(neu.start_time)
-  const end = neu.end_time ? minutesOfDay(neu.end_time) : start + durationMinutes
+  if (Number.isNaN(start)) return false
+  const eigenesEnde = neu.end_time ? minutesOfDay(neu.end_time) : NaN
+  const end = Number.isNaN(eigenesEnde) ? start + durationMinutes : eigenesEnde
   const eigenerStempel = String(neu.created_at ?? '')
   const eigeneId = String(neu.id ?? '')
 
   return others.some(other => {
     const oStart = minutesOfDay(other.start_time)
     const oEnd = minutesOfDay(other.end_time)
-    const ueberschneidet = start < oEnd && end > oStart
+    if (Number.isNaN(oStart) || Number.isNaN(oEnd)) return false
+    const ueberschneidet = overlaps(start, end, oStart, oEnd)
     if (!ueberschneidet) return false
 
     const fremderStempel = String(other.created_at ?? '')
@@ -263,6 +272,28 @@ export async function createBooking(input: unknown) {
     }
   }
 
+  // Termine in der Vergangenheit: bis Track 6 nahm die Action sie
+  // widerspruchslos an. `createBookingSchema` prueft nur das Format
+  // `YYYY-MM-DD` — "2020-01-01" war eine gueltige Eingabe. Der Salon bekam
+  // eine Mail ueber einen Termin, der nicht mehr stattfinden kann, der Slot
+  // galt als belegt, und die Stornofrist war ab der ersten Sekunde gerissen.
+  //
+  // Verglichen wird gegen die Berliner Wanduhr, nicht gegen die des Servers:
+  // `booking_date`/`start_time` sind DATE und TIME ohne Zeitzone, Vercel
+  // laeuft in UTC. Ohne Umrechnung waere zwischen 00:00 und 02:00 Berliner
+  // Zeit systematisch der falsche Tag im Spiel.
+  if (startsInPast(data.date, data.startTime)) {
+    return { error: 'Dieser Termin liegt in der Vergangenheit. Bitte einen spaeteren Zeitpunkt waehlen.' }
+  }
+
+  // Ende = Beginn + Dauer, aber nur wenn der Termin am selben Tag endet.
+  // Ungeprueft ergab 23:30 + 90 Minuten die Zeit '25:00:00'; Postgres weist
+  // das zurueck, und der Kunde las "Buchung konnte nicht erstellt werden."
+  const endTimeStr = endTimeFor(data.startTime, service.duration_minutes)
+  if (!endTimeStr) {
+    return { error: 'Dieser Termin wuerde ueber Mitternacht hinausgehen. Bitte einen frueheren Zeitpunkt waehlen.' }
+  }
+
   // Check for slot conflict
   const hasConflict = await checkConflict(
     data.salonId,
@@ -298,13 +329,6 @@ export async function createBooking(input: unknown) {
     }
   }
 
-  // Calculate end time from start time + duration
-  const [startH, startM] = data.startTime.split(':').map(Number)
-  const endMinutes = startH * 60 + startM + service.duration_minutes
-  const endH = Math.floor(endMinutes / 60)
-  const endM = endMinutes % 60
-  const endTimeStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`
-
   // Sequential calls (best effort, no real transaction in REST API)
   // Step 1: Create booking
   const { data: newBooking, error: bookingError } = await supabase
@@ -329,6 +353,18 @@ export async function createBooking(input: unknown) {
     // fuer eine Buchung, die es nie gegeben hat.
     if (promoClaimed && data.promoCode) {
       await releasePromoCode(data.promoCode)
+    }
+
+    // Sobald `bookings_no_overlap` eingespielt ist (Migration
+    // 20260827_bookings_no_overlap), entscheidet bei gleichzeitigen Buchungen
+    // die Datenbank — und zwar mit 23P01. Ohne diese Unterscheidung bekaeme
+    // der Verlierer des Rennens "Buchung konnte nicht erstellt werden" zu
+    // lesen und wuerde denselben Slot wieder und wieder versuchen, statt zu
+    // erfahren, dass er belegt ist. Der Constraint ist heute noch nicht
+    // angewendet; der Zweig muss trotzdem stehen, sonst wird die Migration
+    // zum Ereignis statt zum Nicht-Ereignis.
+    if (bookingError?.code === '23P01' || bookingError?.code === '23505') {
+      return { error: 'Dieser Zeitslot ist bereits belegt.' }
     }
     return { error: 'Buchung konnte nicht erstellt werden.' }
   }
@@ -458,6 +494,28 @@ export async function cancelBooking(input: unknown) {
     return { error: 'Stornierung nicht möglich.' }
   }
 
+  // Stornofrist des Salons — bis Track 6 fragte sie beim Stornieren niemand
+  // ab. `snapshotPolicy` lieferte `cancellationHours` zwar an `createBooking`,
+  // dort landete der Wert aber nur im Audit-Log. Jede Absage galt als
+  // fristgerecht, auch die fuenf Minuten vor dem Termin — waehrend das
+  // Buchungsformular "kostenlos bis 24 Std. vorher" versprach.
+  //
+  // Die Frist entscheidet NICHT darueber, ob storniert werden darf: eine
+  // verspaetete Absage ist fuer den Salon immer noch besser als ein
+  // Nichterscheinen. Sie entscheidet nur darueber, was gemeldet wird.
+  //
+  // Ein Betrag wird bewusst nirgends genannt. `bookings` hat keine Spalte,
+  // die eine Stornogebuehr aufnehmen koennte, und `booking_policies` fuehrt
+  // nur `no_show_fee_cents` — das ist die Gebuehr fuers Nichterscheinen, nicht
+  // fuer eine verspaetete Absage (Spaltensonde 2026-08-27). Eine Zahl waere
+  // hier frei erfunden und liesse sich nirgends festschreiben.
+  const policy = await snapshotPolicy(String(booking.salon_id ?? ''))
+  const frist = evaluateCancellationWindow(
+    booking.booking_date,
+    booking.start_time,
+    policy.cancellationHours,
+  )
+
   // Sequential calls (best effort)
   await supabase
     .from('bookings')
@@ -473,13 +531,28 @@ export async function cancelBooking(input: unknown) {
       action: 'BOOKING_CANCELLED',
       entity: 'booking',
       entity_id: bookingId,
-      details: { reason, actor },
+      details: {
+        reason,
+        actor,
+        // Der einzige Ort, an dem die Fristlage haltbar festgehalten wird —
+        // `details` ist jsonb und nimmt das auf, ohne dass eine Spalte fehlt.
+        cancellationHours: frist.cancellationHours,
+        hoursBeforeStart:
+          frist.hoursBeforeStart === null ? null : Math.round(frist.hoursBeforeStart * 100) / 100,
+        freeOfCharge: frist.freeOfCharge,
+        deadlinePassed: frist.deadlinePassed,
+      },
     })
   } catch {
     console.error('Failed to create audit log')
   }
 
-  return { success: true }
+  return {
+    success: true,
+    freeOfCharge: frist.freeOfCharge,
+    deadlinePassed: frist.deadlinePassed,
+    cancellationHours: frist.cancellationHours,
+  }
 }
 
 export async function confirmBooking(bookingId: string) {
@@ -618,8 +691,9 @@ export async function getBookings(filters?: { customerId?: string; salonId?: str
     .from('bookings')
     .select(`
       *,
-      salon:salons(name, category, city),
-      service:services(name, duration_minutes, price_cents)
+      salon:salons(name, category, city, slug),
+      service:services(name, duration_minutes, price_cents),
+      customer:profiles!bookings_customer_id_fkey(full_name)
     `)
     .order('created_at', { ascending: false })
 

@@ -106,6 +106,8 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
   private limitN: number | null = null
   private orderBy: { column: string; ascending: boolean } | null = null
   private conflictKeys: string[] | null = null
+  /** Spalten aus `select('a, b')` — null bei `*` oder eingebetteten Relationen. */
+  private selectedColumns: string[] | null = null
 
   constructor(
     private readonly db: FakeSupabase,
@@ -113,6 +115,10 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
   ) {}
 
   select(_columns?: string, options?: { count?: string; head?: boolean }): this {
+    this.selectedColumns =
+      !_columns || _columns.includes('(') || _columns.trim() === '*'
+        ? null
+        : _columns.split(',').map(c => c.trim()).filter(Boolean)
     if (this.op === 'select') {
       this.wantCount = !!options?.count
       this.headOnly = !!options?.head
@@ -258,6 +264,14 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     const forced = this.db.takeForcedError(this.tableName, this.op)
     if (forced) return { data: null, error: forced }
 
+    // Lesende Zugriffe gegen das Spaltenschema: PostgREST beantwortet
+    // `?select=…` und `?spalte=eq.…` mit 42703, wenn es die Spalte nicht
+    // gibt — und zwar vor der Rechtepruefung.
+    const unknownRead = this.unknownReadColumn()
+    if (unknownRead) {
+      return { data: null, error: this.db.undefinedColumn(this.tableName, unknownRead) }
+    }
+
     const rows = this.db.rows(this.tableName)
 
     if (this.op === 'insert') {
@@ -274,9 +288,24 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
           continue
         }
 
+        const unknown = this.db.findUnknownColumn(this.tableName, raw)
+        if (unknown) {
+          return { data: null, error: this.db.undefinedColumn(this.tableName, unknown) }
+        }
+
         const row: Row = { ...raw }
-        if (row.id === undefined) row.id = this.db.nextId()
-        if (row.created_at === undefined) row.created_at = new Date().toISOString()
+        if (row.id === undefined && this.db.hasColumn(this.tableName, 'id')) {
+          row.id = this.db.nextId()
+        }
+        if (row.created_at === undefined && this.db.hasColumn(this.tableName, 'created_at')) {
+          row.created_at = new Date().toISOString()
+        }
+
+        const missing = this.db.findMissingNotNull(this.tableName, row)
+        if (missing) {
+          return { data: null, error: this.db.notNullViolation(this.tableName, missing) }
+        }
+
         const hookError = this.db.runInsertHooks(this.tableName, row)
         if (hookError) return { data: null, error: hookError }
         rows.push(row)
@@ -290,6 +319,17 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
 
     if (this.op === 'update') {
       const patch = this.payload[0] ?? {}
+      const unknown = this.db.findUnknownColumn(this.tableName, patch)
+      if (unknown) {
+        return { data: null, error: this.db.undefinedColumn(this.tableName, unknown) }
+      }
+      // Ein UPDATE darf eine NOT-NULL-Spalte nicht leeren. Geprueft wird nur,
+      // was der Patch anfasst.
+      for (const [column, value] of Object.entries(patch)) {
+        if (value == null && this.db.isNotNull(this.tableName, column)) {
+          return { data: null, error: this.db.notNullViolation(this.tableName, column) }
+        }
+      }
       const hit = rows.filter(r => this.matches(r))
       for (const r of hit) Object.assign(r, patch)
       if (!this.returnRows) return { data: null, error: null }
@@ -328,6 +368,27 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
       ? { data: embedded, error: null, count: embedded.length }
       : { data: embedded, error: null }
   }
+
+  /**
+   * Erste gelesene Spalte, die die Tabelle laut Schema nicht fuehrt.
+   *
+   * Beruecksichtigt Projektion, Filter und Sortierung — PostgREST kennt bei
+   * allen dreien 42703. Ohne definiertes Schema gilt jede Spalte als
+   * vorhanden, Bestandstests bleiben also unberuehrt.
+   */
+  private unknownReadColumn(): string | null {
+    if (this.op === 'insert') return null
+    for (const column of this.selectedColumns ?? []) {
+      if (!this.db.hasColumn(this.tableName, column)) return column
+    }
+    for (const { column } of this.filters) {
+      if (!this.db.hasColumn(this.tableName, column)) return column
+    }
+    if (this.orderBy && !this.db.hasColumn(this.tableName, this.orderBy.column)) {
+      return this.orderBy.column
+    }
+    return null
+  }
 }
 
 export class FakeSupabase {
@@ -335,6 +396,10 @@ export class FakeSupabase {
   private insertHooks: InsertHook[] = []
   private forcedErrors: { table: string; op: QueryOp; error: PostgrestError; once: boolean }[] = []
   private idCounter = 0
+  /** Tabelle -> erlaubte Spalten. Fehlt ein Eintrag, wird nicht geprueft. */
+  private schema = new Map<string, Set<string>>()
+  /** Tabelle -> Spalten, die live NOT NULL sind und keinen DEFAULT haben. */
+  private notNullColumns = new Map<string, Set<string>>()
 
   /** Protokoll aller abgesetzten Queries — für Assertions über Seiteneffekte */
   readonly log: CallLogEntry[] = []
@@ -360,6 +425,71 @@ export class FakeSupabase {
 
   from(table: string): FakeQuery {
     return new FakeQuery(this, table)
+  }
+
+  // ── Spaltenschema ──────────────────────────────────────────────────
+  //
+  // Diese Harness konnte bis Track 6 gar nicht pruefen, ob eine Spalte
+  // existiert. Genau diese Luecke hat im Nachrichten-System dazu gefuehrt,
+  // dass eine gruene Suite einen live komplett toten Pfad gedeckt hat — dort
+  // geschlossen (src/test/fake-supabase.ts), hier offen geblieben. Die
+  // Buchungs-Tests liegen in DIESER Harness, also gehoert sie auch hierhin.
+  //
+  // Zwei verschiedene Fehler, zwei verschiedene Pruefungen:
+  //   defineSchema  faengt die ERFUNDENE Spalte (42703)
+  //   defineNotNull faengt die VERGESSENE Spalte (23502)
+
+  /** Legt fest, welche Spalten eine Tabelle hat (42703 fuer alle anderen). */
+  defineSchema(table: string, columns: readonly string[]): this {
+    this.schema.set(table, new Set(columns))
+    return this
+  }
+
+  /** Legt fest, welche Spalten NOT NULL und ohne DEFAULT sind (23502). */
+  defineNotNull(table: string, columns: readonly string[]): this {
+    this.notNullColumns.set(table, new Set(columns))
+    return this
+  }
+
+  /** Ohne definiertes Schema gilt jede Spalte als vorhanden. */
+  hasColumn(table: string, column: string): boolean {
+    const allowed = this.schema.get(table)
+    return allowed ? allowed.has(column) : true
+  }
+
+  isNotNull(table: string, column: string): boolean {
+    return this.notNullColumns.get(table)?.has(column) ?? false
+  }
+
+  /** Erste Spalte in `row`, die die Tabelle nicht kennt — oder null. */
+  findUnknownColumn(table: string, row: Row): string | null {
+    const allowed = this.schema.get(table)
+    if (!allowed) return null
+    for (const column of Object.keys(row)) {
+      if (!allowed.has(column)) return column
+    }
+    return null
+  }
+
+  /** Erste NOT-NULL-Spalte, die in der fertigen Zeile fehlt — oder null. */
+  findMissingNotNull(table: string, row: Row): string | null {
+    const required = this.notNullColumns.get(table)
+    if (!required) return null
+    for (const column of required) {
+      if (row[column] == null) return column
+    }
+    return null
+  }
+
+  undefinedColumn(table: string, column: string): PostgrestError {
+    return pgError('42703', `column ${table}.${column} does not exist`)
+  }
+
+  notNullViolation(table: string, column: string): PostgrestError {
+    return pgError(
+      '23502',
+      `null value in column "${column}" of relation "${table}" violates not-null constraint`,
+    )
   }
 
   /**

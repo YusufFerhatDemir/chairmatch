@@ -23,12 +23,29 @@ export const POST = withApi(async (request: Request) => {
   return NextResponse.json(result, { status: 201 })
 })
 
-export const GET = withApi(async () => {
+/**
+ * Eigene Termine lesen.
+ *
+ * Ohne `salonId` sind das die Termine, die der Aufrufer als Kunde gebucht hat.
+ * Mit `salonId` die Termine SEINES Salons — die Anbieter-Sicht.
+ *
+ * Die Berechtigung dafuer wird bewusst nicht hier geprueft, sondern in
+ * `getBookings`: ein fremder `salonId` liefert dort eine leere Liste, weil die
+ * Action den Eigentuemer gegen die Session haelt. Das ist die Stelle, die auch
+ * ein direkter Server-Action-Aufruf durchlaufen muss — eine zweite Pruefung
+ * hier waere die, die irgendwann auseinanderlaeuft.
+ */
+export const GET = withApi(async (request: Request) => {
   const session = await getServerSession()
   if (!session?.user) {
     return apiError('Nicht authentifiziert', 401)
   }
 
-  const bookings = await getBookings({ customerId: session.user.id })
+  const salonId = new URL(request.url).searchParams.get('salonId')
+
+  const bookings = salonId
+    ? await getBookings({ salonId })
+    : await getBookings({ customerId: session.user.id })
+
   return NextResponse.json(bookings)
 })

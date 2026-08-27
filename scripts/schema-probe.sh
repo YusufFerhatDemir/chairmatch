@@ -61,7 +61,13 @@ email_delivery_log|id email_type reference_id recipient_email status provider_me
 rental_equipment|id salon_id type name description price_per_day_cents price_per_hour_cents price_per_week_cents price_per_month_cents available_days available_from available_to features is_available images created_at updated_at
 notification_log|id user_id title body type reference_id reference_type is_read created_at
 user_uploads|id user_id target salon_id equipment_id doc_key bucket storage_path mime_type size_bytes is_public created_at
-salons|id owner_id name city slug gallery logo_url created_at updated_at
+salons|id owner_id name city slug gallery logo_url created_at updated_at category is_active opening_hours state street house_number postal_code avg_rating review_count description phone
+bookings|id customer_id salon_id service_id staff_id booking_date start_time end_time status price_cents notes cancellation_reason created_at updated_at provider_id resource_id booking_type payment_status stripe_session_id stripe_payment_intent is_first_visit
+booking_policies|id salon_id deposit_percent cancellation_hours no_show_fee_cents created_at updated_at
+staff|id salon_id name title is_active
+consents|id user_id booking_id type given created_at
+audit_logs|id user_id action entity entity_id details created_at
+promo_codes|id code discount type is_active expires_at max_uses used_count
 rental_bookings|id equipment_id status created_at
 conversations|id salon_id created_at last_message_at
 conversation_participants|id conversation_id user_id
@@ -69,7 +75,7 @@ messages|id conversation_id sender_id content is_read created_at
 error_logs|id message stack url user_agent ip user_id severity component context created_at
 visit_logs|id path ip country region city user_agent created_at
 salon_images|id salon_id url image_type sort_order storage_path bucket created_at
-services|id salon_id name slug price_cents duration_minutes category is_active sort_order created_at
+services|id salon_id name slug price_cents duration_minutes category is_active sort_order created_at description currency risk_level
 documents|id salon_id user_id type status name url created_at
 authorities_packs|id salon_id created_by status created_at
 submission_tickets|id salon_id user_id status plan_type admin_notes created_at updated_at

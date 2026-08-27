@@ -1,108 +1,179 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
+import { berlinToday } from '@/lib/berlin-time'
 
-interface Booking {
-  slug?: string
-  service?: { id: string; name: string; duration: number; price: number; sub: string }
-  date?: { y: number; m: number; d: number }
-  timeSlot?: string
-  bookedAt?: string
-  status?: 'open' | 'confirmed' | 'cancelled' | 'past'
-  customer?: string
+/**
+ * Meine Termine (Anbieter) — /anbieter/mein-salon/termine
+ *
+ * Der Terminkalender des Salons war bis Track 6 doppelt erfunden:
+ *
+ *  1. `DEMO_BOOKINGS` — vier feste Kundinnen ("Anna Mustermann", "Max
+ *     Schmidt", …) mit erfundenen Preisen, jedem Saloninhaber dieselben, immer
+ *     auf den heutigen Tag gelegt. Daraus wurden auch die KPI-Kacheln
+ *     gerechnet, inklusive "Umsatz Woche" — eine Zahl, die nie etwas mit dem
+ *     Salon zu tun hatte.
+ *  2. Der Rest kam aus `localStorage['cm_bookings']` — dem Browserspeicher
+ *     des ANBIETERS. Dort landeten aber nur die Schein-Buchungen, die der
+ *     Buchen-Flow im Browser des KUNDEN abgelegt hat. Ein echter Kundentermin
+ *     konnte hier also gar nicht ankommen: die beiden Geraete teilen keinen
+ *     localStorage.
+ *
+ * Der Kalender zeigte damit garantiert nie einen echten Termin — und ein
+ * Salon, der ihm glaubte, hat Doppelbuchungen angenommen, weil die wirklich
+ * belegten Zeiten nirgends zu sehen waren.
+ *
+ * Jetzt: `GET /api/bookings?salonId=…` mit den echten Buchungen des eigenen
+ * Salons. Die Eigentuemerpruefung sitzt in `getBookings` — ein fremder
+ * `salonId` liefert dort eine leere Liste.
+ */
+
+interface ApiBooking {
+  id: string
+  booking_date: string
+  start_time: string
+  status: string
+  price_cents: number | null
+  service?: { name?: string; duration_minutes?: number } | null
+  customer?: { full_name?: string } | null
 }
-
-// Demo-Daten für Anbieter-Sicht
-const DEMO_BOOKINGS: Booking[] = [
-  { customer: 'Anna Mustermann', service: { id: 'damen', name: 'Damenschnitt & Föhnen', duration: 60, price: 45, sub: '' }, timeSlot: '09:00', status: 'confirmed' },
-  { customer: 'Max Schmidt', service: { id: 'herren', name: 'Herrenschnitt', duration: 30, price: 25, sub: '' }, timeSlot: '11:30', status: 'confirmed' },
-  { customer: 'Lisa Bauer', service: { id: 'damen', name: 'Damenschnitt & Föhnen', duration: 60, price: 45, sub: '' }, timeSlot: '14:30', status: 'confirmed' },
-  { customer: 'Sarah Klein', service: { id: 'faerben', name: 'Färben (kurz)', duration: 90, price: 60, sub: '' }, timeSlot: '16:00', status: 'open' },
-]
 
 const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 const DAY_NAMES = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']
 
+function hhmm(time: string | null | undefined): string {
+  if (!time) return '--:--'
+  const m = /^(\d{1,2}):(\d{2})/.exec(time)
+  return m ? `${m[1].padStart(2, '0')}:${m[2]}` : '--:--'
+}
+
+/** YYYY-MM-DD + Tage -> YYYY-MM-DD (ueber UTC, damit keine Zeitzone hineinrutscht). */
+function plusDays(dateKey: string, days: number): string {
+  const [y, m, d] = dateKey.split('-').map(Number)
+  const t = new Date(Date.UTC(y, m - 1, d + days))
+  return `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, '0')}-${String(t.getUTCDate()).padStart(2, '0')}`
+}
+
+function euro(cents: number): string {
+  return `${(cents / 100).toFixed(2).replace('.', ',')} €`
+}
+
+const AKTIV = ['pending', 'confirmed']
+
 export default function TermineAnbieterPage() {
   const router = useRouter()
   const [filter, setFilter] = useState<'today' | 'tomorrow' | 'week' | 'month' | 'all'>('today')
-  const [allBookings, setAllBookings] = useState<Booking[]>(DEMO_BOOKINGS)
+  const [bookings, setBookings] = useState<ApiBooking[]>([])
+  const [laedt, setLaedt] = useState(true)
+  const [fehler, setFehler] = useState<string | null>(null)
+  const [aendert, setAendert] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Merge customer's bookings (from localStorage) with demo bookings
+  const laden = useCallback(async () => {
+    setLaedt(true)
+    setFehler(null)
     try {
-      const raw = localStorage.getItem('cm_bookings')
-      if (raw) {
-        const userBookings: Booking[] = JSON.parse(raw)
-        const today = new Date()
-        const todayDate = { y: today.getFullYear(), m: today.getMonth(), d: today.getDate() }
-        // Add today's demo bookings as if they were on today
-        const demosToday = DEMO_BOOKINGS.map(b => ({ ...b, date: todayDate, status: b.status }))
-        setAllBookings([...userBookings.filter(b => b.status !== 'cancelled').map(b => ({ ...b, customer: 'Kunde' })), ...demosToday])
-      } else {
-        const today = new Date()
-        const todayDate = { y: today.getFullYear(), m: today.getMonth(), d: today.getDate() }
-        setAllBookings(DEMO_BOOKINGS.map(b => ({ ...b, date: todayDate })))
+      const salonRes = await fetch('/api/me/salon', { cache: 'no-store' })
+      if (salonRes.status === 401) {
+        setFehler('Bitte melde dich an.')
+        setBookings([])
+        return
       }
+      if (!salonRes.ok) {
+        setFehler('Für dieses Konto ist noch kein Salon hinterlegt.')
+        setBookings([])
+        return
+      }
+      const salon = await salonRes.json()
+      const salonId = salon?.id ?? salon?.salon?.id
+      if (!salonId) {
+        setFehler('Für dieses Konto ist noch kein Salon hinterlegt.')
+        setBookings([])
+        return
+      }
+
+      const res = await fetch(`/api/bookings?salonId=${encodeURIComponent(salonId)}`, { cache: 'no-store' })
+      if (!res.ok) {
+        setFehler('Termine konnten nicht geladen werden.')
+        setBookings([])
+        return
+      }
+      const data = await res.json()
+      setBookings(Array.isArray(data) ? data : [])
     } catch {
-      const today = new Date()
-      const todayDate = { y: today.getFullYear(), m: today.getMonth(), d: today.getDate() }
-      setAllBookings(DEMO_BOOKINGS.map(b => ({ ...b, date: todayDate })))
+      setFehler('Verbindungsfehler — Termine konnten nicht geladen werden.')
+      setBookings([])
+    } finally {
+      setLaedt(false)
     }
   }, [])
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const weekEnd = new Date(today)
-  weekEnd.setDate(weekEnd.getDate() + 7)
-  const monthEnd = new Date(today)
-  monthEnd.setMonth(monthEnd.getMonth() + 1)
+  useEffect(() => {
+    void laden()
+  }, [laden])
 
-  const filtered = allBookings.filter(b => {
-    if (!b.date) return false
-    const d = new Date(b.date.y, b.date.m, b.date.d)
-    if (filter === 'today') return d.getTime() === today.getTime()
-    if (filter === 'tomorrow') return d.getTime() === tomorrow.getTime()
-    if (filter === 'week') return d >= today && d < weekEnd
-    if (filter === 'month') return d >= today && d < monthEnd
+  const heute = berlinToday()
+  const morgen = plusDays(heute, 1)
+  const wocheEnde = plusDays(heute, 7)
+  const monatEnde = plusDays(heute, 31)
+
+  const imZeitraum = (b: ApiBooking): boolean => {
+    const d = String(b.booking_date)
+    if (filter === 'today') return d === heute
+    if (filter === 'tomorrow') return d === morgen
+    if (filter === 'week') return d >= heute && d < wocheEnde
+    if (filter === 'month') return d >= heute && d < monatEnde
     return true
-  }).sort((a, b) => {
-    if (!a.date || !b.date) return 0
-    const aD = new Date(a.date.y, a.date.m, a.date.d).getTime()
-    const bD = new Date(b.date.y, b.date.m, b.date.d).getTime()
-    if (aD !== bD) return aD - bD
-    return (a.timeSlot || '').localeCompare(b.timeSlot || '')
-  })
+  }
 
-  // KPIs
-  const todayCount = allBookings.filter(b => {
-    if (!b.date) return false
-    const d = new Date(b.date.y, b.date.m, b.date.d)
-    return d.getTime() === today.getTime() && b.status !== 'cancelled'
-  }).length
-  const weekCount = allBookings.filter(b => {
-    if (!b.date) return false
-    const d = new Date(b.date.y, b.date.m, b.date.d)
-    return d >= today && d < weekEnd && b.status !== 'cancelled'
-  }).length
-  const weekRevenue = allBookings.filter(b => {
-    if (!b.date) return false
-    const d = new Date(b.date.y, b.date.m, b.date.d)
-    return d >= today && d < weekEnd && b.status !== 'cancelled'
-  }).reduce((sum, b) => sum + (b.service?.price || 0), 0)
+  const filtered = bookings
+    .filter(imZeitraum)
+    .sort((a, b) => `${a.booking_date} ${a.start_time}`.localeCompare(`${b.booking_date} ${b.start_time}`))
 
-  // Group by date
-  const groups = new Map<string, Booking[]>()
+  const aktiv = bookings.filter(b => AKTIV.includes(String(b.status).toLowerCase()))
+  const todayCount = aktiv.filter(b => String(b.booking_date) === heute).length
+  const weekCount = aktiv.filter(b => String(b.booking_date) >= heute && String(b.booking_date) < wocheEnde).length
+
+  // Umsatz der Woche aus den tatsaechlich gespeicherten Preisen. Buchungen
+  // ohne Preis fliessen mit 0 ein und werden separat ausgewiesen, statt die
+  // Summe stillschweigend zu schoenen.
+  const wocheBuchungen = aktiv.filter(b => String(b.booking_date) >= heute && String(b.booking_date) < wocheEnde)
+  const weekRevenueCents = wocheBuchungen.reduce(
+    (sum, b) => sum + (typeof b.price_cents === 'number' ? b.price_cents : 0),
+    0,
+  )
+  const ohnePreis = wocheBuchungen.filter(b => typeof b.price_cents !== 'number').length
+
+  const groups = new Map<string, ApiBooking[]>()
   for (const b of filtered) {
-    if (!b.date) continue
-    const k = `${b.date.y}-${b.date.m}-${b.date.d}`
+    const k = String(b.booking_date)
     if (!groups.has(k)) groups.set(k, [])
     groups.get(k)!.push(b)
+  }
+
+  /** Termin bestaetigen — echter Statuswechsel ueber PATCH /api/bookings/[id]. */
+  async function bestaetigen(id: string) {
+    setAendert(id)
+    setFehler(null)
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newStatus: 'confirmed' }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setFehler(data?.error || 'Der Termin konnte nicht bestätigt werden.')
+        return
+      }
+      await laden()
+    } catch {
+      setFehler('Verbindungsfehler — der Termin wurde nicht bestätigt.')
+    } finally {
+      setAendert(null)
+    }
   }
 
   return (
@@ -138,23 +209,29 @@ export default function TermineAnbieterPage() {
           <p style={{ fontSize: 13, color: 'var(--stone)' }}>Übersicht aller Buchungen</p>
         </div>
 
-        {/* KPI Strip */}
+        {fehler && (
+          <div style={{ margin: '0 16px 12px', padding: '10px 14px', borderRadius: 12, background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.3)', color: '#FF8888', fontSize: 12.5, lineHeight: 1.5 }}>
+            {fehler}
+          </div>
+        )}
+
         <div style={{ margin: '0 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
           <div style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: '12px 6px', textAlign: 'center' }}>
-            <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>{todayCount}</div>
+            <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>{laedt ? '–' : todayCount}</div>
             <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>Heute</div>
           </div>
           <div style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: '12px 6px', textAlign: 'center' }}>
-            <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>{weekCount}</div>
+            <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>{laedt ? '–' : weekCount}</div>
             <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>Diese Woche</div>
           </div>
           <div style={{ background: 'var(--c1)', border: '0.5px solid rgba(196,168,106,0.15)', borderRadius: 14, padding: '12px 6px', textAlign: 'center' }}>
-            <div className="cinzel text-gold-metallic" style={{ fontSize: 19, fontWeight: 600 }}>€{weekRevenue}</div>
-            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>Umsatz Woche</div>
+            <div className="cinzel text-gold-metallic" style={{ fontSize: 17, fontWeight: 600 }}>{laedt ? '–' : euro(weekRevenueCents)}</div>
+            <div style={{ fontSize: 9, letterSpacing: 1.5, color: 'var(--stone)', marginTop: 3, textTransform: 'uppercase' }}>
+              Umsatz Woche{ohnePreis > 0 ? ` (${ohnePreis} o. Preis)` : ''}
+            </div>
           </div>
         </div>
 
-        {/* Filter chips */}
         <div style={{ padding: '0 16px 14px', display: 'flex', gap: 6, overflowX: 'auto' }}>
           {[
             { k: 'today', l: 'Heute' },
@@ -176,7 +253,11 @@ export default function TermineAnbieterPage() {
           ))}
         </div>
 
-        {groups.size === 0 ? (
+        {laedt ? (
+          <div style={{ margin: '20px 16px 30px', padding: 40, textAlign: 'center', color: 'var(--stone)', fontSize: 13 }}>
+            Termine werden geladen …
+          </div>
+        ) : groups.size === 0 ? (
           <div style={{ margin: '20px 16px 30px', padding: 40, textAlign: 'center', background: 'rgba(176,144,96,0.04)', border: '1px dashed rgba(176,144,96,0.25)', borderRadius: 18 }}>
             <p className="cinzel" style={{ fontSize: 18, color: 'var(--gold2)', marginBottom: 8 }}>Keine Termine</p>
             <p style={{ fontSize: 13, color: 'var(--stone)', lineHeight: 1.6 }}>Aktuell keine Buchungen in diesem Zeitraum.</p>
@@ -184,40 +265,54 @@ export default function TermineAnbieterPage() {
         ) : (
           Array.from(groups.entries()).map(([dateKey, items]) => {
             const [y, m, d] = dateKey.split('-').map(Number)
-            const date = new Date(y, m, d)
-            const dayName = DAY_NAMES[date.getDay()]
+            const dayName = DAY_NAMES[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
             return (
               <div key={dateKey}>
                 <div style={{ padding: '8px 20px', fontFamily: 'Cinzel', fontSize: 13, fontWeight: 600, color: 'var(--gold2)', letterSpacing: 2, textTransform: 'uppercase', background: 'rgba(196,168,106,0.04)', borderTop: '1px solid rgba(196,168,106,0.08)', borderBottom: '1px solid rgba(196,168,106,0.08)' }}>
-                  {dayName}, {d}. {MONTHS[m]}
+                  {dayName}, {d}. {MONTHS[m - 1]}
                 </div>
                 <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {items.map((b, i) => (
-                    <div key={i} style={{
-                      background: 'linear-gradient(145deg, rgba(191,149,63,0.04), var(--c1) 50%, rgba(179,135,40,0.02))',
-                      border: '1px solid rgba(191,149,63,0.18)',
-                      borderRadius: 14, padding: 14,
-                      display: 'flex', gap: 12,
-                    }}>
-                      <div style={{ flexShrink: 0, textAlign: 'center', minWidth: 54, paddingRight: 12, borderRight: '1px solid rgba(196,168,106,0.15)' }}>
-                        <div className="cinzel text-gold-metallic" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1 }}>{b.timeSlot || '--:--'}</div>
-                        <div style={{ fontSize: 11, color: 'var(--stone)', fontWeight: 500, marginTop: 3 }}>{b.service?.duration} min</div>
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 700 }}>{b.customer || 'Kunde'}</p>
-                        <p style={{ fontSize: 11.5, color: 'var(--stone)', marginTop: 2 }}>{b.service?.name || '—'}</p>
-                        <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                          <span style={{ fontSize: 9, letterSpacing: 1, fontWeight: 700, padding: '2px 7px', borderRadius: 6,
-                            background: b.status === 'open' ? 'rgba(232,80,64,0.15)' : 'rgba(74,138,90,0.18)',
-                            color: b.status === 'open' ? '#FF8888' : '#6ABF80',
-                          }}>
-                            {b.status === 'open' ? 'NEU · BESTÄTIGEN' : 'BESTÄTIGT'}
-                          </span>
-                          <span className="cinzel text-gold-metallic" style={{ fontSize: 15, fontWeight: 700, marginLeft: 'auto' }}>{b.service?.price ?? '—'} €</span>
+                  {items.map(b => {
+                    const status = String(b.status).toLowerCase()
+                    const offen = status === 'pending'
+                    const storniert = status === 'cancelled'
+                    return (
+                      <div key={b.id} style={{
+                        background: 'linear-gradient(145deg, rgba(191,149,63,0.04), var(--c1) 50%, rgba(179,135,40,0.02))',
+                        border: '1px solid rgba(191,149,63,0.18)',
+                        borderRadius: 14, padding: 14,
+                        display: 'flex', gap: 12,
+                        opacity: storniert ? 0.6 : 1,
+                      }}>
+                        <div style={{ flexShrink: 0, textAlign: 'center', minWidth: 54, paddingRight: 12, borderRight: '1px solid rgba(196,168,106,0.15)' }}>
+                          <div className="cinzel text-gold-metallic" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1 }}>{hhmm(b.start_time)}</div>
+                          {b.service?.duration_minutes ? (
+                            <div style={{ fontSize: 11, color: 'var(--stone)', fontWeight: 500, marginTop: 3 }}>{b.service.duration_minutes} min</div>
+                          ) : null}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: 14, fontWeight: 700 }}>{b.customer?.full_name || 'Kunde'}</p>
+                          <p style={{ fontSize: 11.5, color: 'var(--stone)', marginTop: 2 }}>{b.service?.name || '—'}</p>
+                          <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                            <span style={{ fontSize: 9, letterSpacing: 1, fontWeight: 700, padding: '2px 7px', borderRadius: 6,
+                              background: storniert ? 'rgba(232,80,64,0.15)' : offen ? 'rgba(232,80,64,0.15)' : 'rgba(74,138,90,0.18)',
+                              color: storniert ? '#FF8888' : offen ? '#FF8888' : '#6ABF80',
+                            }}>
+                              {storniert ? 'ABGESAGT' : offen ? 'NEU · BESTÄTIGEN' : status.toUpperCase()}
+                            </span>
+                            <span className="cinzel text-gold-metallic" style={{ fontSize: 15, fontWeight: 700, marginLeft: 'auto' }}>
+                              {typeof b.price_cents === 'number' ? euro(b.price_cents) : '—'}
+                            </span>
+                          </div>
+                          {offen && (
+                            <button onClick={() => bestaetigen(b.id)} disabled={aendert === b.id}
+                              style={{ marginTop: 8, fontSize: 11, color: '#6ABF80', background: 'transparent', border: '1px solid rgba(74,138,90,0.35)', borderRadius: 8, padding: '5px 10px', cursor: aendert === b.id ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: aendert === b.id ? 0.6 : 1 }}
+                            >{aendert === b.id ? 'Bestätige …' : '✓ Bestätigen'}</button>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )
