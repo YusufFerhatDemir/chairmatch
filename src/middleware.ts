@@ -332,6 +332,73 @@ export function usesNonceCanary(pathname: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Auth- und RBAC-Entscheidung
+// ---------------------------------------------------------------------------
+
+export type AuthDecision =
+  | { kind: 'pass' }
+  | { kind: 'unauthorized' }
+  | { kind: 'login_redirect' }
+  | { kind: 'password_change_required' }
+  | { kind: 'password_change_redirect' }
+  | { kind: 'forbidden' }
+
+/**
+ * Reine Entscheidungsfunktion fuer Session- und Rollen-Pruefung.
+ *
+ * Ausgelagert aus dem `auth((req) => ...)`-Callback, weil sich dieser nicht
+ * ohne vollen NextAuth-Request-Mock aufrufen laesst — genau das Problem, das
+ * `authorizeCredentials` in auth.config.ts fuer den Login-Pfad schon loest.
+ * Hier wird dieselbe RBAC-Kette (Session → Passwort-Zwang → Rollen-Praefixe)
+ * direkt mit einem Pfad und einer Session pruefbar, ohne NextRequest/Response.
+ */
+export function decideAuthAccess(params: {
+  pathname: string
+  session: { role?: string; passwordMustChange?: boolean } | null
+}): AuthDecision {
+  const { pathname, session } = params
+
+  if (isPublicPath(pathname)) return { kind: 'pass' }
+
+  if (!session) {
+    if (pathname.startsWith('/api/')) return { kind: 'unauthorized' }
+    const needsAuth = authRequiredPaths.some(
+      (p) => pathname === p || pathname.startsWith(p + '/'),
+    )
+    if (!needsAuth) return { kind: 'pass' }
+    return { kind: 'login_redirect' }
+  }
+
+  const role = session.role || ''
+  const mustChangePw = !!session.passwordMustChange
+
+  if (mustChangePw && !pathname.startsWith('/auth/change-password') && !pathname.startsWith('/api/auth/')) {
+    if (pathname.startsWith('/api/')) return { kind: 'password_change_required' }
+    return { kind: 'password_change_redirect' }
+  }
+
+  if (providerPaths.some((p) => pathname.startsWith(p))) {
+    if (!isProviderOrAbove(role)) return { kind: 'forbidden' }
+  }
+
+  if (ownerPaths.some((p) => pathname.startsWith(p))) {
+    if (!isBusinessOwnerOrAbove(role) && !isProviderOrAbove(role)) {
+      return { kind: 'forbidden' }
+    }
+  }
+
+  if (investorPaths.some((p) => pathname.startsWith(p))) {
+    if (!isInvestorOrAbove(role)) return { kind: 'forbidden' }
+  }
+
+  if (adminPaths.some((p) => pathname.startsWith(p))) {
+    if (!isAdminOrAbove(role)) return { kind: 'forbidden' }
+  }
+
+  return { kind: 'pass' }
+}
+
+// ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
 
@@ -413,76 +480,60 @@ export default auth((req) => {
       }
     }
 
-    // ------ Öffentliche Routen ------
-    if (isPublicPath(pathname)) return pass()
-
-    // ------ Auth-Prüfung ------
+    // ------ Auth- und RBAC-Entscheidung ------
     const session = req.auth
-    if (!session) {
-      // API-Routen: 401 JSON statt Redirect (Default-Deny für nicht-öffentliche APIs bleibt).
-      if (pathname.startsWith('/api/')) {
+    const decision = decideAuthAccess({
+      pathname,
+      session: session
+        ? {
+            role: (session.user as { role?: string })?.role,
+            passwordMustChange: (session.user as { passwordMustChange?: boolean })?.passwordMustChange,
+          }
+        : null,
+    })
+
+    switch (decision.kind) {
+      case 'pass':
+        return pass()
+
+      case 'unauthorized':
+        // API-Routen: 401 JSON statt Redirect (Default-Deny für nicht-öffentliche APIs bleibt).
         return NextResponse.json(
           { error: 'Nicht authentifiziert', code: 'UNAUTHORIZED' },
           { status: 401 }
         )
+
+      case 'login_redirect': {
+        // Seiten-Routen: NUR echte geschützte Bereiche auf die Login-Wall schicken.
+        // Jeder andere (unbekannte oder öffentliche) Pfad wird durchgelassen → Next.js
+        // rendert die Seite oder eine saubere 404, statt 307 → /auth. Verhindert, dass
+        // Crawler/Backlinks auf der Login-Wall landen (die Ursache für 0 indexierte Seiten).
+        const loginUrl = new URL('/auth', req.url)
+        loginUrl.searchParams.set('callbackUrl', pathname)
+        return NextResponse.redirect(loginUrl)
       }
-      // Seiten-Routen: NUR echte geschützte Bereiche auf die Login-Wall schicken.
-      // Jeder andere (unbekannte oder öffentliche) Pfad wird durchgelassen → Next.js
-      // rendert die Seite oder eine saubere 404, statt 307 → /auth. Verhindert, dass
-      // Crawler/Backlinks auf der Login-Wall landen (die Ursache für 0 indexierte Seiten).
-      const needsAuth = authRequiredPaths.some(
-        (p) => pathname === p || pathname.startsWith(p + '/'),
-      )
-      if (!needsAuth) return pass()
 
-      const loginUrl = new URL('/auth', req.url)
-      loginUrl.searchParams.set('callbackUrl', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-
-    const role = (session.user as { role?: string })?.role || ''
-    const mustChangePw = !!(session.user as { passwordMustChange?: boolean })?.passwordMustChange
-
-    // ------ Force Password Change ------
-    // Wenn das Flag gesetzt ist (z.B. Provider mit Initial-Passwort), darf der User
-    // NUR auf /auth/change-password und einige whitelist-Routen. Alles andere → Redirect.
-    if (mustChangePw && !pathname.startsWith('/auth/change-password') && !pathname.startsWith('/api/auth/')) {
-      if (pathname.startsWith('/api/')) {
+      // ------ Force Password Change ------
+      // Wenn das Flag gesetzt ist (z.B. Provider mit Initial-Passwort), darf der User
+      // NUR auf /auth/change-password und einige whitelist-Routen. Alles andere → Redirect.
+      case 'password_change_required':
         return NextResponse.json(
           { error: 'Passwort muss geändert werden', code: 'PW_MUST_CHANGE' },
           { status: 403 }
         )
+
+      case 'password_change_redirect': {
+        const url = new URL('/auth/change-password', req.url)
+        url.searchParams.set('forced', '1')
+        url.searchParams.set('callbackUrl', pathname)
+        return NextResponse.redirect(url)
       }
-      const url = new URL('/auth/change-password', req.url)
-      url.searchParams.set('forced', '1')
-      url.searchParams.set('callbackUrl', pathname)
-      return NextResponse.redirect(url)
+
+      case 'forbidden':
+        return pathname.startsWith('/api/')
+          ? NextResponse.json({ error: 'Keine Berechtigung', code: 'FORBIDDEN' }, { status: 403 })
+          : NextResponse.redirect(new URL('/', req.url))
     }
-
-    // ------ RBAC ------
-    const forbidden = () => pathname.startsWith('/api/')
-      ? NextResponse.json({ error: 'Keine Berechtigung', code: 'FORBIDDEN' }, { status: 403 })
-      : NextResponse.redirect(new URL('/', req.url))
-
-    if (providerPaths.some(p => pathname.startsWith(p))) {
-      if (!isProviderOrAbove(role)) return forbidden()
-    }
-
-    if (ownerPaths.some(p => pathname.startsWith(p))) {
-      if (!isBusinessOwnerOrAbove(role) && !isProviderOrAbove(role)) {
-        return forbidden()
-      }
-    }
-
-    if (investorPaths.some(p => pathname.startsWith(p))) {
-      if (!isInvestorOrAbove(role)) return forbidden()
-    }
-
-    if (adminPaths.some(p => pathname.startsWith(p))) {
-      if (!isAdminOrAbove(role)) return forbidden()
-    }
-
-    return pass()
   }
 })
 
