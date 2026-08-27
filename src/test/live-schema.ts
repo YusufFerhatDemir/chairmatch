@@ -27,7 +27,7 @@
  */
 
 /** Verifiziert am 2026-08-24 gegen die Produktionsdatenbank. */
-export const LIVE_SCHEMA_VERIFIED_AT = '2026-08-27'
+export const LIVE_SCHEMA_VERIFIED_AT = '2026-08-28'
 
 export const LIVE_SCHEMA: Record<string, readonly string[]> = {
   rental_requests: [
@@ -269,6 +269,12 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
     'status',
     'payment_status',
     'stripe_session_id',
+    // Nachtrag Spaltensonde 2026-08-28: die Spalte existiert live, fehlte in
+    // dieser Liste aber, obwohl der Kommentar darueber den „vollen
+    // Ist-Zustand" zusagt. Der Webhook liest und schreibt sie seit Track 6
+    // (Doppelzahlungs-Guard, charge.refunded) — ein Test, der diese Liste
+    // durchsetzt, haette korrekten Produktivcode als Fehler gemeldet.
+    'stripe_payment_intent',
     'created_at',
     'updated_at',
   ],

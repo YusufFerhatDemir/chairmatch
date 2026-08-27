@@ -10,6 +10,8 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY
 // Fallback auf die verifizierte Prod-Adresse.
 const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL || 'ChairMatch <noreply@chairmatch.de>'
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chairmatch.de'
+
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null
 
 // ---------------------------------------------------------------------------
@@ -27,6 +29,16 @@ export interface BookingEmailDetails {
   customerName?: string
   staffName?: string
   notes?: string
+  /**
+   * Stornofrist des Salons in Stunden (`booking_policies.cancellation_hours`).
+   *
+   * Ohne diesen Wert nennt die Erinnerung gar keine Frist. Bis Track 12 stand
+   * dort fest „bis 24h vorher kostenlos stornieren" — eine Zusage, die die
+   * Vorlage nie nachschlagen konnte und die fuer jeden Salon mit abweichender
+   * Frist falsch war. Track 6 hat genau diesen Satz aus dem Buchungsformular
+   * entfernt, in der Mail stand er weiter.
+   */
+  cancellationHours?: number | null
 }
 
 export interface ComplianceAlertDetails {
@@ -64,8 +76,39 @@ function formatPrice(cents: number): string {
   }).format(cents / 100)
 }
 
+/**
+ * HTML-Escaping fuer jeden Wert, der in eine Mail eingesetzt wird.
+ *
+ * `'` gehoert dazu: einfache Anfuehrungszeichen sind in HTML-Attributen ein
+ * gueltiger Begrenzer, und einige der Vorlagen unten setzen Werte in
+ * Attribute (href, style). Ohne `&#39;` liesse sich aus einem
+ * einfach-gequoteten Attribut ausbrechen.
+ */
 function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/**
+ * URL fuer ein `href` — nur http/https, sonst nichts.
+ *
+ * `javascript:` und `data:` sind in E-Mail-Clients zwar meist wirkungslos,
+ * aber der Weg fuehrt ueber Weiterleitungen und Webmail-Ansichten trotzdem
+ * zurueck in einen Browser. Was kein http(s) ist, wird zur Startseite —
+ * lieber ein harmloser Link als ein gefaehrlicher.
+ */
+function safeUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return 'https://www.chairmatch.de'
+    return esc(parsed.toString())
+  } catch {
+    return 'https://www.chairmatch.de'
+  }
 }
 
 function formatDate(dateStr: string): string {
@@ -77,7 +120,9 @@ function formatDate(dateStr: string): string {
       day: 'numeric',
     }).format(new Date(dateStr))
   } catch {
-    return dateStr
+    // Der Rueckfall gibt den Rohwert aus — der kommt aus dem Request und
+    // muss deshalb escapet werden, anders als die Intl-Ausgabe darueber.
+    return esc(dateStr)
   }
 }
 
@@ -85,7 +130,7 @@ function baseLayout(title: string, content: string): string {
   return `<!DOCTYPE html>
 <html lang="de">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title}</title></head>
+<title>${esc(title)}</title></head>
 <body style="margin:0;padding:0;background:#1a1a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1a1a1a">
 <tr><td align="center" style="padding:24px 16px">
@@ -113,7 +158,7 @@ function baseLayout(title: string, content: string): string {
 function goldButton(text: string, url: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px auto">
 <tr><td style="background:linear-gradient(135deg,#D4AF37,#E8D06A);border-radius:8px;padding:14px 32px;text-align:center">
-  <a href="${url}" style="color:#1a1a1a;font-weight:700;font-size:15px;text-decoration:none;display:inline-block">${text}</a>
+  <a href="${safeUrl(url)}" style="color:#1a1a1a;font-weight:700;font-size:15px;text-decoration:none;display:inline-block">${esc(text)}</a>
 </td></tr></table>`
 }
 
@@ -168,14 +213,14 @@ export async function sendBookingConfirmation(to: string, details: BookingEmailD
       <tr><td style="padding:12px 16px;color:#999;font-size:13px;border-bottom:1px solid #333">Datum</td>
           <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${formatDate(details.date)}</td></tr>
       <tr><td style="padding:12px 16px;color:#999;font-size:13px;border-bottom:1px solid #333">Uhrzeit</td>
-          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${details.startTime} – ${details.endTime}</td></tr>
+          <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${esc(details.startTime)} – ${esc(details.endTime)}</td></tr>
       ${details.staffName ? `<tr><td style="padding:12px 16px;color:#999;font-size:13px;border-bottom:1px solid #333">Mitarbeiter</td>
           <td style="padding:12px 16px;color:#e0e0e0;font-size:14px;border-bottom:1px solid #333">${esc(details.staffName)}</td></tr>` : ''}
       <tr><td style="padding:12px 16px;color:#999;font-size:13px">Preis</td>
           <td style="padding:12px 16px;color:#D4AF37;font-size:14px;font-weight:700">${formatPrice(details.priceCents)}</td></tr>
     </table>
-    <p style="font-size:13px;color:#999">Buchungs-ID: ${details.bookingId}</p>
-    ${goldButton('Buchung ansehen', `https://www.chairmatch.de/booking/${details.bookingId}`)}
+    <p style="font-size:13px;color:#999">Buchungs-ID: ${esc(details.bookingId)}</p>
+    ${goldButton('Meine Termine', `${APP_URL}/termine`)}
     <p style="font-size:13px;color:#777;margin-top:24px">Falls du Fragen hast, kontaktiere uns unter <a href="mailto:support@chairmatch.de" style="color:#D4AF37">support@chairmatch.de</a>.</p>
   `)
 
@@ -194,11 +239,15 @@ export async function sendBookingReminder(to: string, details: BookingEmailDetai
     <div style="background:#1a1a1a;border-radius:8px;border-left:4px solid #D4AF37;padding:20px;margin:20px 0">
       <p style="margin:0;color:#D4AF37;font-weight:700;font-size:16px">${esc(details.serviceName)}</p>
       <p style="margin:6px 0 0;color:#e0e0e0">${esc(details.salonName)}</p>
-      <p style="margin:6px 0 0;color:#e0e0e0">${formatDate(details.date)} um ${details.startTime} Uhr</p>
+      <p style="margin:6px 0 0;color:#e0e0e0">${formatDate(details.date)} um ${esc(details.startTime)} Uhr</p>
       ${details.staffName ? `<p style="margin:6px 0 0;color:#999">Mitarbeiter: ${esc(details.staffName)}</p>` : ''}
     </div>
-    ${goldButton('Buchung ansehen', `https://www.chairmatch.de/booking/${details.bookingId}`)}
-    <p style="font-size:13px;color:#777;margin-top:24px">Musst du umbuchen? Du kannst den Termin bis 24h vorher kostenlos stornieren.</p>
+    ${goldButton('Meine Termine', `${APP_URL}/termine`)}
+    ${
+      typeof details.cancellationHours === 'number' && details.cancellationHours > 0
+        ? `<p style="font-size:13px;color:#777;margin-top:24px">Musst du umbuchen? Bis ${details.cancellationHours} Stunden vor dem Termin kannst du kostenfrei stornieren.</p>`
+        : `<p style="font-size:13px;color:#777;margin-top:24px">Musst du umbuchen? Du kannst den Termin in deiner Terminliste stornieren — welche Frist dein Salon dafuer setzt, steht dort am Termin.</p>`
+    }
   `)
 
   return send(to, subject, html)
@@ -286,7 +335,7 @@ export async function sendPasswordReset(to: string, resetUrl: string) {
     <p>Du hast angefordert, dein Passwort zurückzusetzen. Klicke auf den Button unten, um ein neues Passwort festzulegen:</p>
     ${goldButton('Neues Passwort festlegen', resetUrl)}
     <p style="font-size:13px;color:#777;margin-top:24px">Dieser Link ist <strong>1 Stunde</strong> gültig. Falls du diese Anfrage nicht gestellt hast, kannst du diese E-Mail ignorieren.</p>
-    <p style="font-size:12px;color:#555;margin-top:16px;word-break:break-all">Link: ${resetUrl}</p>
+    <p style="font-size:12px;color:#555;margin-top:16px;word-break:break-all">Link: ${esc(resetUrl)}</p>
   `)
 
   return send(to, subject, html)
@@ -379,7 +428,7 @@ export async function sendComplianceAlert(
       <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%">
         <tr>
           <td style="color:#999;font-size:13px;padding-bottom:8px">Dokument</td>
-          <td style="color:#e0e0e0;font-size:14px;font-weight:600;padding-bottom:8px;text-align:right">${documentType}</td>
+          <td style="color:#e0e0e0;font-size:14px;font-weight:600;padding-bottom:8px;text-align:right">${esc(documentType)}</td>
         </tr>
         <tr>
           <td style="color:#999;font-size:13px">Status</td>
@@ -416,7 +465,6 @@ const SERVICE_TO_AFFILIATE_CATEGORIES: Record<string, string[]> = {
   arzt:      ['Gesichtspflege'],
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.chairmatch.de'
 
 interface AffiliateProductRow {
   id: string
@@ -442,7 +490,7 @@ function affiliateProductBlock(product: AffiliateProductRow, trackingUrl: string
           <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#D4AF37">${esc(product.partner)}</p>
           <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#e0e0e0;line-height:1.3">${esc(product.product_name)}</p>
           ${price ? `<p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#D4AF37">${price}</p>` : ''}
-          <a href="${trackingUrl}" style="display:inline-block;background:linear-gradient(135deg,#D4AF37,#E8D06A);color:#1a1a1a;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none">Jetzt ansehen →</a>
+          <a href="${safeUrl(trackingUrl)}" style="display:inline-block;background:linear-gradient(135deg,#D4AF37,#E8D06A);color:#1a1a1a;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none">Jetzt ansehen →</a>
         </td>
       </tr>
     </table>

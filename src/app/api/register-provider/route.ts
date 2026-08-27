@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { hashIp } from '@/lib/ip-hash'
 import { logger } from '@/lib/logger'
 import { parseDayPrice, slugify } from '@/lib/provider-registration'
 import { z } from 'zod'
@@ -182,7 +183,12 @@ export async function POST(req: NextRequest) {
       action: 'provider_registration_consent',
       entity: 'profile',
       entity_id: userId,
-      details: { agb: d.agb, dsgvo: d.dsgvo, gewerbeschein_angegeben: d.gb, ip },
+      // `ip` stand hier bis Track 12 im KLARTEXT. Das Rate-Limit oben braucht
+      // die Adresse tatsaechlich, das Einwilligungs-Protokoll nicht: es muss
+      // belegen koennen, DASS die Einwilligung aus einer bestimmten Sitzung
+      // kam, nicht aus welcher Wohnung. Derselbe HMAC wie in `consent_logs`,
+      // damit beide Protokolle vergleichbar bleiben (src/lib/ip-hash.ts).
+      details: { agb: d.agb, dsgvo: d.dsgvo, gewerbeschein_angegeben: d.gb, ip_hash: hashIp(ip) },
     })
     if (consentError) {
       logger.error('register-provider.consent_log_failed', { userId, err: consentError.message })

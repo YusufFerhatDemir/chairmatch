@@ -59,12 +59,40 @@ type Op = 'select' | 'insert' | 'update' | 'delete'
  * lexikografisch — fuer ISO-8601-Zeitstempel (immer UTC, feste Breite) ist
  * das dieselbe Ordnung wie in Postgres.
  */
-type FilterOp = 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'gte' | 'is' | 'in'
+type FilterOp = 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'gte' | 'is' | 'in' | 'not'
 
 interface Filter {
   column: string
   op: FilterOp
   value: unknown
+  /** Nur bei `op: 'not'`: der negierte Operator, z. B. `is` in `.not(c,'is',null)`. */
+  inner?: FilterOp
+}
+
+/**
+ * Ein einzelner Zellvergleich. Ausgelagert, damit `.not()` denselben
+ * Vergleich negieren kann, statt eine zweite Auslegung derselben Operatoren
+ * zu fuehren.
+ */
+function compareCell(cell: unknown, op: FilterOp, value: unknown): boolean {
+  switch (op) {
+    case 'lt':
+      return cell != null && value != null && String(cell) < String(value)
+    case 'gt':
+      return cell != null && value != null && String(cell) > String(value)
+    case 'lte':
+      return cell != null && value != null && String(cell) <= String(value)
+    case 'gte':
+      return cell != null && value != null && String(cell) >= String(value)
+    case 'is':
+      return value === null ? cell == null : cell === value
+    case 'neq':
+      return cell !== value
+    case 'in':
+      return Array.isArray(value) && value.includes(cell)
+    default:
+      return cell === value
+  }
 }
 
 interface UniqueIndex {
@@ -288,6 +316,26 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     return this
   }
 
+  /**
+   * Negation eines Operators — `.not('stripe_transfer_id', 'is', null)`.
+   *
+   * Der Fake kannte sie bis Track 12 gar nicht, und das war teuer: der
+   * Payout-Cron waehlt seine Kandidaten mit
+   *
+   *     .not('provider_user_id', 'is', null)
+   *     .not('stripe_payment_intent_id', 'is', null)
+   *
+   * aus. Wer dafuer einen Test schreiben wollte, bekam
+   * `…eq(...).not is not a function` — die Auszahlungsauswahl war also nicht
+   * pruefbar, nicht weil sie zu schwer waere, sondern weil das Werkzeug
+   * fehlte. (Eine `.not()` gab es im Repo, aber in der ZWEITEN
+   * Fake-Implementierung, der inline in den e2e-Tests gebauten.)
+   */
+  not(column: string, operator: string, value: unknown) {
+    this.filters.push({ column, op: 'not', value, inner: operator as FilterOp })
+    return this
+  }
+
   /** Ungleich. Gebraucht beim Aufraeumen alter Logo-Dateien. */
   neq(column: string, value: unknown) {
     this.filters.push({ column, op: 'neq', value })
@@ -365,26 +413,15 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   }
 
   private matches(row: Row): boolean {
-    return this.filters.every(({ column, op, value }) => {
-      const cell = row[column]
-      switch (op) {
-        case 'lt':
-          return cell != null && value != null && String(cell) < String(value)
-        case 'gt':
-          return cell != null && value != null && String(cell) > String(value)
-        case 'lte':
-          return cell != null && value != null && String(cell) <= String(value)
-        case 'gte':
-          return cell != null && value != null && String(cell) >= String(value)
-        case 'is':
-          return value === null ? cell == null : cell === value
-        case 'neq':
-          return cell !== value
-        case 'in':
-          return Array.isArray(value) && value.includes(cell)
-        default:
-          return cell === value
+    return this.filters.every((filter) => {
+      const cell = row[filter.column]
+      if (filter.op === 'not') {
+        // `not.is.null` heisst „ist gesetzt". Ohne das Auswerten hier waere
+        // `.not()` eine Attrappe, die jeden Filter durchwinkt — schlimmer
+        // als gar keine Methode, weil der Test dann gruen luegt.
+        return !compareCell(cell, filter.inner ?? 'eq', filter.value)
       }
+      return compareCell(cell, filter.op, filter.value)
     })
   }
 

@@ -19,6 +19,10 @@
  *    die Adresse war fuer jeden weiteren Versuch verbrannt.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// `hashIp` braucht ein serverseitiges Geheimnis; ohne eines bleibt die Spalte
+// bewusst leer (siehe src/lib/ip-hash.ts).
+process.env.CONSENT_IP_SALT ??= 'test-salz-nur-fuer-vitest'
 import { createDb, postRequest } from './_harness/fixtures'
 import type { FakeSupabase } from './_harness/fake-supabase'
 
@@ -194,14 +198,30 @@ describe('Anbieter-Onboarding: die Angaben kommen an', () => {
     expect(db().rows('salons').find(s => s.owner_id === NEW_USER)?.chair_price_day).toBeNull()
   })
 
-  it('protokolliert die Einwilligungen mit AGB, DSGVO und IP', async () => {
+  /**
+   * Dieser Test verlangte bis Track 12 ausdruecklich die IP IM KLARTEXT:
+   *
+   *     expect(consent?.details).toMatchObject({ …, ip: '198.51.100.7' })
+   *
+   * Er hat den Befund damit nicht uebersehen, sondern als Sollverhalten
+   * festgeschrieben. Das Einwilligungs-Protokoll muss belegen koennen, DASS
+   * die Einwilligung aus einer bestimmten Sitzung kam — nicht, aus welcher
+   * Wohnung. Fuer das Rate-Limit braucht die Route die Adresse weiterhin, in
+   * das Protokoll geht sie nur noch als HMAC (src/lib/ip-hash.ts).
+   */
+  it('protokolliert die Einwilligungen mit AGB, DSGVO und gehashter IP', async () => {
     await submit(form(), '198.51.100.7')
     const consent = db()
       .rows('audit_logs')
       .find(a => a.action === 'provider_registration_consent')
     expect(consent).toBeTruthy()
     expect(consent?.user_id).toBe(NEW_USER)
-    expect(consent?.details).toMatchObject({ agb: true, dsgvo: true, ip: '198.51.100.7' })
+    expect(consent?.details).toMatchObject({ agb: true, dsgvo: true })
+
+    const details = consent?.details as Record<string, unknown>
+    expect(details.ip).toBeUndefined()
+    expect(String(details.ip_hash)).toMatch(/^[0-9a-f]{64}$/)
+    expect(JSON.stringify(consent)).not.toContain('198.51.100.7')
   })
 
   it('nimmt keine IBAN mehr entgegen — sie wurde nur weggeworfen', async () => {

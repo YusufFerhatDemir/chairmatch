@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import MeinBereichSubPage from '@/components/MeinBereichSubPage'
 import { useTranslations } from '@/i18n/client'
-import { apiGet, ApiError } from '@/lib/client-api'
+import { apiGet, apiSend, ApiError } from '@/lib/client-api'
+import { berlinToday } from '@/lib/berlin-time'
 
 /**
  * Buchungsverlauf (Mieter) — /mieter/mein-bereich/verlauf
@@ -16,6 +17,14 @@ import { apiGet, ApiError } from '@/lib/client-api'
  *
  * Jetzt: GET /api/rental-bookings — die eigenen Miet-Buchungen aus
  * `rental_bookings` (Filter `renter_id`), Betraege aus `total_cents`.
+ *
+ * Track 12 haengt den Storno an. Bis dahin war die Miete eine Einbahnstrasse:
+ * es gab serverseitig ueberhaupt keinen Weg heraus (kein `[id]`-Handler unter
+ * /api/rental-bookings), waehrend der Payout-Cron das Geld ausdruecklich bis
+ * zum Mietbeginn zurueckhielt, „um Mieter bei No-Show/Storno vor Mietantritt
+ * zu schuetzen". Der Knopf steht nur dort, wo die Route auch wirklich
+ * storniert — sonst waere er dieselbe Sorte Versprechen wie der Kommentar im
+ * Cron.
  */
 
 interface RentalBooking {
@@ -71,6 +80,10 @@ export default function Page() {
   const [bookings, setBookings] = useState<RentalBooking[]>([])
   const [laedt, setLaedt] = useState(true)
   const [fehler, setFehler] = useState<string | null>(null)
+  /** Buchungs-ID, deren Storno gerade laeuft. */
+  const [storniert, setStorniert] = useState<string | null>(null)
+  const [stornoFehler, setStornoFehler] = useState<Record<string, string>>({})
+  const [stornoHinweis, setStornoHinweis] = useState<Record<string, string>>({})
 
   useEffect(() => {
     let cancelled = false
@@ -94,6 +107,56 @@ export default function Page() {
     })()
     return () => { cancelled = true }
   }, [])
+
+  /**
+   * Storno anbieten? Genau unter denselben Bedingungen, unter denen die Route
+   * ihn ausfuehrt — ein Knopf, der zuverlaessig 409 erntet, ist schlimmer als
+   * keiner. `berlinToday()` ist dieselbe „heute"-Quelle wie im Buchungsraster.
+   */
+  function stornierbar(b: RentalBooking): boolean {
+    const status = (b.status ?? '').toLowerCase()
+    if (!['pending', 'confirmed'].includes(status)) return false
+    if (!b.start_date) return false
+    return b.start_date.slice(0, 10) > berlinToday()
+  }
+
+  async function stornieren(b: RentalBooking) {
+    if (!window.confirm(
+      'Diese Mietbuchung wirklich stornieren? Ein bereits gezahlter Betrag wird vollstaendig erstattet.',
+    )) return
+
+    setStorniert(b.id)
+    setStornoFehler(f => ({ ...f, [b.id]: '' }))
+    try {
+      const res = await apiSend<{ refunded?: boolean; refundNote?: string | null }>(
+        `/api/rental-bookings/${b.id}/cancel`,
+        'POST',
+      )
+      setBookings(liste =>
+        liste.map(x =>
+          x.id === b.id
+            ? { ...x, status: 'cancelled', payment_status: res.refunded ? 'refunded' : x.payment_status }
+            : x,
+        ),
+      )
+      // Was wirklich passiert ist — nicht, was ueblicherweise passiert.
+      setStornoHinweis(h => ({
+        ...h,
+        [b.id]: res.refunded
+          ? 'Storniert. Der Betrag wird erstattet.'
+          : res.refundNote
+            ? `Storniert. ${res.refundNote}`
+            : 'Storniert.',
+      }))
+    } catch (err) {
+      setStornoFehler(f => ({
+        ...f,
+        [b.id]: err instanceof Error ? err.message : 'Stornierung fehlgeschlagen',
+      }))
+    } finally {
+      setStorniert(null)
+    }
+  }
 
   return (
     <MeinBereichSubPage
@@ -140,6 +203,36 @@ export default function Page() {
               {(status || zahlung) && (
                 <p style={{ fontSize: 10.5, color: 'var(--stone)', marginTop: 4, letterSpacing: 0.5 }}>
                   {[status, zahlung].filter(Boolean).join(' · ')}
+                </p>
+              )}
+
+              {stornierbar(b) && (
+                <button
+                  type="button"
+                  onClick={() => void stornieren(b)}
+                  disabled={storniert === b.id}
+                  style={{
+                    marginTop: 10,
+                    background: 'transparent',
+                    border: '0.5px solid rgba(255,136,136,0.4)',
+                    color: '#FF8888',
+                    borderRadius: 8,
+                    padding: '6px 12px',
+                    fontSize: 11.5,
+                    cursor: storniert === b.id ? 'default' : 'pointer',
+                    opacity: storniert === b.id ? 0.6 : 1,
+                  }}
+                >
+                  {storniert === b.id ? 'Wird storniert…' : 'Stornieren'}
+                </button>
+              )}
+
+              {stornoHinweis[b.id] && (
+                <p style={{ fontSize: 11, color: 'var(--stone)', marginTop: 6 }}>{stornoHinweis[b.id]}</p>
+              )}
+              {stornoFehler[b.id] && (
+                <p role="alert" style={{ fontSize: 11, color: '#FF8888', marginTop: 6 }}>
+                  {stornoFehler[b.id]}
                 </p>
               )}
             </div>

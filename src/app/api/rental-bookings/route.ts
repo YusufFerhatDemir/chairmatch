@@ -4,6 +4,7 @@ import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createRentalCheckout } from '@/lib/stripe'
 import { createNotification } from '@/lib/notifications'
+import { appOriginFromRequest } from '@/lib/app-origin'
 
 /**
  * Rental-Bookings API — der fehlende End-to-End-Pfad für Stuhl-/Liegen-/Raum-Miete.
@@ -164,7 +165,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Stripe-Checkout-Session direkt erstellen — One-Step-Flow für das Frontend
-    const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
+    const origin = appOriginFromRequest(req)
     try {
       const checkoutSession = await createRentalCheckout({
         rentalBookingId: booking.id,

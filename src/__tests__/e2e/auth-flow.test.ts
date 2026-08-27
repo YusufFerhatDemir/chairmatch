@@ -150,16 +150,65 @@ describe('Registrierung (POST /api/auth/register)', () => {
     ).toEqual(['agb', 'datenschutz', 'marketing'])
   })
 
-  it('speichert die IP-Adresse nur gehasht (DSGVO)', async () => {
+  /**
+   * Dieser Test war bis Track 12 gruen, waehrend die Spalte `ip_hash` die
+   * IP im Klartext trug — nur base64-kodiert:
+   *
+   *     Buffer.from('198.51.100.23').toString('base64')
+   *       === 'MTk4LjUxLjEwMC4yMw=='
+   *
+   * `not.toContain('198.51.100.23')` trifft darauf nicht zu, obwohl der Wert
+   * in einer Zeile zurueckzurechnen ist. Der Test prueft jetzt die
+   * Eigenschaft, um die es geht: dass sich der Wert NICHT zurueckrechnen
+   * laesst.
+   */
+  it('speichert die IP-Adresse nur unumkehrbar gehasht (DSGVO)', async () => {
     await registerRoute(
       postRequest('https://www.chairmatch.de/api/auth/register', validBody, {
         'x-forwarded-for': '198.51.100.23, 10.0.0.1',
       }),
     )
     const consent = db().rows('consent_logs')[0]
+    const gespeichert = String(consent.ip_hash)
+
     expect(consent.ip_hash).toBeTruthy()
-    expect(String(consent.ip_hash)).not.toContain('198.51.100.23')
+    expect(gespeichert).not.toContain('198.51.100.23')
     expect(JSON.stringify(db().rows('consent_logs'))).not.toContain('198.51.100.23')
+
+    // Kein Rueckweg: weder base64 noch hex noch URL-Kodierung ergeben die IP.
+    for (const kodierung of ['base64', 'base64url', 'hex'] as const) {
+      let entschluesselt = ''
+      try {
+        entschluesselt = Buffer.from(gespeichert, kodierung).toString('utf8')
+      } catch {
+        /* nicht dekodierbar ist genau das gewuenschte Ergebnis */
+      }
+      expect(entschluesselt).not.toContain('198.51.100.23')
+    }
+    expect(decodeURIComponent(gespeichert)).not.toContain('198.51.100.23')
+
+    // Form eines SHA-256-HMAC: 64 Hex-Zeichen. Eine Kodierung des Klartexts
+    // waere kuerzer und enthielte Zeichen ausserhalb von [0-9a-f].
+    expect(gespeichert).toMatch(/^[0-9a-f]{64}$/)
+
+    // Deterministisch: derselbe Aufrufer ergibt denselben Wert, sonst waere
+    // das Protokoll fuer Missbrauchsanalysen wertlos.
+    state.db = createDb()
+    await registerRoute(
+      postRequest('https://www.chairmatch.de/api/auth/register', validBody, {
+        'x-forwarded-for': '198.51.100.23, 10.0.0.1',
+      }),
+    )
+    expect(String(db().rows('consent_logs')[0].ip_hash)).toBe(gespeichert)
+
+    // Eine andere IP ergibt einen anderen Wert.
+    state.db = createDb()
+    await registerRoute(
+      postRequest('https://www.chairmatch.de/api/auth/register', validBody, {
+        'x-forwarded-for': '203.0.113.7',
+      }),
+    )
+    expect(String(db().rows('consent_logs')[0].ip_hash)).not.toBe(gespeichert)
   })
 
   it.each([

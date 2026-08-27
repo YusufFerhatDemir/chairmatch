@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { registerSchema } from '@/modules/auth/auth.schemas'
+import { hashIp, requestIp } from '@/lib/ip-hash'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -66,8 +67,10 @@ export async function POST(req: NextRequest) {
     }
 
     // consent_logs (DSGVO)
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || ''
-    const ipHash = ip ? Buffer.from(ip).toString('base64').slice(0, 32) : null
+    //
+    // `ipHash` war bis Track 12 `base64(ip)` — eine Kodierung, kein Hash, in
+    // einer Spalte namens `ip_hash`. Siehe src/lib/ip-hash.ts.
+    const ipHash = hashIp(requestIp(req))
     const version = '1.0'
 
     try {

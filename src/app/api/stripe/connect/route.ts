@@ -3,6 +3,7 @@ import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createConnectAccount, createConnectAccountLink } from '@/lib/stripe'
 import { isProviderOrAbove, isBusinessOwnerOrAbove } from '@/lib/rbac'
+import { appOriginFromRequest } from '@/lib/app-origin'
 
 /**
  * Stripe Connect Onboarding für Anbieter (Vermieter).
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
+    const origin = appOriginFromRequest(req)
     const link = await createConnectAccountLink({
       accountId,
       refreshUrl: `${origin}/provider?stripe=refresh`,

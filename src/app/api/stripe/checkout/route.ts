@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { stripe, createBookingCheckout, createSubscriptionCheckout, createProductOrderCheckout, createRentalCheckout } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { appOriginFromRequest } from '@/lib/app-origin'
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Buchung ist nicht mehr zahlbar' }, { status: 409 })
       }
 
-      const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
+      const origin = appOriginFromRequest(req)
       const checkoutSession = await createBookingCheckout({
         bookingId,
         customerEmail: session.user.email || '',
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Ungültiger Tier' }, { status: 400 })
       }
 
-      const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
+      const origin = appOriginFromRequest(req)
       const checkoutSession = await createSubscriptionCheckout({
         userId: session.user.id,
         email: session.user.email || '',
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
         quantity: i.quantity,
       }))
 
-      const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
+      const origin = appOriginFromRequest(req)
       const checkoutSession = await createProductOrderCheckout({
         orderId,
         orderNumber: order.order_number,
@@ -191,7 +192,7 @@ export async function POST(req: NextRequest) {
         | { name?: string; salons?: { name?: string } | null }
         | null
 
-      const origin = req.headers.get('origin') || 'https://www.chairmatch.de'
+      const origin = appOriginFromRequest(req)
       const checkoutSession = await createRentalCheckout({
         rentalBookingId,
         renterId: session.user.id,

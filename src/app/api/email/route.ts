@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 import { z } from 'zod'
 import {
   sendBookingConfirmation,
@@ -66,14 +67,51 @@ const emailRequestSchema = z.object({
 // Roles allowed to send each email type
 // ---------------------------------------------------------------------------
 
+/**
+ * Wer welchen Mail-Typ ueber diesen Endpunkt ausloesen darf.
+ *
+ * `booking_confirmation` stand hier bis Track 12 auch fuer die Rolle
+ * `anbieter` offen. Das war der gefaehrlichste Eintrag der Datei, aus drei
+ * Gruenden zusammen:
+ *
+ *   1. Die Anbieter-Rolle ist oeffentlich selbst zu beschaffen — POST auf
+ *      /api/register-provider legt sie an, ohne dass jemand prueft.
+ *   2. `to` ist frei waehlbar. Die Route verlangt keinerlei Bezug zwischen
+ *      Empfaenger und Absender.
+ *   3. Der Inhalt kommt vollstaendig aus dem Request. Bis Track 12 setzten
+ *      die Vorlagen `bookingId`, `startTime` und `endTime` ROH ins HTML —
+ *      damit liess sich beliebiges Markup samt Link in eine Mail schreiben,
+ *      die von `noreply@chairmatch.de` kommt, DKIM-signiert ist und das
+ *      ChairMatch-Layout traegt. Also Phishing mit unserer Absenderreputation,
+ *      an jede beliebige Adresse.
+ *
+ * Das Escaping ist repariert (src/lib/email.ts), aber es allein waere der
+ * falsche Riegel: auch reiner Text an beliebige Empfaenger von unserer
+ * Domain ist Missbrauch, und die Zustellbarkeit der Domain haengt daran.
+ * Der Endpunkt bleibt deshalb Admins vorbehalten.
+ *
+ * Wenn Anbieter einmal eine Bestaetigung nachsenden koennen sollen, gehoert
+ * das in eine eigene Route, die die Buchung ueber ihre ID NACHSCHLAEGT, den
+ * Besitz prueft und den Empfaenger aus der Buchung nimmt — nicht aus dem
+ * Request. Diese Route hier kann das konstruktionsbedingt nicht.
+ */
 const ALLOWED_ROLES: Record<EmailType, string[]> = {
-  booking_confirmation: ['admin', 'super_admin', 'anbieter'],
+  booking_confirmation: ['admin', 'super_admin'],
   booking_reminder: ['admin', 'super_admin'],
   welcome: ['admin', 'super_admin'],
   password_reset: ['admin', 'super_admin'],
   provider_notification: ['admin', 'super_admin'],
   compliance_alert: ['admin', 'super_admin'],
 }
+
+/**
+ * Eigener Zaehler, unterhalb des generischen 60/min der Middleware.
+ *
+ * Jeder Aufruf hier kostet einen Resend-Versand und belastet die
+ * Zustellreputation der Absenderdomain. Ein durchgedrehtes Skript mit
+ * gueltiger Admin-Session soll nicht 60 Mails pro Minute verschicken koennen.
+ */
+const RATE = { scope: 'email-send', max: 10, windowMs: 60_000 }
 
 // ---------------------------------------------------------------------------
 // POST /api/email
@@ -91,6 +129,11 @@ export async function POST(request: NextRequest) {
     }
 
     const role = (session.user as { role?: string }).role || 'kunde'
+
+    const limit = checkRateLimit(clientIp(request), RATE)
+    if (limit.limited) {
+      return rateLimitResponse(limit, 'Zu viele E-Mail-Anfragen. Bitte kurz warten.')
+    }
 
     // Parse request body
     const body = await request.json()
