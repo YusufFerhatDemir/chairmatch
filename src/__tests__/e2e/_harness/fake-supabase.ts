@@ -459,8 +459,29 @@ export class FakeSupabase {
         this.log.push({ op: 'update', table: 'auth.users', payload: { id, ...attrs } })
         return { data: { user: { id } }, error: null }
       },
+      /**
+       * `deleteUser` entfernt hier NUR den Auth-Nutzer, nicht das Profil.
+       *
+       * Live haengt an `profiles.id` eine Fremdschluessel-Kaskade auf
+       * `auth.users` — ob sie in dieser Datenbank wirklich steht, ist von hier
+       * aus nicht pruefbar (kein DB-Zugang fuer Agents, siehe
+       * docs/ARCHITECTURE). Die Harness behauptet sie deshalb nicht: der
+       * Produktivcode raeumt das Profil selbst ab, und das ist der Pfad, der
+       * hier geprueft werden soll.
+       */
+      deleteUser: async (id: string) => {
+        if (this.authDeleteFails) {
+          this.log.push({ op: 'delete', table: 'auth.users', payload: { id, failed: true } })
+          return { data: { user: null }, error: { message: 'Admin API nicht verfuegbar' } }
+        }
+        this.log.push({ op: 'delete', table: 'auth.users', payload: { id } })
+        return { data: { user: null }, error: null }
+      },
     },
   }
+
+  /** Laesst `auth.admin.deleteUser` scheitern — fuer den Aufraeum-Fehlerfall. */
+  authDeleteFails = false
 
   from(table: string): FakeQuery {
     return new FakeQuery(this, table)

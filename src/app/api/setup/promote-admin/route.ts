@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession, invalidateAccountState } from '@/modules/auth/session'
 import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 
   // --- Modus 1: Self-Promote über Session ---
   if (!body.email) {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Bitte einloggen, um dich selbst zu befördern.' },
@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
+    invalidateAccountState(profile.id)
 
     return NextResponse.json({
       success: true,
@@ -147,6 +148,7 @@ export async function POST(req: NextRequest) {
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 })
   }
+  invalidateAccountState(profile.id)
 
   return NextResponse.json({
     success: true,

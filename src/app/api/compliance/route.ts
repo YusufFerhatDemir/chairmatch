@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { isAdminOrAbove } from '@/lib/rbac'
 
 const VALID_DOC_TYPES = [
@@ -26,7 +26,7 @@ export type ComplianceDocumentType = (typeof VALID_DOC_TYPES)[number]
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }

@@ -30,6 +30,10 @@ const state = vi.hoisted(() => ({
 
 vi.mock('@/lib/supabase-server', () => ({ getSupabaseAdmin: () => state.db }))
 vi.mock('@/modules/auth/auth.config', () => ({ auth: async () => state.session }))
+vi.mock('@/modules/auth/session', () => ({
+  getServerSession: async () => state.session,
+  invalidateAccountState: () => {},
+}))
 
 import { GET as kpiRoute } from '@/app/api/admin/kpi/route'
 

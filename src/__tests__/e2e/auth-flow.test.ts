@@ -302,7 +302,14 @@ describe('Login (authorizeCredentials)', () => {
     expect(state.anon.auth.signInWithPassword).not.toHaveBeenCalled()
   })
 
-  it('fällt auf die Auth-Metadaten zurück, wenn noch kein Profil existiert', async () => {
+  /**
+   * Bis Track 13 stand hier das Gegenteil: der Test erwartete
+   * `role: 'anbieter'` — also die Rolle aus `user_metadata` — und schrieb
+   * damit eine Rechteausweitung fest. `user_metadata` gehoert dem Konto
+   * selbst und ist mit dem oeffentlichen Anon-Key schreibbar. Die
+   * Angriffsfaelle stehen in src/__tests__/e2e/rollen-eskalation.test.ts.
+   */
+  it('legt ein fehlendes Profil mit der Rolle kunde an — NICHT mit der aus den Metadaten', async () => {
     state.anon.auth.signInWithPassword.mockResolvedValueOnce({
       data: {
         user: {
@@ -314,7 +321,8 @@ describe('Login (authorizeCredentials)', () => {
       error: null,
     })
     const user = await authorizeCredentials({ email: 'neu@example.de', password: PASSWORT })
-    expect(user).toMatchObject({ id: NEW_USER, name: 'Neue Nutzerin', role: 'anbieter' })
+    expect(user).toMatchObject({ id: NEW_USER, name: 'Neue Nutzerin', role: 'kunde' })
+    expect(db().row('profiles', NEW_USER)).toMatchObject({ role: 'kunde' })
   })
 
   it('blockiert nach 10 Fehlversuchen aus derselben IP — auch bei korrektem Passwort', async () => {

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { isInvestorOrAbove } from '@/lib/rbac'
 
 export async function GET() {
-  const session = await auth()
+  const session = await getServerSession()
   const role = (session?.user as { role?: string })?.role
   if (!isInvestorOrAbove(role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

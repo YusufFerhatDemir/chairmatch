@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { ListingError, getOwnedSalon } from '@/modules/rentals/listing.service'
 import { isSalonReview } from '@/modules/reviews/review.service'
 import { kuerzeName } from '@/lib/display-name'
@@ -49,7 +49,7 @@ interface ReviewRow {
 }
 
 export async function GET() {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
   }

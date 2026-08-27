@@ -20,6 +20,10 @@ import { __resetRateLimits } from '@/lib/rate-limit'
 const auth = vi.hoisted(() => ({ session: null as { user?: { id?: string } } | null }))
 
 vi.mock('@/modules/auth/auth.config', () => ({ auth: async () => auth.session }))
+vi.mock('@/modules/auth/session', () => ({
+  getServerSession: async () => auth.session,
+  invalidateAccountState: () => {},
+}))
 
 vi.mock('@/lib/supabase-server', async () => {
   const { fakeDb: db } = await import('@/test/fake-supabase')

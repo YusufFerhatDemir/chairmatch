@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { withApi, apiError } from '@/lib/api-wrapper'
 
@@ -10,7 +10,7 @@ import { withApi, apiError } from '@/lib/api-wrapper'
  * Siehe docs/seo/07-kpi-dashboard.md für das Framework.
  */
 export const GET = withApi(async () => {
-  const session = await auth()
+  const session = await getServerSession()
   const role = (session?.user as { role?: string })?.role
   if (role !== 'super_admin') return apiError('Forbidden', 403)
 

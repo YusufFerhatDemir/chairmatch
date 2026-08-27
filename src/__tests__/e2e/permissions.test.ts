@@ -34,7 +34,10 @@ const state = vi.hoisted(() => {
 })
 
 vi.mock('@/lib/supabase-server', () => ({ getSupabaseAdmin: () => state.db }))
-vi.mock('@/modules/auth/session', () => ({ getServerSession: async () => state.session }))
+vi.mock('@/modules/auth/session', () => ({
+  getServerSession: async () => state.session,
+  invalidateAccountState: () => {},
+}))
 vi.mock('@/modules/auth/auth.config', () => ({ auth: async () => state.session }))
 vi.mock('@/lib/indexing', () => ({ notifyIndexers: vi.fn(async () => undefined) }))
 vi.mock('@/lib/stripe', () => ({

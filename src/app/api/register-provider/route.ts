@@ -162,10 +162,44 @@ export async function POST(req: NextRequest) {
     })
 
     if (salonError) {
-      // Ohne dieses Aufraeumen bleibt ein Profil mit Anbieter-Rolle und ohne
-      // Salon zurueck, und der zweite Versuch scheitert am belegten Konto.
+      // Aufraeumen — und zwar das AUTH-KONTO ZUERST.
+      //
+      // Bis Track 13 stand hier nur `profiles.delete()`. Der Auth-Nutzer blieb
+      // stehen, und damit entstand genau der Zustand, den `authorizeCredentials`
+      // frueher mit der Rolle aus `user_metadata` beantwortet hat: ein
+      // anmeldbares Konto OHNE Zeile in `profiles`. Da `signUp` hier
+      // `data: { role: 'anbieter' }` in die Metadaten schreibt und jeder
+      // Kontoinhaber sie mit dem oeffentlichen Anon-Key selbst ueberschreiben
+      // kann (`supabase.auth.updateUser({ data: { role: 'super_admin' } })`),
+      // war das ein Weg zur frei gewaehlten Rolle. Die Ursache ist in
+      // auth.config.ts beseitigt; die Quelle des Zustands hier.
+      //
+      // Zweiter Effekt, den das Loeschen des Profils allein NICHT geloest hat:
+      // ein erneuter Versuch mit derselben Adresse lief weiter in
+      // "User already registered", weil das Auth-Konto ja blieb. Erst mit
+      // diesem Schritt ist die Registrierung wirklich wiederholbar.
       logger.error('register-provider.salon_failed', { userId, err: salonError.message })
-      await admin.from('profiles').delete().eq('id', userId)
+
+      let authGeloescht = false
+      try {
+        const { error: authDeleteError } = await admin.auth.admin.deleteUser(userId)
+        authGeloescht = !authDeleteError
+        if (authDeleteError) {
+          logger.error('register-provider.auth_cleanup_failed', {
+            userId,
+            err: authDeleteError.message,
+          })
+        }
+      } catch (e) {
+        logger.error('register-provider.auth_cleanup_failed', { userId, err: String(e) })
+      }
+
+      // Das Profil geht NUR mit dem Auth-Konto. Bleibt das Konto stehen, muss
+      // auch das Profil bleiben — sonst ist der verwaiste Nutzer wieder da.
+      if (authGeloescht) {
+        await admin.from('profiles').delete().eq('id', userId)
+      }
+
       return NextResponse.json(
         { error: 'Salon konnte nicht erstellt werden. Bitte spaeter erneut versuchen.' },
         { status: 500 }

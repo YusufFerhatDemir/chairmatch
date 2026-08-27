@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { isAdminOrAbove } from '@/lib/rbac'
 
 /**
@@ -12,7 +12,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }
@@ -65,7 +65,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }

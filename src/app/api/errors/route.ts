@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { logError } from '@/lib/error-tracking'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     // Try to get user ID from session (optional — unauthenticated errors are fine)
     let userId: string | null = null
     try {
-      const session = await auth()
+      const session = await getServerSession()
       userId = session?.user?.id ?? null
     } catch {
       // Auth failure should not block error reporting
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   // Admin check
-  const session = await auth()
+  const session = await getServerSession()
   const role = (session?.user as { role?: string })?.role
   if (!['admin', 'super_admin'].includes(role || '')) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

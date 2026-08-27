@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { NOTIFICATION_TABLE } from '@/lib/notifications'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
@@ -12,7 +12,7 @@ const MAX_PAGE_SIZE = 100
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }

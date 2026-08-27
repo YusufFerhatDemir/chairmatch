@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 
 /**
  * Admin-API für Affiliate-Produkte.
@@ -16,7 +16,7 @@ const VALID_PARTNERS = ['amazon', 'douglas', 'notino', 'flaconi', 'direct'] as c
 type Partner = (typeof VALID_PARTNERS)[number]
 
 async function requireAdmin() {
-  const session = await auth()
+  const session = await getServerSession()
   const role = (session?.user as { role?: string })?.role
   if (!role || !['admin', 'super_admin'].includes(role)) return null
   return session

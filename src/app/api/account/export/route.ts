@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 /**
@@ -28,7 +28,7 @@ interface Quelle {
 }
 
 export async function GET() {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
   }

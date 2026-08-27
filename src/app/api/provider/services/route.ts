@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { ListingError, getOwnedSalon } from '@/modules/rentals/listing.service'
 
 /**
@@ -90,7 +90,7 @@ async function ownedSalonId(
 async function requireProvider(): Promise<
   { userId: string } | { response: NextResponse }
 > {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session?.user?.id) {
     return { response: NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 }) }
   }

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 async function requireAdmin() {
-  const session = await auth()
+  const session = await getServerSession()
   const role = (session?.user as { role?: string })?.role
   if (!['admin', 'super_admin'].includes(role || '')) {
     return null

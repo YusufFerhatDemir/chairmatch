@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
+import { invalidateAccountState } from '@/modules/auth/session'
 import { notifyIndexers } from '@/lib/indexing'
 import { cityToSlug } from '@/lib/seo'
 
@@ -21,7 +22,7 @@ async function pingSalonIndexers(salonId: string) {
 }
 
 async function requireAdmin() {
-  const session = await auth()
+  const session = await getServerSession()
   const role = (session?.user as { role?: string })?.role
   if (!['admin', 'super_admin'].includes(role || '')) {
     return null
@@ -88,6 +89,9 @@ export async function PATCH(req: NextRequest) {
     }
     const { error } = await supabase.from('profiles').update({ role: data.role }).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    // Ohne das behaelt die offene Sitzung des Betroffenen die alte Rolle bis
+    // zum Ablauf des Kontostand-Caches (siehe modules/auth/session.ts).
+    invalidateAccountState(id)
   }
 
   if (action === 'booking-status') {

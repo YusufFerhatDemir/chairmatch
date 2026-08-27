@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { isMissingColumn, isForeignKeyViolation, isUniqueViolation } from '@/lib/pg-errors'
 
 /**
@@ -39,7 +39,7 @@ import { isMissingColumn, isForeignKeyViolation, isUniqueViolation } from '@/lib
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export async function POST(req: NextRequest) {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
   }
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session?.user?.id) {
     // Kein Fehler — nur niemand angemeldet. Der Aufrufer soll das aber
     // unterscheiden koennen und nicht "leere Merkliste" lesen.

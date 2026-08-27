@@ -263,6 +263,49 @@ describe('Anbieter-Onboarding: Fehlerfaelle', () => {
     expect(db().row('profiles', NEW_USER)).toBeUndefined()
   })
 
+  /**
+   * Track 13. Bis dahin loeschte der Fehlerzweig NUR das Profil und liess den
+   * Auth-Nutzer stehen. Das hinterliess ein anmeldbares Konto OHNE Zeile in
+   * `profiles` — genau die Vorbedingung, unter der `authorizeCredentials()`
+   * die Rolle aus `user_metadata` genommen hat, und dort steht durch den
+   * signUp oben `role: 'anbieter'`, vom Kontoinhaber mit dem oeffentlichen
+   * Anon-Key auf alles andere umschreibbar
+   * (src/__tests__/e2e/rollen-eskalation.test.ts).
+   *
+   * Nebeneffekt derselben Luecke: die Registrierung war NICHT wiederholbar —
+   * das Auth-Konto blockierte die Adresse weiter.
+   */
+  it('loescht auch das Auth-Konto — kein anmeldbarer Nutzer ohne Profil', async () => {
+    db().failOn('salons', 'insert', {
+      code: '23502',
+      message: 'null value in column "name"',
+      details: null,
+      hint: null,
+    })
+
+    await submit(form())
+
+    expect(
+      db().log.some(c => c.table === 'auth.users' && c.op === 'delete'),
+    ).toBe(true)
+  })
+
+  it('behaelt das Profil, wenn sich das Auth-Konto nicht loeschen laesst', async () => {
+    // Sonst entstuende der verwaiste Nutzer gerade durch das Aufraeumen.
+    db().failOn('salons', 'insert', {
+      code: '23502',
+      message: 'null value in column "name"',
+      details: null,
+      hint: null,
+    })
+    db().authDeleteFails = true
+
+    const res = await submit(form())
+
+    expect(res.status).toBe(500)
+    expect(db().row('profiles', NEW_USER)).toMatchObject({ id: NEW_USER })
+  })
+
   it('gibt den Supabase-Fehlertext bei belegter Adresse weiter', async () => {
     state.signUp = vi.fn(async () => ({
       data: { user: null },

@@ -46,6 +46,19 @@ const DEMO_ACCOUNTS: Record<string, { password: string; id: string; name: string
 } : {}
 
 /**
+ * IDs der Demo-Konten. In jeder Nicht-Dev-Umgebung LEER — `DEMO_ACCOUNTS` ist
+ * dort selbst leer.
+ *
+ * Gebraucht wird die Menge von `getServerSession()`: die Rollen-Nachpruefung
+ * dort haelt jede Session gegen `profiles`, und zu den Demo-Konten gibt es
+ * dort keine Zeile. Ohne diese Ausnahme waere `next dev` mit den Demo-Logins
+ * nicht mehr benutzbar.
+ */
+export const DEMO_USER_IDS: ReadonlySet<string> = new Set(
+  Object.values(DEMO_ACCOUNTS).map(a => a.id),
+)
+
+/**
  * Credentials-Login als eigenstaendige, exportierte Funktion.
  *
  * NextAuth() gibt den konfigurierten Provider nicht wieder heraus — ohne
@@ -106,33 +119,72 @@ export async function authorizeCredentials(
 
     await logLoginAttempt(ip, email, true)
 
-    // Profile-Load mit SERVICE-ROLE-CLIENT (bypassed RLS)
+    // Profile-Load mit SERVICE-ROLE-CLIENT (bypassed RLS).
+    //
+    // `maybeSingle()` statt `single()`: nur so laesst sich "kein Profil" von
+    // "Abfrage fehlgeschlagen" unterscheiden. `single()` meldet beides als
+    // Fehler, und genau dadurch fielen beide Faelle unten in denselben
+    // Rueckfall.
     const supabaseAdmin = getSupabaseAdmin()
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('id, email, full_name, role, is_active')
       .eq('id', data.user.id)
-      .single()
+      .maybeSingle()
 
     if (profileError) {
+      // Fail closed. Vorher wurde hier ein Login MIT Rolle ausgestellt,
+      // obwohl der Kontostand ungelesen blieb — ein Datenbank-Aussetzer
+      // reichte, um `is_active = false` (gesperrtes/geloeschtes Konto) zu
+      // ueberspringen.
       console.error('[AUTH] Profile-Lookup failed:', { userId: data.user.id, email, profileError: profileError.message })
-      // Fallback: trotzdem Login zulassen mit Daten aus auth.user
-      return {
-        id: data.user.id,
-        email: data.user.email || email,
-        name: (data.user.user_metadata?.full_name as string) || data.user.email || email,
-        role: (data.user.user_metadata?.role as string) || 'kunde',
-      }
+      return null
     }
 
     if (!profile) {
-      console.error('[AUTH] Profile not found:', { userId: data.user.id, email })
-      // Auto-create Profile via auth.user-Metadata
+      // KEINE Rolle aus `user_metadata`.
+      //
+      // Hier stand bis Track 13 `role: data.user.user_metadata?.role`. Diese
+      // Metadaten gehoeren dem Konto selbst: jeder Angemeldete setzt sie mit
+      // dem oeffentlichen Anon-Key per `supabase.auth.updateUser({ data: … })`
+      // frei, und `signUp({ options: { data: … } })` nimmt sie schon bei der
+      // Registrierung entgegen (siehe /api/register-provider, das genau so
+      // `role: 'anbieter'` hineinschreibt). Wer also einen Auth-Nutzer OHNE
+      // Zeile in `profiles` hat, konnte sich seine eigene Rolle aussuchen —
+      // `super_admin` eingeschlossen. Der Zustand ist erreichbar: bis Track 13
+      // hat /api/register-provider bei fehlgeschlagenem Salon-Insert das
+      // Profil geloescht und das Auth-Konto stehen lassen.
+      //
+      // Der DB-Trigger `handle_new_user` schreibt fuer neue Konten fest
+      // 'kunde' (Migration 20260316_fix_register_trigger). Das Nachziehen
+      // hier tut dasselbe — der Kommentar an dieser Stelle hat es ohnehin
+      // behauptet, ohne dass je ein Profil entstanden waere.
+      console.error('[AUTH] Profile not found — lege es mit Rolle kunde an:', { userId: data.user.id, email })
+      const nachname = (data.user.user_metadata?.full_name as string) || ''
+      const { data: erstellt, error: createError } = await supabaseAdmin
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          email: data.user.email || email,
+          full_name: nachname,
+          role: 'kunde',
+        })
+        .select('id, email, full_name, role')
+        .single()
+
+      if (createError || !erstellt) {
+        console.error('[AUTH] Profil konnte nicht angelegt werden:', {
+          userId: data.user.id,
+          err: createError?.message,
+        })
+        return null
+      }
+
       return {
         id: data.user.id,
         email: data.user.email || email,
-        name: (data.user.user_metadata?.full_name as string) || data.user.email || email,
-        role: (data.user.user_metadata?.role as string) || 'kunde',
+        name: nachname || data.user.email || email,
+        role: 'kunde',
       }
     }
 

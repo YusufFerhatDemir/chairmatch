@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, signOut } from '@/modules/auth/auth.config'
+import { signOut } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
+import { invalidateAccountState } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 /**
@@ -23,7 +25,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  *     Konto wäre nie hart gelöscht worden.
  */
 export async function POST(req: NextRequest) {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
   }
@@ -98,6 +100,10 @@ export async function POST(req: NextRequest) {
     entity_id: userId,
     details: { hard_delete_after_days: 30 },
   })
+
+  // Der Kontostand-Cache haelt `is_active` sonst noch kurz auf true —
+  // relevant fuer parallele Anfragen mit demselben Cookie.
+  invalidateAccountState(userId)
 
   await signOut({ redirect: false })
   return NextResponse.json({

@@ -95,9 +95,12 @@ const KUNDE = '33333333-3333-4333-8333-333333333333'
 
 let getReviews: (salonId: string) => Promise<unknown[]>
 
+// Der Import zieht die halbe Modulkette mit und braucht kalt deutlich mehr
+// als die 10 Sekunden Standard-Hook-Timeout — die Datei war deshalb schon vor
+// Track 13 rot, ohne dass an ihr etwas kaputt gewesen waere.
 beforeAll(async () => {
   getReviews = (await import('@/modules/reviews/review.actions')).getReviews as unknown as typeof getReviews
-})
+}, 60_000)
 
 beforeEach(() => {
   fakeDb.reset()

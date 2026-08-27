@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/modules/auth/auth.config'
+import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit'
 
@@ -40,7 +40,7 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
   }
