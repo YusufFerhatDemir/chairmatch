@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { logger } from '@/lib/logger'
+import { hashIp } from '@/lib/ip-hash'
 import { z } from 'zod'
 
 const waitListSchema = z.object({
@@ -28,16 +29,17 @@ export async function POST(request: NextRequest) {
 
     const { email, city, source } = parsed.data
     const supabase = getSupabaseAdmin()
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null
+    const rawIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null
+    const ipHash = rawIp ? hashIp(rawIp) : null
 
-    // Rate-Limit: max 5 Einträge / Stunde / IP
-    if (ip) {
+    // Rate-Limit: max 5 Eintraege / Stunde / IP
+    if (ipHash) {
       const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { count } = await (supabase as any)
         .from('wait_list')
         .select('*', { count: 'exact', head: true })
-        .eq('ip', ip)
+        .eq('ip', ipHash)
         .gte('created_at', hourAgo)
 
       if ((count ?? 0) >= 5) {
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase().trim(),
         city: city ? city.slice(0, 100) : null,
         source: source || 'search',
-        ip,
+        ip: ipHash,
         created_at: new Date().toISOString(),
       }, {
         onConflict: 'email,city',

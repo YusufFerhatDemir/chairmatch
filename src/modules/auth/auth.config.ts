@@ -3,6 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { verifyToken } from '@/lib/totp'
 import { loginSchema } from './auth.schemas'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -193,14 +194,38 @@ export async function authorizeCredentials(
       return null
     }
 
+    // 2FA-Pruefung.
+    //
+    // Die Einrichtung lief ueber /api/auth/2fa/setup und /verify; `enabled`
+    // in `user_2fa` ist der einzige Wahrheitswert. Bis Track 17 war das eine
+    // vollstaendig aufgebaute Funktion ohne Strom: der Nutzer aktivierte 2FA,
+    // die Authenticator-App lief, und der Login hat nie danach gefragt. Jetzt
+    // prueft `authorizeCredentials` den Code, bevor es die Session ausstellt.
+    //
+    // Der Code kommt als drittes Feld (`code`) in den Credentials. Ist 2FA
+    // aktiviert und kein oder ein falscher Code da, faellt der Login durch —
+    // dieselbe generische Meldung wie bei einem falschen Passwort, damit kein
+    // Konto-Orakel entsteht.
+    const { data: twoFa, error: twoFaErr } = await supabaseAdmin
+      .from('user_2fa')
+      .select('enabled, secret')
+      .eq('user_id', profile.id)
+      .maybeSingle()
+
+    if (!twoFaErr && twoFa?.enabled === true && twoFa.secret) {
+      const code = parsed.data.code
+      if (!code || !verifyToken(twoFa.secret, code)) {
+        console.error('[AUTH] 2FA verification failed:', { userId: data.user.id, email })
+        await logLoginAttempt(ip, email, false)
+        return null
+      }
+    }
+
     return {
       id: profile.id,
       email: profile.email || data.user.email,
       name: profile.full_name || data.user.email,
       role: profile.role,
-      // Siehe Kommentar am `jwt`-Callback: bis Track 15 hat diese Spalte
-      // NIEMAND gelesen, und der Passwort-Zwang der Middleware lief deshalb
-      // ins Leere.
       passwordMustChange:
         (profile as { password_must_change?: boolean | null }).password_must_change === true,
     }
@@ -218,6 +243,7 @@ export const authOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        code: { label: '2FA Code', type: 'text' },
       },
       authorize: authorizeCredentials,
     }),

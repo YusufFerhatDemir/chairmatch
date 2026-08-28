@@ -49,6 +49,7 @@ const ACCOUNT_CACHE_MAX = 5_000
 interface AccountState {
   role: string
   isActive: boolean
+  passwordMustChange: boolean
 }
 
 interface CacheEntry {
@@ -73,7 +74,7 @@ async function loadAccountState(userId: string): Promise<AccountState | null> {
   try {
     const { data, error } = await getSupabaseAdmin()
       .from('profiles')
-      .select('id, role, is_active, deleted_at')
+      .select('id, role, is_active, deleted_at, password_must_change')
       .eq('id', userId)
       .maybeSingle()
 
@@ -83,11 +84,11 @@ async function loadAccountState(userId: string): Promise<AccountState | null> {
     } else if (!data) {
       state = null
     } else {
-      const row = data as { role?: string | null; is_active?: boolean | null; deleted_at?: string | null }
+      const row = data as { role?: string | null; is_active?: boolean | null; deleted_at?: string | null; password_must_change?: boolean | null }
       state =
         row.is_active === false || row.deleted_at
           ? null
-          : { role: row.role || 'kunde', isActive: true }
+          : { role: row.role || 'kunde', isActive: true, passwordMustChange: row.password_must_change === true }
     }
   } catch (e) {
     console.error('[SESSION] Kontostand-Abfrage abgebrochen:', { userId, err: String(e) })
@@ -122,6 +123,7 @@ export async function getServerSession() {
   if (!state) return null
 
   ;(session.user as { role?: string }).role = state.role
+  ;(session.user as { passwordMustChange?: boolean }).passwordMustChange = state.passwordMustChange
   return session
 }
 

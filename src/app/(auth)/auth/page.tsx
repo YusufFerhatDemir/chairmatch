@@ -100,22 +100,35 @@ export default function AuthPage() {
     setLoading(true)
     setError(null)
 
+    // Beim ersten Absenden pruefen ob 2FA aktiviert ist.
+    if (!needs2FA) {
+      try {
+        const check = await fetch('/api/auth/2fa/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        })
+        const status = await check.json()
+        if (status.required) {
+          setNeeds2FA(true)
+          setLoading(false)
+          return
+        }
+      } catch {
+        // Fehler ignorieren — Login laeuft ohne 2FA-Vorabpruefung weiter
+      }
+    }
+
     const result = await signIn('credentials', {
       email,
       password,
-      totpCode: needs2FA ? totpCode : undefined,
+      code: needs2FA ? totpCode : undefined,
       redirect: false,
     })
 
     setLoading(false)
 
     if (result?.error) {
-      // 2FA-Pflicht erkannt — UI wechselt auf 2FA-Step
-      if (result.error.includes('TOTP_REQUIRED')) {
-        setNeeds2FA(true)
-        setError(null)
-        return
-      }
       setError(result.error === 'CredentialsSignin' ? t('auth.wrongEmailPw') : result.error)
     } else {
       // Role-based redirect — Session-API mit Timeout, sonst Fallback auf /

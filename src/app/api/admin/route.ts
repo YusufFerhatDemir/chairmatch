@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { invalidateAccountState } from '@/modules/auth/session'
@@ -30,39 +31,51 @@ async function requireAdmin() {
   return session
 }
 
-const VALID_ACTIONS = ['salon-status', 'salon-toggle-active', 'user-role', 'booking-status'] as const
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 const VALID_SALON_STATUSES = ['approved', 'suspended', 'pending'] as const
 const VALID_ROLES = ['kunde', 'anbieter', 'b2b', 'investor', 'admin', 'super_admin'] as const
 const VALID_BOOKING_STATUSES = ['confirmed', 'cancelled', 'completed', 'no_show'] as const
 
-// Salon actions: approve, suspend, toggle active
+const adminPatchSchema = z.object({
+  action: z.enum(['salon-status', 'salon-toggle-active', 'user-role', 'booking-status']),
+  id: z.string().regex(UUID, 'Ungültige ID'),
+  data: z.record(z.string(), z.unknown()),
+})
+
 export async function PATCH(req: NextRequest) {
   const session = await requireAdmin()
   if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { action, id, data } = await req.json()
-
-  if (!action || !id || !data) {
-    return NextResponse.json({ error: 'action, id und data sind erforderlich' }, { status: 400 })
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Ungültiger JSON-Body' }, { status: 400 })
   }
 
-  if (!VALID_ACTIONS.includes(action)) {
-    return NextResponse.json({ error: 'Ungültige Aktion' }, { status: 400 })
+  const parsed = adminPatchSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
   }
+
+  const { action, id, data } = parsed.data
+  const d = data as Record<string, string | boolean | undefined>
 
   const supabase = getSupabaseAdmin()
 
   if (action === 'salon-status') {
-    if (!VALID_SALON_STATUSES.includes(data.status)) {
+    const status = String(d.status ?? '')
+    if (!(VALID_SALON_STATUSES as readonly string[]).includes(status)) {
       return NextResponse.json({ error: 'Ungültiger Salon-Status' }, { status: 400 })
     }
     const updates: Record<string, boolean> = {}
-    if (data.status === 'approved') {
+    if (status === 'approved') {
       updates.is_active = true
       updates.is_verified = true
-    } else if (data.status === 'suspended') {
+    } else if (status === 'suspended') {
       updates.is_active = false
-    } else if (data.status === 'pending') {
+    } else if (status === 'pending') {
       updates.is_verified = false
     }
     const { error } = await supabase.from('salons').update(updates).eq('id', id)
@@ -71,34 +84,34 @@ export async function PATCH(req: NextRequest) {
   }
 
   if (action === 'salon-toggle-active') {
-    if (typeof data.is_active !== 'boolean') {
+    if (typeof d.is_active !== 'boolean') {
       return NextResponse.json({ error: 'is_active muss boolean sein' }, { status: 400 })
     }
-    const { error } = await supabase.from('salons').update({ is_active: data.is_active }).eq('id', id)
+    const { error } = await supabase.from('salons').update({ is_active: d.is_active }).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    if (data.is_active) void pingSalonIndexers(id)
+    if (d.is_active) void pingSalonIndexers(id)
   }
 
   if (action === 'user-role') {
-    if (!VALID_ROLES.includes(data.role)) {
+    const role = String(d.role ?? '')
+    if (!(VALID_ROLES as readonly string[]).includes(role)) {
       return NextResponse.json({ error: 'Ungültige Rolle' }, { status: 400 })
     }
     const callerRole = (session.user as { role?: string })?.role
-    if (['admin', 'super_admin'].includes(data.role) && callerRole !== 'super_admin') {
+    if (['admin', 'super_admin'].includes(role) && callerRole !== 'super_admin') {
       return NextResponse.json({ error: 'Nur super_admin darf Admin-Rollen vergeben' }, { status: 403 })
     }
-    const { error } = await supabase.from('profiles').update({ role: data.role }).eq('id', id)
+    const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    // Ohne das behaelt die offene Sitzung des Betroffenen die alte Rolle bis
-    // zum Ablauf des Kontostand-Caches (siehe modules/auth/session.ts).
     invalidateAccountState(id)
   }
 
   if (action === 'booking-status') {
-    if (!VALID_BOOKING_STATUSES.includes(data.status)) {
+    const status = String(d.status ?? '')
+    if (!(VALID_BOOKING_STATUSES as readonly string[]).includes(status)) {
       return NextResponse.json({ error: 'Ungültiger Buchungsstatus' }, { status: 400 })
     }
-    const { error } = await supabase.from('bookings').update({ status: data.status }).eq('id', id)
+    const { error } = await supabase.from('bookings').update({ status }).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
