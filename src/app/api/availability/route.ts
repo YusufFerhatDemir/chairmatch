@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { minutesOfDay, overlaps, BLOCKING_STATUSES } from '@/modules/booking/booking.service'
 import { berlinToday } from '@/lib/berlin-time'
+import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
 
 const SLOT_STEP = 15 // minutes
 
@@ -65,9 +66,21 @@ export async function GET(req: NextRequest) {
 
     const { data: salon } = await supabase
       .from('salons')
-      .select('opening_hours')
+      .select('opening_hours, is_active')
       .eq('id', salonId)
       .single()
+
+    // Ein gesperrter Salon (is_active = false) hat keine buchbaren Zeiten.
+    // Bis Track 15 bot diese Route ihm weiter das volle Raster an, obwohl er
+    // aus jeder oeffentlichen Liste verschwunden war — und `createBooking`
+    // nahm den Termin danach an. Siehe src/lib/salon-status.ts.
+    if (!salonAcceptsBusiness(salon)) {
+      return NextResponse.json({
+        slots: [],
+        unavailable: 'salon_inactive',
+        message: SALON_SUSPENDED_MESSAGE,
+      })
+    }
 
     const oh = (salon?.opening_hours as Record<string, string>) ?? {}
     const dayKeys = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
@@ -149,9 +162,17 @@ export async function GET(req: NextRequest) {
 
     const { data: salon } = await supabase
       .from('salons')
-      .select('opening_hours')
+      .select('opening_hours, is_active')
       .eq('id', equipment.salon_id)
       .single()
+
+    if (!salonAcceptsBusiness(salon)) {
+      return NextResponse.json({
+        slots: [],
+        unavailable: 'salon_inactive',
+        message: SALON_SUSPENDED_MESSAGE,
+      })
+    }
 
     const oh = (salon?.opening_hours as Record<string, string>) ?? {}
     const dayKeys = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']

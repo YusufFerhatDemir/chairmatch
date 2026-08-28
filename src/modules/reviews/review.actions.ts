@@ -83,16 +83,32 @@ export async function createReview(input: unknown) {
   return { success: true, reviewId: newReview.id }
 }
 
+/**
+ * Antwort des Saloninhabers auf eine Bewertung.
+ *
+ * Zwei Dinge waren hier bis Track 15 unsauber:
+ *
+ *  - Jeder Fehlschlag kam ohne `status` zurueck, und die Route machte daraus
+ *    pauschal 400. „Nicht authentifiziert", „Keine Berechtigung" und „nicht
+ *    gefunden" waren fuer den Aufrufer nicht unterscheidbar — und ein
+ *    fehlendes Cookie las sich wie ein Eingabefehler.
+ *  - Geantwortet werden konnte auf JEDE Zeile mit passender `salon_id`, also
+ *    auch auf eine Miet-Bewertung (`tenant_to_provider` /
+ *    `provider_to_tenant`). Die tragen aus Legacy-Gruenden dieselbe
+ *    `salon_id`, sind double-blind und haben mit der oeffentlichen
+ *    Salon-Bewertung nichts zu tun; die Antwort waere nirgends sichtbar
+ *    geworden, haette aber `reply`/`replied_at` der Zeile ueberschrieben.
+ */
 export async function replyToReview(input: unknown) {
   const parsed = replySchema.safeParse(input)
   if (!parsed.success) {
-    return { error: parsed.error.issues[0].message }
+    return { error: parsed.error.issues[0].message, status: 400 }
   }
 
   const { reviewId, reply } = parsed.data
   const session = await getServerSession()
   if (!session?.user) {
-    return { error: 'Nicht authentifiziert.' }
+    return { error: 'Nicht authentifiziert.', status: 401 }
   }
 
   const supabase = getSupabaseAdmin()
@@ -107,18 +123,29 @@ export async function replyToReview(input: unknown) {
     .single()
 
   if (!review) {
-    return { error: 'Bewertung nicht gefunden.' }
+    return { error: 'Bewertung nicht gefunden.', status: 404 }
+  }
+
+  if (!isSalonReview(review as { review_type?: string | null })) {
+    return { error: 'Bewertung nicht gefunden.', status: 404 }
   }
 
   // Only salon owner can reply
   if (review.salon.owner_id !== session.user.id) {
-    return { error: 'Keine Berechtigung.' }
+    return { error: 'Keine Berechtigung.', status: 403 }
   }
 
-  await supabase
+  const { error: updateError } = await supabase
     .from('reviews')
     .update({ reply, replied_at: new Date().toISOString() })
     .eq('id', reviewId)
+
+  // Ein fehlgeschlagenes Update wurde bisher verschluckt: der Anbieter las
+  // „gespeichert", die Antwort stand nirgends.
+  if (updateError) {
+    console.error('replyToReview update failed:', updateError)
+    return { error: 'Antwort konnte nicht gespeichert werden.', status: 500 }
+  }
 
   return { success: true }
 }

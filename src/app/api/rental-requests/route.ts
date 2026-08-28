@@ -4,6 +4,7 @@ import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createNotification } from '@/lib/notifications'
 import { notifyLandlordOfRentalRequest } from '@/lib/rental-request-email'
+import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
 import {
   claimRentalRequest,
   linkRentalRequestClaim,
@@ -61,7 +62,7 @@ interface EquipmentForRequest {
   price_per_week_cents: number | null
   price_per_month_cents: number | null
   is_available: boolean
-  salons?: { name?: string; city?: string; owner_id?: string } | null
+  salons?: { name?: string; city?: string; owner_id?: string; is_active?: boolean | null } | null
 }
 
 /**
@@ -154,7 +155,7 @@ export async function POST(req: NextRequest) {
       .from('rental_equipment')
       .select(
         'id, salon_id, name, type, price_per_day_cents, price_per_hour_cents, ' +
-          'price_per_week_cents, price_per_month_cents, is_available, salons(name, city, owner_id)',
+          'price_per_week_cents, price_per_month_cents, is_available, salons(name, city, owner_id, is_active)',
       )
       .eq('id', input.equipmentId)
       .limit(1)
@@ -170,6 +171,13 @@ export async function POST(req: NextRequest) {
     }
     if (!equipment.is_available) {
       return NextResponse.json({ error: 'Mietobjekt ist derzeit nicht verfügbar' }, { status: 409 })
+    }
+
+    // Gesperrter Anbieter bekommt keine Anfragen mehr zugestellt — bis
+    // Track 15 lief die Zustellung (Benachrichtigung UND E-Mail) unveraendert
+    // weiter. Siehe src/lib/salon-status.ts.
+    if (!salonAcceptsBusiness(equipment.salons)) {
+      return NextResponse.json({ error: SALON_SUSPENDED_MESSAGE }, { status: 409 })
     }
 
     const ownerId = equipment.salons?.owner_id ?? null

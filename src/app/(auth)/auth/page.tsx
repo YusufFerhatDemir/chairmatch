@@ -227,6 +227,18 @@ export default function AuthPage() {
           </button>
         </div>
 
+        {/* Nach einer Passwortaenderung meldet /auth/change-password ab (der
+            Passwort-Zwang steckt im Token und wird nur beim Login gesetzt).
+            Ohne diesen Hinweis waere das ein wortloser Rauswurf. */}
+        {searchParams.get('changed') === '1' && !error && (
+          <div role="status" style={{
+            background: 'rgba(74, 138, 90, 0.1)', border: '1px solid rgba(74, 138, 90, 0.3)',
+            borderRadius: 12, padding: 12, marginBottom: 16, color: 'var(--green)', fontSize: 'var(--font-sm)',
+          }}>
+            Passwort geändert. Bitte melde dich mit dem neuen Passwort an.
+          </div>
+        )}
+
         {error && (
           <div style={{
             background: 'rgba(232, 80, 64, 0.1)', border: '1px solid rgba(232, 80, 64, 0.3)',

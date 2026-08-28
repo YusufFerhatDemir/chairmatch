@@ -16,6 +16,7 @@ import {
   evaluateCancellationWindow,
 } from './booking.service'
 import { getServerSession } from '@/modules/auth/session'
+import { checkSalonAcceptsBusiness } from '@/lib/salon-status'
 import { sendBookingConfirmation, sendProviderNotification } from '@/lib/email'
 
 /** Rolle des Aufrufers gegenueber einer konkreten Buchung. */
@@ -263,6 +264,16 @@ export async function createBooking(input: unknown) {
   // Deaktivierte Leistungen waren weiter buchbar — der Filter fehlte schlicht.
   if (service.is_active === false) {
     return { error: 'Diese Dienstleistung wird derzeit nicht angeboten.' }
+  }
+
+  // Der Salon selbst wurde hier NIE geladen. `createBooking` kannte nur die
+  // Leistung — ein von der Plattform gesperrter Salon (is_active = false,
+  // geschrieben von /admin/anbieter „Sperren"/„Offline setzen") nahm damit
+  // ueber jeden Direktlink weiter Termine an, obwohl er aus Startseite,
+  // Suche und Stadtseiten verschwunden war. Siehe src/lib/salon-status.ts.
+  const salonGuard = await checkSalonAcceptsBusiness(supabase, data.salonId)
+  if (!salonGuard.ok) {
+    return { error: salonGuard.error, status: salonGuard.status }
   }
 
   const riskLevel = (service as { risk_level?: string }).risk_level

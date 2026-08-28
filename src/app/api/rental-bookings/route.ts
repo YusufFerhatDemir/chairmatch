@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createRentalCheckout } from '@/lib/stripe'
 import { createNotification } from '@/lib/notifications'
 import { appOriginFromRequest } from '@/lib/app-origin'
+import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
 
 /**
  * Rental-Bookings API — der fehlende End-to-End-Pfad für Stuhl-/Liegen-/Raum-Miete.
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
     // Equipment + Salon laden (Preisquelle + Anzeige)
     const { data: equipment, error: eqError } = await supabase
       .from('rental_equipment')
-      .select('id, salon_id, type, name, price_per_day_cents, price_per_month_cents, is_available, salons(name, owner_id)')
+      .select('id, salon_id, type, name, price_per_day_cents, price_per_month_cents, is_available, salons(name, owner_id, is_active)')
       .eq('id', equipmentId)
       .single()
 
@@ -102,7 +103,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Mietobjekt ist nicht verfügbar' }, { status: 409 })
     }
 
-    const salon = (equipment as { salons?: { name?: string; owner_id?: string } | null }).salons
+    const salon = (equipment as {
+      salons?: { name?: string; owner_id?: string; is_active?: boolean | null } | null
+    }).salons
+
+    // Der Salon hinter dem Mietobjekt wurde bis Track 15 nur nach Name und
+    // Inhaber gefragt, nie nach seinem Zustand. Ein gesperrter Anbieter
+    // (is_active = false) bekam hier weiterhin eine Stripe-Checkout-Session:
+    // das Geld wurde eingezogen, der Webhook bestaetigte die Buchung, und der
+    // Payout-Cron ueberwies es beim Mietbeginn an genau den Anbieter, den die
+    // Plattform angehalten hatte. Siehe src/lib/salon-status.ts.
+    if (!salonAcceptsBusiness(salon)) {
+      return NextResponse.json({ error: SALON_SUSPENDED_MESSAGE }, { status: 409 })
+    }
+
     if (salon?.owner_id && salon.owner_id === session.user.id) {
       return NextResponse.json({ error: 'Eigenes Mietobjekt kann nicht gebucht werden' }, { status: 400 })
     }

@@ -308,7 +308,10 @@ describe('Antwort auf eine Bewertung (POST /api/reviews/[id]/reply)', () => {
       postRequest(`${REVIEWS_URL}/${reviewId}/reply`, { reply: 'Danke!' }),
       { params: Promise.resolve({ id: reviewId }) },
     )
-    expect(fremd.status).toBe(400)
+    // 403, nicht 400: die Route machte bis Track 15 aus JEDEM Fehlschlag der
+    // Action einen Eingabefehler — „nicht angemeldet" und „keine
+    // Berechtigung" waren fuer den Aufrufer nicht zu unterscheiden.
+    expect(fremd.status).toBe(403)
     expect(db().row('reviews', reviewId)?.reply).toBeUndefined()
 
     // Inhaber
@@ -319,5 +322,53 @@ describe('Antwort auf eine Bewertung (POST /api/reviews/[id]/reply)', () => {
     )
     expect(inhaber.status).toBe(200)
     expect(db().row('reviews', reviewId)?.reply).toBe('Danke fuer das Feedback!')
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+describe('Selbstbewertung des eigenen Salons', () => {
+  /**
+   * `checkEligibility` hat den Salon bis Track 15 NIE geladen — und damit nie
+   * gefragt, wem er gehoert. Der Weg ohne Buchungsbezug hat keine
+   * Vorbedingung ausser „noch nicht bewertet", also genuegte dem Inhaber ein
+   * POST /api/reviews mit der eigenen salonId.
+   *
+   * Die Zeile entsteht mit `published: true` (Kundenbewertungen sind nicht
+   * double-blind), und `updateSalonRating` schreibt sie danach nach
+   * `salons.avg_rating` und `salons.review_count`. Genau diese beiden Werte
+   * stehen als AggregateRating im JSON-LD der Salonseite, auf den Kacheln der
+   * Startseite und in der Suche.
+   */
+  it('der Inhaber kann seinen eigenen Salon nicht bewerten', async () => {
+    const vorher = db().row('salons', IDS.salon)
+    const ratingVorher = vorher?.avg_rating
+    const countVorher = vorher?.review_count
+
+    state.session = sessionFor('owner')
+    const res = await submit({ salonId: IDS.salon, rating: 5, comment: 'Bester Salon!' })
+
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toMatch(/eigenen Salon/i)
+
+    // Weder eine Zeile noch eine verschobene Kennzahl.
+    expect(db().rows('reviews')).toHaveLength(0)
+    const nachher = db().row('salons', IDS.salon)
+    expect(nachher?.avg_rating).toBe(ratingVorher)
+    expect(nachher?.review_count).toBe(countVorher)
+  })
+
+  it('eine Bewertung zu einem Salon, den es nicht gibt, entsteht nicht', async () => {
+    const res = await submit({ salonId: IDS.unknown, rating: 5 })
+
+    expect(res.status).toBe(400)
+    expect(db().rows('reviews')).toHaveLength(0)
+  })
+
+  it('eine fremde Kundin bewertet weiter — die Sperre trifft nur den Inhaber', async () => {
+    state.session = sessionFor('customer')
+    const res = await submit({ salonId: IDS.salon, rating: 4, comment: 'Sehr zufrieden' })
+
+    expect(res.status).toBe(201)
+    expect(db().rows('reviews')).toHaveLength(1)
   })
 })

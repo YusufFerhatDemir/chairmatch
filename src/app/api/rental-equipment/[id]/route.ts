@@ -7,6 +7,7 @@ import {
   ListingError,
   requireOwnedEquipment,
 } from '@/modules/rentals/listing.service'
+import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
 
 /**
  * Einzelnes Mietobjekt (Track E).
@@ -55,7 +56,7 @@ export async function GET(
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('rental_equipment')
-      .select(`${LISTING_COLUMNS}, salons(id, name, city, slug)`)
+      .select(`${LISTING_COLUMNS}, salons(id, name, city, slug, is_active)`)
       .eq('id', id)
       .limit(1)
 
@@ -67,6 +68,16 @@ export async function GET(
     const row = data?.[0]
     if (!row) {
       return NextResponse.json({ error: 'Mietobjekt nicht gefunden' }, { status: 404 })
+    }
+
+    // Diese Route versorgt das Buchungs- und Anfrageformular unter
+    // /inserat/[id]. Gehoert das Objekt zu einem gesperrten Salon, faengt der
+    // Absendeknopf jetzt zwar in /api/rental-bookings bzw. /api/rental-requests
+    // eine 409 — das Formular soll den Mieter aber gar nicht erst Datum und
+    // Zeitraum eingeben lassen. Siehe src/lib/salon-status.ts.
+    const salon = (row as { salons?: { is_active?: boolean | null } | null }).salons
+    if (salon && !salonAcceptsBusiness(salon)) {
+      return NextResponse.json({ error: SALON_SUSPENDED_MESSAGE }, { status: 409 })
     }
 
     return NextResponse.json({ equipment: row })

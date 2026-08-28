@@ -53,7 +53,7 @@ interface EquipmentRow {
   available_days: unknown
   available_from: string | null
   available_to: string | null
-  salons?: { id?: string; name?: string; city?: string; slug?: string } | null
+  salons?: { id?: string; name?: string; city?: string; slug?: string; is_active?: boolean | null } | null
 }
 
 function stringArray(value: unknown): string[] {
@@ -148,7 +148,7 @@ export async function GET(req: NextRequest) {
       .select(
         'id, salon_id, type, name, description, features, images, price_per_day_cents, ' +
           'price_per_hour_cents, price_per_week_cents, price_per_month_cents, ' +
-          'available_days, available_from, available_to, salons(id, name, city, slug)',
+          'available_days, available_from, available_to, salons(id, name, city, slug, is_active)',
       )
       .eq('is_available', true)
 
@@ -162,7 +162,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Inserate konnten nicht geladen werden' }, { status: 500 })
     }
 
+    // Gesperrte Anbieter fliegen aus der Mietsuche.
+    //
+    // Das war bis Track 15 die EINZIGE oeffentliche Liste ohne diesen Filter:
+    // Startseite, Suche, Stadt- und Kategorieseiten fragen alle mit
+    // `.eq('is_active', true)`, die Inserate hier gar nicht. Ein von
+    // /admin/anbieter gesperrter Salon blieb damit im Marktplatz sichtbar und
+    // von dort aus buchbar.
+    //
+    // Bewusst nur bei einem AUSDRUECKLICHEN `false` — anders als auf den
+    // Geldstrecken (rental-bookings, rental-requests, createBooking), die
+    // fail closed sind. Hier wuerde ein „im Zweifel raus" bei einem Ausfall
+    // der Einbettung den halben Marktplatz stillegen, ohne dass jemand etwas
+    // gesperrt haette. Siehe src/lib/salon-status.ts.
     const listings = ((data ?? []) as unknown as EquipmentRow[])
+      .filter((row) => row.salons?.is_active !== false)
       .map(toListing)
       .filter((l) => matchesQuery(l, query))
       .filter((l) => matchesCity(l, city))

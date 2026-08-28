@@ -344,6 +344,11 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
     // suchte das Profil darueber und fand deshalb nie eines.
     'stripe_customer_id',
     'phone',
+    // Track 15: die Spalte existiert live (belegt in
+    // docs/CHAIRMATCH_RLS_FINAL_STATUS.md, Spaltenliste `profiles`). Gelesen
+    // hat sie bis Track 15 niemand — der Passwort-Zwang der Middleware lief
+    // deshalb ins Leere. Jetzt liest `authorizeCredentials` sie beim Login.
+    'password_must_change',
   ],
 
   payout_accounts: ['user_id', 'context', 'account_holder'],

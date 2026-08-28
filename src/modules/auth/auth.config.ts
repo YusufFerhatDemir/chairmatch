@@ -128,7 +128,7 @@ export async function authorizeCredentials(
     const supabaseAdmin = getSupabaseAdmin()
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('id, email, full_name, role, is_active')
+      .select('id, email, full_name, role, is_active, password_must_change')
       .eq('id', data.user.id)
       .maybeSingle()
 
@@ -198,6 +198,11 @@ export async function authorizeCredentials(
       email: profile.email || data.user.email,
       name: profile.full_name || data.user.email,
       role: profile.role,
+      // Siehe Kommentar am `jwt`-Callback: bis Track 15 hat diese Spalte
+      // NIEMAND gelesen, und der Passwort-Zwang der Middleware lief deshalb
+      // ins Leere.
+      passwordMustChange:
+        (profile as { password_must_change?: boolean | null }).password_must_change === true,
     }
   } catch (e) {
     console.error('[AUTH] authorize() crashed:', e)
@@ -218,10 +223,34 @@ export const authOptions = {
     }),
   ],
   callbacks: {
+    /**
+     * `passwordMustChange` — die Haelfte, die bis Track 15 gefehlt hat.
+     *
+     * Die Middleware entscheidet ueber den Passwort-Zwang mit
+     * `session.user.passwordMustChange` (siehe `decideAuthAccess` in
+     * src/middleware.ts), es gibt eine Seite dafuer (/auth/change-password mit
+     * ?forced=1), eine Route, die das Flag wieder loescht
+     * (/api/auth/change-password), und eine Spalte `profiles.password_must_change`
+     * in der Produktionsdatenbank. Nur gesetzt hat das Feld auf der Session
+     * NIEMAND: weder der `jwt`- noch der `session`-Callback hat es je
+     * angefasst, und `authorizeCredentials` hat die Spalte nicht einmal
+     * ausgewaehlt. `!!session.passwordMustChange` war damit in jedem Request
+     * `false` — der Zwang war eine vollstaendig verdrahtete Kette ohne Strom.
+     *
+     * Das Flag kommt beim LOGIN in den Token, nicht bei jedem Request: die
+     * Middleware laeuft auf der Edge und liest ausschliesslich den Token, eine
+     * DB-Abfrage steht ihr dort nicht zur Verfuegung (deshalb prueft
+     * `getServerSession` Rolle und Sperre separat gegen `profiles`). Damit ein
+     * geaendertes Passwort den Zwang auch wirklich beendet, meldet
+     * /auth/change-password nach Erfolg ab — der naechste Login stellt einen
+     * Token ohne das Flag aus.
+     */
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.role = (user as { role?: string }).role || 'kunde'
+        token.passwordMustChange =
+          (user as { passwordMustChange?: boolean }).passwordMustChange === true
       }
       return token
     },
@@ -229,6 +258,8 @@ export const authOptions = {
       if (session.user) {
         session.user.id = token.id as string
         ;(session.user as { role?: string }).role = token.role as string
+        ;(session.user as { passwordMustChange?: boolean }).passwordMustChange =
+          token.passwordMustChange === true
       }
       return session
     },

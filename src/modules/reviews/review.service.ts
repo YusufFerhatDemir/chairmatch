@@ -49,6 +49,37 @@ export async function checkEligibility(
 ): Promise<{ eligible: boolean; reason?: string }> {
   const supabase = getSupabaseAdmin()
 
+  // Der Salon selbst wurde hier bis Track 15 NIE geladen — und damit auch nie
+  // gefragt, wem er gehoert.
+  //
+  // Folge: der Inhaber konnte seinen eigenen Salon bewerten. Der Weg ohne
+  // Buchungsbezug hat keine Vorbedingung ausser „noch nicht bewertet", also
+  // genuegte ein POST /api/reviews mit der eigenen salonId und rating 5. Die
+  // Zeile entsteht mit `published: true` (Kundenbewertungen sind nicht
+  // double-blind), `updateSalonRating` schreibt sie danach nach
+  // `salons.avg_rating` und `salons.review_count` — und genau diese beiden
+  // Werte stehen als AggregateRating im JSON-LD der Salonseite, auf den
+  // Kachel-Sternen der Startseite und in der Suche.
+  //
+  // Die Gegenrichtung war schon zu: /api/reviews/rental weist
+  // `revieweeUserId === userId` ab. Hier fehlte sie.
+  const { data: salonRows, error: salonError } = await supabase
+    .from('salons')
+    .select('id, owner_id')
+    .eq('id', salonId)
+    .limit(1)
+
+  if (salonError) {
+    return { eligible: false, reason: 'Salon konnte nicht geprüft werden.' }
+  }
+  const salon = (salonRows?.[0] as { owner_id?: string | null } | undefined) ?? null
+  if (!salon) {
+    return { eligible: false, reason: 'Salon nicht gefunden.' }
+  }
+  if (salon.owner_id && salon.owner_id === customerId) {
+    return { eligible: false, reason: 'Du kannst deinen eigenen Salon nicht bewerten.' }
+  }
+
   if (bookingId) {
     const { data: booking } = await supabase
       .from('bookings')

@@ -17,7 +17,11 @@ export const POST = withApi(async (request: Request) => {
   const result = await createBooking({ ...body, customerId: session.user.id })
 
   if ('error' in result) {
-    return apiError(result.error ?? 'Buchung konnte nicht erstellt werden', 400)
+    // `status` traegt die Faelle, die keine Eingabefehler sind — etwa ein von
+    // der Plattform gesperrter Salon (409) oder ein Lesefehler bei dessen
+    // Pruefung (503). Ohne das las der Kunde fuer jeden davon „400".
+    const status = (result as { status?: number }).status ?? 400
+    return apiError(result.error ?? 'Buchung konnte nicht erstellt werden', status)
   }
 
   return NextResponse.json(result, { status: 201 })

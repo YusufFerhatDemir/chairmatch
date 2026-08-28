@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type { Route } from 'next'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { signOut } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 
 /**
@@ -11,14 +11,22 @@ import { BrandLogo } from '@/components/BrandLogo'
  * Provider, die mit Initial-Passwort eingeloggt sind (password_must_change=true),
  * werden von der Middleware hierher umgeleitet. Auch normaler "Passwort ändern"-Aufruf
  * geht über diese Seite (via /account/security).
+ *
+ * Nach Erfolg wird ABGEMELDET, nicht weitergeleitet. Das Flag, mit dem die
+ * Middleware entscheidet, steckt im NextAuth-Token und wird dort nur beim
+ * Login gesetzt (siehe `jwt`-Callback in auth.config.ts). Ein Redirect auf die
+ * Zielseite liefe deshalb sofort wieder in denselben Zwang zurueck — der
+ * Nutzer haette sein Passwort geaendert und saesse in einer Schleife fest.
+ * Der neue Login stellt einen Token ohne das Flag aus; abgemeldet gehoert man
+ * nach einer Passwortaenderung ohnehin.
  */
 export default function ChangePasswordPage() {
-  const router = useRouter()
   const params = useSearchParams()
   const forced = params.get('forced') === '1'
   // Nur interne Pfade zulassen — verhindert Open-Redirect via ?callbackUrl=https://…
   const rawCallback = params.get('callbackUrl') || '/account'
-  const callbackUrl = (rawCallback.startsWith('/') && !rawCallback.startsWith('//') ? rawCallback : '/account') as Route
+  const callbackUrl =
+    rawCallback.startsWith('/') && !rawCallback.startsWith('//') ? rawCallback : '/account'
 
   const [pw, setPw] = useState('')
   const [pw2, setPw2] = useState('')
@@ -47,8 +55,11 @@ export default function ChangePasswordPage() {
         setError(data.error || 'Passwort-Änderung fehlgeschlagen.')
         return
       }
-      // Erfolg → weiter zur Ziel-Seite
-      router.replace(callbackUrl)
+      // Erfolg → abmelden und mit dem neuen Passwort neu anmelden. Der
+      // Zielpfad bleibt als callbackUrl erhalten.
+      await signOut({
+        callbackUrl: `/auth?changed=1&callbackUrl=${encodeURIComponent(callbackUrl)}`,
+      })
     } catch {
       setError('Verbindungsfehler — bitte erneut versuchen.')
     } finally {
