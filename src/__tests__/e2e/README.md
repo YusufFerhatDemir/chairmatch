@@ -33,6 +33,28 @@ Produktivcode unangetastet testbar.
 | `auth-flow.test.ts` | Registrierung inkl. Einwilligungen, Login, Rate-Limit, Session-/Cookie-Härtung, Passwort-Reset |
 | `permissions.test.ts` | Rollen-Hierarchie, Salon-Inhaber vs. Mieter, Admin-Aktionen, Sichtbarkeit von Buchungen |
 | `error-cases.test.ts` | Timeouts, DB-/Stripe-Ausfälle, gleichzeitige Zugriffe |
+| `stripe-nicht-konfiguriert.test.ts` | Verhalten OHNE `STRIPE_SECRET_KEY` — der aktuelle Zustand der Produktion. Jeder Zahlweg muss 503 melden statt 500/400 |
+| `inserat-lebenszyklus.test.ts` | Stuhl-Inserat (`/api/me/listing`): anlegen, bepreisen, online/offline, Mandantentrennung |
+| `miet-bewertung-freischaltung.test.ts` | Miet-Bewertung abgeben → 14 Tage unsichtbar → Cron schaltet frei → öffentlich sichtbar |
+
+## Warum Playwright (`/e2e`) NICHT in CI läuft
+
+Unter `/e2e` liegen Playwright-Specs. Sie brauchen einen laufenden Server, und
+der benutzt dieselben Supabase-Zugangsdaten wie die Produktion — Tests und
+Produktion teilen sich das Projekt `pwdbjqfpgumyfktbfswg`. Ein CI-Lauf würde
+also in echten Tabellen schreiben. Genau deshalb existiert die Suite hier.
+
+Die Zusage, um die es dort geht („geschützte Seiten leiten auf `/auth` um"),
+ist doppelt belegt, ohne Produktionsdaten anzufassen:
+
+- **in CI**: `src/__tests__/middleware-auth-decision.test.ts` und
+  `middleware-public-paths.test.ts` prüfen die Umleitungsentscheidung für
+  `/account`, `/favorites`, `/admin` und `/provider`.
+- **gegen die echte Instanz**: `bash scripts/prod-probe.sh` sondet dieselben
+  Pfade live (307 auf `/auth?callbackUrl=…`), dazu die Admin-Schnittstelle
+  (401 ohne Anmeldung) und die anon-Rechte auf den PII-Tabellen.
+
+Die Playwright-Specs bleiben als manuelle Gegenprobe gegen eine echte Instanz.
 
 ## RLS — wichtige Einordnung
 

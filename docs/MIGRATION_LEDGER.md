@@ -43,6 +43,27 @@
 |---|---|---|---|
 | `20260828170738_benachrichtigungswege_haertung.sql` | 20260828170738 | CM23 | `push_subscriptions.updated_at`; Arbiter-fähiger UNIQUE auf `wait_list(email, city)`; 6 CHECK-Constraints (Endpunkt https, Schlüsselmaterial, E-Mail normalisiert, Stadt nicht leer, `choices` vollständig); `DROP POLICY cookie_consents_insert_anon`; `REVOKE ALL … FROM anon` auf `push_subscriptions`, `notification_log`, `wait_list`, `cookie_consents` |
 
+### CM23 — Teilbefund aus der Produktionssonde (2026-08-28)
+
+`bash scripts/prod-probe.sh` hat den REVOKE-Teil der Migration gegen die
+laufende Instanz geprüft. Alle vier Zieltabellen sind für den anon-Key bereits
+gesperrt:
+
+| Tabelle | anon (live) |
+|---|---|
+| `push_subscriptions` | 401 |
+| `notification_log` | 401 |
+| `wait_list` | 401 |
+| `cookie_consents` | 401 |
+
+Der sicherheitsrelevante Teil von CM23 ist damit **live wirksam** — ob durch
+diese Migration oder weil nie ein GRANT bestand, ist von außen nicht zu
+unterscheiden. Offen bleibt der Schema-Teil (`push_subscriptions.updated_at`,
+der arbiterfähige UNIQUE auf `wait_list(email, city)`, die sechs CHECKs). Der
+ist von hier aus **nicht prüfbar**: die Sonde ist bei gesperrten Tabellen blind
+(401 verdeckt 42703), der Dienstschlüssel ist ungültig, und ein direkter
+Datenbankzugang steht Agents nicht zur Verfügung.
+
 Der Produktivcode aus CM23 läuft **ohne** diese Migration: er schreibt kein
 `updated_at` und benutzt an den betroffenen Stellen kein `ON CONFLICT` mehr.
 Die Migration schreibt die Regeln zusätzlich in die Datenbank; jeder Constraint

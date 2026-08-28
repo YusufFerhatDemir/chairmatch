@@ -191,7 +191,10 @@ describe('POST /api/rental-requests — Kette bis zum Zustelllog', () => {
     expect(log.status).toBe('sent')
     expect(log.provider_message_id).toBe('msg_e2e_1')
     expect(log.error_message ?? null).toBeNull()
-  })
+    // 30s statt der voreingestellten 5s: im vollen Suite-Lauf (81 Dateien)
+    // reicht die Voreinstellung nicht — allein laeuft die Datei in ~8s
+    // durch. Gleiche Massnahme wie in Track 21/22 an denselben Symptomen.
+  }, 30_000)
 
   it('legt die Log-Zeile vor dem Versand als pending an', async () => {
     await submit()

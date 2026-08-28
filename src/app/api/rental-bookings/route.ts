@@ -8,6 +8,7 @@ import { appOriginFromRequest } from '@/lib/app-origin'
 import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
 import { berlinToday } from '@/lib/berlin-time'
 import { inclusiveDayCount, isCalendarDate } from '@/lib/iso-date'
+import { stripeUnavailable } from '@/lib/stripe-availability'
 
 /**
  * Rental-Bookings API — der fehlende End-to-End-Pfad für Stuhl-/Liegen-/Raum-Miete.
@@ -57,6 +58,13 @@ function computeTotalCents(
 
 export async function POST(req: NextRequest) {
   try {
+    // Der Fehlerpfad weiter unten legt die Buchung an, merkt beim Checkout,
+    // dass Stripe fehlt, und loescht sie wieder (502). Das Ergebnis stimmt,
+    // der Weg dahin ist unnoetig: ist gar kein Schluessel gesetzt, steht das
+    // schon hier fest — dann entsteht erst gar keine Zeile.
+    const nichtVerfuegbar = stripeUnavailable()
+    if (nichtVerfuegbar) return nichtVerfuegbar
+
     const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })

@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createConnectAccount, createConnectAccountLink } from '@/lib/stripe'
 import { isProviderOrAbove, isBusinessOwnerOrAbove } from '@/lib/rbac'
 import { appOriginFromRequest } from '@/lib/app-origin'
+import { stripeUnavailable } from '@/lib/stripe-availability'
 
 /**
  * Stripe Connect Onboarding für Anbieter (Vermieter).
@@ -24,6 +25,11 @@ function hasProviderRole(session: { user?: unknown } | null): boolean {
 
 export async function POST(req: NextRequest) {
   try {
+    // Kein Schluessel → kein Connect-Account. Ohne diesen Riegel wirft
+    // `createConnectAccount` und der Anbieter liest „Interner Fehler".
+    const nichtVerfuegbar = stripeUnavailable()
+    if (nichtVerfuegbar) return nichtVerfuegbar
+
     const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })

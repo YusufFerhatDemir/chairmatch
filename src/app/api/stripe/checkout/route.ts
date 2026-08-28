@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { appOriginFromRequest } from '@/lib/app-origin'
 import { SALON_SUSPENDED_MESSAGE, checkSalonAcceptsBusiness, salonAcceptsBusiness } from '@/lib/salon-status'
 import { entitlementForStatus } from '@/lib/subscription-tier'
+import { stripeUnavailable } from '@/lib/stripe-availability'
 
 /**
  * Ein Betrag, den Stripe gar nicht einziehen kann, darf nicht als
@@ -25,6 +26,12 @@ function istZahlbar(amountCents: unknown): boolean {
 
 export async function POST(req: NextRequest) {
   try {
+    // Ohne Stripe-Schluessel wirft der erste Zugriff auf den `stripe`-Proxy,
+    // und der catch unten macht daraus 500 „Interner Fehler". Vorne gefragt
+    // ist es das, was es ist: ein nicht eingerichteter Zahlweg (503).
+    const nichtVerfuegbar = stripeUnavailable()
+    if (nichtVerfuegbar) return nichtVerfuegbar
+
     const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })

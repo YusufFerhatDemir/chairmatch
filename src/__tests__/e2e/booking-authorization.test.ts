@@ -35,6 +35,7 @@ vi.mock('@/lib/email', () => ({
   sendProviderNotification: async () => ({ ok: true }),
 }))
 vi.mock('@/lib/stripe', () => ({
+  isStripeConfigured: () => true,
   stripe: {},
   createBookingCheckout: async () => ({ id: 'cs_test_fremd', url: 'https://checkout.stripe.com/cs_test_fremd' }),
   createSubscriptionCheckout: async () => ({ id: 'cs_test_sub', url: 'https://checkout.stripe.com/cs_test_sub' }),

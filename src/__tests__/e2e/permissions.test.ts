@@ -41,6 +41,7 @@ vi.mock('@/modules/auth/session', () => ({
 vi.mock('@/modules/auth/auth.config', () => ({ auth: async () => state.session }))
 vi.mock('@/lib/indexing', () => ({ notifyIndexers: vi.fn(async () => undefined) }))
 vi.mock('@/lib/stripe', () => ({
+  isStripeConfigured: () => true,
   createConnectAccount: vi.fn(async () => ({ id: 'acct_test_neu' })),
   createConnectAccountLink: vi.fn(async () => ({ url: 'https://connect.stripe.com/setup/x' })),
 }))

@@ -13,6 +13,7 @@ import {
   type Tier,
 } from '@/lib/subscription-tier'
 import type Stripe from 'stripe'
+import { stripeUnavailable } from '@/lib/stripe-availability'
 
 // Disable body parsing — Stripe needs raw body
 export const runtime = 'nodejs'
@@ -732,6 +733,15 @@ export async function POST(req: NextRequest) {
     console.error('STRIPE_WEBHOOK_SECRET is not configured')
     return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
   }
+
+  // `stripe.webhooks.constructEvent` ist reine Kryptographie und braucht den
+  // API-Schluessel fachlich nicht — der Proxy-Zugriff `stripe.webhooks` ruft
+  // aber `getStripe()` und wirft ohne ihn. Der catch darunter haette daraus
+  // „Invalid signature" (400) gemacht, und 4xx heisst fuer Stripe: nicht
+  // wiederholen. Ein fehlender Schluessel haette so jedes Zahlungsereignis
+  // endgueltig verworfen. 503 laesst Stripe es erneut zustellen.
+  const nichtVerfuegbar = stripeUnavailable()
+  if (nichtVerfuegbar) return nichtVerfuegbar
 
   let event: Stripe.Event
   try {
