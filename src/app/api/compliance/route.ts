@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { isAdminOrAbove } from '@/lib/rbac'
 import { dbError } from '@/lib/api-wrapper'
+import { isUuid } from '@/lib/uuid'
+import { isSafeHttpUrl } from '@/lib/safe-url'
 
 const VALID_DOC_TYPES = [
   'gewerbeanmeldung',
@@ -35,6 +37,9 @@ export async function GET(request: NextRequest) {
     const salonId = request.nextUrl.searchParams.get('salonId')
     if (!salonId) {
       return NextResponse.json({ error: 'salonId ist erforderlich' }, { status: 400 })
+    }
+    if (!isUuid(salonId)) {
+      return NextResponse.json({ error: 'Ungültige salonId' }, { status: 400 })
     }
 
     const supabase = getSupabaseAdmin()
@@ -85,7 +90,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const { salonId, documentType, fileUrl, fileName, expiresAt } = body
 
-    if (!salonId || typeof salonId !== 'string') {
+    if (!isUuid(salonId)) {
       return NextResponse.json({ error: 'salonId ist erforderlich' }, { status: 400 })
     }
     if (!documentType || !VALID_DOC_TYPES.includes(documentType)) {
@@ -94,11 +99,34 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    if (!fileUrl || typeof fileUrl !== 'string') {
-      return NextResponse.json({ error: 'fileUrl ist erforderlich' }, { status: 400 })
+    // `fileUrl` war bis Track 19 jede Zeichenkette. Der Wert wird gespeichert,
+    // damit ihn spaeter jemand oeffnet — eine `javascript:`- oder `data:`-URL
+    // an dieser Stelle ist eine Falle, die auf den ersten Ansichts-Bildschirm
+    // wartet, der daraus ein `<a href>` macht. Erlaubt ist nur http(s).
+    if (!isSafeHttpUrl(fileUrl)) {
+      return NextResponse.json(
+        { error: 'fileUrl muss eine http(s)-Adresse sein' },
+        { status: 400 }
+      )
     }
-    if (!fileName || typeof fileName !== 'string') {
+    if (!fileName || typeof fileName !== 'string' || fileName.trim().length === 0) {
       return NextResponse.json({ error: 'fileName ist erforderlich' }, { status: 400 })
+    }
+    if (fileName.length > 255) {
+      return NextResponse.json(
+        { error: 'fileName darf maximal 255 Zeichen lang sein' },
+        { status: 400 }
+      )
+    }
+    // `expires_at` ist eine Datumsspalte. Ein beliebiger String lief in 22007
+    // und wurde zu einem 500 fuer eine reine Falscheingabe.
+    if (expiresAt !== undefined && expiresAt !== null && expiresAt !== '') {
+      if (typeof expiresAt !== 'string' || Number.isNaN(Date.parse(expiresAt))) {
+        return NextResponse.json(
+          { error: 'expiresAt muss ein gültiges Datum sein (YYYY-MM-DD)' },
+          { status: 400 }
+        )
+      }
     }
 
     const supabase = getSupabaseAdmin()

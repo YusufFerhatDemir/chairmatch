@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { isAdminOrAbove } from '@/lib/rbac'
 import { dbError } from '@/lib/api-wrapper'
+import { isUuid } from '@/lib/uuid'
 
 /**
  * PUT /api/compliance/[id]
@@ -24,6 +25,10 @@ export async function PUT(
     }
 
     const { id } = await params
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: 'Ungültige Dokument-ID' }, { status: 400 })
+    }
+
     const body = await request.json().catch(() => ({}))
     const { status, notes } = body
 
@@ -32,6 +37,14 @@ export async function PUT(
         { error: 'status muss "approved" oder "rejected" sein' },
         { status: 400 }
       )
+    }
+    if (notes !== undefined && notes !== null) {
+      if (typeof notes !== 'string' || notes.length > 2000) {
+        return NextResponse.json(
+          { error: 'notes muss Text mit maximal 2000 Zeichen sein' },
+          { status: 400 }
+        )
+      }
     }
 
     const supabase = getSupabaseAdmin()
@@ -72,6 +85,10 @@ export async function DELETE(
     }
 
     const { id } = await params
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: 'Ungültige Dokument-ID' }, { status: 400 })
+    }
+
     const supabase = getSupabaseAdmin()
     const role = (session.user as { role?: string })?.role
     const isAdmin = isAdminOrAbove(role)

@@ -10,7 +10,12 @@
 
 import { Resend } from 'resend'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { wrapNewsletterHtml, buildUnsubscribeUrl, htmlToPlainText } from '@/lib/newsletter-template'
+import {
+  wrapNewsletterHtml,
+  buildUnsubscribeUrl,
+  buildOneClickUnsubscribeUrl,
+  htmlToPlainText,
+} from '@/lib/newsletter-template'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL || 'ChairMatch <noreply@chairmatch.de>'
@@ -167,6 +172,10 @@ export async function sendCampaign(campaignId: string): Promise<{
 
     const emails = batch.map(s => {
       const unsubscribeUrl = buildUnsubscribeUrl(s.unsubscribe_token)
+      // Der sichtbare Link fuehrt auf die Bestaetigungsseite, der Header auf
+      // den POST-Endpunkt: nur der eine darf abmelden, und nur der andere
+      // wird von Linkscannern im Postfach aufgerufen.
+      const oneClickUrl = buildOneClickUnsubscribeUrl(s.unsubscribe_token)
       const html = wrapNewsletterHtml(campaign.html_content, unsubscribeUrl, {
         previewText: campaign.preview_text || undefined,
       })
@@ -181,7 +190,7 @@ export async function sendCampaign(campaignId: string): Promise<{
         text,
         replyTo: REPLY_TO,
         headers: {
-          'List-Unsubscribe': `<${unsubscribeUrl}>`,
+          'List-Unsubscribe': `<${oneClickUrl}>`,
           'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
         },
       }

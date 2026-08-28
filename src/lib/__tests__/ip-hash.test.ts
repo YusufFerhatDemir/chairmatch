@@ -103,3 +103,30 @@ describe('requestIp', () => {
     expect(requestIp(req({}))).toBeNull()
   })
 })
+
+/**
+ * Zwei Fassungen derselben Funktion — eine mit `node:crypto`, eine mit Web
+ * Crypto. Die zweite gibt es, weil `src/middleware.ts` `auth` aus
+ * `auth.config.ts` importiert und webpack das Modul damit in das Edge-Bundle
+ * zieht; ein `node:crypto` darin bricht den Build.
+ *
+ * Sie duerfen nicht auseinanderlaufen: sonst waere derselbe Besucher in
+ * `login_attempts` ein anderer Kennwert als in `visit_logs`, und die Kennwerte
+ * liessen sich nicht mehr zusammenfuehren — auch nicht, um sie zu loeschen.
+ */
+describe('hashIpWeb ist bitgleich mit hashIp', () => {
+  it.each(['198.51.100.23', '203.0.113.7', '2001:db8::1', 'unknown'])(
+    'liefert fuer %s denselben Wert',
+    async (ip) => {
+      const { hashIpWeb } = await import('@/lib/ip-hash-web')
+      expect(await hashIpWeb(ip, ENV)).toBe(hashIp(ip, ENV))
+    },
+  )
+
+  it('gibt ohne IP und ohne Geheimnis null zurueck — wie die Node-Fassung', async () => {
+    const { hashIpWeb } = await import('@/lib/ip-hash-web')
+    const leer = {} as unknown as NodeJS.ProcessEnv
+    expect(await hashIpWeb(null, ENV)).toBeNull()
+    expect(await hashIpWeb('198.51.100.23', leer)).toBeNull()
+  })
+})

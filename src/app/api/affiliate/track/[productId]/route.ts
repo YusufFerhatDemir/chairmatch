@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { hashIp, requestIp } from '@/lib/ip-hash'
+import { isUuid } from '@/lib/uuid'
+import { isSafeHttpUrl } from '@/lib/safe-url'
 
 /**
  * Affiliate-Klick-Tracking + Redirect.
@@ -20,7 +23,7 @@ export async function GET(
 ) {
   try {
     const { productId } = await context.params
-    if (!productId) {
+    if (!isUuid(productId)) {
       return NextResponse.json({ error: 'Missing productId' }, { status: 400 })
     }
 
@@ -49,10 +52,14 @@ export async function GET(
       request.cookies.get('sessionId')?.value ??
       null
 
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-      request.headers.get('x-real-ip') ??
-      null
+    // `affiliate_clicks` ist Klick-Statistik. Bis Track 19 stand hier die
+    // rohe IP jedes — auch nicht angemeldeten — Besuchers, zusammen mit
+    // User-Agent und Ziel: ein Bewegungsprofil ueber Personen, die von der
+    // Anmeldung nichts wissen. Track 17 hat die Wait-List umgestellt, Track 18
+    // analytics/visit; das hier war die letzte offene Stelle mit Klartext-IP
+    // im Request-Pfad. Ob zwei Klicks von derselben Quelle kommen, sagt der
+    // Kennwert genauso.
+    const ip = hashIp(requestIp(request))
 
     const userAgent = request.headers.get('user-agent') ?? null
 
@@ -65,6 +72,16 @@ export async function GET(
       ip,
       user_agent: userAgent,
     })
+
+    // Das Ziel kommt aus der Datenbank. `POST /api/admin/affiliate/products`
+    // prueft `http(s)://` beim Schreiben — aber diese Route ist die einzige
+    // offene Weiterleitung der Plattform, und sie soll nicht davon abhaengen,
+    // dass jede Zeile ueber genau diesen Weg entstanden ist (Altbestand,
+    // direkter DB-Zugriff). Ohne gueltiges Ziel wird nicht weitergeleitet.
+    if (!isSafeHttpUrl(product.product_url)) {
+      console.error('[affiliate] Ungueltiges Weiterleitungsziel:', productId)
+      return NextResponse.json({ error: 'Produkt nicht gefunden' }, { status: 404 })
+    }
 
     return NextResponse.redirect(product.product_url, 302)
   } catch {

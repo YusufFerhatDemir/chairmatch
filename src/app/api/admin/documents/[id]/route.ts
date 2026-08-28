@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { dbError } from '@/lib/api-wrapper'
 import { getServerSession } from '@/modules/auth/session'
+import { isUuid } from '@/lib/uuid'
 
 export async function PATCH(
   request: NextRequest,
@@ -14,6 +15,10 @@ export async function PATCH(
   }
 
   const { id } = await params
+  if (!isUuid(id)) {
+    return NextResponse.json({ error: 'Ungültige Dokument-ID' }, { status: 400 })
+  }
+
   const body = await request.json().catch(() => ({}))
   const status = body.verified_status
   if (status !== 'approved' && status !== 'rejected') {

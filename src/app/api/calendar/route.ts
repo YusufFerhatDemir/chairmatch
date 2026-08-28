@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { generateICS } from '@/lib/calendar'
 import { getServerSession } from '@/modules/auth/session'
+import { isUuid } from '@/lib/uuid'
+import { attachmentDisposition } from '@/lib/content-disposition'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +17,13 @@ export async function GET(request: NextRequest) {
 
     if (!bookingId) {
       return NextResponse.json({ error: 'bookingId ist erforderlich' }, { status: 400 })
+    }
+    // Ohne diese Pruefung ging eine Nicht-UUID in die Abfrage, PostgREST
+    // antwortete 22P02, und `error || !booking` machte daraus "Buchung nicht
+    // gefunden" — eine Falscheingabe war von einer fremden ID nicht zu
+    // unterscheiden.
+    if (!isUuid(bookingId)) {
+      return NextResponse.json({ error: 'Ungültige bookingId' }, { status: 400 })
     }
 
     const supabase = getSupabaseAdmin()
@@ -63,13 +72,19 @@ export async function GET(request: NextRequest) {
 
     const icsContent = generateICS(calendarBooking)
     const serviceName = service?.name || 'Termin'
+    // `serviceName` schreibt der Anbieter (POST /api/provider/services, 2-120
+    // Zeichen, sonst ohne Einschraenkung). Bis Track 19 ging der Name roh in
+    // den Header: ein Anfuehrungszeichen brach aus dem `filename`-Wert aus,
+    // ein Zeilenumbruch machte den Header ungueltig und den Download der
+    // Kundin damit zu einem 500. attachmentDisposition() raeumt das auf.
     const filename = `chairmatch-${serviceName.replace(/\s+/g, '-').toLowerCase()}.ics`
 
     return new NextResponse(icsContent, {
       status: 200,
       headers: {
         'Content-Type': 'text/calendar; charset=utf-8',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Disposition': attachmentDisposition(filename, 'chairmatch-termin.ics'),
+        'Cache-Control': 'no-store',
       },
     })
   } catch {

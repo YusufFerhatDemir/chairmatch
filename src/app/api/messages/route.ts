@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit'
 import { isSchemaMismatch, isUniqueViolation } from '@/lib/pg-errors'
+import { isUuid } from '@/lib/uuid'
 
 /**
  * Postfach und Nachrichtenversand.
@@ -345,6 +346,17 @@ export async function POST(request: NextRequest) {
         { error: 'receiverId oder conversationId ist erforderlich' },
         { status: 400 },
       )
+    }
+    // Alle drei sind live `uuid`-Spalten. Ohne Pruefung ging eine
+    // Falscheingabe als 22P02 in den Fehlerzweig und kam als 500 zurueck.
+    if (receiverIdInput !== null && !isUuid(receiverIdInput)) {
+      return NextResponse.json({ error: 'Ungültige receiverId' }, { status: 400 })
+    }
+    if (conversationIdInput !== null && !isUuid(conversationIdInput)) {
+      return NextResponse.json({ error: 'Ungültige conversationId' }, { status: 400 })
+    }
+    if (salonId !== null && !isUuid(salonId)) {
+      return NextResponse.json({ error: 'Ungültige salonId' }, { status: 400 })
     }
 
     const supabase = getSupabaseAdmin()

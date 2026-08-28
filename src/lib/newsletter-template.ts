@@ -94,6 +94,19 @@ export function buildUnsubscribeUrl(token: string): string {
 }
 
 /**
+ * Ziel fuer den `List-Unsubscribe`-Header.
+ *
+ * Nicht dieselbe Adresse wie der sichtbare Link: `List-Unsubscribe-Post`
+ * verspricht dem Mailanbieter nach RFC 8058, dass unter dieser URL ein POST
+ * entgegengenommen wird. Bis Track 19 stand dort die Seite /unsubscribe — eine
+ * Next.js-Page ohne POST-Handler. Der "Abmelden"-Knopf von Gmail und Outlook
+ * lief damit ins Leere, waehrend der Header behauptete, er funktioniere.
+ */
+export function buildOneClickUnsubscribeUrl(token: string): string {
+  return `${APP_URL}/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}`
+}
+
+/**
  * Hilfsfunktion: Plain-Text-Variante als Fallback erzeugen
  * (sehr simpel — entfernt HTML-Tags). Resend nimmt das als
  * `text` Feld für besseren Spam-Score.

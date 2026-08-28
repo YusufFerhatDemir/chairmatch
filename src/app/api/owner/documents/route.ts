@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { dbError } from '@/lib/api-wrapper'
+import { isUuid } from '@/lib/uuid'
+import { isSafeHttpUrl } from '@/lib/safe-url'
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession()
@@ -16,7 +18,17 @@ export async function POST(request: NextRequest) {
   if (!doc_type || typeof doc_type !== 'string' || doc_type.length > 100) {
     return NextResponse.json({ error: 'doc_type erforderlich' }, { status: 400 })
   }
-  if (!owner_id) return NextResponse.json({ error: 'owner_id erforderlich' }, { status: 400 })
+  if (!isUuid(owner_id)) {
+    return NextResponse.json({ error: 'owner_id erforderlich' }, { status: 400 })
+  }
+  // Der Link zur Datei kommt aus einem Freitextfeld und wird gespeichert,
+  // damit ihn spaeter jemand oeffnet — nur http(s), siehe @/lib/safe-url.
+  if (file_url !== null && !isSafeHttpUrl(file_url)) {
+    return NextResponse.json(
+      { error: 'file_url muss eine http(s)-Adresse sein' },
+      { status: 400 },
+    )
+  }
 
   if (owner_type !== 'location') {
     return NextResponse.json({ error: 'Ungültiger owner_type' }, { status: 400 })

@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { hashIp } from './ip-hash'
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical'
 
@@ -40,7 +41,13 @@ export async function logError(
       stack: err.stack?.slice(0, 5000) ?? null,
       url: context?.url ?? null,
       user_agent: context?.user_agent?.slice(0, 500) ?? null,
-      ip: context?.ip ?? null,
+      // `error_logs` ist ein Diagnoseprotokoll, kein Ort fuer Bestandsdaten.
+      // Bis Track 19 stand hier die rohe IP jedes Besuchers, der einen
+      // Client-Fehler ausgeloest hat — unbegrenzt aufbewahrt und ueber
+      // GET /api/errors fuer jeden Admin lesbar. Fuer die Auswertung
+      // ("kommen die Fehler aus einer Quelle?") reicht der Kennwert; die
+      // Linie ist dieselbe wie bei consents, wait-list und analytics/visit.
+      ip: hashIp(context?.ip ?? null),
       user_id: context?.user_id ?? null,
       severity: context?.severity ?? 'medium',
       component: context?.component ?? null,

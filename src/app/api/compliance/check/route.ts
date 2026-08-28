@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { isAdminOrAbove } from '@/lib/rbac'
 import { dbError } from '@/lib/api-wrapper'
+import { isUuid } from '@/lib/uuid'
 
 const REQUIRED_DOCUMENTS = [
   'gewerbeanmeldung',
@@ -56,6 +57,9 @@ export async function GET(request: NextRequest) {
     const salonId = request.nextUrl.searchParams.get('salonId')
     if (!salonId) {
       return NextResponse.json({ error: 'salonId ist erforderlich' }, { status: 400 })
+    }
+    if (!isUuid(salonId)) {
+      return NextResponse.json({ error: 'Ungültige salonId' }, { status: 400 })
     }
 
     const supabase = getSupabaseAdmin()

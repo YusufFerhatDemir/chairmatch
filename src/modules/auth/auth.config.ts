@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { verifyToken } from '@/lib/totp'
 import { loginSchema } from './auth.schemas'
+import { hashIpWeb } from '@/lib/ip-hash-web'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -12,9 +13,39 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 const RATE_LIMIT = 10
 const RATE_WINDOW_MIN = 15
 
+/**
+ * `login_attempts.ip` ist zweierlei: die Spur jedes Anmeldeversuchs — auch
+ * jedes gescheiterten, mit der eingegebenen E-Mail daneben — und der
+ * Schluessel, ueber den das Fehlversuchslimit zaehlt. Bis Track 19 stand dort
+ * die IP im Klartext, unbegrenzt aufbewahrt.
+ *
+ * Der HMAC aus @/lib/ip-hash-web ist deterministisch; `.eq('ip', …)` findet die
+ * Zeilen also weiterhin und das Limit greift unveraendert. Der Rueckfall auf
+ * den Rohwert kommt nur zum Tragen, wenn WEDER CONSENT_IP_SALT noch
+ * NEXTAUTH_SECRET/AUTH_SECRET gesetzt sind — in einer laufenden Installation
+ * unmoeglich, weil NextAuth ohne dieses Geheimnis gar nicht startet. Er steht
+ * hier trotzdem bewusst: alle Versuche auf einen gemeinsamen Schluessel zu
+ * legen hiesse, dass zehn Fehlversuche irgendwo die Anmeldung fuer alle
+ * sperren.
+ *
+ * Genommen wird bewusst die Web-Crypto-Fassung: `src/middleware.ts` importiert
+ * `auth` aus dieser Datei, und webpack zieht das Modul damit in das
+ * Edge-Bundle — ein `node:crypto` darin bricht den Build. Der Wert ist
+ * bitgleich mit `hashIp()`, ein Test haelt beide Fassungen aneinander fest.
+ *
+ * Bestehende Zeilen tragen noch den Rohwert und werden vom neuen Schluessel
+ * nicht mehr getroffen: eine laufende Sperre wird beim Deploy einmalig
+ * zurueckgesetzt.
+ */
+async function loginAttemptKey(ip: string): Promise<string> {
+  return (await hashIpWeb(ip)) ?? ip
+}
+
 async function logLoginAttempt(ip: string, email: string, success: boolean) {
   try {
-    await getSupabaseAdmin().from('login_attempts').insert({ ip, email, success })
+    await getSupabaseAdmin()
+      .from('login_attempts')
+      .insert({ ip: await loginAttemptKey(ip), email, success })
   } catch {
     /* table may not exist */
   }
@@ -87,7 +118,7 @@ export async function authorizeCredentials(
       const { count } = await supabaseAdmin
         .from('login_attempts')
         .select('*', { count: 'exact', head: true })
-        .eq('ip', ip)
+        .eq('ip', await loginAttemptKey(ip))
         .eq('success', false)
         .gte('created_at', since)
       failedAttempts = count ?? 0

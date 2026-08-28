@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { dbError } from '@/lib/api-wrapper'
+import { isUuid } from '@/lib/uuid'
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession()
@@ -9,7 +10,9 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => ({}))
   const location_id = body.location_id
-  if (!location_id) return NextResponse.json({ error: 'location_id erforderlich' }, { status: 400 })
+  if (!isUuid(location_id)) {
+    return NextResponse.json({ error: 'location_id erforderlich' }, { status: 400 })
+  }
 
   const supabase = getSupabaseAdmin()
   const { data: salon } = await supabase.from('salons').select('id, name, owner_id').eq('id', location_id).single()

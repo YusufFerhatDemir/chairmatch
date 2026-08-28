@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { dbError } from '@/lib/api-wrapper'
+import { isUuid } from '@/lib/uuid'
 
 /**
  * GET /api/messages/[conversationId]
@@ -25,6 +26,12 @@ export async function GET(
     }
 
     const { conversationId } = await params
+    // Ohne die Pruefung lief eine Nicht-UUID in 22P02; `partError` machte
+    // daraus einen 500 fuer eine reine Falscheingabe.
+    if (!isUuid(conversationId)) {
+      return NextResponse.json({ error: 'Ungültige Konversations-ID' }, { status: 400 })
+    }
+
     const userId = session.user.id
     const supabase = getSupabaseAdmin()
 

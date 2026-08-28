@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { toCsv } from '@/lib/csv'
 
 interface Subscriber {
   id: string
@@ -164,16 +165,21 @@ export default function SubscribersClient() {
 
   function exportCsv() {
     if (!data) return
-    const header = 'email,name,status,source,tags,subscribed_at\n'
-    const lines = data.subscribers.map(s => [
-      s.email,
-      (s.name || '').replace(/,/g, ' '),
-      s.status,
-      s.source || '',
-      (s.tags || []).join('|'),
-      s.subscribed_at,
-    ].join(','))
-    const csv = header + lines.join('\n')
+    // `name` kommt aus dem oeffentlichen Anmeldeformular (POST /api/newsletter)
+    // — bis Track 19 wurden hier nur Kommas durch Leerzeichen ersetzt. Ein
+    // Name, der mit `=` beginnt, war damit in der heruntergeladenen Datei eine
+    // Formel, die Excel beim Oeffnen ausfuehrt. toCsv() entschaerft das.
+    const csv = toCsv(
+      ['email', 'name', 'status', 'source', 'tags', 'subscribed_at'],
+      data.subscribers.map(s => [
+        s.email,
+        s.name || '',
+        s.status,
+        s.source || '',
+        (s.tags || []).join('|'),
+        s.subscribed_at,
+      ]),
+    )
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)

@@ -10,6 +10,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createDb, postRequest, brokenJsonRequest, IDS } from './_harness/fixtures'
 import type { FakeSupabase, Row } from './_harness/fake-supabase'
 import { __resetRateLimits } from '@/lib/rate-limit'
+import { hashIp } from '@/lib/ip-hash'
+
+/**
+ * Der Schluessel, unter dem ein Anmeldeversuch protokolliert wird.
+ *
+ * Seit Track 19 steht in `login_attempts.ip` nicht mehr die Adresse selbst,
+ * sondern ihr HMAC — die Spalte ist gleichzeitig Protokoll und Zaehlschluessel
+ * des Fehlversuchslimits, und als Protokoll lag dort bis dahin die IP jedes
+ * Anmeldeversuchs im Klartext. Der Wert ist deterministisch, das Limit zaehlt
+ * also unveraendert; die Tests seeden deshalb denselben abgeleiteten Wert.
+ */
+const ipKey = (ip: string) => hashIp(ip) ?? ip
+// auth.config.ts nutzt die Web-Crypto-Fassung (Edge-Bundle, siehe
+// src/lib/ip-hash-web.ts); beide liefern denselben Wert — festgehalten in
+// src/lib/__tests__/ip-hash.test.ts.
 
 const NEW_USER = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
@@ -280,8 +295,10 @@ describe('Login (authorizeCredentials)', () => {
 
     const attempts = db().rows('login_attempts') as Row[]
     expect(attempts).toHaveLength(2)
-    expect(attempts[0]).toMatchObject({ ip: '203.0.113.7', success: true })
-    expect(attempts[1]).toMatchObject({ ip: '203.0.113.7', success: false })
+    expect(attempts[0]).toMatchObject({ ip: ipKey('203.0.113.7'), success: true })
+    expect(attempts[1]).toMatchObject({ ip: ipKey('203.0.113.7'), success: false })
+    // Die Adresse selbst darf in der Zeile nirgends stehen.
+    expect(JSON.stringify(attempts)).not.toContain('203.0.113.7')
   })
 
   it('lehnt falsche Passwörter ab', async () => {
@@ -329,7 +346,7 @@ describe('Login (authorizeCredentials)', () => {
     for (let i = 0; i < 10; i++) {
       db().rows('login_attempts').push({
         id: `att-${i}`,
-        ip: '203.0.113.7',
+        ip: ipKey('203.0.113.7'),
         email: 'kundin@example.de',
         success: false,
         created_at: '2026-09-01T08:59:00.000Z',
@@ -344,7 +361,7 @@ describe('Login (authorizeCredentials)', () => {
     for (let i = 0; i < 20; i++) {
       db().rows('login_attempts').push({
         id: `fremd-${i}`,
-        ip: '198.51.100.99',
+        ip: ipKey('198.51.100.99'),
         email: 'kundin@example.de',
         success: false,
         created_at: '2026-09-01T08:59:00.000Z',
@@ -359,7 +376,7 @@ describe('Login (authorizeCredentials)', () => {
     for (let i = 0; i < 15; i++) {
       db().rows('login_attempts').push({
         id: `alt-${i}`,
-        ip: '203.0.113.7',
+        ip: ipKey('203.0.113.7'),
         email: 'kundin@example.de',
         success: false,
         created_at: '2026-09-01T08:00:00.000Z', // 69 Minuten alt

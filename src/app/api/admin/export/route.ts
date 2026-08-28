@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { toCsv } from '@/lib/csv'
+import { attachmentDisposition } from '@/lib/content-disposition'
 
 async function requireAdmin() {
   const session = await getServerSession()
@@ -11,19 +13,13 @@ async function requireAdmin() {
   return session
 }
 
-function toCsv(headers: string[], rows: string[][]): string {
-  const escape = (val: string) => {
-    if (val.includes(',') || val.includes('"') || val.includes('\n')) {
-      return `"${val.replace(/"/g, '""')}"`
-    }
-    return val
-  }
-  const lines = [
-    headers.map(escape).join(','),
-    ...rows.map(row => row.map(escape).join(',')),
-  ]
-  return lines.join('\n')
-}
+/**
+ * Der lokale CSV-Bauer stand bis Track 19 hier und hatte zwei Luecken: er
+ * quotete `\n`, aber nicht `\r`, und er kannte den zweiten Leser einer
+ * CSV-Datei nicht — die Tabellenkalkulation, die eine Zelle ab `=` als Formel
+ * ausfuehrt. `profiles.full_name` kommt aus der Registrierung und landet hier
+ * unveraendert im Benutzer-Export. Beides steckt jetzt in @/lib/csv.
+ */
 
 export async function GET(request: NextRequest) {
   if (!await requireAdmin()) {
@@ -150,7 +146,10 @@ export async function GET(request: NextRequest) {
     return new NextResponse(csv, {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="chairmatch-${filename}-${timestamp}.csv"`,
+        'Content-Disposition': attachmentDisposition(
+          `chairmatch-${filename}-${timestamp}.csv`,
+        ),
+        'Cache-Control': 'no-store',
       },
     })
   } catch (err) {

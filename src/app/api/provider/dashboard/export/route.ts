@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { toCsv } from '@/lib/csv'
+import { attachmentDisposition } from '@/lib/content-disposition'
 
 /**
  * CSV-Export aller Plattform-Transaktionen für den eingeloggten Anbieter.
@@ -11,14 +13,14 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  *   ?to=YYYY-MM-DD
  */
 
-function csvEscape(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return ''
-  const s = String(value)
-  if (s.includes(';') || s.includes('"') || s.includes('\n')) {
-    return `"${s.replace(/"/g, '""')}"`
-  }
-  return s
-}
+/**
+ * `csvEscape` lag bis Track 19 hier und quotete `\n`, aber nicht `\r`: ein
+ * einzelner Wagenruecklauf in einem Wert zerlegte die Zeile, und ab dort war
+ * die Datei um eine Spalte verschoben. Ausserdem fehlte die Absicherung gegen
+ * Zellen, die eine Tabellenkalkulation als Formel liest. Beides steckt jetzt
+ * in @/lib/csv.
+ */
+const SEMI = ';'
 
 function formatEur(cents: number): string {
   return (cents / 100).toFixed(2).replace('.', ',')
@@ -62,25 +64,23 @@ export async function GET(request: NextRequest) {
       'Waehrung',
       'Stripe-PaymentIntent',
       'Buchungs-ID',
-    ].join(';')
+    ]
 
-    const rows = (txs ?? []).map((t) =>
-      [
-        csvEscape(new Date(t.created_at).toISOString().slice(0, 10)),
-        csvEscape(t.id),
-        csvEscape(t.type),
-        csvEscape(t.status),
-        csvEscape(formatEur(t.amount_cents)),
-        csvEscape(formatEur(t.platform_fee_cents)),
-        csvEscape(formatEur(t.provider_share_cents)),
-        csvEscape((t.currency ?? 'eur').toUpperCase()),
-        csvEscape(t.stripe_payment_intent_id),
-        csvEscape(t.booking_id),
-      ].join(';'),
-    )
+    const rows = (txs ?? []).map((t) => [
+      new Date(t.created_at).toISOString().slice(0, 10),
+      t.id,
+      t.type,
+      t.status,
+      formatEur(t.amount_cents),
+      formatEur(t.platform_fee_cents),
+      formatEur(t.provider_share_cents),
+      (t.currency ?? 'eur').toUpperCase(),
+      t.stripe_payment_intent_id,
+      t.booking_id,
+    ])
 
-    // UTF-8 BOM voranstellen, damit Excel die Umlaute korrekt liest
-    const csv = '﻿' + [header, ...rows].join('\r\n')
+    // UTF-8-BOM voranstellen, damit Excel die Umlaute korrekt liest.
+    const csv = toCsv(header, rows, { delimiter: SEMI, bom: true })
 
     const filename = `chairmatch-umsaetze-${new Date().toISOString().slice(0, 10)}.csv`
 
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Disposition': attachmentDisposition(filename),
         'Cache-Control': 'no-store',
       },
     })

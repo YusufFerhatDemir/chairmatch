@@ -89,8 +89,25 @@ export function generateICS(booking: CalendarBooking): string {
   }
   descriptionParts.push('Gebucht über ChairMatch')
 
-  // Escape special characters for iCal
-  const escapeIcal = (s: string) => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
+  // Escape special characters for iCal.
+  //
+  // Bis Track 19 fehlte hier `\r`. Ein Wert aus einem Windows-Formular —
+  // `bookings.notes` schreibt die Kundin selbst — enthaelt CRLF; der
+  // Zeilenvorschub wurde ersetzt, der Wagenruecklauf blieb als rohes
+  // Steuerzeichen mitten in der DESCRIPTION-Zeile stehen. Ein Parser, der
+  // Zeilen an CR trennt (RFC 5545 verlangt CRLF, nicht jeder Client haelt
+  // sich daran), liest ab dort eine neue iCalendar-Eigenschaft — also
+  // Fremdinhalt, den die Kundin in den Kalender ihres Anbieters schreibt.
+  // Steuerzeichen haben in einem Property-Wert ohnehin nichts zu suchen und
+  // fliegen jetzt raus.
+  const escapeIcal = (s: string) =>
+    s
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+      .replace(/\\/g, '\\\\')
+      .replace(/;/g, '\\;')
+      .replace(/,/g, '\\,')
+      .replace(/\r\n|\r|\n/g, '\\n')
 
   const lines = [
     'BEGIN:VCALENDAR',
@@ -104,7 +121,12 @@ export function generateICS(booking: CalendarBooking): string {
     `DTSTART;TZID=Europe/Berlin:${dtStart}`,
     `DTEND;TZID=Europe/Berlin:${dtEnd}`,
     `SUMMARY:${escapeIcal(title)}`,
-    `DESCRIPTION:${escapeIcal(descriptionParts.join('\\n'))}`,
+    // Die Teile werden EINZELN escaped und erst danach mit dem
+    // iCal-Zeilenumbruch `\\n` verbunden. Vorher lief der Escape ueber
+    // die schon zusammengesetzte Zeichenkette und verdoppelte den
+    // Backslash des Trenners: im Kalender stand dann buchstaeblich
+    // "Service: X\\nSalon: Y" in einer Zeile.
+    `DESCRIPTION:${descriptionParts.map(escapeIcal).join('\\n')}`,
     location ? `LOCATION:${escapeIcal(location)}` : null,
     'STATUS:CONFIRMED',
     `URL:https://www.chairmatch.de/booking/${booking.id}`,

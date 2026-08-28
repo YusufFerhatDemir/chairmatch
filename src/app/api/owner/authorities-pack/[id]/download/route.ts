@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
+import { isUuid } from '@/lib/uuid'
+import { attachmentDisposition } from '@/lib/content-disposition'
 
 export async function GET(
   _request: Request,
@@ -10,6 +12,8 @@ export async function GET(
   if (!session?.user?.id) return new NextResponse('Unauthorized', { status: 401 })
 
   const { id } = await params
+  if (!isUuid(id)) return new NextResponse('Ungültige Paket-ID', { status: 400 })
+
   const supabase = getSupabaseAdmin()
   const { data: pack } = await supabase
     .from('authorities_packs')
@@ -42,7 +46,10 @@ Dieses Paket wurde über ChairMatch erstellt. Füge hier ggf. deine Dokumente (H
   return new NextResponse(content, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Content-Disposition': `attachment; filename="Behoerdenpaket-ChairMatch-${pack.id.slice(0, 8)}.txt"`,
+      'Content-Disposition': attachmentDisposition(
+        `Behoerdenpaket-ChairMatch-${pack.id.slice(0, 8)}.txt`,
+      ),
+      'Cache-Control': 'no-store',
     },
   })
 }
