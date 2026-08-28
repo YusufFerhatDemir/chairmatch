@@ -44,6 +44,17 @@ export const SUBSCRIPTION_PRICES = {
 // Helper: create checkout session for booking payment
 export async function createBookingCheckout(params: {
   bookingId: string
+  /**
+   * Wer zahlt. Bis Track 16 stand das NICHT in den Metadaten der Termin- und
+   * der Shop-Session — nur die Miet-Session trug es. Der Webhook liest
+   * `metadata.user_id` an einem Dutzend Stellen: er schreibt damit
+   * `payments.user_id`, die `user_id` der Audit-Eintraege und entscheidet mit
+   * `if (meta.user_id)`, ob die Kundin ueberhaupt eine Benachrichtigung
+   * bekommt. Fuer Termin und Bestellung war der Wert immer `undefined` —
+   * also: Zahlungen ohne Zahler, Audit-Eintraege ohne Konto, und die
+   * Nachricht „Zahlung bestaetigt" wurde fuer Termine nie verschickt.
+   */
+  userId: string
   customerEmail: string
   salonName: string
   serviceName: string
@@ -74,6 +85,7 @@ export async function createBookingCheckout(params: {
     ],
     metadata: {
       booking_id: params.bookingId,
+      user_id: params.userId,
       type: 'booking_payment',
     },
     success_url: params.successUrl,
@@ -87,6 +99,18 @@ export async function createBookingCheckout(params: {
 export async function createSubscriptionCheckout(params: {
   userId: string
   email: string
+  /**
+   * Bereits bekannte Stripe-Kundennummer (`profiles.stripe_customer_id`).
+   *
+   * Ohne sie legt Stripe bei JEDEM Abo-Checkout einen NEUEN Kunden an: ein
+   * Anbieter, der zweimal bucht, hat zwei Kundennummern, und der Webhook
+   * ueberschreibt `profiles.stripe_customer_id` mit der zuletzt entstandenen.
+   * Das aeltere Abo ist ueber den Rueckfallweg
+   * (`resolveSubscriptionOwner` ueber `stripe_customer_id`) dann nicht mehr
+   * auffindbar — und die Frage „laeuft hier schon ein Abo?" ist gar nicht
+   * mehr beantwortbar, weil sie pro Kunde gestellt wird.
+   */
+  customerId?: string | null
   tier: 'starter' | 'premium' | 'gold'
   successUrl: string
   cancelUrl: string
@@ -95,7 +119,11 @@ export async function createSubscriptionCheckout(params: {
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card', 'sepa_debit'],
     mode: 'subscription',
-    customer_email: params.email,
+    // Genau EINES von beiden — Stripe lehnt `customer` + `customer_email`
+    // gemeinsam ab.
+    ...(params.customerId
+      ? { customer: params.customerId }
+      : { customer_email: params.email }),
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: {
       user_id: params.userId,
@@ -131,6 +159,8 @@ export async function createSubscriptionCheckout(params: {
 export async function createProductOrderCheckout(params: {
   orderId: string
   orderNumber: string
+  /** Wer zahlt — siehe createBookingCheckout. */
+  userId: string
   customerEmail: string
   lineItems: { name: string; amountCents: number; quantity: number }[]
   shippingCents: number
@@ -169,6 +199,7 @@ export async function createProductOrderCheckout(params: {
     metadata: {
       order_id: params.orderId,
       order_number: params.orderNumber,
+      user_id: params.userId,
       type: 'product_order',
     },
     success_url: params.successUrl,

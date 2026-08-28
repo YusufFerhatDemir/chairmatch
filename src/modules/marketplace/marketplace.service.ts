@@ -69,15 +69,31 @@ export async function getProductsBySalon(salonId: string) {
   return data || []
 }
 
-/** Get or create seller for a salon owner */
+/**
+ * Verkaeufer-Datensatz eines Saloninhabers — genau EINER pro Konto.
+ *
+ * `sellers` hat `UNIQUE(user_id, seller_type)`: ein Konto kann also nie zwei
+ * Salon-Verkaeufer haben, auch wenn ihm mehrere Salons gehoeren. Die
+ * Zuordnung zum einzelnen Salon traegt `products.salon_id`, nicht der
+ * Verkaeufer — `sellers.salon_id` haelt nur fest, mit welchem Salon das Konto
+ * angefangen hat. Fremdes ist darueber nicht erreichbar: gelesen und
+ * geschrieben wird ausschliesslich mit der `userId` der Session.
+ *
+ * Der Lesefehler wird jetzt vom „kein Datensatz" unterschieden. Vorher stand
+ * hier `.single()` mit ignoriertem Fehler: ein Aussetzer der Datenbank sah
+ * aus wie „gibt es noch nicht", und der folgende Insert lief in die
+ * Unique-Verletzung — der Anbieter las „Produkt konnte nicht angelegt
+ * werden" statt „bitte gleich noch einmal".
+ */
 export async function getOrCreateSalonSeller(userId: string, salonId: string) {
   const supabase = getSupabaseAdmin()
-  const { data: existing } = await supabase
+  const { data: existing, error: leseFehler } = await supabase
     .from('sellers')
     .select('*')
     .eq('user_id', userId)
     .eq('seller_type', 'salon')
-    .single()
+    .maybeSingle()
+  if (leseFehler) throw leseFehler
   if (existing) return existing
 
   const { data: created, error } = await supabase

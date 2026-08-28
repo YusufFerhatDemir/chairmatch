@@ -47,6 +47,12 @@ async function fulfillRentalPayment(
     return
   }
 
+  // Die Miet-Session setzt `user_id` seit jeher — anders als Termin und
+  // Bestellung, siehe dort. Der Rueckfall auf die Buchung steht trotzdem:
+  // die Zeile in `payments` soll ihren Zahler nicht daran verlieren, dass
+  // jemand spaeter an den Metadaten schraubt.
+  const payerId = (meta.user_id as string | undefined) || (rental.renter_id as string | null) || null
+
   // (1) Idempotenz / Doppelzahlungs-Guard
   if (rental.payment_status === 'paid') {
     if (paymentIntent && rental.stripe_payment_intent && rental.stripe_payment_intent !== paymentIntent) {
@@ -54,7 +60,7 @@ async function fulfillRentalPayment(
       console.error(`rental ${rentalId}: Doppelzahlung erkannt (PI ${paymentIntent}) — auto-refund`)
       await createRefund(paymentIntent).catch(console.error)
       await supabase.from('audit_logs').insert({
-        user_id: meta.user_id || null,
+        user_id: payerId,
         action: 'rental_duplicate_payment_refunded',
         entity: 'rental_booking',
         entity_id: rentalId,
@@ -94,7 +100,7 @@ async function fulfillRentalPayment(
       })
       .eq('id', rentalId)
     await supabase.from('audit_logs').insert({
-      user_id: meta.user_id || null,
+      user_id: payerId,
       action: 'rental_conflict_refunded',
       entity: 'rental_booking',
       entity_id: rentalId,
@@ -117,7 +123,7 @@ async function fulfillRentalPayment(
   const { error: payError } = await supabase.from('payments').insert({
     source_type: 'rental_booking',
     source_id: rentalId,
-    user_id: meta.user_id || null,
+    user_id: payerId,
     stripe_session_id: session.id,
     stripe_payment_intent: paymentIntent,
     amount_cents: session.amount_total || 0,
@@ -156,7 +162,7 @@ async function fulfillRentalPayment(
   calculateRentalCommission(rentalId).catch(console.error)
 
   await supabase.from('audit_logs').insert({
-    user_id: meta.user_id || null,
+    user_id: payerId,
     action: 'rental_payment_completed',
     entity: 'rental_booking',
     entity_id: rentalId,
@@ -225,13 +231,25 @@ async function fulfillBookingPayment(
     return
   }
 
+  // Wer hat bezahlt?
+  //
+  // Bis Track 16 stand hier ueberall `meta.user_id` — und die Termin-Session
+  // hat dieses Feld nie gesetzt (`createBookingCheckout` schrieb nur
+  // `booking_id` und `type`). Der Wert war in JEDEM Termin-Webhook
+  // `undefined`. Folge: `payments.user_id` blieb null, die Audit-Eintraege
+  // waren kontenlos, und `if (meta.user_id)` weiter unten war immer falsch —
+  // die Nachricht „Zahlung bestaetigt" ist fuer Termine nie verschickt
+  // worden. Die Metadaten tragen es jetzt; der Rueckfall auf die Buchung
+  // deckt die Sessions ab, die beim Deploy schon offen waren.
+  const payerId = (meta.user_id as string | undefined) || (booking.customer_id as string | null) || null
+
   // (1) Idempotenz / Doppelzahlungs-Guard
   if (booking.payment_status === 'paid') {
     if (paymentIntent && booking.stripe_payment_intent && booking.stripe_payment_intent !== paymentIntent) {
       console.error(`booking ${bookingId}: Doppelzahlung erkannt (PI ${paymentIntent}) — auto-refund`)
       await createRefund(paymentIntent).catch(console.error)
       await supabase.from('audit_logs').insert({
-        user_id: meta.user_id || null,
+        user_id: payerId,
         action: 'booking_duplicate_payment_refunded',
         entity: 'booking',
         entity_id: bookingId,
@@ -246,7 +264,7 @@ async function fulfillBookingPayment(
     console.error(`booking ${bookingId}: Zahlung auf ${booking.status}-Buchung — Refund`)
     if (paymentIntent) await createRefund(paymentIntent).catch(console.error)
     await supabase.from('audit_logs').insert({
-      user_id: meta.user_id || null,
+      user_id: payerId,
       action: 'booking_cancelled_payment_refunded',
       entity: 'booking',
       entity_id: bookingId,
@@ -276,7 +294,7 @@ async function fulfillBookingPayment(
   const { error: payError } = await supabase.from('payments').insert({
     source_type: 'booking',
     source_id: bookingId,
-    user_id: meta.user_id || null,
+    user_id: payerId,
     stripe_session_id: session.id,
     stripe_payment_intent: paymentIntent,
     amount_cents: session.amount_total || 0,
@@ -287,7 +305,7 @@ async function fulfillBookingPayment(
   if (payError) console.error('booking payments insert failed:', payError.message)
 
   await supabase.from('audit_logs').insert({
-    user_id: meta.user_id || null,
+    user_id: payerId,
     action: 'payment_completed',
     entity: 'booking',
     entity_id: bookingId,
@@ -300,9 +318,9 @@ async function fulfillBookingPayment(
 
   // Kunde und Saloninhaber informieren.
   const amountEur = ((session.amount_total ?? 0) / 100).toFixed(2)
-  if (meta.user_id) {
+  if (payerId) {
     await createNotification(
-      meta.user_id,
+      payerId,
       'Zahlung bestätigt',
       `Deine Buchung ist bezahlt und bestätigt. Betrag: ${amountEur} €.`,
       'payment',
@@ -350,13 +368,19 @@ async function fulfillProductOrder(
     return
   }
 
+  // Wer hat bezahlt — dieselbe Luecke wie beim Termin: die Shop-Session hat
+  // `user_id` nie mitgegeben, also blieb `payments.user_id` fuer JEDE
+  // Bestellung leer. Die Benachrichtigung hat es nur deshalb ueberlebt, weil
+  // sie zusaetzlich auf `order.customer_id` zurueckfaellt.
+  const payerId = (meta.user_id as string | undefined) || (order.customer_id as string | null) || null
+
   // (1) Idempotenz / Doppelzahlungs-Guard
   if (order.payment_status === 'paid') {
     if (paymentIntent && order.stripe_payment_intent && order.stripe_payment_intent !== paymentIntent) {
       console.error(`order ${orderId}: Doppelzahlung erkannt (PI ${paymentIntent}) — auto-refund`)
       await createRefund(paymentIntent).catch(console.error)
       await supabase.from('audit_logs').insert({
-        user_id: meta.user_id || null,
+        user_id: payerId,
         action: 'order_duplicate_payment_refunded',
         entity: 'order',
         entity_id: orderId,
@@ -371,7 +395,7 @@ async function fulfillProductOrder(
     console.error(`order ${orderId}: Zahlung auf stornierte Bestellung — Refund`)
     if (paymentIntent) await createRefund(paymentIntent).catch(console.error)
     await supabase.from('audit_logs').insert({
-      user_id: meta.user_id || null,
+      user_id: payerId,
       action: 'order_cancelled_payment_refunded',
       entity: 'order',
       entity_id: orderId,
@@ -402,7 +426,7 @@ async function fulfillProductOrder(
       })
       .eq('id', orderId)
     await supabase.from('audit_logs').insert({
-      user_id: meta.user_id || null,
+      user_id: payerId,
       action: 'order_out_of_stock_refunded',
       entity: 'order',
       entity_id: orderId,
@@ -434,7 +458,7 @@ async function fulfillProductOrder(
   const { error: payError } = await supabase.from('payments').insert({
     source_type: 'order',
     source_id: orderId,
-    user_id: meta.user_id || null,
+    user_id: payerId,
     stripe_session_id: session.id,
     stripe_payment_intent: paymentIntent,
     amount_cents: session.amount_total || 0,
@@ -445,14 +469,14 @@ async function fulfillProductOrder(
   if (payError) console.error('order payments insert failed:', payError.message)
 
   await supabase.from('audit_logs').insert({
-    user_id: meta.user_id || null,
+    user_id: payerId,
     action: 'product_order_paid',
     entity: 'order',
     entity_id: orderId,
     details: { amount: session.amount_total, order_number: meta.order_number },
   })
 
-  const buyerId = (order.customer_id as string | null) || meta.user_id || null
+  const buyerId = payerId
   if (buyerId) {
     const amountEur = ((session.amount_total ?? 0) / 100).toFixed(2)
     await createNotification(
@@ -887,6 +911,49 @@ export async function POST(req: NextRequest) {
       const charge = event.data.object as Stripe.Charge
       const paymentIntent = charge.payment_intent as string
 
+      // TEIL-Erstattung ist etwas anderes als vollstaendige Erstattung.
+      //
+      // Stripe schickt `charge.refunded` bei JEDER Erstattung, auch bei einer
+      // Teilerstattung — die Unterscheidung steht in der Charge selbst
+      // (`amount_refunded` gegen `amount`, dazu das Flag `refunded`). Beide
+      // Felder hat dieser Zweig bis Track 16 nicht angesehen und JEDE
+      // Erstattung als vollstaendige behandelt: eine Kulanz-Rueckzahlung von
+      // 5 € auf eine Miete von 500 € stornierte die Buchung, setzte
+      // `payment_status` auf 'refunded', markierte die Plattform-Transaktion
+      // als erstattet — und nahm damit dem Anbieter die komplette
+      // Auszahlung, weil `cron/rental-payouts` genau diese Felder als
+      // Ausschluss liest. Beim Termin verlor die Kundin ihren bestaetigten
+      // Termin, bei der Bestellung ging die gesamte Ware zurueck ins Regal.
+      //
+      // Die anteilige Rueckabwicklung ist eine kaufmaennische Entscheidung
+      // mit einer Zahl darin (welcher Teil trifft die Provision, welcher den
+      // Anbieteranteil?). Die trifft dieser Handler NICHT. Er haelt den Fall
+      // fest und ruehrt den Zustand nicht an; der Payout-Cron haelt die
+      // Auszahlung derselben Miete danach zurueck, statt den vollen
+      // Anbieteranteil auszuzahlen (siehe dort).
+      const betrag = typeof charge.amount === 'number' ? charge.amount : 0
+      const erstattet = typeof charge.amount_refunded === 'number' ? charge.amount_refunded : 0
+      const vollstaendig = charge.refunded === true || (betrag > 0 && erstattet >= betrag)
+
+      if (paymentIntent && !vollstaendig) {
+        console.error(
+          `charge ${charge.id}: Teilerstattung ${erstattet} von ${betrag} — Zustand bleibt, manuelle Klaerung`,
+        )
+        await supabase.from('audit_logs').insert({
+          user_id: null,
+          action: 'charge_partially_refunded',
+          entity: 'payment',
+          entity_id: paymentIntent,
+          details: {
+            charge_id: charge.id,
+            amount_cents: betrag,
+            amount_refunded_cents: erstattet,
+            currency: charge.currency ?? null,
+          },
+        })
+        break
+      }
+
       if (paymentIntent) {
         await supabase
           .from('payments')
@@ -942,6 +1009,48 @@ export async function POST(req: NextRequest) {
           await releaseStockForOrder(refunded.id as string).catch(console.error)
         }
       }
+      break
+    }
+
+    case 'charge.dispute.created':
+    case 'charge.dispute.closed': {
+      // Rueckbuchung (Chargeback). Bis Track 16 kam dieses Ereignis hier gar
+      // nicht vor: die Miete blieb 'confirmed'/'paid', die
+      // Plattform-Transaktion blieb 'succeeded' — und genau diese beiden
+      // Felder sind die einzige Bedingung, unter der `cron/rental-payouts`
+      // am Mietbeginn den Anbieteranteil ueberweist. Die Plattform haette
+      // das Geld also zurueckgegeben UND ausgezahlt.
+      //
+      // Der Zustand wird hier bewusst NICHT umgeschrieben: `payments.status`
+      // und `platform_transactions.status` kennen live kein Wort fuer
+      // „angefochten" (CHECK: pending|succeeded|failed|refunded), und eines
+      // zu erfinden hiesse, eine Rueckbuchung als Erstattung auszugeben.
+      // Festgehalten wird sie im Audit-Log; die Auszahlung haelt der
+      // Payout-Cron ab jetzt selbst zurueck, weil er den Zustand der Charge
+      // direkt bei Stripe erfragt.
+      const dispute = event.data.object as Stripe.Dispute
+      const disputedIntent =
+        typeof dispute.payment_intent === 'string'
+          ? dispute.payment_intent
+          : (dispute.payment_intent as { id?: string } | null)?.id ?? null
+
+      console.error(
+        `${event.type}: Zahlung ${disputedIntent ?? '—'} angefochten (${dispute.status ?? '—'}, ${dispute.amount ?? 0})`,
+      )
+      await supabase.from('audit_logs').insert({
+        user_id: null,
+        action: event.type === 'charge.dispute.closed' ? 'charge_dispute_closed' : 'charge_dispute_created',
+        entity: 'payment',
+        entity_id: disputedIntent,
+        details: {
+          dispute_id: dispute.id,
+          charge_id: typeof dispute.charge === 'string' ? dispute.charge : (dispute.charge as { id?: string } | null)?.id ?? null,
+          amount_cents: dispute.amount ?? null,
+          currency: dispute.currency ?? null,
+          reason: dispute.reason ?? null,
+          status: dispute.status ?? null,
+        },
+      })
       break
     }
 

@@ -99,12 +99,36 @@ export async function GET(req: NextRequest) {
       if (rental.status === 'cancelled' || rental.payment_status === 'refunded') { skipped++; continue }
 
       // Connect-Account des Anbieters (payouts aktiv?)
-      const { data: account } = await supabase
+      //
+      // Vorher `.maybeSingle()`. Das ist genau dann still falsch, wenn es zu
+      // einem Anbieter MEHRERE Zeilen gibt: PostgREST antwortet dann mit
+      // PGRST116, `data` ist null — und weil der Fehler nicht angesehen
+      // wurde, sah das hier aus wie „kein Connect-Account" und der Anbieter
+      // wurde ab da NIE wieder ausgezahlt, ohne dass irgendwo etwas stand.
+      // Mehrere Zeilen sind kein Gedankenspiel: `/api/stripe/connect` legt
+      // sie an (siehe dort), und der UNIQUE-Index dagegen liegt in einer
+      // Migration, deren Live-Zustand von hier aus nicht pruefbar ist.
+      const { data: accounts, error: accountError } = await supabase
         .from('provider_stripe_accounts')
         .select('stripe_account_id, payouts_enabled')
         .eq('user_id', tx.provider_user_id)
-        .maybeSingle()
+        .limit(2)
 
+      if (accountError) {
+        skipped++
+        errors.push(`tx ${tx.id}: Connect-Account nicht lesbar: ${accountError.message}`)
+        continue
+      }
+      if (accounts && accounts.length > 1) {
+        // Auf welches der Konten? Das ist nicht zu raten, wenn Geld darauf
+        // geht. Sichtbar machen, nicht zahlen.
+        skipped++
+        errors.push(
+          `tx ${tx.id}: Anbieter ${tx.provider_user_id} hat ${accounts.length}+ Connect-Accounts — Auszahlung ausgesetzt`,
+        )
+        continue
+      }
+      const account = accounts?.[0]
       if (!account?.payouts_enabled || !account.stripe_account_id) { skipped++; continue }
 
       // Dedupe-Backstop: falls für dieselbe Miete bereits eine andere
@@ -123,9 +147,39 @@ export async function GET(req: NextRequest) {
 
       // Charge zur Zahlung ermitteln — Transfer mit source_transaction zieht
       // die Mittel direkt aus dieser Charge (keine Balance-Probleme).
-      const pi = await stripe.paymentIntents.retrieve(tx.stripe_payment_intent_id)
-      const chargeId = typeof pi.latest_charge === 'string' ? pi.latest_charge : pi.latest_charge?.id
+      //
+      // `expand: ['latest_charge']` liefert die Charge gleich mit, und mit
+      // ihr die einzigen zwei Angaben, die wirklich beantworten, ob dieses
+      // Geld noch da ist: `amount_refunded` und `disputed`. Bisher hat der
+      // Cron ausschliesslich unsere eigenen Spalten gefragt
+      // (`rental_bookings.status`, `payment_status`). Die sind aber nur so
+      // gut wie das Ereignis, das sie zuletzt gesetzt hat: eine Rueckbuchung
+      // wurde ueberhaupt nicht verarbeitet, und eine Teilerstattung setzt
+      // sie seit Track 16 bewusst nicht mehr. In beiden Faellen haette die
+      // Plattform Geld zurueckgegeben und den vollen Anbieteranteil trotzdem
+      // ueberwiesen.
+      const pi = await stripe.paymentIntents.retrieve(tx.stripe_payment_intent_id, {
+        expand: ['latest_charge'],
+      })
+      const charge =
+        pi.latest_charge && typeof pi.latest_charge === 'object'
+          ? (pi.latest_charge as { id?: string; amount_refunded?: number; refunded?: boolean; disputed?: boolean })
+          : null
+      const chargeId = typeof pi.latest_charge === 'string' ? pi.latest_charge : charge?.id
       if (!chargeId) { skipped++; continue }
+
+      if (charge && (charge.refunded === true || (charge.amount_refunded ?? 0) > 0)) {
+        skipped++
+        errors.push(
+          `tx ${tx.id}: Charge ${chargeId} ist (teil-)erstattet (${charge.amount_refunded ?? 0} Cent) — Auszahlung ausgesetzt`,
+        )
+        continue
+      }
+      if (charge?.disputed === true) {
+        skipped++
+        errors.push(`tx ${tx.id}: Charge ${chargeId} ist angefochten (Chargeback) — Auszahlung ausgesetzt`)
+        continue
+      }
 
       // Idempotency-Key: schlägt das DB-Update nach dem Transfer fehl, erzeugt
       // der nächste Cron-Lauf KEINEN zweiten Transfer, sondern bekommt denselben.

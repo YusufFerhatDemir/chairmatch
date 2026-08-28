@@ -34,11 +34,22 @@ export interface StripeHarness {
   constructEvent: Mock
   sessionsRetrieve: Mock
   sessionsExpire: Mock
+  /** Abos eines Stripe-Kunden — Grundlage der Doppel-Abo-Sperre im Checkout */
+  subscriptionsList: Mock
+  /** PaymentIntent inkl. `latest_charge` — der Payout-Cron liest darueber
+   *  Erstattungs- und Chargeback-Zustand der Charge. */
+  paymentIntentsRetrieve: Mock
+  transfersCreate: Mock
+  /** Alle erzeugten Transfers — Betrag und Ziel sind Teil der Pruefung */
+  transfers: { amount: number; destination: string; sourceTransaction?: string }[]
   /** Nachbau des `stripe`-Proxys aus @/lib/stripe */
   stripe: {
     checkout: { sessions: { create: Mock; retrieve: Mock; expire: Mock } }
     refunds: { create: Mock }
     webhooks: { constructEvent: Mock }
+    subscriptions: { list: Mock }
+    paymentIntents: { retrieve: Mock }
+    transfers: { create: Mock }
   }
   /** Alle ausgelösten Refunds — Reihenfolge und Beträge sind Teil der Prüfung */
   refunds: { paymentIntent: string; amountCents?: number }[]
@@ -46,6 +57,7 @@ export interface StripeHarness {
 
 export function createStripeHarness(): StripeHarness {
   const refunds: { paymentIntent: string; amountCents?: number }[] = []
+  const transfers: { amount: number; destination: string; sourceTransaction?: string }[] = []
   let counter = 0
 
   const checkout = (): CheckoutSessionStub => {
@@ -68,6 +80,28 @@ export function createStripeHarness(): StripeHarness {
     throw new Error('constructEvent wurde im Test nicht vorbereitet')
   })
 
+  // Standard: dieser Kunde hat noch kein Abo. Tests, die eines brauchen,
+  // setzen es mit `mockResolvedValueOnce({ data: [{ id, status }] })`.
+  const subscriptionsList = vi.fn(async () => ({ data: [] as { id: string; status: string }[] }))
+
+  // Standard: eine unauffaellige Charge — nichts erstattet, nichts
+  // angefochten. Der Payout-Cron darf sie auszahlen.
+  const paymentIntentsRetrieve = vi.fn(async (id: string) => ({
+    id,
+    latest_charge: { id: `ch_${id}`, amount: 35000, amount_refunded: 0, refunded: false, disputed: false },
+  }))
+
+  const transfersCreate = vi.fn(
+    async (params: { amount: number; destination: string; source_transaction?: string }) => {
+      transfers.push({
+        amount: params.amount,
+        destination: params.destination,
+        sourceTransaction: params.source_transaction,
+      })
+      return { id: `tr_test_${transfers.length}` }
+    },
+  )
+
   return {
     createBookingCheckout: vi.fn(async () => checkout()),
     createSubscriptionCheckout: vi.fn(async () => checkout()),
@@ -79,11 +113,18 @@ export function createStripeHarness(): StripeHarness {
     constructEvent,
     sessionsRetrieve,
     sessionsExpire,
+    subscriptionsList,
+    paymentIntentsRetrieve,
+    transfersCreate,
     refunds,
+    transfers,
     stripe: {
       checkout: { sessions: { create: vi.fn(async () => checkout()), retrieve: sessionsRetrieve, expire: sessionsExpire } },
       refunds: { create: createRefund },
       webhooks: { constructEvent },
+      subscriptions: { list: subscriptionsList },
+      paymentIntents: { retrieve: paymentIntentsRetrieve },
+      transfers: { create: transfersCreate },
     },
   }
 }

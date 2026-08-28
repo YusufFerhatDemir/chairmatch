@@ -3,6 +3,25 @@ import { getServerSession } from '@/modules/auth/session'
 import { stripe, createBookingCheckout, createSubscriptionCheckout, createProductOrderCheckout, createRentalCheckout } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { appOriginFromRequest } from '@/lib/app-origin'
+import { SALON_SUSPENDED_MESSAGE, checkSalonAcceptsBusiness, salonAcceptsBusiness } from '@/lib/salon-status'
+import { entitlementForStatus } from '@/lib/subscription-tier'
+
+/**
+ * Ein Betrag, den Stripe gar nicht einziehen kann, darf nicht als
+ * Stripe-Aufruf enden.
+ *
+ * `createBookingCheckout` & Co. reichen `unit_amount` unveraendert durch. Steht
+ * dort 0 — moeglich ueber einen Rabattcode mit 100 %, `calculatePrice` deckelt
+ * ausdruecklich bei 0 —, wirft die Session-Erstellung, der catch am Ende
+ * dieser Datei macht daraus „Interner Fehler" (500), und die Kundin liest
+ * einen Serverfehler, wo eine Erklaerung hingehoert. Erfunden wird hier kein
+ * Mindestbetrag: geprueft wird nur, was zweifelsfrei nicht zahlbar ist.
+ */
+const NICHT_ZAHLBAR = 'Dieser Betrag kann nicht online bezahlt werden. Bitte wende dich an den Salon.'
+
+function istZahlbar(amountCents: unknown): boolean {
+  return typeof amountCents === 'number' && Number.isFinite(amountCents) && amountCents > 0
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,9 +66,26 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Buchung ist nicht mehr zahlbar' }, { status: 409 })
       }
 
+      // Track 15 hat den Salon-Riegel auf die Strecken gelegt, auf denen eine
+      // Verpflichtung ENTSTEHT (createBooking, /api/rental-bookings). Die
+      // Nachzahlung einer schon bestehenden Buchung lief daran vorbei: ein
+      // Termin, der vor der Sperre angelegt wurde, liess sich danach weiter
+      // bezahlen. Beim Termin bleibt das Geld zwar auf dem Plattformkonto —
+      // bei der Miete unten aber nicht, dort ueberweist der Payout-Cron den
+      // Anbieteranteil an genau den gesperrten Anbieter.
+      const salonGuard = await checkSalonAcceptsBusiness(supabase, String(booking.salon_id))
+      if (!salonGuard.ok) {
+        return NextResponse.json({ error: salonGuard.error }, { status: salonGuard.status })
+      }
+
+      if (!istZahlbar(booking.price_cents)) {
+        return NextResponse.json({ error: NICHT_ZAHLBAR }, { status: 409 })
+      }
+
       const origin = appOriginFromRequest(req)
       const checkoutSession = await createBookingCheckout({
         bookingId,
+        userId: session.user.id,
         customerEmail: session.user.email || '',
         salonName: (booking as Record<string, unknown>).salons
           ? ((booking as Record<string, unknown>).salons as { name: string }).name
@@ -80,10 +116,70 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Ungültiger Tier' }, { status: 400 })
       }
 
+      // Ein zweites Abo auf dasselbe Konto war bis Track 16 nichts, was
+      // irgendetwas verhindert haette.
+      //
+      // Die Stufe steht in `salons.subscription_tier` — EIN Wert, egal wie
+      // viele Abos dahinter laufen. `provider_subscriptions` existiert als
+      // Tabelle, wird vom Produktivcode aber nirgends beschrieben; es gab
+      // also gar keinen Ort, an dem „hier laeuft schon ein Abo" haette
+      // stehen koennen. Zwei Tabs, zweimal geklickt, und der Anbieter zahlt
+      // ab sofort zweimal im Monat. Kuendigt er eines davon, meldet Stripe
+      // `customer.subscription.deleted`, und `handleSubscriptionChange`
+      // stuft ihn auf die kostenlose Stufe zurueck — waehrend das zweite Abo
+      // weiterlaeuft und weiter abgebucht wird.
+      //
+      // Gefragt wird deshalb Stripe selbst, nicht unsere Datenbank: dort
+      // stehen die Abos, und dort stehen sie vollstaendig. Fehlt die
+      // Kundennummer, hat dieses Konto noch nie ueber uns gebucht.
+      const supabase = getSupabaseAdmin()
+      const { data: profil, error: profilError } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('id', session.user.id)
+        .maybeSingle()
+
+      if (profilError) {
+        // Fail closed: ohne Kundennummer koennten wir ein zweites Abo weder
+        // erkennen noch am selben Kunden anlegen.
+        console.error('subscription checkout: Profil nicht lesbar:', profilError.message)
+        return NextResponse.json(
+          { error: 'Abo konnte nicht geprüft werden. Bitte später erneut versuchen.' },
+          { status: 503 },
+        )
+      }
+
+      const customerId = (profil?.stripe_customer_id as string | null) || null
+
+      if (customerId) {
+        const vorhandene = await stripe.subscriptions.list({
+          customer: customerId,
+          status: 'all',
+          limit: 100,
+        })
+        // `entitlementForStatus` kennt die Stripe-Status bereits: 'entitled'
+        // ist bezahlt/Testphase, 'grace' ist die laufende Mahnkette. Beides
+        // wird weiter abgerechnet — nur 'revoked' ist wirklich vorbei.
+        const laufend = (vorhandene?.data ?? []).find(
+          sub => entitlementForStatus(sub.status) !== 'revoked',
+        )
+        if (laufend) {
+          return NextResponse.json(
+            {
+              error:
+                'Für dieses Konto läuft bereits ein Abo. Eine Änderung der Stufe erfolgt über die Abo-Verwaltung, nicht über einen zweiten Kauf.',
+              subscriptionId: laufend.id,
+            },
+            { status: 409 },
+          )
+        }
+      }
+
       const origin = appOriginFromRequest(req)
       const checkoutSession = await createSubscriptionCheckout({
         userId: session.user.id,
         email: session.user.email || '',
+        customerId,
         tier,
         successUrl: `${origin}/provider?subscription=success`,
         cancelUrl: `${origin}/provider?subscription=cancelled`,
@@ -128,10 +224,18 @@ export async function POST(req: NextRequest) {
         quantity: i.quantity,
       }))
 
+      const summe =
+        lineItems.reduce((acc, li) => acc + li.amountCents * li.quantity, 0) +
+        (order.shipping_cents || 0)
+      if (!istZahlbar(summe)) {
+        return NextResponse.json({ error: NICHT_ZAHLBAR }, { status: 409 })
+      }
+
       const origin = appOriginFromRequest(req)
       const checkoutSession = await createProductOrderCheckout({
         orderId,
         orderNumber: order.order_number,
+        userId: session.user.id,
         customerEmail: session.user.email || '',
         lineItems,
         shippingCents: order.shipping_cents || 0,
@@ -158,7 +262,7 @@ export async function POST(req: NextRequest) {
       const supabase = getSupabaseAdmin()
       const { data: rental, error } = await supabase
         .from('rental_bookings')
-        .select('*, rental_equipment(name, salons(name))')
+        .select('*, rental_equipment(name, salons(name, is_active))')
         .eq('id', rentalBookingId)
         .eq('renter_id', session.user.id)
         .single()
@@ -171,6 +275,26 @@ export async function POST(req: NextRequest) {
       }
       if (!['pending', 'confirmed'].includes(rental.status)) {
         return NextResponse.json({ error: 'Buchung ist nicht mehr zahlbar' }, { status: 409 })
+      }
+
+      const equipment = (rental as Record<string, unknown>).rental_equipment as
+        | { name?: string; salons?: { name?: string; is_active?: boolean | null } | null }
+        | null
+
+      // Der Riegel aus Track 15 sitzt auf `POST /api/rental-bookings`, also
+      // auf der ERSTanlage. Diese Route ist die Nachzahlung — eine Buchung,
+      // die vor der Sperre entstanden ist, liess sich danach unveraendert
+      // bezahlen. Und anders als beim Termin bleibt das Geld hier nicht auf
+      // dem Plattformkonto: `cron/rental-payouts` ueberweist den
+      // Anbieteranteil am Mietbeginn an genau den Anbieter, den die
+      // Plattform angehalten hat. `salons` ist hier schon eingebettet, also
+      // ohne zweite Abfrage.
+      if (!salonAcceptsBusiness(equipment?.salons ?? null)) {
+        return NextResponse.json({ error: SALON_SUSPENDED_MESSAGE }, { status: 409 })
+      }
+
+      if (!istZahlbar(rental.total_cents)) {
+        return NextResponse.json({ error: NICHT_ZAHLBAR }, { status: 409 })
       }
 
       // Alte, noch offene Checkout-Session invalidieren — sonst existieren zwei
@@ -187,10 +311,6 @@ export async function POST(req: NextRequest) {
           // Session existiert nicht mehr / bereits abgelaufen — egal
         }
       }
-
-      const equipment = (rental as Record<string, unknown>).rental_equipment as
-        | { name?: string; salons?: { name?: string } | null }
-        | null
 
       const origin = appOriginFromRequest(req)
       const checkoutSession = await createRentalCheckout({

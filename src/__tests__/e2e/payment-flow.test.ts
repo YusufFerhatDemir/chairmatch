@@ -52,12 +52,15 @@ vi.mock('@/lib/stripe', () => ({
   createProductOrderCheckout: (...a: unknown[]) => state.stripe.createProductOrderCheckout(...a),
   createRentalCheckout: (...a: unknown[]) => state.stripe.createRentalCheckout(...a),
   createRefund: (...a: unknown[]) => state.stripe.createRefund(...a),
+  createConnectAccount: (...a: unknown[]) => state.stripe.createConnectAccount(...a),
+  createConnectAccountLink: (...a: unknown[]) => state.stripe.createConnectAccountLink(...a),
 }))
 
 import { calculateNewCustomerCommission } from '@/modules/marketplace/commission.service'
 import { POST as checkoutRoute } from '@/app/api/stripe/checkout/route'
 import { POST as webhookRoute } from '@/app/api/stripe/webhook/route'
 import { POST as adminRefundRoute } from '@/app/api/admin/refund/route'
+import { POST as connectRoute, GET as connectStatusRoute } from '@/app/api/stripe/connect/route'
 
 const PENDING_RENTAL = '88888888-8888-4888-8888-888888888889'
 
@@ -602,10 +605,16 @@ describe('Rückerstattung', () => {
 
     const res = await webhookRoute(
       webhookRequest(
+        // Vollstaendige Erstattung, so wie Stripe sie schickt: `amount` und
+        // `amount_refunded` sind gleich, `refunded` steht auf true. Die
+        // Teilerstattung — dieselbe Ereignisart mit kleinerem
+        // `amount_refunded` — steht weiter unten.
         stripeEvent('charge.refunded', {
           id: 'ch_test',
           payment_intent: 'pi_test_bestand',
+          amount: 35000,
           amount_refunded: 35000,
+          refunded: true,
         }),
       ),
     )
@@ -1226,7 +1235,13 @@ describe('charge.refunded zieht Termin und Bestellung nach', () => {
 
     await webhookRoute(
       webhookRequest(
-        stripeEvent('charge.refunded', { id: 'ch_test_1', payment_intent: 'pi_test_booking' }),
+        stripeEvent('charge.refunded', {
+          id: 'ch_test_1',
+          payment_intent: 'pi_test_booking',
+          amount: 5000,
+          amount_refunded: 5000,
+          refunded: true,
+        }),
       ),
     )
 
@@ -1249,7 +1264,13 @@ describe('charge.refunded zieht Termin und Bestellung nach', () => {
 
     await webhookRoute(
       webhookRequest(
-        stripeEvent('charge.refunded', { id: 'ch_test_2', payment_intent: 'pi_test_order' }),
+        stripeEvent('charge.refunded', {
+          id: 'ch_test_2',
+          payment_intent: 'pi_test_order',
+          amount: 4499,
+          amount_refunded: 4499,
+          refunded: true,
+        }),
       ),
     )
 
@@ -1296,5 +1317,469 @@ describe('Checkout fuer Shop-Bestellungen (POST /api/stripe/checkout)', () => {
     expect(response.status).toBe(404)
     expect(state.stripe.createProductOrderCheckout).not.toHaveBeenCalled()
     expect(db().row('orders', IDS.orderOpen)?.payment_status).toBe('unpaid')
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
+/**
+ * Track 16 — Stripe-Audit.
+ *
+ * Fuenf Befunde, die alle daran haengen, dass ein Stripe-Ereignis oder ein
+ * Stripe-Objekt nur zur Haelfte gelesen wurde.
+ */
+
+const NETZFEHLER = {
+  code: '08006',
+  message: 'connection to server failed',
+  details: null,
+  hint: null,
+}
+
+describe('Wer bezahlt hat, steht auch in der Zahlung (Track 16)', () => {
+  it('schreibt den Zahler an die Termin-Zahlung und benachrichtigt ihn', async () => {
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.completed',
+          bookingCheckoutSession({
+            bookingId: IDS.bookingConfirmed,
+            userId: IDS.customer,
+            amountCents: 5000,
+          }),
+        ),
+      ),
+    )
+
+    const zahlung = db().rows('payments').find(z => z.source_id === IDS.bookingConfirmed)
+    expect(zahlung?.user_id).toBe(IDS.customer)
+    expect(
+      db()
+        .rows('notification_log')
+        .some(n => n.user_id === IDS.customer && n.type === 'payment'),
+    ).toBe(true)
+  })
+
+  it('faellt auf die Buchung zurueck, wenn die Session kein user_id traegt', async () => {
+    // Genau die Sessions, die beim Deploy dieser Aenderung schon offen waren:
+    // erzeugt von der alten `createBookingCheckout`, die `user_id` nie
+    // mitgegeben hat. Vorher blieb `payments.user_id` dabei leer und die
+    // Kundin bekam keine Nachricht.
+    const session = bookingCheckoutSession({
+      bookingId: IDS.bookingConfirmed,
+      userId: IDS.customer,
+      amountCents: 5000,
+    })
+    delete session.metadata!.user_id
+
+    await webhookRoute(webhookRequest(stripeEvent('checkout.session.completed', session)))
+
+    const zahlung = db().rows('payments').find(z => z.source_id === IDS.bookingConfirmed)
+    expect(zahlung?.user_id).toBe(IDS.customer)
+    expect(
+      db()
+        .rows('notification_log')
+        .some(n => n.user_id === IDS.customer && n.type === 'payment'),
+    ).toBe(true)
+    expect(
+      db().rows('audit_logs').find(a => a.action === 'payment_completed')?.user_id,
+    ).toBe(IDS.customer)
+  })
+
+  it('schreibt den Zahler auch an die Shop-Zahlung', async () => {
+    const session = orderCheckoutSession({
+      orderId: IDS.orderOpen,
+      userId: IDS.customer,
+      amountCents: 4499,
+    })
+    delete session.metadata!.user_id
+
+    await webhookRoute(webhookRequest(stripeEvent('checkout.session.completed', session)))
+
+    const zahlung = db().rows('payments').find(z => z.source_id === IDS.orderOpen)
+    expect(zahlung?.user_id).toBe(IDS.customer)
+  })
+
+  it('gibt der Termin-Session das Konto der Kundin mit', async () => {
+    await checkoutRoute(
+      postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+        type: 'booking',
+        bookingId: IDS.bookingConfirmed,
+      }),
+    )
+    expect(state.stripe.createBookingCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: IDS.customer }),
+    )
+  })
+
+  it('gibt der Shop-Session das Konto der Kundin mit', async () => {
+    db().rows('order_items').push({
+      id: '19191919-1919-4191-8191-191919191911',
+      order_id: IDS.orderOpen,
+      product_id: IDS.productBillig,
+      quantity: 2,
+      unit_price_cents: 2000,
+      total_cents: 4000,
+    })
+    await checkoutRoute(
+      postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+        type: 'product_order',
+        orderId: IDS.orderOpen,
+      }),
+    )
+    expect(state.stripe.createProductOrderCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: IDS.customer }),
+    )
+  })
+})
+
+describe('Teilerstattung ist keine Erstattung (Track 16)', () => {
+  /** charge.refunded, wie Stripe es bei einer TEILweisen Rueckzahlung sendet. */
+  function teilErstattung(paymentIntent: string, betrag: number, erstattet: number) {
+    return stripeEvent('charge.refunded', {
+      id: `ch_teil_${paymentIntent}`,
+      payment_intent: paymentIntent,
+      amount: betrag,
+      amount_refunded: erstattet,
+      refunded: false,
+      currency: 'eur',
+    })
+  }
+
+  it('laesst die Miet-Buchung stehen und haelt den Fall im Audit-Log fest', async () => {
+    db().rows('payments').push({
+      id: '15151515-1515-4151-8151-151515151516',
+      source_type: 'rental_booking',
+      source_id: IDS.rentalConfirmed,
+      stripe_payment_intent: 'pi_test_bestand',
+      amount_cents: 35000,
+      status: 'succeeded',
+    })
+
+    const res = await webhookRoute(
+      webhookRequest(teilErstattung('pi_test_bestand', 35000, 500)),
+    )
+
+    expect(res.status).toBe(200)
+    // Eine Kulanz von 5 € hat vorher die ganze Miete storniert.
+    expect(db().row('rental_bookings', IDS.rentalConfirmed)).toMatchObject({
+      status: 'confirmed',
+      payment_status: 'paid',
+    })
+    expect(db().rows('payments')[0].status).toBe('succeeded')
+    expect(db().row('platform_transactions', IDS.transaction)?.status).toBe('succeeded')
+
+    const eintrag = db().rows('audit_logs').find(a => a.action === 'charge_partially_refunded')
+    expect(eintrag).toBeTruthy()
+    expect(eintrag?.details).toMatchObject({ amount_cents: 35000, amount_refunded_cents: 500 })
+  })
+
+  it('laesst den Termin bestehen', async () => {
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.completed',
+          bookingCheckoutSession({
+            bookingId: IDS.bookingConfirmed,
+            userId: IDS.customer,
+            amountCents: 5000,
+          }),
+        ),
+      ),
+    )
+
+    await webhookRoute(webhookRequest(teilErstattung('pi_test_booking', 5000, 1000)))
+
+    expect(db().row('bookings', IDS.bookingConfirmed)).toMatchObject({
+      payment_status: 'paid',
+      status: 'confirmed',
+    })
+  })
+
+  it('gibt den Bestand einer Bestellung nicht zurueck ins Regal', async () => {
+    db().rows('order_items').push({
+      id: '19191919-1919-4191-8191-191919191912',
+      order_id: IDS.orderOpen,
+      product_id: IDS.productTeuer,
+      variant_id: null,
+      quantity: 1,
+      unit_price_cents: 24900,
+      total_cents: 24900,
+    })
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent(
+          'checkout.session.completed',
+          orderCheckoutSession({
+            orderId: IDS.orderOpen,
+            userId: IDS.customer,
+            amountCents: 4499,
+          }),
+        ),
+      ),
+    )
+    // Bestand ist gebucht: 2 → 1
+    expect(db().row('products', IDS.productTeuer)?.stock_quantity).toBe(1)
+
+    await webhookRoute(webhookRequest(teilErstattung('pi_test_order', 4499, 499)))
+
+    expect(db().row('orders', IDS.orderOpen)).toMatchObject({
+      payment_status: 'paid',
+      status: 'confirmed',
+    })
+    expect(db().row('products', IDS.productTeuer)?.stock_quantity).toBe(1)
+  })
+
+  it('zieht bei VOLLstaendiger Erstattung weiterhin alles nach', async () => {
+    db().rows('payments').push({
+      id: '15151515-1515-4151-8151-151515151517',
+      source_type: 'rental_booking',
+      source_id: IDS.rentalConfirmed,
+      stripe_payment_intent: 'pi_test_bestand',
+      amount_cents: 35000,
+      status: 'succeeded',
+    })
+
+    await webhookRoute(
+      webhookRequest(
+        stripeEvent('charge.refunded', {
+          id: 'ch_voll',
+          payment_intent: 'pi_test_bestand',
+          amount: 35000,
+          amount_refunded: 35000,
+          refunded: true,
+        }),
+      ),
+    )
+
+    expect(db().row('rental_bookings', IDS.rentalConfirmed)).toMatchObject({
+      status: 'cancelled',
+      payment_status: 'refunded',
+    })
+  })
+})
+
+describe('Rueckbuchung (Chargeback) wird ueberhaupt erst bemerkt (Track 16)', () => {
+  it('haelt charge.dispute.created im Audit-Log fest, ohne den Zustand zu raten', async () => {
+    const res = await webhookRoute(
+      webhookRequest(
+        stripeEvent('charge.dispute.created', {
+          id: 'dp_test_1',
+          charge: 'ch_test_bestand',
+          payment_intent: 'pi_test_bestand',
+          amount: 35000,
+          currency: 'eur',
+          reason: 'fraudulent',
+          status: 'needs_response',
+        }),
+      ),
+    )
+
+    expect(res.status).toBe(200)
+    const eintrag = db().rows('audit_logs').find(a => a.action === 'charge_dispute_created')
+    expect(eintrag?.entity_id).toBe('pi_test_bestand')
+    expect(eintrag?.details).toMatchObject({ dispute_id: 'dp_test_1', reason: 'fraudulent' })
+
+    // Kein erfundener Status: die Tabellen kennen live kein Wort dafuer.
+    expect(db().row('platform_transactions', IDS.transaction)?.status).toBe('succeeded')
+    expect(db().row('rental_bookings', IDS.rentalConfirmed)?.status).toBe('confirmed')
+  })
+})
+
+describe('Kein zweites Abo auf dasselbe Konto (Track 16)', () => {
+  const aboKauf = () =>
+    postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+      type: 'subscription',
+      tier: 'premium',
+    })
+
+  beforeEach(() => {
+    state.session = sessionFor('owner')
+  })
+
+  it('lehnt den Kauf ab, wenn bei Stripe schon ein Abo laeuft', async () => {
+    db().row('profiles', IDS.owner)!.stripe_customer_id = 'cus_test_owner'
+    state.stripe.subscriptionsList.mockResolvedValueOnce({
+      data: [{ id: 'sub_laufend', status: 'active' }],
+    })
+
+    const res = await checkoutRoute(aboKauf())
+
+    expect(res.status).toBe(409)
+    expect((await res.json()).subscriptionId).toBe('sub_laufend')
+    expect(state.stripe.createSubscriptionCheckout).not.toHaveBeenCalled()
+  })
+
+  it('lehnt auch waehrend der Mahnkette ab — past_due wird weiter abgerechnet', async () => {
+    db().row('profiles', IDS.owner)!.stripe_customer_id = 'cus_test_owner'
+    state.stripe.subscriptionsList.mockResolvedValueOnce({
+      data: [{ id: 'sub_mahnung', status: 'past_due' }],
+    })
+
+    const res = await checkoutRoute(aboKauf())
+    expect(res.status).toBe(409)
+    expect(state.stripe.createSubscriptionCheckout).not.toHaveBeenCalled()
+  })
+
+  it('laesst ein neues Abo zu, wenn das alte gekuendigt ist', async () => {
+    db().row('profiles', IDS.owner)!.stripe_customer_id = 'cus_test_owner'
+    state.stripe.subscriptionsList.mockResolvedValueOnce({
+      data: [{ id: 'sub_alt', status: 'canceled' }],
+    })
+
+    const res = await checkoutRoute(aboKauf())
+    expect(res.status).toBe(200)
+    // Und zwar am BESTEHENDEN Stripe-Kunden, nicht an einem neuen.
+    expect(state.stripe.createSubscriptionCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({ customerId: 'cus_test_owner' }),
+    )
+  })
+
+  it('fragt Stripe gar nicht erst, wenn es noch keine Kundennummer gibt', async () => {
+    const res = await checkoutRoute(aboKauf())
+    expect(res.status).toBe(200)
+    expect(state.stripe.subscriptionsList).not.toHaveBeenCalled()
+    expect(state.stripe.createSubscriptionCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({ customerId: null }),
+    )
+  })
+
+  it('kauft nichts, wenn das Profil nicht lesbar ist (fail closed)', async () => {
+    db().failOn('profiles', 'select', NETZFEHLER)
+    const res = await checkoutRoute(aboKauf())
+    expect(res.status).toBe(503)
+    expect(state.stripe.createSubscriptionCheckout).not.toHaveBeenCalled()
+  })
+})
+
+describe('Nachzahlung an einen gesperrten Salon (Track 16)', () => {
+  it('erzeugt keine Termin-Session mehr, wenn der Salon gesperrt ist', async () => {
+    db().row('salons', IDS.salon)!.is_active = false
+
+    const res = await checkoutRoute(
+      postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+        type: 'booking',
+        bookingId: IDS.bookingConfirmed,
+      }),
+    )
+
+    expect(res.status).toBe(409)
+    expect(state.stripe.createBookingCheckout).not.toHaveBeenCalled()
+    expect(db().row('bookings', IDS.bookingConfirmed)?.payment_status).toBe('unpaid')
+  })
+
+  it('erzeugt keine Miet-Session mehr und nimmt dem Mieter nicht die alte', async () => {
+    db().row('salons', IDS.salon)!.is_active = false
+    seedPendingRental()
+
+    const res = await checkoutRoute(
+      postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+        type: 'rental',
+        rentalBookingId: PENDING_RENTAL,
+      }),
+    )
+
+    expect(res.status).toBe(409)
+    expect(state.stripe.createRentalCheckout).not.toHaveBeenCalled()
+    // Die Pruefung steht VOR dem Verfallenlassen — sonst haette eine
+    // abgelehnte Anfrage die einzige offene Session vernichtet.
+    expect(state.stripe.sessionsExpire).not.toHaveBeenCalled()
+  })
+
+  it('laesst die Nachzahlung bei einem aktiven Salon unveraendert durch', async () => {
+    seedPendingRental()
+    const res = await checkoutRoute(
+      postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+        type: 'rental',
+        rentalBookingId: PENDING_RENTAL,
+      }),
+    )
+    expect(res.status).toBe(200)
+    expect(state.stripe.createRentalCheckout).toHaveBeenCalled()
+  })
+})
+
+describe('Betraege, die Stripe nicht einziehen kann (Track 16)', () => {
+  it('antwortet auf einen Termin ueber 0 € mit einer Erklaerung statt mit 500', async () => {
+    db().row('bookings', IDS.bookingConfirmed)!.price_cents = 0
+
+    const res = await checkoutRoute(
+      postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+        type: 'booking',
+        bookingId: IDS.bookingConfirmed,
+      }),
+    )
+
+    expect(res.status).toBe(409)
+    expect((await res.json()).error).toMatch(/nicht online bezahlt/)
+    expect(state.stripe.createBookingCheckout).not.toHaveBeenCalled()
+    expect(db().row('bookings', IDS.bookingConfirmed)?.payment_status).toBe('unpaid')
+  })
+
+  it('antwortet auf eine Miete ueber 0 € genauso', async () => {
+    seedPendingRental({ total_cents: 0 })
+    const res = await checkoutRoute(
+      postRequest('https://www.chairmatch.de/api/stripe/checkout', {
+        type: 'rental',
+        rentalBookingId: PENDING_RENTAL,
+      }),
+    )
+    expect(res.status).toBe(409)
+    expect(state.stripe.createRentalCheckout).not.toHaveBeenCalled()
+  })
+})
+
+describe('Ein Connect-Konto pro Anbieter (Track 16)', () => {
+  const connectRequest = () =>
+    postRequest('https://www.chairmatch.de/api/stripe/connect', {})
+
+  beforeEach(() => {
+    state.session = sessionFor('owner')
+  })
+
+  it('legt bei zwei hinterlegten Konten KEIN drittes an', async () => {
+    // Zwei Zeilen entstehen durch zwei parallele Klicks auf „Stripe
+    // verbinden". Vorher lieferte `.maybeSingle()` darauf PGRST116 mit
+    // data: null — das sah aus wie „noch kein Konto", und jeder weitere
+    // Aufruf legte bei Stripe ein WEITERES Express-Konto an.
+    db().rows('provider_stripe_accounts').push({
+      id: '14141414-1414-4141-8141-141414141415',
+      user_id: IDS.owner,
+      stripe_account_id: 'acct_test_owner_2',
+      charges_enabled: false,
+      payouts_enabled: false,
+      details_submitted: false,
+    })
+
+    const res = await connectRoute(connectRequest())
+
+    expect(res.status).toBe(409)
+    expect(state.stripe.createConnectAccount).not.toHaveBeenCalled()
+    expect(db().rows('provider_stripe_accounts')).toHaveLength(2)
+  })
+
+  it('legt bei einem Lesefehler kein neues Konto an (fail closed)', async () => {
+    db().failOn('provider_stripe_accounts', 'select', NETZFEHLER)
+
+    const res = await connectRoute(connectRequest())
+
+    expect(res.status).toBe(503)
+    expect(state.stripe.createConnectAccount).not.toHaveBeenCalled()
+    expect(db().rows('provider_stripe_accounts')).toHaveLength(1)
+  })
+
+  it('verwendet das vorhandene Konto weiter, statt ein zweites anzulegen', async () => {
+    const res = await connectRoute(connectRequest())
+    expect(res.status).toBe(200)
+    expect(state.stripe.createConnectAccount).not.toHaveBeenCalled()
+    expect(state.stripe.createConnectAccountLink).toHaveBeenCalledWith(
+      expect.objectContaining({ accountId: 'acct_test_owner' }),
+    )
+  })
+
+  it('meldet beim Status einen Lesefehler, statt „nicht verbunden" zu behaupten', async () => {
+    db().failOn('provider_stripe_accounts', 'select', NETZFEHLER)
+    const res = await connectStatusRoute()
+    expect(res.status).toBe(503)
   })
 })

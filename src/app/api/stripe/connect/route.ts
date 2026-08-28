@@ -35,13 +35,51 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseAdmin()
     const userId = session.user.id
 
-    // Bestehenden Connect-Account wiederverwenden
-    const { data: existing } = await supabase
+    // Bestehenden Connect-Account wiederverwenden.
+    //
+    // Vorher `.maybeSingle()`, und der Fehler daneben wurde nicht angesehen.
+    // Zwei Dinge steckten darin:
+    //
+    //  1. Gibt es zu einem Anbieter MEHRERE Zeilen, antwortet PostgREST mit
+    //     PGRST116 und `data: null`. Fuer den Code sah das aus wie „noch kein
+    //     Account" — er legte bei Stripe einen WEITEREN Express-Account an,
+    //     bei jedem Aufruf erneut. Und der Payout-Cron las dieselbe Tabelle
+    //     mit demselben `.maybeSingle()`, bekam denselben Fehler und
+    //     ueberwies diesem Anbieter ab da nichts mehr.
+    //  2. Ein echter Lesefehler (Datenbank kurz weg) fuehrte zum selben
+    //     Ergebnis: neuer Stripe-Account statt Wiederverwendung.
+    //
+    // Zwei Zeilen entstehen ganz ohne Zutun — zwei parallele Klicks auf
+    // „Stripe verbinden". Der UNIQUE-Index dagegen
+    // (`uq_provider_stripe_user`) steht in Migration
+    // 20260705_rental_booking_constraints.sql; ob sie live angewendet ist,
+    // laesst sich von hier nicht pruefen. Deshalb faellt der Riegel jetzt im
+    // Code: Lesefehler und Mehrdeutigkeit fuehren zu KEINEM neuen Account.
+    const { data: vorhandene, error: leseFehler } = await supabase
       .from('provider_stripe_accounts')
       .select('stripe_account_id, payouts_enabled, details_submitted')
       .eq('user_id', userId)
-      .maybeSingle()
+      .limit(2)
 
+    if (leseFehler) {
+      console.error('provider_stripe_accounts lookup failed:', leseFehler)
+      return NextResponse.json(
+        { error: 'Stripe-Konto konnte nicht geprüft werden. Bitte später erneut versuchen.' },
+        { status: 503 },
+      )
+    }
+    if (vorhandene && vorhandene.length > 1) {
+      console.error(`provider_stripe_accounts: ${vorhandene.length}+ Zeilen fuer ${userId}`)
+      return NextResponse.json(
+        {
+          error:
+            'Für dieses Konto sind mehrere Stripe-Konten hinterlegt. Bitte wende dich an den Support — es wird kein weiteres angelegt.',
+        },
+        { status: 409 },
+      )
+    }
+
+    const existing = vorhandene?.[0]
     let accountId = existing?.stripe_account_id
 
     if (!accountId) {
@@ -89,12 +127,22 @@ export async function GET() {
     }
 
     const supabase = getSupabaseAdmin()
-    const { data } = await supabase
+    const { data: zeilen, error } = await supabase
       .from('provider_stripe_accounts')
       .select('stripe_account_id, charges_enabled, payouts_enabled, details_submitted, onboarding_completed_at')
       .eq('user_id', session.user.id)
-      .maybeSingle()
+      .order('created_at', { ascending: true })
+      .limit(2)
 
+    if (error) {
+      // Nicht „nicht verbunden" melden, wenn wir es schlicht nicht wissen —
+      // sonst bietet die Oberflaeche ein Onboarding an, das ein zweites
+      // Konto anlegen wuerde.
+      console.error('Connect-Status nicht lesbar:', error)
+      return NextResponse.json({ error: 'Status konnte nicht geladen werden' }, { status: 503 })
+    }
+
+    const data = zeilen?.[0]
     if (!data) {
       return NextResponse.json({ connected: false, onboarded: false })
     }
