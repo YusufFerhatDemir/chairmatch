@@ -270,6 +270,49 @@ describe('Miete: kein Geld mehr fuer einen gesperrten Anbieter', () => {
 })
 
 // ────────────────────────────────────────────────────────────────
+describe('Der selbst registrierte, nie freigeschaltete Salon', () => {
+  /**
+   * Der Zustand, den /api/register-provider schreibt:
+   *
+   *   is_active: false, is_verified: false
+   *
+   * Das ist NICHT nur der Admin-Hebel — es ist der Startzustand jedes
+   * Anbieters, der sich selbst registriert. Das Admin-Dashboard zeigt ihn
+   * als „suspended" und bietet „Freischalten" an, das beide Flags setzt.
+   *
+   * Damit war das Freischalt-Tor bisher eine Spalte ohne Verhalten: aus den
+   * oeffentlichen Listen war so ein Salon schon ausgeschlossen (die filtern
+   * alle `.eq('is_active', true)`), geblieben waren ihm die Mietsuche und
+   * jeder Direktlink — und darueber nahm er echtes Geld entgegen.
+   */
+  beforeEach(() => {
+    setSalon('is_active', false)
+    setSalon('is_verified', false)
+  })
+
+  it('nimmt weder Termin noch Miete an', async () => {
+    const termin = await createBookingRoute(
+      postRequest(`${BASE}/api/bookings`, terminBody),
+      undefined,
+    )
+    expect(termin.status).toBe(409)
+
+    const miete = await createRentalRoute(postRequest(`${BASE}/api/rental-bookings`, mietBody))
+    expect(miete.status).toBe(409)
+    expect(state.stripe.createRentalCheckout).not.toHaveBeenCalled()
+  })
+
+  it('arbeitet nach dem Freischalten durch den Admin normal', async () => {
+    // Was PATCH /api/admin mit `salon-status: 'approved'` schreibt.
+    setSalon('is_active', true)
+    setSalon('is_verified', true)
+
+    const miete = await createRentalRoute(postRequest(`${BASE}/api/rental-bookings`, mietBody))
+    expect(miete.status).toBe(201)
+  })
+})
+
+// ────────────────────────────────────────────────────────────────
 describe('Was ausdruecklich NICHT sperrt', () => {
   /**
    * `is_active: null` ist kein Sperrvermerk, sondern ein ungesetztes Feld.
@@ -287,15 +330,16 @@ describe('Was ausdruecklich NICHT sperrt', () => {
   })
 
   /**
-   * Ein frisch registrierter Salon ist `is_verified: false` UND
-   * `is_active: true` — das Admin-Dashboard nennt diesen Zustand „pending"
-   * und zeigt ihn als arbeitsfaehig. Die Pruefung an `is_verified` zu haengen
-   * wuerde jeden noch nicht freigeschalteten Anbieter sofort vom Markt
-   * nehmen. Ob ein unverifizierter Salon Geld einnehmen darf, ist eine
-   * Produktentscheidung — dieser Test haelt fest, wie es HEUTE ist, nicht,
-   * dass es so bleiben muss.
+   * `is_verified: false` bei `is_active: true` ist kein Registrierungs-Rest
+   * (die Registrierung setzt BEIDE auf false), sondern ein vom Admin
+   * ausdruecklich gewaehlter Zustand: `salon-status: 'pending'` nimmt die
+   * Verifizierung zurueck und laesst `is_active` stehen. Massgeblich ist
+   * dann `is_active` — das Wort, das der Admin zuletzt zum Arbeiten gesagt
+   * hat. Ob ein Salon zusaetzlich verifiziert sein MUSS, um Geld
+   * einzunehmen, ist eine Produktentscheidung; dieser Test haelt fest, wie
+   * es HEUTE ist, nicht, dass es so bleiben muss.
    */
-  it('is_verified = false (noch nicht freigeschaltet) bucht und vermietet weiter', async () => {
+  it('is_verified = false bei aktivem Salon bucht und vermietet weiter', async () => {
     setSalon('is_verified', false)
 
     const termin = await createBookingRoute(postRequest(`${BASE}/api/bookings`, terminBody), undefined)

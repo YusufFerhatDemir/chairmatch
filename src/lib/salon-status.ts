@@ -2,16 +2,26 @@
  * Darf ein Salon ueberhaupt noch Geschaefte annehmen?
  *
  * `salons.is_active` ist der EINZIGE Hebel, mit dem die Plattform einen
- * Anbieter anhalten kann. /admin/anbieter schreibt ihn an zwei Stellen:
- * „Sperren" (`salon-status` mit `suspended`) und „Offline setzen"
- * (`salon-toggle-active`) setzen beide `is_active = false`. Genau das ist die
- * Reaktion auf Betrug, Beschwerden oder eine fehlende Gewerbeanmeldung.
+ * Anbieter anhalten kann. Er hat ZWEI Quellen, und beide bedeuten dasselbe —
+ * „dieser Salon ist von der Plattform nicht freigegeben":
  *
- * Bis Track 15 hat dieser Hebel nur die Schaufenster geschlossen. Die
- * oeffentlichen Listen filtern mit `.eq('is_active', true)` — Startseite,
- * Suche, Stadt- und Kategorieseiten. Die Strecken, an denen Geld und
- * Verpflichtungen entstehen, haben `salons` dagegen ueberhaupt nicht
- * angefasst:
+ *   1. /admin/anbieter: „Sperren" (`salon-status` mit `suspended`) und
+ *      „Offline setzen" (`salon-toggle-active`) setzen `is_active = false`.
+ *      Die Reaktion auf Betrug, Beschwerden, fehlende Gewerbeanmeldung.
+ *   2. /api/register-provider legt JEDEN selbst registrierten Salon mit
+ *      `is_active: false, is_verified: false` an. Das Admin-Dashboard zeigt
+ *      ihn als „suspended" und bietet „Freischalten" an, was beide Flags auf
+ *      true setzt.
+ *
+ * Quelle 2 ist der Grund, warum dieser Riegel eine spuerbare Aenderung ist:
+ * er schaltet das Freischalt-Tor scharf, das bisher als Spalte existierte,
+ * aber nicht als Verhalten. Ein nie freigeschalteter Anbieter war aus den
+ * oeffentlichen Listen ohnehin schon ausgeschlossen (die filtern alle
+ * `.eq('is_active', true)`) — geblieben waren ihm die Mietsuche und jeder
+ * Direktlink, und ueber die nahm er echtes Geld entgegen.
+ *
+ * Die Strecken, an denen Geld und Verpflichtungen entstehen, haben `salons`
+ * bis Track 15 ueberhaupt nicht angefasst:
  *
  *   - `createBooking` laedt `services`, nie den Salon. Ein gesperrter Salon
  *     nahm damit weiter Termine an.
@@ -32,15 +42,17 @@
  * ANON-Key nicht auslesen (`salons` antwortet fuer `anon` mit 42501, siehe
  * chairmatch-salons-anon-read-dead), und aus „ich kenne den Default nicht"
  * eine Sperre zu machen hiesse, laufende Buchungen auf eine Vermutung hin
- * abzuschalten. Der Admin-Hebel schreibt immer einen echten Boolean.
+ * abzuschalten. Beide Quellen oben schreiben einen echten Boolean.
  *
- * `is_verified` sperrt hier NICHT. Im heutigen Modell ist ein frisch
- * registrierter Salon `is_verified = false` UND `is_active = true` — das
- * Admin-Dashboard nennt diesen Zustand „pending" und zeigt ihn als normal
- * arbeitsfaehig. Die Pruefung an `is_verified` zu haengen wuerde jeden noch
- * nicht freigeschalteten Anbieter sofort vom Markt nehmen. Ob ein
- * unverifizierter Salon Geld einnehmen darf, ist eine Produktentscheidung
- * und keine, die ein Haerte-Track still trifft.
+ * `is_verified` sperrt hier NICHT — es waere die zweite Sperre auf dieselbe
+ * Frage. Beide Flags laufen im Normalfall gleich: die Registrierung setzt
+ * beide auf false, „Freischalten" setzt beide auf true. Auseinander laufen
+ * sie nur in zwei vom Admin ausdruecklich gewaehlten Zustaenden —
+ * `salon-status: 'pending'` (verified zurueck, active bleibt) und
+ * `salon-toggle-active` (active zurueck, verified bleibt). In beiden gilt
+ * `is_active` als das Wort, das der Admin zuletzt zum Arbeiten gesagt hat.
+ * Ob ein Salon zusaetzlich verifiziert sein MUSS, um Geld einzunehmen, ist
+ * eine Produktentscheidung und keine, die ein Haerte-Track still trifft.
  */
 
 import type { getSupabaseAdmin } from '@/lib/supabase-server'

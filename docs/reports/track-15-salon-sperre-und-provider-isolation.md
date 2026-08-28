@@ -2,7 +2,7 @@
 
 **Datum:** 2026-08-28
 **Ausgangsstand:** `022556e` (Track 14), 1217 Tests
-**Endstand:** 1236 Tests (19 neu), Typecheck grün
+**Endstand:** 1238 Tests (21 neu), Typecheck grün
 
 ---
 
@@ -24,18 +24,24 @@ würde er etwas bewirken.
 ### 1 — P0: Der gesperrte Salon nahm weiter Geld ein
 
 `salons.is_active` ist der **einzige** Hebel, mit dem die Plattform einen
-Anbieter anhalten kann. /admin/anbieter schreibt ihn an zwei Stellen:
+Anbieter anhalten kann. Er hat **zwei** Quellen, und beide bedeuten dasselbe:
+„dieser Salon ist von der Plattform nicht freigegeben".
 
 ```ts
-// PATCH /api/admin, action 'salon-status'
+// (1) PATCH /api/admin, action 'salon-status' → „Sperren"
 } else if (data.status === 'suspended') {
   updates.is_active = false
 }
-// action 'salon-toggle-active'  → „🔴 Offline setzen"
+// dieselbe Spalte über action 'salon-toggle-active' → „🔴 Offline setzen"
+
+// (2) POST /api/register-provider — JEDER selbst registrierte Salon
+await admin.from('salons').insert({ …, is_active: false, is_verified: false })
 ```
 
-Das ist die Reaktion auf Betrug, auf eine Beschwerde, auf eine fehlende
-Gewerbeanmeldung. Der Knopf heißt „Sperren".
+Quelle (1) ist die Reaktion auf Betrug, eine Beschwerde, eine fehlende
+Gewerbeanmeldung. Quelle (2) ist der **Startzustand jedes Anbieters, der sich
+selbst registriert** — das Admin-Dashboard zeigt ihn als „suspended" und
+bietet „Freischalten" an, was beide Flags auf true setzt.
 
 Gesperrt hat er die Schaufenster. Startseite, Suche, Stadt- und
 Kategorieseiten, Sitemap und `/listings/[slug]` filtern alle mit
@@ -67,6 +73,12 @@ Anbieter war also nur schwerer zu *finden* — angehalten war er nicht. Jeder
 Direktlink (`/salon/<slug>`, `/inserat/<id>`) und jeder API-Aufruf lief
 unverändert durch, und die Mietsuche zeigte seine Inserate ohnehin weiter.
 
+Über Quelle (2) galt dasselbe für jeden nie freigeschalteten Anbieter: das
+Freischalt-Tor existierte als Spalte, aber nicht als Verhalten. Aus den
+öffentlichen Listen war so ein Salon schon ausgeschlossen — geblieben waren
+ihm die Mietsuche und der Direktlink, und darüber nahm er echtes Geld
+entgegen.
+
 **Jetzt:** ein gemeinsamer Riegel in `src/lib/salon-status.ts`, angewendet auf
 alle sechs Stellen. Die Geldstrecken sind *fail closed* — ein Lesefehler beim
 Prüfen des Salons sperrt, statt durchzulassen; dieselbe Linie wie in
@@ -79,15 +91,18 @@ Prüfen des Salons sperrt, statt durchzulassen; dieselbe Linie wie in
   `is_admin_or_super`). Aus „ich kenne den Default nicht" eine Sperre zu
   machen hieße, laufende Buchungen auf eine Vermutung hin abzuschalten. Der
   Admin-Hebel schreibt immer einen echten Boolean.
-- **`is_verified` sperrt nicht.** Ein frisch registrierter Salon ist
-  `is_verified: false` **und** `is_active: true` — das Admin-Dashboard nennt
-  diesen Zustand „pending" und zeigt ihn als arbeitsfähig. Die Prüfung daran
-  zu hängen würde jeden noch nicht freigeschalteten Anbieter sofort vom Markt
-  nehmen. **Damit lautet die Antwort auf „kann ein nicht-verifizierter Salon
-  Buchungen empfangen?": ja — und das ist heute so gewollt.** Ob es so bleiben
-  soll, ist eine Produktentscheidung und keine, die ein Härte-Track still
-  trifft. Beide Fälle stehen als Test fest, damit eine spätere Änderung eine
-  bewusste ist.
+- **`is_verified` sperrt nicht** — es wäre die zweite Sperre auf dieselbe
+  Frage. Beide Flags laufen im Normalfall gleich: die Registrierung setzt
+  beide auf false, „Freischalten" setzt beide auf true. Auseinander laufen sie
+  nur in zwei vom Admin ausdrücklich gewählten Zuständen —
+  `salon-status: 'pending'` (verified zurück, active bleibt) und
+  `salon-toggle-active` (active zurück, verified bleibt). In beiden gilt
+  `is_active` als das Wort, das der Admin zuletzt zum Arbeiten gesagt hat.
+  **Antwort auf „kann ein nicht-verifizierter Salon Buchungen empfangen?":
+  seit diesem Track nur noch, wenn ein Admin ihn ausdrücklich aktiv gelassen
+  hat.** Ob zusätzlich `is_verified` verlangt werden soll, ist eine
+  Produktentscheidung. Beide Fälle stehen als Test fest, damit eine spätere
+  Änderung eine bewusste ist.
 
 ### 2 — P1: Der Inhaber konnte seinen eigenen Salon bewerten
 
@@ -189,6 +204,22 @@ wenn dasteht, wo gesucht wurde:
 
 ---
 
+## Was yusuf tun muss
+
+**Dieser Fix schaltet das Freischalt-Tor scharf.** Jeder Salon, der heute
+`is_active = false` trägt — also jeder selbst registrierte, den nie ein Admin
+freigeschaltet hat — nimmt ab sofort keine Termine, Mietbuchungen und
+Mietanfragen mehr an und verschwindet aus der Mietsuche. In den öffentlichen
+Listen (Startseite, Suche, Stadtseiten) stand er ohnehin nie.
+
+Wie viele Salons das betrifft, ist von hier aus **nicht lesbar**: `salons` ist
+mit dem ANON-Key nicht abfragbar (42501 aus `is_admin_or_super`), und einen
+DB-Zugang haben die Agents nicht. Konkreter nächster Schritt: **/admin/anbieter
+öffnen und die Liste durchgehen** — alles mit dem Badge `SUSPENDED`, das
+eigentlich arbeiten soll, einmal „Freischalten" drücken.
+
+---
+
 ## Offen
 
 - **`is_verified` auf der Geldstrecke** — siehe Befund 1. Produktentscheidung.
@@ -205,10 +236,10 @@ wenn dasteht, wo gesucht wurde:
 
 ## Tests
 
-19 neue (1217 → 1236), alle 68 Dateien grün.
+21 neue (1217 → 1238), alle 68 Dateien grün.
 
 | Datei | Inhalt |
 |---|---|
-| `src/__tests__/e2e/gesperrter-salon.test.ts` | 10 Tests: Sperre auf Termin, Verfügbarkeit, Mietbuchung (inkl. „Stripe wurde nie gerufen"), Mietanfrage, Mietsuche, Inseratsdetail — plus die Gegenprobe, dass ein aktiver Salon weiter arbeitet, und die beiden bewusst nicht sperrenden Fälle |
+| `src/__tests__/e2e/gesperrter-salon.test.ts` | 12 Tests: Sperre auf Termin, Verfügbarkeit, Mietbuchung (inkl. „Stripe wurde nie gerufen"), Mietanfrage, Mietsuche, Inseratsdetail — plus der selbst registrierte, nie freigeschaltete Salon (beide Flags false) und sein Verhalten nach dem „Freischalten", die Gegenprobe mit aktivem Salon und die beiden bewusst nicht sperrenden Fälle |
 | `src/__tests__/e2e/passwort-zwang.test.ts` | 6 Tests: Profil → `authorizeCredentials` → JWT → Session → `decideAuthAccess`, in beide Richtungen |
 | `src/__tests__/e2e/review-integrity.test.ts` | 3 neue: Selbstbewertung abgewiesen (inkl. „`avg_rating` hat sich nicht bewegt"), unbekannter Salon, fremde Kundin bewertet weiter |
