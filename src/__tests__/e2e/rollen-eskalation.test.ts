@@ -298,20 +298,29 @@ describe('Kontostand-Cache', () => {
   })
 
   it('wirft den Cache beim Herabstufen ueber die Admin-Route weg', async () => {
-    // Ein super_admin stuft sich selbst herab. Ohne Invalidierung bliebe die
+    // Ein super_admin stuft einen admin herab. Ohne Invalidierung bliebe die
     // alte Rolle bis zum Ablauf des Fensters wirksam.
-    state.token = { user: { id: IDS.superAdmin, email: 'super@example.de', role: 'super_admin' } }
+    //
+    // Bis Track 21 lief dieser Test ueber eine SELBST-Herabstufung. Die ist
+    // seither verboten (die Aussperrung, die niemand rueckgaengig machen
+    // kann — siehe /api/admin, `user-role`); gemeint war hier ohnehin der
+    // Cache, nicht wer wen herabstufen darf. Dass Selbst- und
+    // Admin-Herabstufung abgewiesen werden, steht in
+    // src/__tests__/track-21-auth-sessions-mandantentrennung.test.ts.
+    state.token = { user: { id: IDS.admin, email: 'admin@example.de', role: 'admin' } }
     await getServerSession()
 
+    state.token = { user: { id: IDS.superAdmin, email: 'super@example.de', role: 'super_admin' } }
     const res = await adminRoute(
       postRequest('https://www.chairmatch.de/api/admin', {
         action: 'user-role',
-        id: IDS.superAdmin,
+        id: IDS.admin,
         data: { role: 'kunde' },
       }),
     )
     expect(res.status).toBe(200)
 
+    state.token = { user: { id: IDS.admin, email: 'admin@example.de', role: 'admin' } }
     const session = await getServerSession()
     expect((session?.user as { role?: string })?.role).toBe('kunde')
   })

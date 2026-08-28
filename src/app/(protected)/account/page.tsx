@@ -31,9 +31,28 @@ function NotificationBell() {
   )
 }
 
+/**
+ * 2FA-Kachel.
+ *
+ * Bis Track 21 hat sie eine Schutzwirkung behauptet, die es nicht gab: nach
+ * dem Klick auf „Aktivieren" setzte sie `enabled = true` und zeigte „Aktiv" —
+ * geschrieben hatte die Route zu diesem Zeitpunkt aber `enabled: false`. Das
+ * wird erst mit einem gueltigen Code aus /api/auth/2fa/verify wahr, und einen
+ * Ort, an dem dieser Code haette eingegeben werden koennen, gab es in der
+ * gesamten Oberflaeche nicht. Der Nutzer las also „Aktiv" und meldete sich
+ * danach weiter allein mit seinem Passwort an.
+ *
+ * Jetzt hat die Kachel den zweiten Schritt: Geheimnis anzeigen, Code
+ * eingeben, bestaetigen. „Aktiv" steht erst da, wenn der Server es sagt.
+ */
 function TwoFactorToggle() {
   const [enabled, setEnabled] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(false)
+  /** Geheimnis der laufenden Einrichtung — erst nach Bestaetigung wirksam. */
+  const [secret, setSecret] = useState<string | null>(null)
+  const [code, setCode] = useState('')
+  const [hinweis, setHinweis] = useState<string | null>(null)
+
   useEffect(() => {
     let cancelled = false
     safeFetchJson<{ enabled?: boolean }>('/api/auth/2fa/setup', { timeoutMs: 6000, retries: 1 })
@@ -44,43 +63,104 @@ function TwoFactorToggle() {
       })
     return () => { cancelled = true }
   }, [])
+
+  async function starten() {
+    setLoading(true)
+    setHinweis(null)
+    try {
+      const r = await safeFetch('/api/auth/2fa/setup', { method: 'POST', timeoutMs: 8000, retries: 1 })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) {
+        if (r.status === 409) setEnabled(true)
+        setHinweis(d?.error || 'Einrichtung fehlgeschlagen.')
+        return
+      }
+      if (d?.qrUrl) window.open(d.qrUrl, '_blank')
+      setSecret(typeof d?.secret === 'string' ? d.secret : '')
+      setHinweis('Code aus der Authenticator-App eintragen — 2FA ist erst danach aktiv.')
+    } catch {
+      setHinweis('Einrichtung fehlgeschlagen.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function bestaetigen() {
+    setLoading(true)
+    setHinweis(null)
+    try {
+      const r = await safeFetch('/api/auth/2fa/verify', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code }),
+        timeoutMs: 8000,
+        retries: 0,
+      })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) {
+        setHinweis(d?.error || 'Code nicht akzeptiert.')
+        return
+      }
+      setSecret(null)
+      setCode('')
+      setEnabled(true)
+    } catch {
+      setHinweis('Code konnte nicht geprüft werden.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="card" style={{ padding: '13px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ color: 'var(--cream)', fontSize: 13 }}>🔐 Zwei-Faktor-Auth (2FA)</span>
-      {enabled === null ? (
-        <span style={{ fontSize: 11, color: 'var(--stone)' }}>...</span>
-      ) : enabled ? (
-        <span className="badge badge-gold" style={{ fontSize: 9 }}>Aktiv</span>
-      ) : (
-        <button
-          className="boutline"
-          disabled={loading}
-          onClick={async () => {
-            setLoading(true)
-            try {
-              const r = await safeFetch('/api/auth/2fa/setup', {
-                method: 'POST',
-                timeoutMs: 8000,
-                retries: 1,
-              })
-              if (r.ok) {
-                const d = await r.json().catch(() => ({}))
-                if (d?.qrUrl) {
-                  window.open(d.qrUrl, '_blank')
-                }
-                setEnabled(true)
-              }
-            } catch {
-              /* show error silently — UI stays usable */
-            } finally {
-              setLoading(false)
-            }
-          }}
-          style={{ fontSize: 11, padding: '4px 12px' }}
-        >
-          {loading ? '...' : 'Aktivieren'}
-        </button>
+    <div className="card" style={{ padding: '13px 15px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ color: 'var(--cream)', fontSize: 13 }}>🔐 Zwei-Faktor-Auth (2FA)</span>
+        {enabled === null ? (
+          <span style={{ fontSize: 11, color: 'var(--stone)' }}>...</span>
+        ) : enabled ? (
+          <span className="badge badge-gold" style={{ fontSize: 9 }}>Aktiv</span>
+        ) : secret === null ? (
+          <button
+            className="boutline"
+            disabled={loading}
+            onClick={starten}
+            style={{ fontSize: 11, padding: '4px 12px' }}
+          >
+            {loading ? '...' : 'Aktivieren'}
+          </button>
+        ) : (
+          <span style={{ fontSize: 11, color: 'var(--stone)' }}>Noch nicht aktiv</span>
+        )}
+      </div>
+
+      {secret !== null && !enabled && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {secret && (
+            <code style={{ fontSize: 11, color: 'var(--stone)', wordBreak: 'break-all' }}>{secret}</code>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              className="inp"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="6-stelliger Code"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              style={{ fontSize: 12 }}
+            />
+            <button
+              className="bgold"
+              disabled={loading || code.length !== 6}
+              onClick={bestaetigen}
+              style={{ fontSize: 11, padding: '4px 12px', whiteSpace: 'nowrap' }}
+            >
+              {loading ? '...' : 'Bestätigen'}
+            </button>
+          </div>
+        </div>
       )}
+
+      {hinweis && <span style={{ fontSize: 11, color: 'var(--stone)' }}>{hinweis}</span>}
     </div>
   )
 }

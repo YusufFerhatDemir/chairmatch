@@ -276,6 +276,45 @@ export async function createBooking(input: unknown) {
     return { error: salonGuard.error, status: salonGuard.status }
   }
 
+  /**
+   * Der Mitarbeitende muss zu DIESEM Salon gehoeren — Track 21.
+   *
+   * `staffId` kam aus dem Request und ging ungeprueft in `bookings.staff_id`.
+   * Track 18 hat dieselbe Luecke fuer `serviceId` geschlossen („die Leistung
+   * eines fremden Salons zum Preis von dort"), `staffId` blieb daneben
+   * stehen. `staff` ist eine mandantengetrennte Tabelle (`salon_id`); eine
+   * fremde ID zu setzen heisst, den Termin eines Betriebs auf eine Person
+   * eines ANDEREN Betriebs zu schreiben.
+   *
+   * Was daran haengt: `getAvailableSlots(salonId, date, duration, staffId)`
+   * filtert die Belegung auf `staff_id` — eine Terminplanung pro Person ist
+   * also vorgesehen und wird kommen. Ab dann waere eine fremde ID nicht nur
+   * eine falsche Zeile, sondern ein Hebel in den Kalender eines fremden
+   * Salons. Der Riegel gehoert an die Stelle, an der die Zeile entsteht, und
+   * zwar bevor sich jemand auf sie verlaesst.
+   *
+   * Ein Fremdschluessel allein wuerde das nicht abfangen: er prueft, DASS es
+   * die Person gibt, nicht, WESSEN Person sie ist.
+   */
+  if (data.staffId) {
+    const { data: staff, error: staffError } = await supabase
+      .from('staff')
+      .select('id, salon_id, is_active')
+      .eq('id', data.staffId)
+      .maybeSingle()
+
+    if (staffError) {
+      console.error('createBooking: staff lookup failed', staffError)
+      return { error: 'Mitarbeiter konnte nicht geprueft werden.', status: 503 }
+    }
+    // Dieselbe Antwort fuer „gibt es nicht" und „gehoert einem anderen
+    // Salon": welche Mitarbeitenden ein fremder Betrieb hat, geht den
+    // Aufrufer nichts an.
+    if (!staff || staff.salon_id !== data.salonId || staff.is_active === false) {
+      return { error: 'Der gewaehlte Mitarbeiter ist fuer diesen Salon nicht verfuegbar.' }
+    }
+  }
+
   const riskLevel = (service as { risk_level?: string }).risk_level
   if (riskLevel === 'HIGH' || riskLevel === 'VERY_HIGH') {
     if (!data.consentGiven) {

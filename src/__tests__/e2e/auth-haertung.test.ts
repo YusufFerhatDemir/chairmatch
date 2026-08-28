@@ -50,6 +50,13 @@ const state = vi.hoisted(() => {
       }
     },
     adminAuth: {
+      // Track 21: `auth.getUser` gehoert seither zur Harness-Fassung von
+      // Supabase-Auth (siehe /api/auth/session-revoke). Diese Datei ersetzt
+      // `db.auth` komplett und muss die Form deshalb mittragen.
+      getUser: vi.fn(async () => ({
+        data: { user: null },
+        error: { name: 'AuthApiError', message: 'invalid JWT', status: 401 },
+      })),
       admin: {
         updateUserById: vi.fn(async () => ({ data: { user: { id: 'x' } }, error: null })),
         deleteUser: vi.fn(async () => ({ data: { user: null }, error: null })),
@@ -68,6 +75,10 @@ vi.mock('@/lib/supabase-server', () => ({
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => state.anon }))
 vi.mock('@/modules/auth/session', () => ({
   getServerSession: async () => state.session,
+  // Track 21: der Passwortwechsel widerruft offene Sitzungen ueber diese
+  // Aktion. Der Mock muss sie mitfuehren — sonst wirft der Zugriff auf den
+  // fehlenden Export, und die Route antwortet 500 statt 200.
+  SESSION_REVOKED_ACTION: 'SESSION_REVOKED',
   invalidateAccountState: vi.fn(),
 }))
 vi.mock('@/modules/auth/auth.config', () => ({

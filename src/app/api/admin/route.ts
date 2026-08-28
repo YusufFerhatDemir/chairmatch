@@ -99,9 +99,54 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Ungültige Rolle' }, { status: 400 })
     }
     const callerRole = (session.user as { role?: string })?.role
+    const callerId = (session.user as { id?: string })?.id
+
     if (['admin', 'super_admin'].includes(role) && callerRole !== 'super_admin') {
       return NextResponse.json({ error: 'Nur super_admin darf Admin-Rollen vergeben' }, { status: 403 })
     }
+
+    /**
+     * Die Rolle des ZIELS, nicht nur die der neuen Rolle — Track 21.
+     *
+     * Der Riegel oben sah nur nach oben: `admin` durfte niemanden zum Admin
+     * machen. Nach unten war er offen. Ein `admin` konnte damit jeden
+     * `super_admin` der Plattform auf `kunde` setzen, und die
+     * Rollen-Nachpruefung in `getServerSession` macht das binnen 15 Sekunden
+     * in jeder laufenden Sitzung wirksam. Selbst hochstufen konnte er sich
+     * nicht — aber er konnte die einzige Rolle abraeumen, die ihn haette
+     * zurueckstufen koennen, und die Super-Admin-Bereiche (/admin/super/*,
+     * Einstellungen, Kategorien, Preise) damit unbesetzt lassen.
+     *
+     * Fail closed: ist das Ziel nicht lesbar, wird nichts geaendert.
+     */
+    const { data: ziel, error: zielError } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (zielError) return dbError('admin-PATCH-user-role-lookup', zielError)
+    if (!ziel) {
+      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 })
+    }
+
+    const zielRolle = String((ziel as { role?: string | null }).role ?? '')
+    if (['admin', 'super_admin'].includes(zielRolle) && callerRole !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Nur super_admin darf Admin-Rollen entziehen' },
+        { status: 403 },
+      )
+    }
+
+    // Auch ein super_admin nimmt sich seine Rechte nicht per Klick selbst weg
+    // — das ist die Aussperrung, die niemand mehr rueckgaengig machen kann.
+    if (callerId && callerId === id) {
+      return NextResponse.json(
+        { error: 'Die eigene Rolle kann hier nicht geändert werden' },
+        { status: 403 },
+      )
+    }
+
     const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
     if (error) return dbError('admin-PATCH-user-role', error)
     invalidateAccountState(id)

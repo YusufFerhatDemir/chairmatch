@@ -308,6 +308,17 @@ export const authOptions = {
         token.role = (user as { role?: string }).role || 'kunde'
         token.passwordMustChange =
           (user as { passwordMustChange?: boolean }).passwordMustChange === true
+        // Zeitpunkt der ANMELDUNG — nicht der Ausstellung des Tokens.
+        //
+        // Er ist der Anker, an dem `getServerSession` einen Widerruf misst
+        // (Track 21, siehe SESSION_REVOKED in src/modules/auth/session.ts).
+        // Bewusst NICHT `token.iat`: der Rolling-Refresh (`updateAge: 24h`)
+        // stellt den Token neu aus und setzt `iat` dabei neu. Eine gestohlene
+        // Sitzung, die weiterbenutzt wird, haette sich damit alle 24 Stunden
+        // selbst an jedem Widerruf vorbeigeschoben. Dieser Zweig laeuft nur
+        // `if (user)`, also ausschliesslich beim Login; der Refresh reicht den
+        // Wert unveraendert durch.
+        token.loginAt = Date.now()
       }
       return token
     },
@@ -317,6 +328,8 @@ export const authOptions = {
         ;(session.user as { role?: string }).role = token.role as string
         ;(session.user as { passwordMustChange?: boolean }).passwordMustChange =
           token.passwordMustChange === true
+        ;(session.user as { loginAt?: number }).loginAt =
+          typeof token.loginAt === 'number' ? token.loginAt : 0
       }
       return session
     },
@@ -337,7 +350,39 @@ export const authOptions = {
   },
   cookies: {
     sessionToken: {
-      name: 'authjs.session-token',
+      /**
+       * `__Secure-`-Praefix in jeder HTTPS-Umgebung.
+       *
+       * Hier stand fest `'authjs.session-token'`. Das war nicht nur eine
+       * Umbenennung des NextAuth-Standards, es hat dessen einzigen
+       * Zusatzschutz weggenommen: Auth.js nennt das Cookie in einer
+       * HTTPS-Umgebung `__Secure-authjs.session-token`, und dieses Praefix
+       * ist eine Regel, die der BROWSER durchsetzt — ein so benanntes Cookie
+       * nimmt er nur ueber HTTPS und nur mit `Secure` entgegen.
+       *
+       * Ohne das Praefix ist der Cookie-Name gewoehnlich, und
+       * Cookie-Setzen kennt keine Herkunftstrennung: eine beliebige
+       * Subdomain von chairmatch.de — auch eine ueber reines HTTP
+       * ausgelieferte, auch eine, die jemand anders betreibt — kann
+       * `authjs.session-token` mit `Domain=.chairmatch.de` setzen und damit
+       * das echte Cookie ueberschreiben. Das ist der klassische
+       * Session-Fixation-Weg: der Angreifer setzt SEINEN Token, das Opfer
+       * arbeitet in dessen Sitzung weiter. Das `secure`-Flag unten schuetzt
+       * davor NICHT — es regelt, wohin der Browser das Cookie sendet, nicht,
+       * wer es setzen darf.
+       *
+       * In der Entwicklung (`http://localhost`) muss das Praefix WEG, sonst
+       * lehnt der Browser das Cookie ab und kein Login funktioniert mehr.
+       * Deshalb dieselbe Bedingung wie bei `secure`.
+       *
+       * OPERATIVE FOLGE: der Name des Cookies aendert sich. Alle bestehenden
+       * Sitzungen sind mit dem Deploy einmalig ungueltig, jeder muss sich neu
+       * anmelden.
+       */
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-authjs.session-token'
+          : 'authjs.session-token',
       options: {
         httpOnly: true,          // Schutz vor XSS (JS kann Cookie nicht lesen)
         sameSite: 'lax',         // Schutz vor CSRF, OAuth-Redirects funktionieren

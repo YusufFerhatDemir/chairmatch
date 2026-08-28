@@ -16,6 +16,8 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  /** Konnten die offenen ChairMatch-Sitzungen wirklich beendet werden? */
+  const [revoked, setRevoked] = useState(false)
   const [ready, setReady] = useState(false)
   const supabaseRef = useRef(createClient(supabaseUrl, supabaseAnonKey))
 
@@ -63,13 +65,38 @@ export default function ResetPasswordPage() {
     setLoading(true)
     setError(null)
     const { error: err } = await supabaseRef.current.auth.updateUser({ password })
-    setLoading(false)
     if (err) {
+      setLoading(false)
       setError(err.message)
       return
     }
+
+    // Offene ChairMatch-Sitzungen beenden.
+    //
+    // Der Reset oben laeuft gegen Supabase-Auth; das NextAuth-Cookie, mit dem
+    // die Anwendung arbeitet, weiss davon nichts und laeuft 365 Tage. Wer
+    // sein Passwort zuruecksetzt, weil jemand anderes an seinem Konto ist,
+    // haette diesen Jemand damit nicht ausgesperrt. /api/auth/session-revoke
+    // prueft das Zugangstoken serverseitig und setzt den Widerruf.
+    let widerrufen = false
+    try {
+      const { data: sitzung } = await supabaseRef.current.auth.getSession()
+      const token = sitzung.session?.access_token
+      if (token) {
+        const antwort = await fetch('/api/auth/session-revoke', {
+          method: 'POST',
+          headers: { authorization: `Bearer ${token}` },
+        })
+        widerrufen = antwort.ok
+      }
+    } catch {
+      widerrufen = false
+    }
+
+    setLoading(false)
+    setRevoked(widerrufen)
     setDone(true)
-    setTimeout(() => router.push('/auth'), 2000)
+    setTimeout(() => router.push('/auth'), widerrufen ? 2000 : 6000)
   }
 
   return (
@@ -84,7 +111,11 @@ export default function ResetPasswordPage() {
 
         {done ? (
           <p style={{ fontSize: 14, color: 'var(--stone)', textAlign: 'center', lineHeight: 1.7 }}>
-            Passwort wurde geändert. Du wirst zur Anmeldung weitergeleitet.
+            Passwort wurde geändert.{' '}
+            {revoked
+              ? 'Alle Geräte wurden abgemeldet.'
+              : 'Offene Sitzungen auf anderen Geräten konnten NICHT beendet werden — bitte dort manuell abmelden.'}{' '}
+            Du wirst zur Anmeldung weitergeleitet.
           </p>
         ) : !ready && !error ? (
           <p style={{ fontSize: 14, color: 'var(--stone)', textAlign: 'center' }}>Link wird überprüft…</p>

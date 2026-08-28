@@ -197,7 +197,23 @@ export async function uploadImage(formData: FormData) {
   const bucket = (formData.get('bucket') as string) || 'app-assets'
   if (!ALLOWED_BUCKETS.has(bucket)) return { error: 'Ungueltiger Bucket' }
 
-  const folder = (formData.get('folder') as string) || 'uploads'
+  /**
+   * `folder` kam roh aus dem FormData in den Storage-Pfad — Track 21.
+   *
+   * Der Bucket steht seit Track 18 auf einer Positivliste, der Pfad DARIN
+   * war frei waehlbar: `folder = '../salon-images/logos'` oder ein Name mit
+   * Schraegstrichen legte die Datei irgendwo im Bucket ab, auch dort, wo
+   * fachliche Dateien liegen. Ein Upload konnte damit einen vorhandenen
+   * Pfad besetzen und in Ansichten auftauchen, in die er nicht gehoert.
+   *
+   * Erlaubt ist jetzt ein einzelnes, flaches Segment aus Buchstaben, Ziffern,
+   * Strich und Unterstrich — mehr hat nie jemand gebraucht.
+   */
+  const folderRaw = (formData.get('folder') as string) || 'uploads'
+  if (!/^[a-z0-9_-]{1,40}$/i.test(folderRaw)) {
+    return { error: 'Ungueltiger Ordnername' }
+  }
+  const folder = folderRaw
   const ext = EXT_MAP[file.type] || 'png'
   const path = `${folder}/${Date.now()}.${ext}`
 

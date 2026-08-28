@@ -452,8 +452,29 @@ export class FakeSupabase {
     }
   }
 
-  /** Supabase-Auth-Admin — nur die im Produktivcode benutzten Aufrufe */
+  /**
+   * Gueltige Supabase-Zugangstoken: Token → User-ID.
+   *
+   * Gebraucht von `auth.getUser(jwt)` — dem einzigen Weg, auf dem sich ein
+   * Aufrufer OHNE NextAuth-Cookie ausweisen kann (siehe
+   * /api/auth/session-revoke, Track 21). Was hier nicht eingetragen ist, ist
+   * ein ungueltiges Token; genau das muss ein Negativtest zeigen koennen.
+   */
+  readonly authTokens = new Map<string, string>()
+
+  /** Supabase-Auth — nur die im Produktivcode benutzten Aufrufe */
   readonly auth = {
+    /** Prueft ein Zugangstoken. Unbekannt = ungueltig, wie live. */
+    getUser: async (jwt?: string) => {
+      const userId = jwt ? this.authTokens.get(jwt) : undefined
+      if (!userId) {
+        return {
+          data: { user: null },
+          error: { name: 'AuthApiError', message: 'invalid JWT', status: 401 },
+        }
+      }
+      return { data: { user: { id: userId } }, error: null }
+    },
     admin: {
       updateUserById: async (id: string, attrs: Record<string, unknown>) => {
         this.log.push({ op: 'update', table: 'auth.users', payload: { id, ...attrs } })

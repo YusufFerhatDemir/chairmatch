@@ -50,6 +50,11 @@ interface AccountState {
   role: string
   isActive: boolean
   passwordMustChange: boolean
+  /**
+   * Sitzungen, die VOR diesem Zeitpunkt begonnen haben, gelten als widerrufen
+   * (ms seit Epoch). `0` heisst: kein Widerruf hinterlegt.
+   */
+  revokedBefore: number
 }
 
 interface CacheEntry {
@@ -58,6 +63,52 @@ interface CacheEntry {
 }
 
 const accountCache = new Map<string, CacheEntry>()
+
+/**
+ * Die Aktion, mit der ein Konto seine offenen Sitzungen fuer ungueltig
+ * erklaert. Geschrieben wird sie von /api/auth/change-password und von
+ * /api/auth/session-revoke (dem serverseitigen Ende des Supabase-
+ * Passwort-Resets).
+ *
+ * WARUM `audit_logs` UND NICHT EINE SPALTE IN `profiles`
+ *
+ * Der richtige Ort waere `profiles.sessions_valid_from`. Diese Spalte gibt es
+ * live nicht, und ChairMatch hat weder einen Migrations-Runner noch einen
+ * DB-Zugang fuer den Deploy — eine Auswahl auf eine fehlende Spalte
+ * beantwortet PostgREST mit 42703, und zwar fuer die GANZE Abfrage. Der
+ * Kontostand waere damit unlesbar und jede Sitzung sofort weg (siehe
+ * `loadAccountState`: fail closed). `audit_logs` ist live vorhanden, wird von
+ * /admin/audit-logs ohnehin gelesen und traegt mit `user_id`, `action` und
+ * `created_at` genau die drei Felder, die hier gebraucht werden.
+ */
+export const SESSION_REVOKED_ACTION = 'SESSION_REVOKED'
+
+/**
+ * Zeitpunkt des juengsten Widerrufs, in ms.
+ *
+ * `null` heisst: nicht ermittelbar. Der Aufrufer behandelt das wie jeden
+ * anderen Lesefehler in dieser Datei — fail closed.
+ */
+async function loadRevokedBefore(userId: string): Promise<number | null> {
+  const { data, error } = await getSupabaseAdmin()
+    .from('audit_logs')
+    .select('created_at')
+    .eq('user_id', userId)
+    .eq('action', SESSION_REVOKED_ACTION)
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  if (error) {
+    console.error('[SESSION] Widerruf nicht lesbar:', { userId, err: error.message })
+    return null
+  }
+
+  const stempel = (data?.[0] as { created_at?: string } | undefined)?.created_at
+  if (!stempel) return 0
+  const ms = Date.parse(stempel)
+  // Ein unlesbarer Zeitstempel darf nicht als „kein Widerruf" durchgehen.
+  return Number.isNaN(ms) ? null : ms
+}
 
 /**
  * Kontostand aus `profiles`. `null` heisst: kein Profil, gesperrt, oder die
@@ -85,10 +136,20 @@ async function loadAccountState(userId: string): Promise<AccountState | null> {
       state = null
     } else {
       const row = data as { role?: string | null; is_active?: boolean | null; deleted_at?: string | null; password_must_change?: boolean | null }
-      state =
-        row.is_active === false || row.deleted_at
-          ? null
-          : { role: row.role || 'kunde', isActive: true, passwordMustChange: row.password_must_change === true }
+      if (row.is_active === false || row.deleted_at) {
+        state = null
+      } else {
+        const revokedBefore = await loadRevokedBefore(userId)
+        state =
+          revokedBefore === null
+            ? null
+            : {
+                role: row.role || 'kunde',
+                isActive: true,
+                passwordMustChange: row.password_must_change === true,
+                revokedBefore,
+              }
+      }
     }
   } catch (e) {
     console.error('[SESSION] Kontostand-Abfrage abgebrochen:', { userId, err: String(e) })
@@ -121,6 +182,27 @@ export async function getServerSession() {
 
   const state = await loadAccountState(userId)
   if (!state) return null
+
+  /**
+   * Widerrufene Sitzung — Track 21.
+   *
+   * Bis hierher endete ein Passwortwechsel fuer JEDE ANDERE offene Sitzung
+   * des Kontos in nichts. Das Cookie laeuft 365 Tage, `getServerSession`
+   * prueft Rolle und Sperre gegen `profiles`, aber „dieses Passwort gilt
+   * nicht mehr" stand nirgends. Wer sein Passwort aendert, WEIL ihm jemand
+   * die Sitzung abgenommen hat — der haeufigste Grund ueberhaupt —, hat den
+   * Angreifer damit nicht ausgesperrt. Beim Supabase-Reset
+   * (/auth/reset-password) war es dasselbe: er laeuft vollstaendig im
+   * Browser gegen Supabase-Auth, der NextAuth-Token davon unberuehrt.
+   *
+   * `loginAt` steht seit Track 21 im Token und wird nur beim Login gesetzt
+   * (siehe auth.config.ts). Fehlt er, stammt der Token aus der Zeit davor und
+   * gilt als aelter als jeder Widerruf.
+   */
+  const loginAt = (session.user as { loginAt?: number }).loginAt
+  if (state.revokedBefore > 0 && (typeof loginAt !== 'number' || loginAt < state.revokedBefore)) {
+    return null
+  }
 
   ;(session.user as { role?: string }).role = state.role
   ;(session.user as { passwordMustChange?: boolean }).passwordMustChange = state.passwordMustChange

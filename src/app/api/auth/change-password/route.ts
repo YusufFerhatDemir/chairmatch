@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getServerSession } from '@/modules/auth/session'
+import {
+  SESSION_REVOKED_ACTION,
+  getServerSession,
+  invalidateAccountState,
+} from '@/modules/auth/session'
 import { withApi, apiError } from '@/lib/api-wrapper'
 import { logger } from '@/lib/logger'
 
@@ -82,5 +86,41 @@ export const POST = withApi(async (req: Request) => {
     .update({ password_must_change: false })
     .eq('id', userId)
 
-  return NextResponse.json({ success: true })
+  // 3. Alle offenen Sitzungen dieses Kontos fuer ungueltig erklaeren.
+  //
+  // Ohne diesen Schritt war der Passwortwechsel gegen den haeufigsten Grund
+  // fuer einen Passwortwechsel wirkungslos: das Cookie laeuft 365 Tage, und
+  // wer es hat, behaelt es. Der Widerruf wirkt ueber `getServerSession`, das
+  // jeden Token gegen diesen Zeitstempel haelt (siehe
+  // SESSION_REVOKED_ACTION in src/modules/auth/session.ts).
+  //
+  // Er schliesst die EIGENE Sitzung ein — /auth/change-password meldet nach
+  // Erfolg ohnehin ab, und ein Wechsel, der die aufrufende Sitzung
+  // ausnimmt, waere fuer den Angreiferfall die falsche Ausnahme.
+  const { error: widerrufError } = await admin.from('audit_logs').insert({
+    user_id: userId,
+    action: SESSION_REVOKED_ACTION,
+    entity: 'profile',
+    entity_id: userId,
+    details: { reason: isForcedChange ? 'password_change_forced' : 'password_change' },
+  })
+  if (widerrufError) {
+    // Das Passwort ist bereits geaendert — das laesst sich nicht
+    // zurueckdrehen. Aber der Nutzer darf nicht glauben, seine anderen
+    // Sitzungen seien beendet, wenn sie es nicht sind.
+    logger.error('auth.change_password.revoke_failed', widerrufError, { userId })
+    return NextResponse.json(
+      {
+        success: true,
+        sessionsRevoked: false,
+        warning:
+          'Das Passwort wurde geändert. Andere offene Sitzungen konnten NICHT beendet werden — bitte melde dich in den anderen Geräten manuell ab.',
+      },
+      { status: 200 },
+    )
+  }
+
+  invalidateAccountState(userId)
+
+  return NextResponse.json({ success: true, sessionsRevoked: true })
 })
