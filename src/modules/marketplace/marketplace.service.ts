@@ -47,8 +47,13 @@ export async function getProducts(filters: ProductFilters) {
   if (filters.salonId) query = query.eq('salon_id', filters.salonId)
   if (filters.sellerId) query = query.eq('seller_id', filters.sellerId)
   if (filters.search) {
-    const q = filters.search.replace(/[%_]/g, '')
-    query = query.or(`name.ilike.%${q}%,brand.ilike.%${q}%,description.ilike.%${q}%`)
+    // Strip PostgREST filter metacharacters: commas break out of the ilike
+    // value and inject additional filter conditions, periods interfere with
+    // operator parsing, parentheses and quotes can alter grouping/escaping.
+    const q = filters.search.replace(/[%_,.()"'\\]/g, '').trim()
+    if (q) {
+      query = query.or(`name.ilike.%${q}%,brand.ilike.%${q}%,description.ilike.%${q}%`)
+    }
   }
   if (filters.limit) query = query.limit(filters.limit)
   if (filters.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 20) - 1)

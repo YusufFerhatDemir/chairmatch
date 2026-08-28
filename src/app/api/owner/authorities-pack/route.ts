@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
+import { dbError } from '@/lib/api-wrapper'
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession()
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     .select('id')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('authorities-pack-GET', error)
 
   const baseUrl = request.nextUrl.origin
   const downloadUrl = `${baseUrl}/api/owner/authorities-pack/${pack.id}/download`

@@ -6,6 +6,7 @@ import { createRentalCheckout } from '@/lib/stripe'
 import { createNotification } from '@/lib/notifications'
 import { appOriginFromRequest } from '@/lib/app-origin'
 import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
+import { berlinToday } from '@/lib/berlin-time'
 
 /**
  * Rental-Bookings API — der fehlende End-to-End-Pfad für Stuhl-/Liegen-/Raum-Miete.
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
     if (endDate < startDate) {
       return NextResponse.json({ error: 'endDate liegt vor startDate' }, { status: 400 })
     }
-    const today = new Date().toISOString().slice(0, 10)
+    const today = berlinToday()
     if (startDate < today) {
       return NextResponse.json({ error: 'startDate liegt in der Vergangenheit' }, { status: 400 })
     }

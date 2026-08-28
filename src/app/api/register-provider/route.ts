@@ -52,19 +52,19 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
  */
 
 const providerSchema = z.object({
-  vn: z.string().min(2),
-  nn: z.string().min(2),
+  vn: z.string().min(2).max(100),
+  nn: z.string().min(2).max(100),
   em: z.string().email(),
-  tel: z.string().min(5),
-  geschaeft: z.string().min(2),
-  st: z.string().min(2),
-  plz: z.string().min(4),
-  city: z.string().min(2),
-  kat: z.string().min(1),
+  tel: z.string().min(5).max(40),
+  geschaeft: z.string().min(2).max(200),
+  st: z.string().min(2).max(200),
+  plz: z.string().min(4).max(12),
+  city: z.string().min(2).max(100),
+  kat: z.string().min(1).max(80),
   gb: z.boolean(),
   chair: z.boolean(),
   /** Preis pro Tag in Euro. Nur relevant, wenn `chair` gesetzt ist. */
-  cpr: z.string().optional(),
+  cpr: z.string().max(20).optional(),
   agb: z.literal(true),
   dsgvo: z.literal(true),
 })

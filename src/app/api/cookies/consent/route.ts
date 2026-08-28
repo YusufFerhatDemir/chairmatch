@@ -6,7 +6,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { sessionId, choices } = body as { sessionId: string; choices: Record<string, boolean> }
-    if (!sessionId || !choices || typeof choices !== 'object') {
+    if (typeof sessionId !== 'string' || sessionId.length < 1 || sessionId.length > 128) {
+      return NextResponse.json({ error: 'Ungueltige Session-ID' }, { status: 400 })
+    }
+    if (!choices || typeof choices !== 'object') {
       return NextResponse.json({ error: 'sessionId and choices required' }, { status: 400 })
     }
     const { error } = await supabase.from('cookie_consents').insert({

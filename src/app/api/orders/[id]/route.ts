@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const VALID_ORDER_STATUSES = ['processing', 'shipped', 'delivered', 'cancelled'] as const
+
 /** Get order detail */
 export async function GET(
   _req: NextRequest,
@@ -14,6 +17,7 @@ export async function GET(
     }
 
     const { id } = await params
+    if (!UUID.test(id)) return NextResponse.json({ error: 'Ungueltige ID' }, { status: 400 })
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('orders')
@@ -46,7 +50,30 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const { status, trackingNumber, trackingUrl } = await req.json()
+    if (!UUID.test(id)) return NextResponse.json({ error: 'Ungueltige ID' }, { status: 400 })
+
+    let body: Record<string, unknown>
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Ungueltiger Request-Body' }, { status: 400 })
+    }
+    const { status, trackingNumber, trackingUrl } = body as {
+      status?: string
+      trackingNumber?: string
+      trackingUrl?: string
+    }
+
+    if (status && !VALID_ORDER_STATUSES.includes(status as typeof VALID_ORDER_STATUSES[number])) {
+      return NextResponse.json({ error: 'Ungueltiger Status' }, { status: 400 })
+    }
+    if (trackingNumber && (typeof trackingNumber !== 'string' || trackingNumber.length > 100)) {
+      return NextResponse.json({ error: 'Trackingnummer zu lang (max. 100 Zeichen)' }, { status: 400 })
+    }
+    if (trackingUrl && (typeof trackingUrl !== 'string' || trackingUrl.length > 500)) {
+      return NextResponse.json({ error: 'Tracking-URL zu lang (max. 500 Zeichen)' }, { status: 400 })
+    }
+
     const supabase = getSupabaseAdmin()
 
     const update: Record<string, unknown> = {}

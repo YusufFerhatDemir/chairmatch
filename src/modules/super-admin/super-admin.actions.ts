@@ -176,15 +176,29 @@ export async function reorderSlides(orderedIds: string[]) {
 
 // ─── Image Upload ───
 
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const MAX_UPLOAD_SIZE = 5 * 1024 * 1024 // 5 MB
+const EXT_MAP: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
+const ALLOWED_BUCKETS = new Set(['app-assets', 'salon-images', 'gallery'])
+
 export async function uploadImage(formData: FormData) {
   await requireSuperAdmin()
 
   const file = formData.get('file') as File
   if (!file) return { error: 'Keine Datei' }
 
+  if (!ALLOWED_MIME.has(file.type)) return { error: 'Nur JPEG, PNG oder WebP erlaubt' }
+  if (file.size > MAX_UPLOAD_SIZE) return { error: 'Datei zu gross (max. 5 MB)' }
+
   const bucket = (formData.get('bucket') as string) || 'app-assets'
+  if (!ALLOWED_BUCKETS.has(bucket)) return { error: 'Ungueltiger Bucket' }
+
   const folder = (formData.get('folder') as string) || 'uploads'
-  const ext = file.name.split('.').pop() || 'png'
+  const ext = EXT_MAP[file.type] || 'png'
   const path = `${folder}/${Date.now()}.${ext}`
 
   try {

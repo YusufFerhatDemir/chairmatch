@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { isSchemaMismatch } from '@/lib/pg-errors'
 import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { hashIp } from '@/lib/ip-hash'
 
 /**
  * Log a page visit for admin analytics.
@@ -23,10 +24,11 @@ export async function POST(request: NextRequest) {
     const rawPath = typeof body.path === 'string' ? body.path : request.nextUrl.pathname || '/'
     const path = rawPath.slice(0, 255)
 
-    const ip =
+    const rawIp =
       request.headers.get('x-real-ip') ||
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       null
+    const ipHash = rawIp ? hashIp(rawIp) : null
     const country = request.headers.get('x-vercel-ip-country') || null
     const region = request.headers.get('x-vercel-ip-country-region') || null
     const city = request.headers.get('x-vercel-ip-city') || null
@@ -35,7 +37,7 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseAdmin()
     const { error } = await supabase.from('visit_logs').insert({
       path,
-      ip,
+      ip: ipHash,
       country,
       region,
       city,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin, uploadToStorage } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
+import { dbError } from '@/lib/api-wrapper'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       // If DB insert fails, try to clean up the uploaded file
       await supabase.storage.from(bucket).remove([storagePath]).catch(() => {})
-      return NextResponse.json({ error: `Datenbankfehler: ${insertError.message}` }, { status: 500 })
+      return dbError('upload-insert', insertError)
     }
 
     return NextResponse.json({ url: record.url, id: record.id }, { status: 201 })

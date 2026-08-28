@@ -416,7 +416,7 @@ describe('POST /api/uploads — Bucket und Datenbank auseinander', () => {
     )
 
     expect(status).toBe(500)
-    expect(String(json.error)).toContain('Upload fehlgeschlagen')
+    expect(String(json.error)).toContain('Interner Fehler')
     expect(uploadRows()).toHaveLength(0)
     expect(salonRow().logo_url).toBeNull()
   })

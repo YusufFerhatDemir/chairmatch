@@ -3,12 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { registerSchema } from '@/modules/auth/auth.schemas'
 import { hashIp, requestIp } from '@/lib/ip-hash'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+const RATE = { scope: 'auth-register', max: 5, windowMs: 3600_000 } // 5 per hour per IP
+
 export async function POST(req: NextRequest) {
   try {
+    const limit = checkRateLimit(clientIp(req), RATE)
+    if (limit.limited) return rateLimitResponse(limit, 'Zu viele Registrierungen. Bitte spaeter erneut versuchen.')
+
     const body = await req.json()
     const parsed = registerSchema.safeParse(body)
 

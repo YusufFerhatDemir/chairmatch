@@ -92,6 +92,25 @@ export function apiError(message: string, status = 400, extra?: Record<string, u
 }
 
 /**
+ * Generische 500-Antwort fuer Datenbankfehler.
+ *
+ * Supabase/PostgREST-Fehlermeldungen enthalten Tabellennamen, Spaltennamen,
+ * RLS-Policy-Namen und PostgreSQL-Fehlercodes — alles Informationen, die ein
+ * Angreifer nicht braucht und ein Nutzer nicht versteht. Diese Hilfsfunktion
+ * loggt das Detail serverseitig und gibt dem Client nur eine menschenlesbare
+ * Fehlermeldung zurueck.
+ */
+export function dbError(
+  label: string,
+  error: { message?: string; code?: string } | null | undefined,
+  publicMessage = 'Interner Fehler',
+  status = 500,
+): Response {
+  console.error(`[${label}]`, error?.code, error?.message)
+  return NextResponse.json({ error: publicMessage }, { status })
+}
+
+/**
  * Convenience: build a JSON success response.
  */
 export function apiOk<T>(data: T, status = 200) {

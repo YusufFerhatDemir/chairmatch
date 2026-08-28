@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { logError } from '@/lib/error-tracking'
 import { getServerSession } from '@/modules/auth/session'
 import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { dbError } from '@/lib/api-wrapper'
 
 /**
  * POST /api/errors — Client-side error reporting.
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
   const { data, error, count } = await query
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return dbError('errors-POST', error)
   }
 
   return NextResponse.json({

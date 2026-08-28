@@ -3,6 +3,7 @@ import { signOut } from '@/modules/auth/auth.config'
 import { getServerSession } from '@/modules/auth/session'
 import { invalidateAccountState } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { dbError } from '@/lib/api-wrapper'
 
 /**
  * DSGVO Art. 17: Konto-Löschung.
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   if (loadError) {
-    return NextResponse.json({ error: loadError.message }, { status: 500 })
+    return dbError('account-delete', loadError)
   }
   if (!profile) {
     return NextResponse.json({ error: 'Profil nicht gefunden' }, { status: 404 })
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
     .is('delete_requested_at', null)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return dbError('account-delete', error)
   }
 
   await supabase.from('audit_logs').insert({

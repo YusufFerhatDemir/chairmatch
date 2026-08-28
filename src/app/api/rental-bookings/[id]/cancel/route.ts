@@ -3,6 +3,7 @@ import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createRefund, isStripeConfigured } from '@/lib/stripe'
 import { createNotification } from '@/lib/notifications'
+import { berlinToday } from '@/lib/berlin-time'
 
 /**
  * POST /api/rental-bookings/[id]/cancel — Miet-Buchung stornieren.
@@ -44,6 +45,8 @@ import { createNotification } from '@/lib/notifications'
  * dafuer gibt es live nicht, und `audit_logs.details` ist jsonb.
  */
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 /** Wer darf diese Miet-Buchung stornieren? */
 type Actor = 'renter' | 'owner' | 'admin'
 
@@ -59,6 +62,7 @@ export async function POST(
     }
 
     const { id } = await params
+    if (!UUID.test(id)) return NextResponse.json({ error: 'Ungueltige ID' }, { status: 400 })
     const body = await req.json().catch(() => ({}))
     const reason = typeof body?.reason === 'string' ? body.reason.slice(0, 500) : null
 
@@ -109,7 +113,7 @@ export async function POST(
     // Ab dem Starttag nicht mehr per Selbstbedienung. Der Vergleich laeuft auf
     // ISO-Datumszeichenketten (YYYY-MM-DD), die sich lexikografisch wie Daten
     // sortieren — dieselbe Form, in der `start_date` gespeichert ist.
-    const today = new Date().toISOString().slice(0, 10)
+    const today = berlinToday()
     if (String(rental.start_date) <= today) {
       return NextResponse.json(
         {

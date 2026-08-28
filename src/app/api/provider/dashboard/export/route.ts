@@ -35,6 +35,10 @@ export async function GET(request: NextRequest) {
     const from = searchParams.get('from')
     const to = searchParams.get('to')
 
+    const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/
+    if (from && !ISO_DATE.test(from)) return NextResponse.json({ error: 'Ungueltiges Startdatum' }, { status: 400 })
+    if (to && !ISO_DATE.test(to)) return NextResponse.json({ error: 'Ungueltiges Enddatum' }, { status: 400 })
+
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('platform_transactions')

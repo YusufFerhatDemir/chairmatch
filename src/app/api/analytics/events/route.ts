@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { isSchemaMismatch } from '@/lib/pg-errors'
 import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { dbError } from '@/lib/api-wrapper'
 
 /**
  * First-Party-Event-Stream — Eingang für trackEvent() aus dem Browser.
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
       if (isSchemaMismatch(error)) {
         return NextResponse.json({ ok: false, reason: 'migration_pending' }, { status: 202 })
       }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return dbError('analytics-events-POST', error)
     }
     return NextResponse.json({ ok: true })
   } catch {

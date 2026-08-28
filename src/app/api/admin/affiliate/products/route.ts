@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { dbError } from '@/lib/api-wrapper'
 import { getServerSession } from '@/modules/auth/session'
 
 /**
@@ -102,7 +103,7 @@ export async function GET() {
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('affiliate-products-GET', error)
 
   const productList = products ?? []
   const ids = productList.map(p => p.id as string)
@@ -162,7 +163,7 @@ export async function POST(req: NextRequest) {
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('affiliate-products-POST', error)
   return NextResponse.json({ product: inserted }, { status: 201 })
 }
 
@@ -192,7 +193,7 @@ export async function PUT(req: NextRequest) {
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('affiliate-products-PATCH', error)
   return NextResponse.json({ product: updated })
 }
 
@@ -211,6 +212,6 @@ export async function DELETE(req: NextRequest) {
     .delete()
     .eq('id', id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('affiliate-products-DELETE', error)
   return NextResponse.json({ success: true })
 }

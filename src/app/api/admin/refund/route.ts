@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { dbError } from '@/lib/api-wrapper'
 import { createRefund } from '@/lib/stripe'
 
 /**
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest) {
     .eq('id', txId)
 
   if (updErr) {
-    return NextResponse.json({ error: updErr.message }, { status: 500 })
+    return dbError('admin-refund-update', updErr)
   }
 
   // Zugehörige Miet-Buchung direkt mitziehen (nicht auf Webhook-Latenz warten)

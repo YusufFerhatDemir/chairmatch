@@ -20,19 +20,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
     }
 
-    const body = await req.json()
-    const { userId, title, body: notificationBody } = body
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Ungueltiger JSON-Body' }, { status: 400 })
+    }
+    const { userId, title, body: notificationBody } = body as Record<string, unknown>
 
-    if (!userId || typeof userId !== 'string') {
-      return NextResponse.json({ error: 'userId ist erforderlich' }, { status: 400 })
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!userId || typeof userId !== 'string' || !UUID.test(userId)) {
+      return NextResponse.json({ error: 'userId ist erforderlich (UUID)' }, { status: 400 })
     }
 
-    if (!title || typeof title !== 'string') {
-      return NextResponse.json({ error: 'title ist erforderlich' }, { status: 400 })
+    if (!title || typeof title !== 'string' || title.length > 200) {
+      return NextResponse.json({ error: 'title ist erforderlich (max. 200 Zeichen)' }, { status: 400 })
     }
 
-    if (!notificationBody || typeof notificationBody !== 'string') {
-      return NextResponse.json({ error: 'body ist erforderlich' }, { status: 400 })
+    if (!notificationBody || typeof notificationBody !== 'string' || notificationBody.length > 2000) {
+      return NextResponse.json({ error: 'body ist erforderlich (max. 2000 Zeichen)' }, { status: 400 })
     }
 
     const result = await sendPushNotification(userId, title, notificationBody)
@@ -43,7 +49,7 @@ export async function POST(req: NextRequest) {
       failed: result.failed,
     })
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Interner Serverfehler'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('[push-send]', err)
+    return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
   }
 }

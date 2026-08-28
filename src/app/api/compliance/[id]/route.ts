@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { isAdminOrAbove } from '@/lib/rbac'
+import { dbError } from '@/lib/api-wrapper'
 
 /**
  * PUT /api/compliance/[id]
@@ -46,7 +47,7 @@ export async function PUT(
       .eq('id', id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return dbError('compliance-id-PUT', error)
     }
 
     return NextResponse.json({ ok: true })
@@ -112,7 +113,7 @@ export async function DELETE(
       .eq('id', id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return dbError('compliance-id-DELETE', error)
     }
 
     return NextResponse.json({ ok: true })

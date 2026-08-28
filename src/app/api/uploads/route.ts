@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { dbError } from '@/lib/api-wrapper'
 import {
   ListingError,
   ensurePrimaryListing,
@@ -188,10 +189,7 @@ export async function POST(req: NextRequest) {
 
     if (storageError) {
       console.error('uploads storage failed:', storageError)
-      return NextResponse.json(
-        { error: `Upload fehlgeschlagen: ${storageError.message}` },
-        { status: 500 },
-      )
+      return dbError('uploads-storage', storageError)
     }
 
     // Zertifikate: pro (salon, docKey) genau eines — das alte weicht.

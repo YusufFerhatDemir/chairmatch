@@ -4,6 +4,8 @@ import { getServerSession } from '@/modules/auth/session'
 import { confirmBooking, completeBooking, markNoShow } from '@/modules/booking/booking.actions'
 import { createNotification } from '@/lib/notifications'
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,6 +17,7 @@ export async function GET(
     }
 
     const { id } = await params
+    if (!UUID.test(id)) return NextResponse.json({ error: 'Ungueltige ID' }, { status: 400 })
     const supabase = getSupabaseAdmin()
 
     const { data: booking, error } = await supabase
@@ -59,6 +62,7 @@ export async function PATCH(
     }
 
     const { id } = await params
+    if (!UUID.test(id)) return NextResponse.json({ error: 'Ungueltige ID' }, { status: 400 })
 
     // Verify the user is salon owner or admin before allowing status changes
     const supabase = getSupabaseAdmin()

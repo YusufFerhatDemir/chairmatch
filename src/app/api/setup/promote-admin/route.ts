@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession, invalidateAccountState } from '@/modules/auth/session'
 import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { dbError } from '@/lib/api-wrapper'
 
 /**
  * Setup endpoint to promote a user to super_admin.
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
       .eq('id', profile.id)
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+      return dbError('promote-admin-update', updateError)
     }
     invalidateAccountState(profile.id)
 
@@ -146,7 +147,7 @@ export async function POST(req: NextRequest) {
     .eq('id', profile.id)
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 })
+    return dbError('promote-admin-flag', updateError)
   }
   invalidateAccountState(profile.id)
 

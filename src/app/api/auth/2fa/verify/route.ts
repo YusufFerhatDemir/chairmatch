@@ -2,14 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { verifyToken } from '@/lib/totp'
+import { dbError } from '@/lib/api-wrapper'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
  * POST /api/auth/2fa/verify
  * Verify a TOTP code and enable 2FA for the user.
  * Body: { code: string }
  */
+const RATE = { scope: '2fa-verify', max: 5, windowMs: 300_000 } // 5 attempts per 5 minutes
+
 export async function POST(req: NextRequest) {
   try {
+    const ip = clientIp(req)
+    const limit = checkRateLimit(ip, RATE)
+    if (limit.limited) return rateLimitResponse(limit, 'Zu viele Versuche. Bitte spaeter erneut.')
+
     const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
@@ -18,7 +26,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { code } = body
 
-    if (!code || typeof code !== 'string' || code.length !== 6) {
+    if (typeof code !== 'string' || code.length !== 6 || !/^\d{6}$/.test(code)) {
       return NextResponse.json(
         { error: 'Ungültiger Code. Bitte 6-stelligen Code eingeben.' },
         { status: 400 }
@@ -35,7 +43,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (fetchError) {
-      return NextResponse.json({ error: fetchError.message }, { status: 500 })
+      return dbError('2fa-verify', fetchError)
     }
 
     if (!twoFa || !twoFa.secret) {
@@ -66,7 +74,7 @@ export async function POST(req: NextRequest) {
       .eq('user_id', session.user.id)
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+      return dbError('2fa-verify', updateError)
     }
 
     return NextResponse.json({

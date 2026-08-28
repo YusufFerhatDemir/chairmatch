@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { generateSecret } from '@/lib/totp'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { dbError } from '@/lib/api-wrapper'
 
 /**
  * GET /api/auth/2fa/setup
@@ -22,7 +24,7 @@ export async function GET() {
       .maybeSingle()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return dbError('2fa-setup-GET', error)
     }
 
     return NextResponse.json({
@@ -33,13 +35,18 @@ export async function GET() {
   }
 }
 
+const RATE = { scope: '2fa-setup', max: 10, windowMs: 3600_000 } // 10 per hour
+
 /**
  * POST /api/auth/2fa/setup
  * Generate a new TOTP secret and return the QR code URL.
  * Stores the secret (not yet enabled) so it can be verified.
  */
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
+    const limit = checkRateLimit(clientIp(req), RATE)
+    if (limit.limited) return rateLimitResponse(limit, 'Zu viele Anfragen. Bitte spaeter erneut versuchen.')
+
     const session = await getServerSession()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
@@ -64,7 +71,7 @@ export async function POST() {
       )
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return dbError('2fa-setup-POST', error)
     }
 
     return NextResponse.json({ secret, qrUrl })

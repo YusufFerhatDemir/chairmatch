@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { email } = await req.json()
-    if (!email || typeof email !== 'string') {
+    if (!email || typeof email !== 'string' || email.length > 255 || !email.includes('@')) {
       return NextResponse.json({ error: 'E-Mail erforderlich' }, { status: 400 })
     }
     const normalized = email.trim().toLowerCase()

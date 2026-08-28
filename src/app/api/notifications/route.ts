@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { NOTIFICATION_TABLE } from '@/lib/notifications'
 import { getServerSession } from '@/modules/auth/session'
+import { dbError } from '@/lib/api-wrapper'
 
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
@@ -18,10 +19,10 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
     const limit = Math.min(
       MAX_PAGE_SIZE,
-      Math.max(1, parseInt(searchParams.get('limit') || String(DEFAULT_PAGE_SIZE), 10))
+      Math.max(1, parseInt(searchParams.get('limit') || String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE)
     )
     const offset = (page - 1) * limit
 
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return dbError('notifications-GET', error)
     }
 
     // Get unread count
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
       .eq('is_read', false)
 
     if (unreadError) {
-      return NextResponse.json({ error: unreadError.message }, { status: 500 })
+      return dbError('notifications-GET-unread', unreadError)
     }
 
     return NextResponse.json({
@@ -95,6 +96,11 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!notificationIds.every((id: unknown) => typeof id === 'string' && UUID.test(id))) {
+      return NextResponse.json({ error: 'Ungueltige Benachrichtigungs-IDs' }, { status: 400 })
+    }
+
     const supabase = getSupabaseAdmin()
 
     const { error } = await supabase
@@ -108,7 +114,7 @@ export async function PUT(request: NextRequest) {
       .eq('user_id', session.user.id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return dbError('notifications-PUT', error)
     }
 
     return NextResponse.json({ ok: true })

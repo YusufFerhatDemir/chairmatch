@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { dbError } from '@/lib/api-wrapper'
 import { getServerSession } from '@/modules/auth/session'
 
 export async function PATCH(
@@ -27,6 +28,6 @@ export async function PATCH(
     .update(updates)
     .eq('id', id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('admin-ticket-PATCH', error)
   return NextResponse.json({ ok: true })
 }

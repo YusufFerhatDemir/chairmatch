@@ -14,26 +14,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { endpoint, p256dh, auth } = body
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Ungueltiger JSON-Body' }, { status: 400 })
+    }
+    const { endpoint, p256dh, auth } = body as Record<string, unknown>
 
-    if (!endpoint || typeof endpoint !== 'string') {
-      return NextResponse.json({ error: 'endpoint ist erforderlich' }, { status: 400 })
+    if (!endpoint || typeof endpoint !== 'string' || endpoint.length > 2000) {
+      return NextResponse.json({ error: 'endpoint ist erforderlich (max. 2000 Zeichen)' }, { status: 400 })
     }
 
-    if (!p256dh || typeof p256dh !== 'string') {
-      return NextResponse.json({ error: 'p256dh ist erforderlich' }, { status: 400 })
+    if (!p256dh || typeof p256dh !== 'string' || p256dh.length > 500) {
+      return NextResponse.json({ error: 'p256dh ist erforderlich (max. 500 Zeichen)' }, { status: 400 })
     }
 
-    if (!auth || typeof auth !== 'string') {
-      return NextResponse.json({ error: 'auth ist erforderlich' }, { status: 400 })
+    if (!auth || typeof auth !== 'string' || auth.length > 500) {
+      return NextResponse.json({ error: 'auth ist erforderlich (max. 500 Zeichen)' }, { status: 400 })
     }
 
     await saveSubscription(session.user.id, { endpoint, p256dh, auth })
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Interner Serverfehler'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('[push-subscribe]', err)
+    return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
   }
 }

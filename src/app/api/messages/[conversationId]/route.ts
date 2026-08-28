@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
+import { dbError } from '@/lib/api-wrapper'
 
 /**
  * GET /api/messages/[conversationId]
@@ -51,7 +52,7 @@ export async function GET(
       .order('created_at', { ascending: true })
 
     if (msgError) {
-      return NextResponse.json({ error: msgError.message }, { status: 500 })
+      return dbError('messages-GET', msgError)
     }
 
     // Mark unread messages (sent by others) as read

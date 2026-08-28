@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { dbError } from '@/lib/api-wrapper'
 import { requireRole } from '@/modules/auth/session'
 
 /**
@@ -39,13 +40,14 @@ export async function GET(req: NextRequest) {
     .order('subscribed_at', { ascending: false })
     .range(from, to)
 
-  if (q) query = query.ilike('email', `%${q}%`)
+  const safeQ = q.replace(/[%_\\]/g, '')
+  if (safeQ) query = query.ilike('email', `%${safeQ}%`)
   if (status && ['active', 'unsubscribed', 'bounced'].includes(status)) {
     query = query.eq('status', status)
   }
 
   const { data, count, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('newsletter-subscribers-GET', error)
 
   // Stats
   const [{ count: total }, { count: active }, { count: unsub }] = await Promise.all([
@@ -84,7 +86,7 @@ export async function PATCH(req: NextRequest) {
     .from('newsletter_subscribers')
     .update(update)
     .eq('id', parsed.data.id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('newsletter-subscribers-PATCH', error)
   return NextResponse.json({ success: true })
 }
 
@@ -95,6 +97,6 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'Keine ID' }, { status: 400 })
   const sb = getSupabaseAdmin()
   const { error } = await sb.from('newsletter_subscribers').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('newsletter-subscribers-DELETE', error)
   return NextResponse.json({ success: true })
 }

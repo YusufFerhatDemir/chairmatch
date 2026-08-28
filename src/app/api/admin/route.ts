@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { invalidateAccountState } from '@/modules/auth/session'
+import { dbError } from '@/lib/api-wrapper'
 import { notifyIndexers } from '@/lib/indexing'
 import { cityToSlug } from '@/lib/seo'
 
@@ -79,7 +80,7 @@ export async function PATCH(req: NextRequest) {
       updates.is_verified = false
     }
     const { error } = await supabase.from('salons').update(updates).eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return dbError('admin-PATCH-salon-status', error)
     if (updates.is_active) void pingSalonIndexers(id)
   }
 
@@ -88,7 +89,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'is_active muss boolean sein' }, { status: 400 })
     }
     const { error } = await supabase.from('salons').update({ is_active: d.is_active }).eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return dbError('admin-PATCH-toggle-active', error)
     if (d.is_active) void pingSalonIndexers(id)
   }
 
@@ -102,7 +103,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Nur super_admin darf Admin-Rollen vergeben' }, { status: 403 })
     }
     const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return dbError('admin-PATCH-user-role', error)
     invalidateAccountState(id)
   }
 
@@ -112,7 +113,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Ungültiger Buchungsstatus' }, { status: 400 })
     }
     const { error } = await supabase.from('bookings').update({ status }).eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return dbError('admin-PATCH-booking-status', error)
   }
 
   return NextResponse.json({ success: true })

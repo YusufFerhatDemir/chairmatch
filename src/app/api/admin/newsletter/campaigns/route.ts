@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { dbError } from '@/lib/api-wrapper'
 import { requireRole } from '@/modules/auth/session'
 
 /**
@@ -33,7 +34,7 @@ export async function GET() {
     .select('id, subject, preview_text, status, total_recipients, total_sent, total_opened, total_clicked, total_bounced, sent_at, created_at, updated_at, audience_filter')
     .order('created_at', { ascending: false })
     .limit(200)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('newsletter-campaigns-GET', error)
   return NextResponse.json({ campaigns: data || [] })
 }
 
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
       .eq('id', parsed.data.id)
       .select('id')
       .maybeSingle()
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return dbError('newsletter-campaigns-POST-update', error)
     return NextResponse.json({ id: data?.id })
   }
 
@@ -73,6 +74,6 @@ export async function POST(req: NextRequest) {
     .insert(payload)
     .select('id')
     .maybeSingle()
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return dbError('newsletter-campaigns-POST-insert', error)
   return NextResponse.json({ id: data?.id })
 }

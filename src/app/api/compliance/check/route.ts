@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
 import { isAdminOrAbove } from '@/lib/rbac'
+import { dbError } from '@/lib/api-wrapper'
 
 const REQUIRED_DOCUMENTS = [
   'gewerbeanmeldung',
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
       .eq('salon_id', salonId)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return dbError('compliance-check', error)
     }
 
     const now = new Date().toISOString()
