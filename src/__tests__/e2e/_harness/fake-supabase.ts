@@ -616,6 +616,32 @@ export class FakeSupabase {
     }),
   }
 
+  // ── Stored Procedures ──────────────────────────────────────────────
+  //
+  // Track 20: der Nachbau kannte `rpc()` bis hierher gar nicht. Damit war
+  // /api/cron/publish-reviews — die einzige Stelle, an der Bewertungen
+  // ueberhaupt oeffentlich werden — nicht pruefbar. Und genau dort steckte
+  // der Fehler, den nur ein Test findet: `rpc()` WIRFT nicht, es liefert
+  // `{ data, error }`. Ein `try/catch` darum fing deshalb nie etwas.
+
+  /** Protokoll aller rpc()-Aufrufe — fuer Assertions ueber Seiteneffekte. */
+  readonly rpcCalls: { fn: string; args: unknown }[] = []
+  private rpcResults = new Map<string, Result<unknown>>()
+
+  /**
+   * Antwort fuer eine Stored Procedure festlegen.
+   * Ohne Eintrag antwortet `rpc()` mit `{ data: null, error: null }`.
+   */
+  onRpc(fn: string, result: Result<unknown>): this {
+    this.rpcResults.set(fn, result)
+    return this
+  }
+
+  async rpc(fn: string, args?: unknown): Promise<Result<unknown>> {
+    this.rpcCalls.push({ fn, args })
+    return this.rpcResults.get(fn) ?? { data: null, error: null }
+  }
+
   /** Rohzeilen einer Tabelle (mutierbar — genau das wollen wir in Assertions) */
   rows(table: string): Row[] {
     let t = this.tables.get(table)

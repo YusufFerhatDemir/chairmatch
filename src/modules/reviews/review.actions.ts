@@ -78,7 +78,14 @@ export async function createReview(input: unknown) {
   }
 
   // Update salon aggregate (outside transaction for performance)
-  await updateSalonRating(data.salonId)
+  //
+  // Schlaegt das fehl, bleibt der ALTE Schnitt am Salon stehen — bis Track
+  // 20 wurde er in diesem Fall mit einer Null ueberschrieben. Die Bewertung
+  // selbst ist gespeichert, der Schnitt zieht beim naechsten Lauf nach.
+  const aggregatUpdated = await updateSalonRating(data.salonId)
+  if (!aggregatUpdated) {
+    console.error('createReview: Salon-Schnitt konnte nicht aktualisiert werden', data.salonId)
+  }
 
   return { success: true, reviewId: newReview.id }
 }

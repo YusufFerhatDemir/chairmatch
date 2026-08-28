@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
+import { dbError } from '@/lib/api-wrapper'
 
 export async function DELETE(
   _request: NextRequest,
@@ -60,7 +61,10 @@ export async function DELETE(
       .eq('id', id)
 
     if (deleteError) {
-      return NextResponse.json({ error: `Datenbankfehler: ${deleteError.message}` }, { status: 500 })
+      // Die rohe PostgREST-Meldung nennt Tabelle, Spalte und Policy. Track 18
+      // hat das an ueber 40 Stellen abgeloest — diese hier ist dabei
+      // durchgerutscht.
+      return dbError('upload-delete', deleteError)
     }
 
     return NextResponse.json({ ok: true })

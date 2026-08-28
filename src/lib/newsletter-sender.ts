@@ -74,13 +74,23 @@ function buildAudienceQuery(audience: AudienceFilter | null | undefined) {
 /**
  * Hauptfunktion: Sende eine Kampagne an alle passenden Subscriber.
  */
-export async function sendCampaign(campaignId: string): Promise<{
+/**
+ * Warum ein Code und nicht nur ein Text: der Aufrufer soll „laeuft schon"
+ * von „ist kaputt" unterscheiden koennen, ohne eine deutsche Fehlermeldung
+ * zu zerlegen. Die Route macht daraus 409 statt 200.
+ */
+export type SendCampaignCode = 'not_found' | 'already_running' | 'failed'
+
+export interface SendCampaignResult {
   success: boolean
   totalRecipients: number
   totalSent: number
   totalFailed: number
   error?: string
-}> {
+  code?: SendCampaignCode
+}
+
+export async function sendCampaign(campaignId: string): Promise<SendCampaignResult> {
   const supabase = getSupabaseAdmin()
 
   // 1. Kampagne laden
@@ -91,20 +101,69 @@ export async function sendCampaign(campaignId: string): Promise<{
     .maybeSingle()
 
   if (campaignErr || !campaignData) {
-    return { success: false, totalRecipients: 0, totalSent: 0, totalFailed: 0, error: 'Kampagne nicht gefunden' }
+    return { success: false, totalRecipients: 0, totalSent: 0, totalFailed: 0, error: 'Kampagne nicht gefunden', code: 'not_found' }
   }
 
   const campaign = campaignData as CampaignRow
 
   if (campaign.status === 'sending' || campaign.status === 'sent') {
-    return { success: false, totalRecipients: 0, totalSent: 0, totalFailed: 0, error: `Kampagne ist bereits ${campaign.status}` }
+    return {
+      success: false,
+      totalRecipients: 0,
+      totalSent: 0,
+      totalFailed: 0,
+      error: `Kampagne ist bereits ${campaign.status}`,
+      code: 'already_running',
+    }
   }
 
-  // 2. Status auf 'sending'
-  await supabase
+  /*
+   * 2. Den Versand BEANSPRUCHEN, nicht nur anmelden.
+   *
+   * Hier stand bis Track 20 ein Lesen, ein Pruefen und ein Schreiben in drei
+   * Schritten — der Riegel darueber war damit eine Momentaufnahme. Zwei
+   * gleichzeitige Klicks auf „Senden" (zwei Tabs, ein Doppelklick, ein
+   * wiederholter Request nach einem Timeout) lasen beide `status = 'draft'`,
+   * kamen beide durch die Pruefung und schrieben beide `sending`. Danach
+   * liefen ZWEI vollstaendige Versandlaeufe: jeder Abonnent bekam dieselbe
+   * Mail zweimal, `newsletter_sends` bekam zwei Zeilen je Empfaenger, und
+   * `total_sent` wurde vom zweiten Lauf ueberschrieben.
+   *
+   * Bei einer Empfaengerliste, die ueber Resend abgerechnet wird und deren
+   * Empfaenger sich beim zweiten Exemplar abmelden oder als Spam melden, ist
+   * das kein Schoenheitsfehler. Deshalb dieselbe Bauform wie auf den
+   * Geldstrecken (Track 16): ein bedingtes UPDATE, das den ZUSTAND
+   * mitprueft, den wir gelesen haben. Wer keine Zeile zurueckbekommt, hat
+   * das Rennen verloren und sendet nicht.
+   */
+  const { data: claimed, error: claimError } = await supabase
     .from('newsletter_campaigns')
     .update({ status: 'sending', updated_at: new Date().toISOString() })
     .eq('id', campaignId)
+    .eq('status', campaign.status)
+    .select('id')
+
+  if (claimError) {
+    console.error('[Newsletter] claim failed:', claimError)
+    return {
+      success: false,
+      totalRecipients: 0,
+      totalSent: 0,
+      totalFailed: 0,
+      error: 'Kampagne konnte nicht gestartet werden',
+      code: 'failed',
+    }
+  }
+  if (!claimed || claimed.length === 0) {
+    return {
+      success: false,
+      totalRecipients: 0,
+      totalSent: 0,
+      totalFailed: 0,
+      error: 'Kampagne wird bereits versendet',
+      code: 'already_running',
+    }
+  }
 
   // 3. Empfänger holen
   const audience = (campaign.audience_filter || {}) as AudienceFilter
@@ -115,7 +174,17 @@ export async function sendCampaign(campaignId: string): Promise<{
       .from('newsletter_campaigns')
       .update({ status: 'failed', updated_at: new Date().toISOString() })
       .eq('id', campaignId)
-    return { success: false, totalRecipients: 0, totalSent: 0, totalFailed: 0, error: subsErr.message }
+    // Die rohe PostgREST-Meldung nennt Tabelle, Spalte und Policy — sie
+    // gehoert ins Log, nicht in die Antwort (Track 18).
+    console.error('[Newsletter] audience query failed:', subsErr)
+    return {
+      success: false,
+      totalRecipients: 0,
+      totalSent: 0,
+      totalFailed: 0,
+      error: 'Empfaengerliste konnte nicht geladen werden',
+      code: 'failed',
+    }
   }
 
   let subscribers = (subscribersRaw || []) as SubscriberRow[]
@@ -154,7 +223,15 @@ export async function sendCampaign(campaignId: string): Promise<{
       .from('newsletter_campaigns')
       .update({ status: 'failed', updated_at: new Date().toISOString() })
       .eq('id', campaignId)
-    return { success: false, totalRecipients: subscribers.length, totalSent: 0, totalFailed: 0, error: insertErr.message }
+    console.error('[Newsletter] send rows insert failed:', insertErr)
+    return {
+      success: false,
+      totalRecipients: subscribers.length,
+      totalSent: 0,
+      totalFailed: 0,
+      error: 'Versand konnte nicht vorbereitet werden',
+      code: 'failed',
+    }
   }
 
   const sendIdBySubscriber = new Map<string, string>()

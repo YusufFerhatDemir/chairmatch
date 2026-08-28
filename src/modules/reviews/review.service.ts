@@ -140,13 +140,39 @@ export async function checkEligibility(
   return { eligible: true }
 }
 
-/** Alle oeffentlichen Kundenbewertungen eines Salons (ohne Miet-Bewertungen). */
-async function salonReviewRatings(salonId: string): Promise<number[]> {
+/**
+ * Alle oeffentlichen Kundenbewertungen eines Salons (ohne Miet-Bewertungen).
+ *
+ * Track 20: hier stand `const { data: reviews } = await ...` — der Fehler
+ * wurde nicht einmal destrukturiert. Faellt die Abfrage aus (22P02 bei einer
+ * ungueltigen ID, 42501 bei einer Policy, ein Aussetzer der Datenbank), ist
+ * `reviews` null, und die Funktion gab eine LEERE LISTE zurueck. Ein
+ * Ausfall war damit von „dieser Salon hat noch keine Bewertung" nicht zu
+ * unterscheiden — und beide Aufrufer haben aus der leeren Liste eine
+ * Tatsachenbehauptung gemacht:
+ *
+ *   - `getAggregateRatings` antwortete `{ avgRating: 0, reviewCount: 0 }`
+ *     mit Status 200. Die Salonseite zeigte „keine Bewertungen".
+ *   - `updateSalonRating` SCHRIEB diese Null in `salons.avg_rating` und
+ *     `salons.review_count`. Ein einziger Aussetzer waehrend des Speicherns
+ *     einer Bewertung loeschte damit dauerhaft den Ruf eines Salons — die
+ *     Ausgangswerte sind danach nirgends mehr vorhanden, und es faellt erst
+ *     auf, wenn jemand hinsieht.
+ *
+ * `null` heisst jetzt: nicht ermittelbar. Wer damit rechnen will, muss den
+ * Fall behandeln.
+ */
+async function salonReviewRatings(salonId: string): Promise<number[] | null> {
   const supabase = getSupabaseAdmin()
-  const { data: reviews } = await supabase
+  const { data: reviews, error } = await supabase
     .from('reviews')
     .select('rating, review_type')
     .eq('salon_id', salonId)
+
+  if (error) {
+    console.error('salonReviewRatings failed:', error)
+    return null
+  }
 
   return (reviews || [])
     .filter(isSalonReview)
@@ -154,24 +180,41 @@ async function salonReviewRatings(salonId: string): Promise<number[]> {
     .filter(n => Number.isFinite(n))
 }
 
-export async function updateSalonRating(salonId: string): Promise<void> {
+/**
+ * Schreibt Schnitt und Anzahl an den Salon.
+ *
+ * Gibt `false` zurueck, wenn nichts geschrieben wurde — der Aufrufer soll
+ * eine gespeicherte Bewertung nicht als „Schnitt aktualisiert" ausgeben.
+ */
+export async function updateSalonRating(salonId: string): Promise<boolean> {
   const supabase = getSupabaseAdmin()
 
   const ratings = await salonReviewRatings(salonId)
+  // Lieber der alte Stand als eine erfundene Null.
+  if (ratings === null) return false
+
   const count = ratings.length
   const avg = count > 0 ? ratings.reduce((s, r) => s + r, 0) / count : 0
 
-  await supabase
+  const { error } = await supabase
     .from('salons')
     .update({
       avg_rating: avg,
       review_count: count,
     })
     .eq('id', salonId)
+
+  if (error) {
+    console.error('updateSalonRating failed:', error)
+    return false
+  }
+  return true
 }
 
-export async function getAggregateRatings(salonId: string): Promise<AggregateRatings> {
+export async function getAggregateRatings(salonId: string): Promise<AggregateRatings | null> {
   const ratings = await salonReviewRatings(salonId)
+  if (ratings === null) return null
+
   const count = ratings.length
   const avg = count > 0 ? ratings.reduce((s, r) => s + r, 0) / count : 0
 

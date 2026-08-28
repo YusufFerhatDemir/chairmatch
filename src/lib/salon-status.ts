@@ -140,3 +140,31 @@ export async function activeSalonIds(
   }
   return erlaubt
 }
+
+/**
+ * Ist der Salon oeffentlich sichtbar?
+ *
+ * Track 20. Track 15 hat die GELDSTRECKEN eines nicht freigegebenen Salons
+ * geschlossen und den Direktlink ausdruecklich stehen lassen. Genau der ist
+ * der Rest des Problems: `/salon/<slug>` und `GET /api/salons/<slug>` haben
+ * `is_active` nie angesehen. Damit war die oeffentliche Profilseite —
+ * Geschaeftsname, Strasse, Telefonnummer, Leistungen mit Preisen,
+ * Mitarbeitende, Mietobjekte, dazu ein LocalBusiness-JSON-LD fuer
+ * Suchmaschinen — fuer JEDEN Salon erreichbar, auch fuer den, der gerade
+ * gesperrt wurde, und fuer den, den noch nie ein Admin angesehen hat.
+ *
+ * Die zweite Haelfte ist die wichtigere: /api/register-provider ist
+ * oeffentlich und braucht kein Konto. Wer das Formular abschickt, bekam
+ * sofort eine dauerhafte, von aussen verlinkbare Seite auf chairmatch.de mit
+ * einem selbst gewaehlten Geschaeftsnamen (bis 200 Zeichen) und einer selbst
+ * gewaehlten Adresse. Die Freischaltung durch einen Admin war damit eine
+ * Formalitaet NACH der Veroeffentlichung, nicht davor.
+ *
+ * Dieselbe Konvention wie `salonAcceptsBusiness`: nur ein ausdrueckliches
+ * `false` verbirgt. `null` ist kein Urteil (siehe Kopfkommentar).
+ */
+export function salonIsPubliclyVisible(
+  salon: { is_active?: boolean | null } | null | undefined,
+): boolean {
+  return salonAcceptsBusiness(salon)
+}

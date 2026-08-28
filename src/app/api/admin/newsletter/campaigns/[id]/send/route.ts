@@ -22,8 +22,16 @@ export async function POST(
   if (!id) return NextResponse.json({ error: 'Keine Kampagnen-ID' }, { status: 400 })
 
   const result = await sendCampaign(id)
-  return NextResponse.json({
-    ...result,
-    resendActive: isResendActive(),
-  })
+  // Ein zweiter Klick auf „Senden" ist ein Konflikt, kein Erfolg. Bis Track
+  // 20 antwortete auch der abgelehnte Lauf mit 200 — die Oberflaeche konnte
+  // gar nicht unterscheiden, ob gerade verschickt wurde oder nicht.
+  const status =
+    result.code === 'not_found' ? 404 : result.code === 'already_running' ? 409 : result.code === 'failed' ? 500 : 200
+  return NextResponse.json(
+    {
+      ...result,
+      resendActive: isResendActive(),
+    },
+    { status },
+  )
 }

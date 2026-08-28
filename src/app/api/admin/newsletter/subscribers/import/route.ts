@@ -58,8 +58,13 @@ export async function POST(req: NextRequest) {
       const slice = toInsert.slice(i, i + 500)
       const { error } = await sb.from('newsletter_subscribers').insert(slice)
       if (error) {
+        // `error.message` roh war hier zusaetzlich irrefuehrend: der Import
+        // laeuft in Bloecken zu 500, ein Fehler im dritten Block laesst die
+        // ersten beiden GESCHRIEBEN zurueck. Die Zahl `inserted` sagt, wie
+        // viele wirklich drin sind — die Meldung selbst gehoert ins Log.
+        console.error('newsletter-import failed:', error, { inserted })
         return NextResponse.json({
-          error: error.message,
+          error: 'Import fehlgeschlagen',
           inserted,
           skipped: existingSet.size,
         }, { status: 500 })

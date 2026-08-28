@@ -8,6 +8,7 @@ import { PROVS } from '@/lib/demo-data'
 import { getReviews } from '@/modules/reviews/review.actions'
 import { salonSchema, geoMeta, cityToSlug, type BreadcrumbItem, jsonLd as jsonLdScript } from '@/lib/seo'
 import { getCityBySlug } from '@/lib/seo-data/cities'
+import { salonIsPubliclyVisible } from '@/lib/salon-status'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -51,12 +52,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const supabase = getSupabaseAdmin()
     const { data: salon } = await supabase
       .from('salons')
-      .select('name, description, city, avg_rating, review_count')
+      .select('name, description, city, avg_rating, review_count, is_active')
       .eq('slug', slug)
       .limit(1)
       .maybeSingle()
 
-    if (salon) {
+    // Kein Titel, keine Beschreibung, keine Geo-Meta fuer einen Salon, den
+    // die Seite selbst mit 404 beantwortet (siehe unten). Sonst stuenden
+    // Name und Stadt eines nicht freigegebenen Salons weiter im
+    // <head> — und damit in jeder Vorschau, die einen Link aufloest.
+    if (salon && salonIsPubliclyVisible(salon)) {
       // Klassische Geo-Meta-Tags (geo.placename, geo.position, ICBM, geo.region).
       // Salons haben (noch) keine eigenen Koordinaten in der DB — als
       // Lokal-Signal dienen die Stadtzentrum-Koordinaten aus cities.ts.
@@ -189,6 +194,26 @@ export default async function SalonDetailPage({ params }: Props) {
     }
 
     if (!salon) notFound()
+
+    /*
+     * Track 20: `is_active` entscheidet auch ueber die SICHTBARKEIT.
+     *
+     * Track 15 hat den nicht freigegebenen Salon von den Geldstrecken
+     * genommen und den Direktlink stehen lassen. Diese Seite war der
+     * Direktlink: sie hat jeden Salon gerendert, den sie in der Datenbank
+     * fand — auch den gerade gesperrten und den, der sich vor fuenf Minuten
+     * ueber das oeffentliche Formular selbst eingetragen hat. Mit
+     * Geschaeftsname, Adresse, Telefonnummer, Preisliste und einem
+     * LocalBusiness-JSON-LD fuer Suchmaschinen.
+     *
+     * OPERATIVE FOLGE: ein Anbieter sieht seine oeffentliche Seite erst nach
+     * dem Freischalten in /admin/anbieter. Vorher ist sie 404 — auch fuer
+     * ihn selbst. Die Session hier zu lesen waere der falsche Preis: die
+     * Seite laeuft mit ISR (revalidate 300), `cookies()` wuerde sie in
+     * dynamisches Rendern zwingen und die Zwischenspeicherung fuer alle
+     * kosten. Sein eigener Stand steht ohnehin im Anbieter-Bereich.
+     */
+    if (!salonIsPubliclyVisible(salon)) notFound()
 
     /*
      * Bewertungen kommen ueber `getReviews`, NICHT ueber eine eigene Abfrage.
