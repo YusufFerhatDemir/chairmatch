@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ComplianceStatus } from '@/components/ComplianceStatus'
+import { normalizeOpeningHours } from '@/lib/opening-hours'
 
 interface Salon {
   id: string; name: string; description: string | null; city: string | null
@@ -36,7 +37,24 @@ interface Props {
 
 type Tab = 'overview' | 'edit' | 'services' | 'bookings' | 'fotos' | 'statistik' | 'produkte' | 'abo'
 
-const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
+/**
+ * Tage des Oeffnungszeiten-Formulars.
+ *
+ * `key` ist der Schluessel in `salons.opening_hours` und MUSS das Kuerzel
+ * sein: `/api/availability`, `lib/scheduling.ts` und der Schema.org-Export
+ * lesen nichts anderes. Bis Track 14 stand hier der ausgeschriebene Name,
+ * womit jede hier gepflegte Zeit fuer die Buchungslogik unsichtbar war —
+ * und ein zuvor korrekt gepflegtes Objekt beim Speichern ueberschrieb.
+ */
+const DAYS = [
+  { key: 'Mo', label: 'Montag' },
+  { key: 'Di', label: 'Dienstag' },
+  { key: 'Mi', label: 'Mittwoch' },
+  { key: 'Do', label: 'Donnerstag' },
+  { key: 'Fr', label: 'Freitag' },
+  { key: 'Sa', label: 'Samstag' },
+  { key: 'So', label: 'Sonntag' },
+] as const
 
 export default function ProviderDashboardClient({ salon, services: initServices, bookings, reviews }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
@@ -47,7 +65,11 @@ export default function ProviderDashboardClient({ salon, services: initServices,
     phone: salon.phone || '', email: salon.email || '',
     website: salon.website || '',
   })
-  const [hours, setHours] = useState<Record<string, string>>(salon.opening_hours || {})
+  // Bestandsdaten koennen noch im alten Langformat vorliegen — normalizeOpeningHours
+  // zieht sie auf die Kuerzel, damit sie im Formular sichtbar bleiben.
+  const [hours, setHours] = useState<Record<string, string>>(
+    () => normalizeOpeningHours(salon.opening_hours) ?? {},
+  )
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [services, setServices] = useState(initServices)
@@ -58,7 +80,14 @@ export default function ProviderDashboardClient({ salon, services: initServices,
     setSaving(true); setSaveMsg('')
     const res = await fetch('/api/provider/salon', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, opening_hours: hours }),
+      // Leer gelassene Tage gar nicht erst schicken: die Route nimmt nur
+      // "HH:MM - HH:MM" oder "Geschlossen", ein leeres Feld ist beides nicht.
+      body: JSON.stringify({
+        ...form,
+        opening_hours: Object.fromEntries(
+          Object.entries(hours).filter(([, wert]) => wert.trim() !== ''),
+        ),
+      }),
     })
     setSaving(false)
     setSaveMsg(res.ok ? 'Gespeichert!' : 'Fehler beim Speichern')
@@ -270,10 +299,10 @@ export default function ProviderDashboardClient({ salon, services: initServices,
 
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--cream)', marginTop: 8 }}>Öffnungszeiten</h3>
             {DAYS.map(day => (
-              <div key={day} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ width: 90, fontSize: 12, color: 'var(--stone)' }}>{day}</span>
-                <input {...inp} placeholder="09:00 - 18:00" value={hours[day] || ''}
-                  onChange={e => setHours(p => ({ ...p, [day]: e.target.value }))} style={{ flex: 1 }} />
+              <div key={day.key} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ width: 90, fontSize: 12, color: 'var(--stone)' }}>{day.label}</span>
+                <input {...inp} placeholder="09:00 - 18:00" value={hours[day.key] || ''}
+                  onChange={e => setHours(p => ({ ...p, [day.key]: e.target.value }))} style={{ flex: 1 }} />
               </div>
             ))}
 

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getServerSession } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { ListingError, getOwnedSalon, requireOwnedSalon } from '@/modules/rentals/listing.service'
+import { openingHoursSchema } from '@/lib/opening-hours'
 
 /**
  * Salon-Stammdaten des eingeloggten Anbieters.
@@ -15,15 +16,11 @@ import { ListingError, getOwnedSalon, requireOwnedSalon } from '@/modules/rental
  * Ein zweites Format hätte die Buchungslogik still ausgehebelt.
  */
 
-const DAY_KEYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] as const
-const HOURS_RE = /^(?:Geschlossen|\d{1,2}:\d{2}\s*[–-]\s*\d{1,2}:\d{2})$/
 
 const patchSchema = z
   .object({
     description: z.string().trim().max(4000).optional(),
-    opening_hours: z
-      .record(z.enum(DAY_KEYS), z.string().regex(HOURS_RE, 'Format: "09:00 - 18:00" oder "Geschlossen"'))
-      .optional(),
+    opening_hours: openingHoursSchema.optional(),
     logo_url: z.string().max(500).nullable().optional(),
     gallery: z.array(z.string().max(500)).max(24).optional(),
   })

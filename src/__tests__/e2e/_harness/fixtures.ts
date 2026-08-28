@@ -31,6 +31,16 @@ export const IDS = {
   bookingCompletedFremd: '66666666-6666-4666-8666-666666666668',
   bookingCompletedSalonZwei: '66666666-6666-4666-8666-666666666669',
   unknown: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  // Shop (Track 14): zwei Produkte desselben Salons, eines teuer, eines
+  // billig — die Konstellation, mit der sich der Stueckpreis ueber eine
+  // fremde Variante frei waehlen liess.
+  seller: '16161616-1616-4161-8161-161616161616',
+  productTeuer: '17171717-1717-4171-8171-171717171717',
+  productBillig: '17171717-1717-4171-8171-171717171718',
+  productInaktiv: '17171717-1717-4171-8171-171717171719',
+  productUnbegrenzt: '17171717-1717-4171-8171-17171717171a',
+  variantBillig: '18181818-1818-4181-8181-181818181818',
+  variantGratis: '18181818-1818-4181-8181-181818181819',
 } as const
 
 /** Eingefrorene „Heute"-Zeit der Suite (siehe freezeTime()) */
@@ -63,6 +73,14 @@ export const RELATIONS: RelationMap = {
   rental_equipment: {
     salons: { table: 'salons', localKey: 'salon_id' },
     salon: { table: 'salons', localKey: 'salon_id' },
+  },
+  cart_items: {
+    products: { table: 'products', localKey: 'product_id' },
+    product_variants: { table: 'product_variants', localKey: 'variant_id' },
+  },
+  order_items: {
+    products: { table: 'products', localKey: 'product_id' },
+    product_variants: { table: 'product_variants', localKey: 'variant_id' },
   },
 }
 
@@ -291,6 +309,89 @@ function seed(): Record<string, Row[]> {
         created_at: '2026-08-30T12:00:00.000Z',
       },
     ],
+    sellers: [
+      {
+        id: IDS.seller,
+        user_id: IDS.owner,
+        salon_id: IDS.salon,
+        seller_type: 'salon',
+        company_name: 'Salon Sonnenschein',
+      },
+    ],
+    products: [
+      {
+        id: IDS.productTeuer,
+        seller_id: IDS.seller,
+        salon_id: IDS.salon,
+        name: 'Profi-Schere',
+        slug: 'profi-schere',
+        price_cents: 24900,
+        images: [],
+        target: 'b2c',
+        is_active: true,
+        stock_quantity: 2,
+        is_unlimited_stock: false,
+      },
+      {
+        id: IDS.productBillig,
+        seller_id: IDS.seller,
+        salon_id: IDS.salon,
+        name: 'Haargummi',
+        slug: 'haargummi',
+        price_cents: 199,
+        images: [],
+        target: 'b2c',
+        is_active: true,
+        stock_quantity: 50,
+        is_unlimited_stock: false,
+      },
+      {
+        id: IDS.productInaktiv,
+        seller_id: IDS.seller,
+        salon_id: IDS.salon,
+        name: 'Ausgelistetes Shampoo',
+        slug: 'ausgelistetes-shampoo',
+        price_cents: 1500,
+        images: [],
+        target: 'b2c',
+        is_active: false,
+        stock_quantity: 10,
+        is_unlimited_stock: false,
+      },
+      {
+        id: IDS.productUnbegrenzt,
+        seller_id: IDS.seller,
+        salon_id: IDS.salon,
+        name: 'Gutschein zum Ausdrucken',
+        slug: 'gutschein',
+        price_cents: 2500,
+        images: [],
+        target: 'b2c',
+        is_active: true,
+        stock_quantity: 0,
+        is_unlimited_stock: true,
+      },
+    ],
+    product_variants: [
+      {
+        id: IDS.variantBillig,
+        product_id: IDS.productBillig,
+        name: '10er-Pack',
+        price_cents: 199,
+        is_active: true,
+        stock_quantity: null,
+      },
+      {
+        id: IDS.variantGratis,
+        product_id: IDS.productBillig,
+        name: 'Gratis-Muster',
+        price_cents: 0,
+        is_active: true,
+        stock_quantity: 5,
+      },
+    ],
+    cart_items: [],
+    order_items: [],
     provider_stripe_accounts: [
       {
         id: '14141414-1414-4141-8141-141414141414',

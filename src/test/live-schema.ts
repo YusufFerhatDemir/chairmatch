@@ -291,6 +291,39 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
   favorites: ['id', 'customer_id', 'salon_id', 'created_at'],
 
   /**
+   * Shop-Strecke. Spaltensonde 2026-08-28 gegen die Produktionsdatenbank.
+   *
+   * Zwei Befunde, die hier festgehalten gehoeren:
+   *   - `product_variants` hat KEIN `is_unlimited_stock`. Der Bestand einer
+   *     Variante ist `stock_quantity`; fuehrt sie keinen, gilt die Regel des
+   *     Produkts.
+   *   - `orders` hat KEIN `cancelled_at`. Ein Storno steht allein in
+   *     `status`/`payment_status`.
+   */
+  products: [
+    'id', 'seller_id', 'salon_id', 'category_id', 'name', 'slug', 'description',
+    'price_cents', 'brand', 'images', 'target', 'stock_quantity',
+    'is_unlimited_stock', 'is_active', 'is_featured', 'created_at', 'updated_at',
+  ],
+  product_variants: [
+    'id', 'product_id', 'name', 'sku', 'price_cents', 'stock_quantity',
+    'is_active', 'created_at',
+  ],
+  cart_items: ['id', 'customer_id', 'product_id', 'variant_id', 'quantity', 'created_at'],
+  orders: [
+    'id', 'order_number', 'customer_id', 'subtotal_cents', 'shipping_cents',
+    'total_cents', 'status', 'payment_status', 'stripe_session_id',
+    'stripe_payment_intent', 'shipping_name', 'shipping_street', 'shipping_city',
+    'shipping_postal_code', 'tracking_number', 'tracking_url', 'created_at',
+    'updated_at',
+  ],
+  order_items: [
+    'id', 'order_id', 'product_id', 'variant_id', 'seller_id', 'quantity',
+    'unit_price_cents', 'total_cents',
+  ],
+  sellers: ['id', 'user_id', 'salon_id', 'seller_type', 'company_name'],
+
+  /**
    * `deleted_at`, `delete_requested_at`, `is_active` und `avatar_url` sind
    * live vorhanden (Spaltensonde 2026-08-27). Sie stehen hier, weil der
    * Nachrichten-Versand den Empfaenger gegen sie prueft: an ein

@@ -338,6 +338,26 @@ function dateienUnter(dir: string, treffer: string[] = []): string[] {
   return treffer
 }
 
+/**
+ * Der Baumlauf einmal je Datei statt je Test.
+ *
+ * Beide Tests lesen denselben Baum; unter voller Suite hat der doppelte Lauf
+ * das 5-Sekunden-Standardlimit von Vitest gerissen (7,1 s), waehrend er
+ * einzeln in 1,8 s durchlief — ein Zeitfehler, kein Befund. Deshalb einmal
+ * merken und beiden Tests ein eigenes Limit geben.
+ */
+const dateiCache = new Map<string, string[]>()
+function dateienUnterGemerkt(dir: string): string[] {
+  const gemerkt = dateiCache.get(dir)
+  if (gemerkt) return gemerkt
+  const frisch = dateienUnter(dir)
+  dateiCache.set(dir, frisch)
+  return frisch
+}
+
+/** Grosszuegiges Limit: der Baumlauf haengt an der Plattenlast, nicht am Code. */
+const STATIK_TIMEOUT = 30_000
+
 describe('Statische Absicherung', () => {
   /** Kommentarzeilen raus — beschrieben werden darf der Befund, benutzt nicht. */
   function ohneKommentare(quelltext: string): string {
@@ -351,14 +371,14 @@ describe('Statische Absicherung', () => {
   }
 
   it('liest im Produktivcode nirgends eine Rolle aus user_metadata', () => {
-    const treffer = dateienUnter('src')
+    const treffer = dateienUnterGemerkt('src')
       .filter(p => !p.includes('__tests__'))
       .filter(p =>
         /user_metadata\s*(\?\.|\.)\s*role/.test(ohneKommentare(readFileSync(p, 'utf-8'))),
       )
 
     expect(treffer).toEqual([])
-  })
+  }, STATIK_TIMEOUT)
 
   it('laesst keine API-Route ihre Session an der Nachpruefung vorbei holen', () => {
     // `auth()` liefert nur den Token. Die Rolle darin ist bis zu einem Jahr
@@ -366,12 +386,12 @@ describe('Statische Absicherung', () => {
     // Ausnahmen: der NextAuth-Handler selbst und `signOut`.
     const erlaubt = new Set(['src/app/api/auth/[...nextauth]/route.ts'])
 
-    const treffer = dateienUnter('src/app/api')
+    const treffer = dateienUnterGemerkt('src/app/api')
       .filter(p => !erlaubt.has(p))
       .filter(p => /import\s*\{[^}]*\bauth\b[^}]*\}\s*from\s*'@\/modules\/auth\/auth\.config'/.test(
         readFileSync(p, 'utf-8'),
       ))
 
     expect(treffer).toEqual([])
-  })
+  }, STATIK_TIMEOUT)
 })

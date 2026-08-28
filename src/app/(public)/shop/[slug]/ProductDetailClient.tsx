@@ -10,6 +10,9 @@ interface Variant {
   name: string
   price_cents: number
   is_active: boolean
+  /** `product_variants` hat live KEIN `is_unlimited_stock` — null heisst
+   *  „kein eigener Bestand", dann gilt die Regel des Produkts. */
+  stock_quantity?: number | null
 }
 
 interface ProductData {
@@ -39,14 +42,24 @@ export default function ProductDetailClient({ product: p }: Props) {
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(variants[0] || null)
   const [quantity, setQuantity] = useState(1)
   const [adding, setAdding] = useState(false)
+  const [cartError, setCartError] = useState('')
   const [imgIdx, setImgIdx] = useState(0)
 
-  const activePrice = selectedVariant?.price_cents || p.price_cents
+  // `??` statt `||`: eine Variante fuer 0 Cent hat einen Preis. Mit `||` stand
+  // hier der volle Produktpreis — und der Server rechnete bis Track 14 genauso.
+  const activePrice = selectedVariant?.price_cents ?? p.price_cents
   const images = p.images?.length > 0 ? p.images : [{ url: '', alt: p.name, sort_order: 0 }]
-  const inStock = p.is_unlimited_stock || p.stock_quantity > 0
+  // Fuehrt die gewaehlte Variante einen eigenen Bestand, ist er massgeblich —
+  // dieselbe Regel wie in marketplace.service.ts (availableStock).
+  const variantStock = selectedVariant?.stock_quantity
+  const inStock =
+    variantStock !== null && variantStock !== undefined
+      ? variantStock > 0
+      : p.is_unlimited_stock || p.stock_quantity > 0
 
   async function handleAddToCart() {
     setAdding(true)
+    setCartError('')
     try {
       const res = await fetch('/api/cart', {
         method: 'POST',
@@ -61,6 +74,15 @@ export default function ProductDetailClient({ product: p }: Props) {
         window.location.href = '/auth'
         return
       }
+      // Die Route lehnt seit Track 14 wirklich ab (ausverkauft, ausgelistet,
+      // Menge). Vorher wurde die Antwort verworfen — der Knopf meldete
+      // Erfolg, im Warenkorb lag nichts.
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null
+        setCartError(body?.error || 'Artikel konnte nicht hinzugefügt werden.')
+      }
+    } catch {
+      setCartError('Artikel konnte nicht hinzugefügt werden.')
     } finally {
       setAdding(false)
     }
@@ -167,6 +189,12 @@ export default function ProductDetailClient({ product: p }: Props) {
               {!inStock ? 'Ausverkauft' : adding ? 'Wird hinzugefügt...' : 'In den Warenkorb'}
             </button>
           </div>
+
+          {cartError && (
+            <p style={{ fontSize: 12, color: 'var(--red)', marginTop: -8, marginBottom: 16 }}>
+              {cartError}
+            </p>
+          )}
 
           {/* Description */}
           {p.description && (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe, STRIPE_WEBHOOK_SECRET, createRefund } from '@/lib/stripe'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { calculateNewCustomerCommission, calculateRentalCommission } from '@/modules/marketplace/commission.service'
+import { claimStockForOrder, releaseStockForOrder } from '@/modules/marketplace/marketplace.service'
 import { calculateCommission } from '@/lib/marketplace-rules'
 import { createNotification } from '@/lib/notifications'
 import {
@@ -379,7 +380,38 @@ async function fulfillProductOrder(
     return
   }
 
-  // (3) CAS-Claim
+  // (3) Bestands-Defense: zwischen Bestellung und Zahlung ausverkauft?
+  //
+  // Der Bestand wird erst hier gebucht — an der Stelle, an der das Geld
+  // tatsaechlich angekommen ist — und atomar je Position (Compare-and-Swap in
+  // claimStockForOrder). Reicht er nicht, geht die Zahlung zurueck und die
+  // Bestellung wird storniert; dieselbe Linie wie die Overlap-Defense der
+  // Miete. Vorher wurde `stock_quantity` NIRGENDS geprueft und NIRGENDS
+  // abgezogen: ein Produkt mit 0 Stueck war unbegrenzt verkaeuflich.
+  const stock = await claimStockForOrder(orderId)
+  if (!stock.ok) {
+    console.error(`order ${orderId}: Bestand nicht buchbar (${stock.reason}) — Storno + Refund`)
+    if (paymentIntent) await createRefund(paymentIntent).catch(console.error)
+    await supabase
+      .from('orders')
+      .update({
+        status: 'cancelled',
+        payment_status: 'refunded',
+        stripe_payment_intent: paymentIntent,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+    await supabase.from('audit_logs').insert({
+      user_id: meta.user_id || null,
+      action: 'order_out_of_stock_refunded',
+      entity: 'order',
+      entity_id: orderId,
+      details: { reason: stock.reason, payment_intent: paymentIntent },
+    })
+    return
+  }
+
+  // (4) CAS-Claim
   const { data: claimed } = await supabase
     .from('orders')
     .update({
@@ -392,7 +424,12 @@ async function fulfillProductOrder(
     .neq('payment_status', 'paid')
     .select('id')
 
-  if (!claimed || claimed.length === 0) return
+  // Parallele Zustellung desselben Events hat die Bestellung schon bezahlt
+  // gesetzt — der eben gebuchte Bestand gehoert dann nicht uns.
+  if (!claimed || claimed.length === 0) {
+    await releaseStockForOrder(orderId).catch(console.error)
+    return
+  }
 
   const { error: payError } = await supabase.from('payments').insert({
     source_type: 'order',
@@ -884,7 +921,13 @@ export async function POST(req: NextRequest) {
           })
           .eq('stripe_payment_intent', paymentIntent)
 
-        await supabase
+        // Bei der Bestellung haengt am Storno noch der Bestand: die bezahlte
+        // Ware wurde beim Zahlungseingang abgezogen und gehoert nach der
+        // Erstattung zurueck ins Regal. `.neq('payment_status', 'refunded')`
+        // ist der Idempotenz-Riegel — Stripe stellt `charge.refunded`
+        // mehrfach zu, und ohne ihn wuerde jede Zustellung den Bestand
+        // erneut hochzaehlen.
+        const { data: refundedOrders } = await supabase
           .from('orders')
           .update({
             payment_status: 'refunded',
@@ -892,6 +935,12 @@ export async function POST(req: NextRequest) {
             updated_at: new Date().toISOString(),
           })
           .eq('stripe_payment_intent', paymentIntent)
+          .neq('payment_status', 'refunded')
+          .select('id')
+
+        for (const refunded of refundedOrders ?? []) {
+          await releaseStockForOrder(refunded.id as string).catch(console.error)
+        }
       }
       break
     }

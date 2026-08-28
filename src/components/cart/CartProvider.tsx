@@ -53,7 +53,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0)
   const totalCents = items.reduce((sum, i) => {
-    const price = i.product_variants?.price_cents || i.products?.price_cents || 0
+    // `??` statt `||`: eine Variante fuer 0 Cent hat einen Preis. Mit `||`
+    // zeigte der Warenkorb dafuer den vollen Produktpreis an — dieselbe
+    // Verwechslung, die serverseitig die Bestellsumme aufgeblaeht hat.
+    const price = i.product_variants?.price_cents ?? i.products?.price_cents ?? 0
     return sum + price * i.quantity
   }, 0)
 

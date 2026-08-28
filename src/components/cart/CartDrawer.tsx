@@ -79,7 +79,8 @@ export function CartDrawer() {
             items.map(item => {
               const product = item.products
               const variant = item.product_variants
-              const price = variant?.price_cents || product?.price_cents || 0
+              // `??` statt `||` — siehe CartProvider.
+              const price = variant?.price_cents ?? product?.price_cents ?? 0
               const image = product?.images?.[0]?.url
 
               return (
