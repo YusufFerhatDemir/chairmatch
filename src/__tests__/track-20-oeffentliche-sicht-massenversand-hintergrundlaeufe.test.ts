@@ -408,6 +408,7 @@ describe('Track 20 — /api/auth/phone/send bezahlt nicht mehr jede SMS der Welt
         { phone: '+8815551234567' },
         { 'x-forwarded-for': '198.51.100.5' },
       ),
+      undefined,
     )
 
     expect(res.status).toBe(400)
@@ -428,6 +429,7 @@ describe('Track 20 — /api/auth/phone/send bezahlt nicht mehr jede SMS der Welt
           { phone: `+4917012${String(i).padStart(5, '0')}` },
           { 'x-forwarded-for': ip },
         ),
+        undefined,
       )
       status.push(res.status)
     }
@@ -443,6 +445,7 @@ describe('Track 20 — /api/auth/phone/send bezahlt nicht mehr jede SMS der Welt
         { phone: '0170 1234567' },
         { 'x-forwarded-for': '198.51.100.7' },
       ),
+      undefined,
     )
 
     expect(res.status).toBe(200)
