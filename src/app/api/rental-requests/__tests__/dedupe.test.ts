@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server'
 import { fakeDb, type Row } from '@/test/fake-supabase'
 import { NOTIFICATION_TABLE } from '@/lib/notifications'
 import { applyLiveSchema } from '@/test/live-schema'
+import { __resetRateLimits } from '@/lib/rate-limit'
 
 /**
  * Doppel-Submit-Schutz fuer Mietanfragen (Track 5).
@@ -157,6 +158,11 @@ const notifications = () => fakeDb.rows(NOTIFICATION_TABLE)
 beforeEach(() => {
   seedDatabase()
   mail.sent = []
+  // Track 22: die Route hat seitdem ein eigenes Limit (20/h je Konto,
+  // 10/h je Mietobjekt). Diese Datei schickt bewusst viele Anfragen auf
+  // DASSELBE Objekt — ohne Ruecksetzen laufen die spaeteren Tests in 429
+  // statt in den Pfad, den sie pruefen wollen.
+  __resetRateLimits()
   auth.session = { user: { id: REQUESTER_ID, name: 'Marko Fischer', email: 'marko@example.com' } }
   // Wartefenster kurz halten — die Logik bleibt dieselbe, der Testlauf schnell.
   DEDUPE_SETTINGS.pollAttempts = 4

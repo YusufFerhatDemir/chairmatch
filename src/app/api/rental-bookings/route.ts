@@ -7,6 +7,7 @@ import { createNotification } from '@/lib/notifications'
 import { appOriginFromRequest } from '@/lib/app-origin'
 import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
 import { berlinToday } from '@/lib/berlin-time'
+import { inclusiveDayCount, isCalendarDate } from '@/lib/iso-date'
 
 /**
  * Rental-Bookings API — der fehlende End-to-End-Pfad für Stuhl-/Liegen-/Raum-Miete.
@@ -26,12 +27,13 @@ const createSchema = z.object({
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'endDate: YYYY-MM-DD'),
 })
 
-/** Anzahl Miettage (inklusive Start- und Endtag) */
-function rentalDays(startDate: string, endDate: string): number {
-  const start = new Date(startDate + 'T12:00:00Z').getTime()
-  const end = new Date(endDate + 'T12:00:00Z').getTime()
-  return Math.round((end - start) / 86_400_000) + 1
-}
+/**
+ * Anzahl Miettage (inklusive Start- und Endtag).
+ *
+ * Seit Track 22 in src/lib/iso-date.ts, weil die Rechnung hier NaN liefern
+ * konnte und NaN an beiden Riegeln darunter vorbeigekommen ist. Siehe dort.
+ */
+const rentalDays = inclusiveDayCount
 
 /**
  * Server-seitige Preisberechnung:
@@ -75,6 +77,12 @@ export async function POST(req: NextRequest) {
       )
     }
     const { equipmentId, startDate, endDate } = parsed.data
+
+    // Die Zod-Regex prueft die FORM, nicht den Tag: `2026-02-30` und
+    // `2026-13-45` kommen bis hierher durch. Siehe src/lib/iso-date.ts.
+    if (!isCalendarDate(startDate) || !isCalendarDate(endDate)) {
+      return NextResponse.json({ error: 'Ungültiges Datum' }, { status: 400 })
+    }
 
     if (endDate < startDate) {
       return NextResponse.json({ error: 'endDate liegt vor startDate' }, { status: 400 })

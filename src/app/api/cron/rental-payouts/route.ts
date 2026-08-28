@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { isAuthorizedCron } from '@/lib/cron-auth'
 import { getStripe, isStripeConfigured } from '@/lib/stripe'
+import { berlinToday } from '@/lib/berlin-time'
 
 // Zombie-Pendings freigeben. Regulär erledigt das der
 // checkout.session.expired-Webhook nach 30 Min — dieser Fallback greift,
@@ -44,7 +45,15 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = getSupabaseAdmin()
-  const today = new Date().toISOString().slice(0, 10)
+  // Berliner Kalendertag, nicht UTC. Der Cron laeuft um 04:00 Berliner Zeit,
+  // also 02:00 bzw. 03:00 UTC — da stimmen beide Tage noch ueberein. Der
+  // Vergleich `rental.start_date > today` entscheidet aber darueber, ob heute
+  // ausgezahlt wird, und `start_date` ist ein Berliner Kalendertag. Bleibt
+  // der Vergleichswert in UTC, haengt die Auszahlung an der Startzeit des
+  // Crons statt an der Miete: eine Verschiebung auf 01:00 Berliner Zeit
+  // (Sommerzeit: 23:00 UTC des Vortags) haette jede am selben Tag beginnende
+  // Miete um 24 Stunden verspaetet, ohne dass sich am Code etwas aendert.
+  const today = berlinToday()
 
   // Ohne STRIPE_SECRET_KEY sind keine Transfers möglich — kontrolliert mit 503
   // antworten (Cron bleibt im Vercel-Dashboard als fehlgeschlagen sichtbar)

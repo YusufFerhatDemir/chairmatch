@@ -6,6 +6,7 @@ import type { NextRequest } from 'next/server'
 import { fakeDb, type Row } from '@/test/fake-supabase'
 import { NOTIFICATION_TABLE } from '@/lib/notifications'
 import { applyLiveSchema } from '@/test/live-schema'
+import { __resetRateLimits } from '@/lib/rate-limit'
 
 /**
  * E2E der Kette Mietanfrage → E-Mail → email_delivery_log.
@@ -152,6 +153,8 @@ beforeEach(() => {
   seedDatabase()
   mail.sent = []
   mail.mode = 'ok'
+  // Track 22: eigenes Limit der Route — siehe dedupe.test.ts.
+  __resetRateLimits()
   auth.session = { user: { id: REQUESTER_ID, name: 'Marko Fischer', email: 'marko@example.com' } }
 })
 

@@ -110,7 +110,23 @@ async function fulfillRentalPayment(
   }
 
   // --- Regulärer Abschluss ---
-  await supabase
+  //
+  // CAS-Claim statt blossem Update (Track 22). Der Lesecheck oben
+  // (`rental.payment_status === 'paid'`) ist eine Momentaufnahme: zwischen
+  // dem SELECT und diesem UPDATE passt eine zweite Zustellung desselben
+  // Events. Stripe stellt Webhooks ausdruecklich mehr als einmal zu und
+  // wiederholt nach einem Timeout — und was hinter diesem Update noch kommt
+  // (Payment-Zeile, Plattform-Transaktion, Provision, Audit-Log, zwei
+  // Benachrichtigungen), braucht genug Zeit, damit dieser Timeout eintritt.
+  //
+  // Ohne Claim gewinnen beide Zustellungen: zwei Zeilen in `payments` fuer
+  // EINE Miete (und `payments` ist die Quelle jeder Umsatzzahl in
+  // /api/admin/mis, /api/admin/kpi und /api/investor), zwei Audit-Eintraege,
+  // zwei Benachrichtigungen an beide Seiten. Der Termin-Zweig
+  // (fulfillBookingPayment) und der Bestell-Zweig (fulfillProductOrder)
+  // machen genau deshalb seit Track 16 einen Claim — der Miet-Zweig war der
+  // einzige ohne.
+  const { data: claimed, error: claimError } = await supabase
     .from('rental_bookings')
     .update({
       payment_status: 'paid',
@@ -119,6 +135,19 @@ async function fulfillRentalPayment(
       updated_at: new Date().toISOString(),
     })
     .eq('id', rentalId)
+    .neq('payment_status', 'paid')
+    .select('id')
+
+  if (claimError) {
+    console.error(`rental ${rentalId}: Zahlungs-Claim fehlgeschlagen`, claimError.message)
+    return
+  }
+  if (!claimed || claimed.length === 0) {
+    // Eine parallele Zustellung war schneller und hat gebucht. Hier ist
+    // nichts mehr zu tun — insbesondere KEINE zweite Payment-Zeile.
+    console.warn(`rental ${rentalId}: Zahlung bereits verbucht (parallele Zustellung) — uebersprungen`)
+    return
+  }
 
   const { error: payError } = await supabase.from('payments').insert({
     source_type: 'rental_booking',
@@ -868,6 +897,11 @@ export async function POST(req: NextRequest) {
           .update({ status: 'cancelled', payment_status: 'failed', updated_at: new Date().toISOString() })
           .eq('id', meta.rental_booking_id)
           .eq('status', 'pending')
+          // Wie im expired-Zweig darunter: eine bereits verbuchte Zahlung
+          // darf ein spaeter eintreffendes Fehlschlag-Event nicht mehr
+          // umwerfen. Der Statusguard allein traegt das nur, solange der
+          // Erfolgspfad `status` und `payment_status` gemeinsam setzt.
+          .neq('payment_status', 'paid')
       }
       // Termin: der Zahlungsversuch ist gescheitert, der Termin selbst bleibt
       // bestehen (der Kunde kann erneut zahlen) — nur der Zahlungsstatus faellt

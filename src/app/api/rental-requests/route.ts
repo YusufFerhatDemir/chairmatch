@@ -5,6 +5,8 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createNotification } from '@/lib/notifications'
 import { notifyLandlordOfRentalRequest } from '@/lib/rental-request-email'
 import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
+import { berlinToday } from '@/lib/berlin-time'
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit'
 import {
   claimRentalRequest,
   linkRentalRequestClaim,
@@ -33,6 +35,32 @@ import {
  */
 
 const UNITS_PER_DAY = 8
+
+/**
+ * Deckel gegen die Anfrage-Flut (Track 22).
+ *
+ * Der Doppel-Submit-Riegel darunter (rental-request-dedupe) beantwortet eine
+ * andere Frage: er verhindert, dass DERSELBE Inhalt zweimal ankommt. Gegen
+ * Missbrauch hilft er nicht — ein Zeichen mehr in `message` ergibt einen
+ * neuen Fingerprint, eine neue Zeile, eine neue In-App-Benachrichtigung und
+ * eine neue E-Mail an den Vermieter, mit bis zu 400 Zeichen frei waehlbarem
+ * Text darin (MESSAGE_EXCERPT_LIMIT in rental-request-email.ts). Auch die
+ * Idempotenz des Mailversands greift nicht: sie ist an
+ * `rental_requests.id` gebunden, und jede neue Anfrage hat eine neue.
+ *
+ * Uebrig blieb damit allein das Middleware-Limit von 60 Requests pro Minute
+ * und IP — also bis zu 86.400 Mails pro Tag an ein einzelnes Vermieter-
+ * Postfach, von einem einzigen angemeldeten Konto aus, mit unserer
+ * Absenderreputation. Dieselbe Luecke hat Track 20 beim SMS-Versand
+ * geschlossen.
+ *
+ * Zwei Deckel, weil einer die falsche Seite schuetzt: der erste begrenzt,
+ * wie viel EIN Konto insgesamt versendet, der zweite, wie viel EIN Vermieter
+ * abbekommt (sonst verteilt ein Angreifer seine Anfragen ueber mehrere
+ * Konten auf dasselbe Ziel).
+ */
+const PER_USER_LIMIT = { scope: 'rental-request:user', max: 20, windowMs: 60 * 60 * 1000 }
+const PER_EQUIPMENT_LIMIT = { scope: 'rental-request:equipment', max: 10, windowMs: 60 * 60 * 1000 }
 
 /** Wie viele Miettage eine Einheit der jeweiligen Dauer entspricht. */
 const DAYS_PER_UNIT: Record<string, number> = {
@@ -139,7 +167,11 @@ export async function POST(req: NextRequest) {
     }
     const input = parsed.data
 
-    const today = new Date().toISOString().slice(0, 10)
+    // Berliner Kalendertag, nicht UTC. Track 18 hat genau diesen Vergleich in
+    // /api/rental-bookings umgestellt; hier stand er unveraendert weiter und
+    // liess zwischen 00:00 und 02:00 Berliner Zeit eine Anfrage fuer
+    // „gestern" durch — im Sommer zwei Stunden lang, im Winter eine.
+    const today = berlinToday()
     if (input.preferredDate < today) {
       return NextResponse.json({ error: 'Datum liegt in der Vergangenheit' }, { status: 400 })
     }
@@ -147,6 +179,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Bitte schreibe dem Vermieter eine kurze Nachricht' },
         { status: 400 },
+      )
+    }
+
+    // Beide Deckel VOR dem Datenbank-Lookup: wer fremde Objekt-IDs
+    // durchprobiert, verbraucht damit sein eigenes Budget, statt sich am
+    // Ergebnis der Abfrage entlangzuhangeln.
+    const userLimit = checkRateLimit(session.user.id, PER_USER_LIMIT)
+    if (userLimit.limited) {
+      return rateLimitResponse(
+        userLimit,
+        'Zu viele Anfragen in kurzer Zeit. Bitte warte einen Moment.',
+      )
+    }
+    const equipmentLimit = checkRateLimit(input.equipmentId, PER_EQUIPMENT_LIMIT)
+    if (equipmentLimit.limited) {
+      return rateLimitResponse(
+        equipmentLimit,
+        'Dieses Inserat hat gerade sehr viele Anfragen. Bitte versuche es spaeter erneut.',
       )
     }
 

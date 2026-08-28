@@ -279,6 +279,15 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     const forced = this.db.takeForcedError(this.tableName, this.op)
     if (forced) return { data: null, error: forced }
 
+    // Track 22: das Fenster zwischen Lesen und Schreiben aufmachen.
+    //
+    // Ein Compare-and-Swap ist genau dann die einzige Rettung, wenn sich die
+    // Zeile ZWISCHEN dem SELECT und dem UPDATE aendert. Ohne eine Stelle, an
+    // der ein Test diesen Moment betreten kann, laesst sich der Unterschied
+    // zwischen `.eq(id)` und `.eq(id).neq(status)` nicht zeigen — beide
+    // schreiben in einem sequentiellen Nachbau dasselbe.
+    this.db.runRaceHooks(this.tableName, this.op)
+
     // Lesende Zugriffe gegen das Spaltenschema: PostgREST beantwortet
     // `?select=…` und `?spalte=eq.…` mit 42703, wenn es die Spalte nicht
     // gibt — und zwar vor der Rechtepruefung.
@@ -434,6 +443,7 @@ export class FakeSupabase {
   private tables = new Map<string, Row[]>()
   private insertHooks: InsertHook[] = []
   private forcedErrors: { table: string; op: QueryOp; error: PostgrestError; once: boolean }[] = []
+  private raceHooks: { table: string; op: QueryOp; effect: () => void }[] = []
   private idCounter = 0
   /** Tabelle -> erlaubte Spalten. Fehlt ein Eintrag, wird nicht geprueft. */
   private schema = new Map<string, Set<string>>()
@@ -697,6 +707,25 @@ export class FakeSupabase {
       if (err) return err
     }
     return null
+  }
+
+  /**
+   * Einmalig etwas tun, unmittelbar BEVOR eine bestimmte Query ausgefuehrt
+   * wird — der Nachbau des parallelen Schreibers.
+   *
+   * Beispiel: eine Miet-Buchung ist beim SELECT des Webhooks noch offen und
+   * beim nachfolgenden UPDATE bereits bezahlt, weil eine zweite Zustellung
+   * dazwischenkam. Der Hook feuert genau einmal.
+   */
+  raceBefore(table: string, op: QueryOp, effect: () => void): void {
+    this.raceHooks.push({ table, op, effect })
+  }
+
+  runRaceHooks(table: string, op: QueryOp): void {
+    const idx = this.raceHooks.findIndex(h => h.table === table && h.op === op)
+    if (idx === -1) return
+    const [hook] = this.raceHooks.splice(idx, 1)
+    hook.effect()
   }
 
   /** Nächste (oder jede) Query auf table/op mit einem DB-Fehler beantworten */

@@ -41,10 +41,16 @@ afterEach(() => {
 })
 
 describe('Track 21 — Sitzungs-Cookie', () => {
+  // Erhoehtes Zeitlimit nur hier (Track-22-Nachtrag): dieser Test macht den
+  // ERSTEN `resetModules` + Neuimport der Datei und zieht damit den gesamten
+  // auth.config-Graph kalt herein (NextAuth, Supabase, bcrypt). Im
+  // vollstaendigen Lauf ueber 77 parallele Dateien hat das die 5-Sekunden-
+  // Vorgabe zeitweise gerissen — einzeln laeuft der Test in unter einer
+  // Sekunde. Die Zusage bleibt unveraendert, nur die Frist ist ehrlich.
   it('traegt in Produktion den __Secure-Praefix', async () => {
     const config = await ladeConfig('production')
     expect(config.cookies.sessionToken.name).toBe('__Secure-authjs.session-token')
-  })
+  }, 30_000)
 
   it('setzt in Produktion secure, httpOnly und sameSite=lax', async () => {
     const config = await ladeConfig('production')

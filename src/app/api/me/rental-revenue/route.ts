@@ -32,6 +32,31 @@ export const dynamic = 'force-dynamic'
  */
 const NON_REVENUE_STATUSES = new Set(['cancelled', 'canceled', 'declined', 'rejected', 'refunded'])
 
+/**
+ * Umsatz ist Geld, das angekommen ist — nicht Geld, das jemand angekuendigt
+ * hat (Track 22).
+ *
+ * Bis hierher hing `countsAsRevenue` allein am `status`. 'pending' steht auf
+ * keiner Ausschlussliste, also zaehlte eine Buchung, die noch KEINE Zahlung
+ * hat, als Einnahme — und /vermieter/mein-inserat/umsatz filtert genau auf
+ * dieses Feld, summiert daraus „Einnahmen gesamt", rechnet die Auslastung
+ * und leitet daraus eine Preisempfehlung ab („Senke deinen Tagessatz um
+ * 10 %"). Der Leerzustand derselben Seite verspricht dabei woertlich:
+ * „Sobald die erste Buchung BEZAHLT ist, erscheinen hier echte Zahlen."
+ *
+ * Wer solche Zeilen anlegt, muss dafuer nichts bezahlen: POST
+ * /api/rental-bookings legt `status: 'pending' / payment_status: 'unpaid'`
+ * an, BEVOR Stripe ueberhaupt gefragt wird. Bricht man den Checkout ab,
+ * bleibt die Zeile bis zum naechtlichen Cleanup-Cron stehen (bis zu ~28 h).
+ * Ein beliebiges angemeldetes Konto konnte damit die Umsatzkurve, die
+ * Auslastung und die Preisempfehlung eines fremden Vermieters bestimmen.
+ *
+ * Bewusst als Positivliste auf dem ZAHLUNGSstatus: ein neuer Buchungsstatus
+ * soll nicht versehentlich Umsatz werden, nur weil er auf keiner
+ * Ausschlussliste steht.
+ */
+const REVENUE_PAYMENT_STATUSES = new Set(['paid', 'succeeded'])
+
 interface EquipmentRow {
   id: string
   name: string | null
@@ -112,6 +137,7 @@ export async function GET() {
 
     const bookings: RevenueBooking[] = ((bookingRows ?? []) as BookingRow[]).map((b) => {
       const status = b.status ?? 'pending'
+      const paymentStatus = b.payment_status ?? null
       return {
         id: b.id,
         equipmentId: b.equipment_id,
@@ -119,8 +145,10 @@ export async function GET() {
         endDate: b.end_date ?? null,
         totalCents: b.total_cents ?? 0,
         status,
-        paymentStatus: b.payment_status ?? null,
-        countsAsRevenue: !NON_REVENUE_STATUSES.has(status.toLowerCase()),
+        paymentStatus,
+        countsAsRevenue:
+          !NON_REVENUE_STATUSES.has(status.toLowerCase()) &&
+          REVENUE_PAYMENT_STATUSES.has(String(paymentStatus ?? '').toLowerCase()),
       }
     })
 

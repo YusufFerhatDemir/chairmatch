@@ -471,13 +471,20 @@ describe('Track 20 — /api/cron/publish-reviews zaehlt nur echte Freischaltunge
     })
   }
 
-  it('zaehlt einen fehlgeschlagenen RPC-Aufruf nicht als veroeffentlicht', async () => {
+  // Track 22: der Cron ruft `publish_review_pair()` nicht mehr — die Funktion
+  // sucht Miet-Buchungen in `bookings` und hat deshalb NIE etwas
+  // freigeschaltet, ohne dabei einen Fehler zu melden. Der Cron schaltet
+  // jetzt selbst frei. Die Zusage dieses Abschnitts bleibt unveraendert:
+  // gezaehlt wird, was wirklich passiert ist. Nur ist „was passiert ist"
+  // jetzt ein UPDATE statt eines RPC-Aufrufs — und damit ueberhaupt
+  // nachpruefbar.
+  it('zaehlt eine fehlgeschlagene Freischaltung nicht als veroeffentlicht', async () => {
     seedFaelligeBewertung()
-    // `rpc()` wirft nicht — der Fehler steht im Rueckgabewert. Genau das hat
-    // der bisherige try/catch nie gesehen.
-    state.db.onRpc('publish_review_pair', {
-      data: null,
-      error: { code: '42883', message: 'function publish_review_pair does not exist', details: null, hint: null },
+    state.db.failOn('reviews', 'update', {
+      code: '42501',
+      message: 'permission denied for table reviews',
+      details: null,
+      hint: null,
     })
 
     const res = await publishReviews(
@@ -485,12 +492,13 @@ describe('Track 20 — /api/cron/publish-reviews zaehlt nur echte Freischaltunge
     )
     const body = await res.json()
 
+    expect(res.status).toBe(503)
     expect(body.published).toBe(0)
-    expect(body.failed).toBe(1)
     expect(body.ok).toBe(false)
+    expect(JSON.stringify(body)).not.toContain('permission denied')
   })
 
-  it('zaehlt einen erfolgreichen Aufruf als veroeffentlicht', async () => {
+  it('zaehlt eine echte Freischaltung als veroeffentlicht', async () => {
     seedFaelligeBewertung()
 
     const res = await publishReviews(
@@ -501,8 +509,9 @@ describe('Track 20 — /api/cron/publish-reviews zaehlt nur echte Freischaltunge
     expect(body.ok).toBe(true)
     expect(body.published).toBe(1)
     expect(body.failed).toBe(0)
-    expect(state.db.rpcCalls).toHaveLength(1)
-    expect(state.db.rpcCalls[0].fn).toBe('publish_review_pair')
+    // Die Zeile ist wirklich sichtbar — das konnte der Test vorher nicht
+    // pruefen, weil der RPC-Nachbau nichts geschrieben hat.
+    expect(state.db.rows('reviews')[0].published).toBe(true)
   })
 
   it('unterscheidet einen Ausfall der Abfrage von „nichts zu tun"', async () => {
