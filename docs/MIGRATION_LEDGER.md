@@ -37,6 +37,17 @@
   - rental_equipment_time_window ✓
 - **schema_migrations**: version=20260828230000 ✓
 
+## Offen (committet, NICHT angewendet)
+
+| Repo-Datei | Repo-Timestamp | Track | Inhalt |
+|---|---|---|---|
+| `20260828170738_benachrichtigungswege_haertung.sql` | 20260828170738 | CM23 | `push_subscriptions.updated_at`; Arbiter-fähiger UNIQUE auf `wait_list(email, city)`; 6 CHECK-Constraints (Endpunkt https, Schlüsselmaterial, E-Mail normalisiert, Stadt nicht leer, `choices` vollständig); `DROP POLICY cookie_consents_insert_anon`; `REVOKE ALL … FROM anon` auf `push_subscriptions`, `notification_log`, `wait_list`, `cookie_consents` |
+
+Der Produktivcode aus CM23 läuft **ohne** diese Migration: er schreibt kein
+`updated_at` und benutzt an den betroffenen Stellen kein `ON CONFLICT` mehr.
+Die Migration schreibt die Regeln zusätzlich in die Datenbank; jeder Constraint
+zählt vorher die verletzenden Zeilen und bricht mit klarer Meldung ab.
+
 ## Gesamtstand
 
 - **Total Migrationen in Supabase**: 49

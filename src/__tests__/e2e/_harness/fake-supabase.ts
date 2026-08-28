@@ -299,6 +299,23 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     const rows = this.db.rows(this.tableName)
 
     if (this.op === 'insert') {
+      // ON CONFLICT braucht einen UNIQUE-Index auf genau den genannten
+      // Spalten. Der Fake hat das bis Track 23 nicht geprueft, sondern die
+      // Spaltenliste einfach als Schluessel benutzt — und genau deshalb war
+      // die Suite gruen, waehrend live JEDER Wartelisten-Eintrag und JEDE
+      // Push-Anmeldung an 42P10 scheiterte.
+      if (this.conflictKeys && this.db.arbiterPflicht) {
+        const arbiter = this.db.findArbiterIndex(this.tableName, this.conflictKeys)
+        if (!arbiter) {
+          return {
+            data: null,
+            error: pgError(
+              '42P10',
+              'there is no unique or exclusion constraint matching the ON CONFLICT specification',
+            ),
+          }
+        }
+      }
       const inserted: Row[] = []
       for (const raw of this.payload) {
         const keys = this.conflictKeys
@@ -328,6 +345,17 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
         const missing = this.db.findMissingNotNull(this.tableName, row)
         if (missing) {
           return { data: null, error: this.db.notNullViolation(this.tableName, missing) }
+        }
+
+        const verletzt = this.db.findUniqueViolation(this.tableName, row)
+        if (verletzt) {
+          return {
+            data: null,
+            error: pgError(
+              '23505',
+              `duplicate key value violates unique constraint on (${verletzt.columns.join(', ')})`,
+            ),
+          }
         }
 
         const hookError = this.db.runInsertHooks(this.tableName, row)
@@ -697,6 +725,74 @@ export class FakeSupabase {
   }
 
   /** Constraint-Simulation (z.B. EXCLUDE rental_bookings_no_overlap) */
+  /**
+   * UNIQUE-Indizes der Tabelle. Gebraucht wird davon genau eine Eigenschaft:
+   * ob eine ON-CONFLICT-Angabe einen Arbiter findet.
+   *
+   * `partiell: true` steht fuer einen Index mit WHERE-Klausel
+   * (`uq_favorites_customer_equipment ... WHERE equipment_id IS NOT NULL`).
+   * Ein solcher Index kommt als Arbiter NUR in Frage, wenn die Anfrage das
+   * Praedikat mitliefert — PostgREST kann das ueber `on_conflict=` nicht,
+   * also nie. Deshalb zaehlt er hier grundsaetzlich nicht.
+   */
+  private uniqueIndizes: { table: string; columns: string[]; partiell: boolean }[] = []
+  /** Erst nach `requireArbiterIndex()` wird ON CONFLICT streng geprueft. */
+  arbiterPflicht = false
+
+  addUniqueIndex(table: string, columns: string[], opts?: { partiell?: boolean }): this {
+    this.uniqueIndizes.push({ table, columns, partiell: opts?.partiell === true })
+    return this
+  }
+
+  /**
+   * Schaltet die 42P10-Pruefung ein.
+   *
+   * Bewusst opt-in: die Bestandstests registrieren ihre Indizes noch nicht,
+   * und eine Pflicht ohne Registrierung wuerde jeden Upsert scheitern lassen —
+   * also genau das Gegenteil dessen, was hier belegt werden soll.
+   */
+  requireArbiterIndex(): this {
+    this.arbiterPflicht = true
+    return this
+  }
+
+  /**
+   * Verletzt `row` einen registrierten UNIQUE-Index?
+   *
+   * NULL-Semantik wie in Postgres: ein Index mit einer NULL in einer seiner
+   * Spalten kollidiert nicht (NULLs gelten als verschieden). Ein PARTIELLER
+   * Index greift nur, wo sein Praedikat gilt — abgebildet als „alle
+   * Indexspalten sind gesetzt", was auf
+   * `uq_favorites_customer_equipment ... WHERE equipment_id IS NOT NULL`
+   * genau zutrifft. Ein partieller Index taugt nicht als ON-CONFLICT-Arbiter,
+   * erzwingt die Eindeutigkeit aber sehr wohl: genau diese Kombination hat
+   * die Merkliste fuer Inserate lahmgelegt.
+   */
+  findUniqueViolation(table: string, row: Row): { columns: string[] } | null {
+    for (const index of this.uniqueIndizes) {
+      if (index.table !== table) continue
+      if (index.columns.some(c => row[c] === null || row[c] === undefined)) continue
+      const kollision = this.rows(table).some(
+        vorhanden =>
+          vorhanden !== row && index.columns.every(c => vorhanden[c] === row[c]),
+      )
+      if (kollision) return index
+    }
+    return null
+  }
+
+  findArbiterIndex(table: string, columns: string[]): { columns: string[] } | null {
+    if (columns.length === 0) return null
+    const gesucht = new Set(columns)
+    for (const index of this.uniqueIndizes) {
+      if (index.table !== table) continue
+      if (index.partiell) continue
+      if (index.columns.length !== gesucht.size) continue
+      if (index.columns.every(c => gesucht.has(c))) return index
+    }
+    return null
+  }
+
   onInsert(hook: InsertHook): void {
     this.insertHooks.push(hook)
   }

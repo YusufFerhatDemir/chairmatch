@@ -115,12 +115,16 @@ describe('requestIp', () => {
  * liessen sich nicht mehr zusammenfuehren — auch nicht, um sie zu loeschen.
  */
 describe('hashIpWeb ist bitgleich mit hashIp', () => {
+  // 30s statt der 5s-Vorgabe: der Fall laedt die Web-Crypto-Fassung dynamisch
+  // nach und ist im vollen Suite-Lauf schon knapp an der Grenze gescheitert,
+  // ohne dass sich am Ergebnis etwas geaendert haette.
   it.each(['198.51.100.23', '203.0.113.7', '2001:db8::1', 'unknown'])(
     'liefert fuer %s denselben Wert',
     async (ip) => {
       const { hashIpWeb } = await import('@/lib/ip-hash-web')
       expect(await hashIpWeb(ip, ENV)).toBe(hashIp(ip, ENV))
     },
+    30_000,
   )
 
   it('gibt ohne IP und ohne Geheimnis null zurueck — wie die Node-Fassung', async () => {

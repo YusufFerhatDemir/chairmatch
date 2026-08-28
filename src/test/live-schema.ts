@@ -306,7 +306,13 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
    * geraetelokal weiter und sagt das auch — serverseitig speicherbar waere
    * sie erst nach einer Migration.
    */
-  favorites: ['id', 'customer_id', 'salon_id', 'created_at'],
+  // Sonde 2026-08-28: `equipment_id` IST live vorhanden — die Migration
+  // 20260827_favorites_equipment.sql ist eingespielt. Die Liste hier fuehrte
+  // sie nicht, und dadurch antwortete jeder Test der Inserats-Merkliste mit
+  // 42703 („Datenbank noch nicht umgestellt") statt mit dem Fehler, den es
+  // live wirklich gibt: 42P10, weil der zugehoerige UNIQUE-Index PARTIELL ist
+  // (WHERE equipment_id IS NOT NULL) und als ON-CONFLICT-Arbiter nicht taugt.
+  favorites: ['id', 'customer_id', 'salon_id', 'equipment_id', 'created_at'],
 
   /**
    * Shop-Strecke. Spaltensonde 2026-08-28 gegen die Produktionsdatenbank.

@@ -62,8 +62,14 @@ vi.mock('@/lib/stripe', () => ({
   STRIPE_WEBHOOK_SECRET: 'whsec_test_chairmatch',
 }))
 vi.mock('@/lib/push', () => ({
+  // Seit Track 23 gibt `saveSubscription` ein ausgewertetes Ergebnis zurueck
+  // statt `void`: die Route unterscheidet „angelegt", „fremder Endpunkt",
+  // „Limit" und „Datenbankfehler". Ein Mock, der weiter `undefined` liefert,
+  // laesst die Route an `ergebnis.ok` scheitern — hier stand deshalb 500.
+  MAX_ABOS_PRO_KONTO: 20,
   saveSubscription: async (_userId: string, sub: { endpoint: string; p256dh: string; auth: string }) => {
     state.savedSubscription = sub
+    return { ok: true as const, angelegt: true }
   },
 }))
 vi.mock('@/lib/indexing', () => ({ notifyIndexers: vi.fn(async () => undefined) }))

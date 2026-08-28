@@ -75,12 +75,31 @@ export async function POST(req: NextRequest) {
   const supabase = getSupabaseAdmin()
 
   if (action === 'add') {
+    // KEIN `upsert(..., { onConflict: 'customer_id,equipment_id' })`.
+    //
+    // Fuer die Salon-Seite gaebe es dafuer einen Arbiter
+    // (`favorites_customer_salon_unique UNIQUE (customer_id, salon_id)`), fuer
+    // die Inserats-Seite NICHT: der Index aus 20260827_favorites_equipment.sql
+    // ist PARTIELL —
+    //
+    //     CREATE UNIQUE INDEX uq_favorites_customer_equipment
+    //       ON favorites(customer_id, equipment_id)
+    //       WHERE equipment_id IS NOT NULL;
+    //
+    // Ein partieller Index kommt als Arbiter nur in Frage, wenn die Anfrage
+    // sein Praedikat mitliefert. PostgREST schickt ueber `on_conflict=` aber
+    // nur die Spaltenliste; Postgres antwortet deshalb mit 42P10 „there is no
+    // unique or exclusion constraint matching the ON CONFLICT specification".
+    // `favorites.equipment_id` ist live vorhanden (Sonde 28.08.2026), die
+    // Migration also eingespielt — jeder Klick auf „Inserat merken" lief in
+    // diesen Fehler und kam als 500 „Konnte nicht gemerkt werden" zurueck.
+    // Dieselbe Bauart wie in der Warteliste und in der Push-Anmeldung.
+    //
+    // Ein reines INSERT braucht gar keinen Arbiter, und der Fall „schon
+    // gemerkt" ist unten seit jeher als Erfolg behandelt (23505).
     const { error } = await supabase
       .from('favorites')
-      .upsert(
-        { customer_id: session.user.id, [spalte]: zielId },
-        { onConflict: `customer_id,${spalte}` },
-      )
+      .insert({ customer_id: session.user.id, [spalte]: zielId })
     if (error) {
       if (isMissingColumn(error)) {
         return NextResponse.json(
