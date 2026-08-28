@@ -4,7 +4,7 @@ import { sendPushNotification } from '@/lib/push'
 
 /**
  * POST /api/push/send
- * Send a push notification to a user (admin only).
+ * Schickt eine Push-Benachrichtigung an ein Konto (nur Admin).
  * Body: { userId: string, title: string, body: string }
  */
 export async function POST(req: NextRequest) {
@@ -43,10 +43,25 @@ export async function POST(req: NextRequest) {
 
     const result = await sendPushNotification(userId, title, notificationBody)
 
+    // Ein Konfigurationsfehler ist kein Teilergebnis: dann ist NICHTS
+    // rausgegangen und wird auch mit Wiederholen nicht rausgehen. Vorher
+    // antwortete die Route auf jeden Verlauf mit `success: true` — auch auf
+    // „null zugestellt, null versucht".
+    if (result.konfigurationsfehler) {
+      return NextResponse.json(
+        { success: false, error: 'Push ist nicht einsatzbereit (VAPID)', ...result },
+        { status: 503 },
+      )
+    }
+
     return NextResponse.json({
-      success: true,
+      // Ehrlich heisst hier: zugestellt ist zugestellt. Ein Konto ohne
+      // angemeldetes Geraet ergibt `sent: 0` — und dann ist `success: false`
+      // die richtige Auskunft, nicht „gesendet".
+      success: result.sent > 0,
       sent: result.sent,
       failed: result.failed,
+      skipped: result.skipped,
     })
   } catch (err) {
     console.error('[push-send]', err)

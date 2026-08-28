@@ -52,7 +52,7 @@ export interface FakeError {
   message: string
 }
 
-type Op = 'select' | 'insert' | 'update' | 'delete'
+type Op = 'select' | 'insert' | 'upsert' | 'update' | 'delete'
 
 /**
  * Vergleichsoperatoren, die der Produktivcode benutzt. `lt`/`gt` vergleichen
@@ -122,6 +122,21 @@ function notNullViolation(table: string, column: string): FakeError {
   return {
     code: '23502',
     message: `null value in column "${column}" of relation "${table}" violates not-null constraint`,
+  }
+}
+
+/**
+ * Was Postgres liefert, wenn die ON-CONFLICT-Angabe zu keinem UNIQUE-Index
+ * passt. Der Fehler ist der Kern von Track 23: er traf sowohl die Warteliste
+ * (`onConflict: 'email,city'` gegen einen Ausdrucks-Index) als auch die
+ * Push-Anmeldung (`onConflict: 'user_id,endpoint'` gegen ein UNIQUE allein
+ * auf `endpoint`) — beide Male bei JEDEM Aufruf, und beide Male unbemerkt.
+ */
+function keinArbiterIndex(): FakeError {
+  return {
+    code: '42P10',
+    message:
+      'there is no unique or exclusion constraint matching the ON CONFLICT specification',
   }
 }
 
@@ -207,6 +222,8 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   private rowLimit: number | null = null
   private projection: SelectKey[] | null = null
   private orderBy: { column: string; ascending: boolean }[] = []
+  /** Spalten der ON-CONFLICT-Angabe, nur bei `upsert`. */
+  private conflictTargets: string[] | null = null
 
   constructor(
     private readonly db: FakeSupabase,
@@ -216,6 +233,35 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
   insert(payload: Row | Row[]) {
     this.op = 'insert'
     this.payload = Array.isArray(payload) ? payload : [payload]
+    return this
+  }
+
+  /**
+   * `INSERT ... ON CONFLICT (…) DO UPDATE`.
+   *
+   * Der Fake kannte diese Methode bis Track 23 gar nicht — und genau die
+   * beiden Routen, die eine benutzen (Warteliste, Push-Anmeldung), waren
+   * deshalb nie pruefbar: ein Test dafuer scheiterte an
+   * `…upsert is not a function`, also schrieb niemand einen. Beide Routen
+   * sind live an derselben Sache gescheitert, ohne dass es aufgefallen waere.
+   *
+   * Abgebildet wird die Eigenschaft, an der sie gescheitert sind: Postgres
+   * braucht fuer `ON CONFLICT (a, b)` einen UNIQUE-Index auf genau diesen
+   * Spalten. Gibt es ihn nicht, ist das kein stiller Rueckfall auf ein
+   * gewoehnliches INSERT, sondern ein harter Fehler (42P10). Ausdrucks-
+   * Indizes wie `(email, COALESCE(city, ''))` zaehlen dabei NICHT — sie sind
+   * ueber `addUniqueIndex` gar nicht darstellbar, und das ist richtig so:
+   * sie kommen als Arbiter auch in Postgres nicht in Frage.
+   *
+   * Ohne `onConflict` gilt der Primaerschluessel, also `id`.
+   */
+  upsert(payload: Row | Row[], opts?: { onConflict?: string }) {
+    this.op = 'upsert'
+    this.payload = Array.isArray(payload) ? payload : [payload]
+    this.conflictTargets = (opts?.onConflict ?? 'id')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean)
     return this
   }
 
@@ -429,11 +475,19 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     this.db.access.push({
       table: this.table,
       op: this.op,
-      payload: this.op === 'insert' ? this.payload : this.op === 'update' ? [this.patch] : undefined,
+      payload:
+        this.op === 'insert' || this.op === 'upsert'
+          ? this.payload
+          : this.op === 'update'
+            ? [this.patch]
+            : undefined,
     })
 
     const failure =
-      this.db.failures.get(`${this.table}.${this.op}`) ?? this.db.failures.get(`${this.table}.*`)
+      this.db.failures.get(`${this.table}.${this.op}`) ??
+      // Ein injizierter INSERT-Fehler gilt auch fuer den Upsert: er ist einer.
+      (this.op === 'upsert' ? this.db.failures.get(`${this.table}.insert`) : undefined) ??
+      this.db.failures.get(`${this.table}.*`)
     if (failure) return { data: null, error: failure }
 
     const rows = this.db.rows(this.table)
@@ -441,6 +495,50 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: FakeError | null 
     if (this.op === 'select' || this.op === 'delete') {
       const unknownColumn = this.unknownReadColumn()
       if (unknownColumn) return { data: null, error: undefinedColumn(this.table, unknownColumn) }
+    }
+
+    if (this.op === 'upsert') {
+      const arbiter = this.db.findArbiterIndex(this.table, this.conflictTargets ?? [])
+      // `id` ist der Primaerschluessel und immer ein gueltiger Arbiter, auch
+      // ohne eigens registrierten Index.
+      const istPrimaerschluessel =
+        (this.conflictTargets ?? []).length === 1 && this.conflictTargets?.[0] === 'id'
+      if (!arbiter && !istPrimaerschluessel) {
+        return { data: null, error: keinArbiterIndex() }
+      }
+
+      const spalten = arbiter?.columns ?? ['id']
+      const ergebnis: Row[] = []
+      for (const raw of this.payload) {
+        const unknownColumn = this.db.findUnknownColumn(this.table, raw)
+        if (unknownColumn) return { data: null, error: undefinedColumn(this.table, unknownColumn) }
+
+        const treffer = rows.find((existing) =>
+          spalten.every((column) => existing[column] === raw[column]),
+        )
+        if (treffer) {
+          Object.assign(treffer, raw)
+          ergebnis.push(treffer)
+          continue
+        }
+
+        const row: Row = {
+          ...(this.db.hasColumn(this.table, 'id') ? { id: this.db.nextId() } : {}),
+          ...(this.db.hasColumn(this.table, 'created_at')
+            ? { created_at: this.db.timestamp() }
+            : {}),
+          ...raw,
+        }
+        const missing = this.db.findMissingNotNull(this.table, row)
+        if (missing) return { data: null, error: notNullViolation(this.table, missing) }
+        // Ein anderer UNIQUE-Index als der Arbiter fuehrt auch in Postgres zu
+        // 23505 — ON CONFLICT deckt nur den genannten ab.
+        const violated = this.db.findUniqueViolation(this.table, row)
+        if (violated) return { data: null, error: uniqueViolation(violated) }
+        rows.push(row)
+        ergebnis.push(row)
+      }
+      return { data: this.project(ergebnis), error: null }
     }
 
     if (this.op === 'insert') {
@@ -753,6 +851,23 @@ export class FakeSupabase {
       code: 'PGRST205',
       message: `Could not find the table 'public.${table}' in the schema cache`,
     })
+  }
+
+  /**
+   * Der UNIQUE-Index, den Postgres fuer `ON CONFLICT (spalten)` als Arbiter
+   * heranzieht: einer, dessen Spaltenmenge genau die genannte ist. Die
+   * Reihenfolge spielt keine Rolle, die Menge sehr wohl — ein Index auf
+   * `endpoint` ist kein Arbiter fuer `(user_id, endpoint)`.
+   */
+  findArbiterIndex(table: string, columns: string[]): UniqueIndex | null {
+    if (columns.length === 0) return null
+    const gesucht = new Set(columns)
+    for (const index of this.uniques) {
+      if (index.table !== table) continue
+      if (index.columns.length !== gesucht.size) continue
+      if (index.columns.every((c) => gesucht.has(c))) return index
+    }
+    return null
   }
 
   findUniqueViolation(table: string, row: Row): UniqueIndex | null {

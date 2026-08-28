@@ -54,7 +54,21 @@ export async function GET(req: NextRequest) {
       errors.push(`profile ${row.id}: ${error.message}`)
       continue
     }
-    // 2. Delete auth.users via Admin API
+    // 2. Zustellwege raeumen.
+    //
+    // `notification_log` und `push_subscriptions` haengen per ON DELETE
+    // CASCADE an `profiles` — und `profiles` wird hier nicht geloescht,
+    // sondern anonymisiert. Die Kaskade feuert also nie. Ohne diesen Schritt
+    // steht nach der endgueltigen Loeschung weiter das ganze Postfach da:
+    // „Dein Termin am 03.09. 10:00", „Deine Bestellung CM-1042 ist bezahlt
+    // (89,00 EUR)" — Datum, Betrag, Bestellnummer, an einer user_id, die es
+    // in `auth.users` nicht mehr gibt.
+    for (const tabelle of ['notification_log', 'push_subscriptions'] as const) {
+      const { error: raeumFehler } = await supabase.from(tabelle).delete().eq('user_id', row.id)
+      if (raeumFehler) errors.push(`${tabelle} ${row.id}: ${raeumFehler.message}`)
+    }
+
+    // 3. Delete auth.users via Admin API
     try {
       const { error: authErr } = await supabase.auth.admin.deleteUser(row.id)
       if (authErr) errors.push(`auth ${row.id}: ${authErr.message}`)

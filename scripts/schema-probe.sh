@@ -60,6 +60,9 @@ rental_request_dedupe|fingerprint requester_id equipment_id request_id claimed_a
 email_delivery_log|id email_type reference_id recipient_email status provider_message_id error_message subject created_at updated_at
 rental_equipment|id salon_id type name description price_per_day_cents price_per_hour_cents price_per_week_cents price_per_month_cents available_days available_from available_to features is_available images created_at updated_at
 notification_log|id user_id title body type reference_id reference_type is_read created_at
+push_subscriptions|id user_id endpoint p256dh auth created_at
+wait_list|id email city source ip notified_at created_at
+cookie_consents|id session_id choices user_id created_at ip_hash
 user_uploads|id user_id target salon_id equipment_id doc_key bucket storage_path mime_type size_bytes is_public created_at
 salons|id owner_id name city slug gallery logo_url created_at updated_at category is_active opening_hours state street house_number postal_code avg_rating review_count description phone
 bookings|id customer_id salon_id service_id staff_id booking_date start_time end_time status price_cents notes cancellation_reason created_at updated_at provider_id resource_id booking_type payment_status stripe_session_id stripe_payment_intent is_first_visit

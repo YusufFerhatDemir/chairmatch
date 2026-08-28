@@ -92,6 +92,24 @@ export const LIVE_SCHEMA: Record<string, readonly string[]> = {
     'updated_at',
   ],
 
+  // Sonde 2026-08-28: KEIN `updated_at`. Genau darauf lief die Push-Anmeldung
+  // (`saveSubscription` schrieb es) — jeder Aufruf endete in einem Fehler,
+  // und die Tabelle blieb dauerhaft leer. `endpoint` ist live UNIQUE, aber
+  // ALLEIN: ein `ON CONFLICT (user_id, endpoint)` findet dafuer keinen
+  // Arbiter-Index (42P10).
+  push_subscriptions: ['id', 'user_id', 'endpoint', 'p256dh', 'auth', 'created_at'],
+
+  // Sonde 2026-08-28. Die anlegende Migration (20260515_wait_list.sql) trifft
+  // hier zu — mitsamt ihrem Ausdrucks-Index auf `(email, COALESCE(city,''))`,
+  // an dem der Upsert der Route gescheitert ist.
+  wait_list: ['id', 'email', 'city', 'source', 'ip', 'notified_at', 'created_at'],
+
+  // Sonde 2026-08-28: live weicht die Tabelle von ihrer Migration ab. Der
+  // Migrationstext (20260311_spec_v2.sql) nennt `timestamp`; live gibt es
+  // stattdessen `created_at` und zusaetzlich `ip_hash` — die Spalte fuer den
+  // Zuordnungsnachweis, die bis Track 23 nie beschrieben wurde.
+  cookie_consents: ['id', 'session_id', 'choices', 'user_id', 'created_at', 'ip_hash'],
+
   // Der Code sprach diese Tabelle bis 2026-08-23 als `notifications` an.
   // KEIN `read_at` — das Lesedatum wird nirgends ausgewertet.
   notification_log: [

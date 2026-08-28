@@ -4,6 +4,7 @@ import { getServerSession } from '@/modules/auth/session'
 import { invalidateAccountState } from '@/modules/auth/session'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { dbError } from '@/lib/api-wrapper'
+import { deleteSubscriptionsForUser } from '@/lib/push'
 
 /**
  * DSGVO Art. 17: Konto-Löschung.
@@ -94,12 +95,36 @@ export async function POST(req: NextRequest) {
     return dbError('account-delete', error)
   }
 
+  // Zustellwege sofort schliessen.
+  //
+  // `push_subscriptions.user_id` und `notification_log.user_id` haengen per
+  // ON DELETE CASCADE an `profiles` — nur wird `profiles` hier gar nicht
+  // geloescht, sondern anonymisiert. Die Kaskade feuert also nie, und ohne
+  // diesen Schritt bleiben Geraete-Endpunkt und Postfach eines geloeschten
+  // Kontos stehen. Der Endpunkt ist ein Zustellziel: er gehoert zum Zeitpunkt
+  // des Antrags weg, nicht 30 Tage spaeter.
+  const { error: pushFehler } = await deleteSubscriptionsForUser(userId)
+  if (pushFehler) console.error('[account-delete] push_subscriptions:', pushFehler)
+
+  // Die Warteliste kennt kein Konto — sie ist ueber die E-Mail-Adresse
+  // gefuehrt. Nach diesem Update ist `profiles.email` leer; wer die Adresse
+  // hier nicht austraegt, kann sie danach nicht mehr zuordnen. Es ist die
+  // einzige Stelle, an der ein Wartelisten-Eintrag ueberhaupt endet: eine
+  // Abmeldung gibt es dort nicht.
+  if (kontoEmail) {
+    const { error: warteFehler } = await supabase
+      .from('wait_list')
+      .delete()
+      .eq('email', kontoEmail.toLowerCase())
+    if (warteFehler) console.error('[account-delete] wait_list:', warteFehler.message)
+  }
+
   await supabase.from('audit_logs').insert({
     user_id: userId,
     action: 'ACCOUNT_DELETE_REQUESTED',
     entity: 'profile',
     entity_id: userId,
-    details: { hard_delete_after_days: 30 },
+    details: { hard_delete_after_days: 30, push_abos_geloescht: !pushFehler },
   })
 
   // Der Kontostand-Cache haelt `is_active` sonst noch kurz auf true —
