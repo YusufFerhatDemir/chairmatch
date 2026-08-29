@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import type { DashboardResponse, DashboardTransaction } from '@/modules/provider/dashboard.types'
 import { StatCard, EmptyState, StatusBadge, SectionHeader } from '@/components/dashboard'
 
@@ -108,6 +108,15 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
   const [from, setFrom] = useState<string>('')
   const [to, setTo] = useState<string>('')
   const [page, setPage] = useState(1)
+  const [stripeLaeuft, setStripeLaeuft] = useState<'connect' | 'upgrade' | null>(null)
+  /**
+   * Die Meldung gehoert zu DER Aktion, die sie ausgeloest hat. Ein einzelner
+   * Fehlertext ohne Zuordnung erschien unter beiden Knoepfen gleichzeitig —
+   * ein Fehlschlag beim Connect-Onboarding stand dann auch unter „Upgrade".
+   */
+  const [stripeFehler, setStripeFehler] = useState<{ bereich: 'connect' | 'upgrade'; text: string } | null>(null)
+  /** Aufgeklappte Transaktionszeile (siehe „Details" in der Tabelle). */
+  const [offeneTx, setOffeneTx] = useState<string | null>(null)
 
   const totalPages = Math.max(1, Math.ceil(data.transactions.length / PAGE_SIZE))
   const visibleTxs = useMemo(
@@ -140,12 +149,83 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
     window.location.href = `/api/provider/dashboard/export${qs ? `?${qs}` : ''}`
   }
 
+  /**
+   * Abo-Upgrade und Stripe-Connect-Onboarding — Track 25.
+   *
+   * Beide Knoepfe zeigten bis hierher nur ein alert():
+   *
+   *   'Stripe noch nicht live. Bald verfuegbar.'
+   *   'Stripe-Onboarding wird vorbereitet. Demnaechst verfuegbar.'
+   *
+   * Beide Wege dahinter sind seit langem fertig und getestet:
+   * `POST /api/stripe/checkout` mit `type: 'subscription'` (Track 16: prueft
+   * bei Stripe selbst, ob schon ein Abo laeuft, und antwortet sonst 409) und
+   * `POST /api/stripe/connect` (Track 22/24: Wiederverwendung eines
+   * bestehenden Express-Accounts, 409 bei Mehrdeutigkeit statt eines zweiten
+   * Kontos, 503 bei Lesefehler). `/api/stripe/connect` hatte im gesamten
+   * Repository nicht einen einzigen Aufrufer.
+   *
+   * Warum das jetzt eine EHRLICHERE Anzeige ist, obwohl in der Produktion
+   * gerade kein Stripe-Schluessel gesetzt ist: `stripeUnavailable()` aus
+   * Track 24 antwortet in genau diesem Fall mit 503 und einem Text, der sagt,
+   * was los ist. Der Anbieter liest damit den echten Zustand statt eines fest
+   * verdrahteten Versprechens — und sobald die Schluessel in Vercel stehen,
+   * funktioniert der Knopf ohne weitere Aenderung.
+   */
+  async function stripeWeg(
+    bereich: 'connect' | 'upgrade',
+    pfad: string,
+    body?: Record<string, unknown>,
+  ) {
+    if (stripeLaeuft) return
+    setStripeLaeuft(bereich)
+    setStripeFehler(null)
+    try {
+      const res = await fetch(pfad, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body ?? {}),
+      })
+      const daten = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setStripeFehler({
+          bereich,
+          text: daten?.error || 'Das hat gerade nicht geklappt. Bitte später erneut versuchen.',
+        })
+        return
+      }
+      if (daten?.alreadyOnboarded) {
+        setStripeFehler({
+          bereich,
+          text: daten.message || 'Dein Stripe-Konto ist bereits vollständig eingerichtet.',
+        })
+        return
+      }
+      if (typeof daten?.url === 'string' && daten.url) {
+        // Stripe-gehostete Seite: Onboarding bzw. Checkout.
+        window.location.href = daten.url
+        return
+      }
+      setStripeFehler({ bereich, text: 'Stripe hat keine Weiterleitung geliefert. Bitte später erneut versuchen.' })
+    } catch {
+      setStripeFehler({ bereich, text: 'Verbindung zu Stripe fehlgeschlagen. Bitte später erneut versuchen.' })
+    } finally {
+      setStripeLaeuft(null)
+    }
+  }
+
   function handleUpgrade() {
-    alert('Stripe noch nicht live. Bald verfügbar.')
+    // Die Stufe ergibt sich aus der aktuellen — dieselbe Logik, die schon
+    // die Beschriftung des Knopfes bestimmt.
+    void stripeWeg('upgrade', '/api/stripe/checkout', {
+      type: 'subscription',
+      tier: tier === 'starter' ? 'premium' : 'gold',
+    })
   }
 
   function handleStripeOnboarding() {
-    alert('Stripe-Onboarding wird vorbereitet. Demnächst verfügbar.')
+    void stripeWeg('connect', '/api/stripe/connect')
   }
 
   // ─── Subscription Tier Text ─────────────────────────────
@@ -202,11 +282,15 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
           </div>
           <button
             onClick={handleStripeOnboarding}
+            disabled={stripeLaeuft !== null}
             className="bgold"
-            style={{ maxWidth: 260, width: '100%' }}
+            style={{ maxWidth: 260, width: '100%', opacity: stripeLaeuft === 'connect' ? 0.6 : 1 }}
           >
-            Stripe-Anbindung aktivieren
+            {stripeLaeuft === 'connect' ? 'Wird vorbereitet …' : 'Stripe-Anbindung aktivieren'}
           </button>
+          {stripeFehler?.bereich === 'connect' && (
+            <p style={{ fontSize: 12, color: '#FF9090', margin: 0, lineHeight: 1.5 }}>{stripeFehler.text}</p>
+          )}
         </div>
       )}
 
@@ -367,7 +451,8 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
                 </thead>
                 <tbody>
                   {visibleTxs.map((t) => (
-                    <tr key={t.id} style={{ borderTop: '1px solid var(--border)' }}>
+                    <Fragment key={t.id}>
+                    <tr style={{ borderTop: '1px solid var(--border)' }}>
                       <Td>
                         <span style={{ color: 'var(--cream)' }}>{formatDateTime(t.createdAt)}</span>
                       </Td>
@@ -392,8 +477,18 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
                         <StatusBadge status={statusLabel(t.status)} />
                       </Td>
                       <Td align="right">
+                        {/*
+                          Vorher stand hier ein alert() mit dem Wortlaut
+                          „Noch keine Details verfuegbar." — ein Knopf, der
+                          ansagt, dass er nichts kann. Die Zeile TRAEGT aber
+                          Angaben, die in der Tabelle keine Spalte haben: die
+                          Transaktions-ID (das, wonach der Support fragt), die
+                          Waehrung und der genaue Zeitpunkt. Genau die stehen
+                          jetzt darunter — erfunden wird nichts dazu.
+                        */}
                         <button
-                          onClick={() => alert(`Transaktion ${t.id}\nNoch keine Details verfügbar.`)}
+                          onClick={() => setOffeneTx(offeneTx === t.id ? null : t.id)}
+                          aria-expanded={offeneTx === t.id}
                           style={{
                             background: 'transparent',
                             border: '1px solid var(--border)',
@@ -405,10 +500,45 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
                             cursor: 'pointer',
                           }}
                         >
-                          Details
+                          {offeneTx === t.id ? 'Schließen' : 'Details'}
                         </button>
                       </Td>
                     </tr>
+                    {offeneTx === t.id && (
+                      <tr style={{ background: 'rgba(176,144,96,0.04)' }}>
+                        <td colSpan={8} style={{ padding: '12px 20px' }}>
+                          <dl style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'max-content 1fr',
+                            gap: '6px 16px',
+                            margin: 0,
+                            fontSize: 11,
+                          }}>
+                            <dt style={{ color: 'var(--stone)' }}>Transaktions-ID</dt>
+                            <dd style={{ margin: 0, color: 'var(--cream)', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                              {t.id}
+                            </dd>
+                            <dt style={{ color: 'var(--stone)' }}>Zeitpunkt</dt>
+                            <dd style={{ margin: 0, color: 'var(--cream)' }}>{formatDateTime(t.createdAt)}</dd>
+                            <dt style={{ color: 'var(--stone)' }}>Art</dt>
+                            <dd style={{ margin: 0, color: 'var(--cream)' }}>{txTypeLabel(t.type)}</dd>
+                            <dt style={{ color: 'var(--stone)' }}>Status</dt>
+                            <dd style={{ margin: 0, color: 'var(--cream)' }}>{statusLabel(t.status)}</dd>
+                            <dt style={{ color: 'var(--stone)' }}>Währung</dt>
+                            <dd style={{ margin: 0, color: 'var(--cream)' }}>{t.currency?.toUpperCase() || 'EUR'}</dd>
+                            <dt style={{ color: 'var(--stone)' }}>Brutto</dt>
+                            <dd style={{ margin: 0, color: 'var(--cream)' }}>{formatEURCents(t.amountCents)}</dd>
+                            <dt style={{ color: 'var(--stone)' }}>Provision</dt>
+                            <dd style={{ margin: 0, color: 'var(--cream)' }}>−{formatEURCents(t.platformFeeCents)}</dd>
+                            <dt style={{ color: 'var(--stone)' }}>Auszahlung</dt>
+                            <dd style={{ margin: 0, color: 'var(--gold2)', fontWeight: 700 }}>
+                              {formatEURCents(t.providerShareCents)}
+                            </dd>
+                          </dl>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
@@ -499,13 +629,23 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
           </div>
 
           {showUpgrade && (
-            <button
-              onClick={handleUpgrade}
-              className="bgold"
-              style={{ width: 'auto', padding: '14px 22px', minWidth: 220 }}
-            >
-              {tier === 'starter' ? 'Upgrade auf Premium 49 €/Mo' : 'Upgrade auf Gold'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+              <button
+                onClick={handleUpgrade}
+                disabled={stripeLaeuft !== null}
+                className="bgold"
+                style={{ width: 'auto', padding: '14px 22px', minWidth: 220, opacity: stripeLaeuft === 'upgrade' ? 0.6 : 1 }}
+              >
+                {stripeLaeuft === 'upgrade'
+                  ? 'Wird vorbereitet …'
+                  : tier === 'starter' ? 'Upgrade auf Premium 49 €/Mo' : 'Upgrade auf Gold'}
+              </button>
+              {stripeFehler?.bereich === 'upgrade' && (
+                <p style={{ fontSize: 12, color: '#FF9090', margin: 0, lineHeight: 1.5, maxWidth: 320 }}>
+                  {stripeFehler.text}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
