@@ -113,20 +113,80 @@ export function parseHoursRange(hours: string | null | undefined): HoursRange | 
   return { start, end }
 }
 
-/** Die Zeiten des Wochentags, auf den `date` faellt. */
+/**
+ * Eine Tagesangabe deuten — in BEIDEN Formaten, die live vorkommen.
+ *
+ * `lib/opening-hours.ts` fuehrt `"09:00 - 18:00"` als „das EINE Format".
+ * Die Produktionssonde vom 29.08.2026 sagt etwas anderes: die Salons tragen
+ *
+ *     { "mo": { "open": "09:00", "close": "18:00" }, …, "so": null }
+ *
+ * — kleingeschriebene Kuerzel und ein OBJEKT je Tag, `null` fuer geschlossen.
+ * Fuenf von fuenf gepruefte Salons sahen so aus. Was daran haengt, steht im
+ * Kopfkommentar von `hoursForDay`.
+ */
+function deuteTag(roh: unknown): DayHours {
+  // `"so": null` heisst ausdruecklich: an diesem Tag geschlossen.
+  if (roh === null) return { kind: 'closed' }
+
+  if (typeof roh === 'string') {
+    if (!roh.trim()) return { kind: 'unknown' }
+    if (roh.toLowerCase().includes('geschlossen')) return { kind: 'closed' }
+    const range = parseHoursRange(roh)
+    return range ? { kind: 'open', range } : { kind: 'unknown' }
+  }
+
+  if (typeof roh === 'object' && !Array.isArray(roh)) {
+    const o = roh as { open?: unknown; close?: unknown }
+    if (typeof o.open === 'string' && typeof o.close === 'string') {
+      const range = parseHoursRange(`${o.open} - ${o.close}`)
+      return range ? { kind: 'open', range } : { kind: 'unknown' }
+    }
+    return { kind: 'unknown' }
+  }
+
+  return { kind: 'unknown' }
+}
+
+/**
+ * Die Zeiten des Wochentags, auf den `date` faellt.
+ *
+ * WARUM DAS BEIDE FORMATE KENNEN MUSS — der teuerste Befund aus Track 25,
+ * und gefunden wurde er erst gegen die laufende Produktion:
+ *
+ * `/api/availability` hatte eine eigene `parseHours(hours: string | null)`,
+ * die mit `hours.match(…)` beginnt. Steht in der Spalte ein OBJEKT, ist es
+ * nicht `null`, also faellt der Wachposten `if (!hours)` nicht — und
+ * `.match` gibt es auf einem Objekt nicht. Die Route hat kein try/catch um
+ * den GET-Rumpf; der TypeError kam als HTTP 500 heraus.
+ *
+ * Nachgemessen am 29.08.2026 gegen www.chairmatch.de, Salon
+ * „NailLab by Lena", ein gewoehnlicher Dienstag:
+ *
+ *     GET /api/availability?salonId=…&serviceId=…&date=2026-09-15  →  500
+ *
+ * Das ist kein Randfall: es ist JEDER Tag, an dem der Salon Zeiten gepflegt
+ * hat, fuer JEDEN Salon in diesem Format — und damit der komplette
+ * Buchungskalender. Die Suche zeigte die Salons, die Salonseite zeigte die
+ * Leistungen, und der Kalender darunter lief in einen Serverfehler.
+ *
+ * Aufgefallen ist es nur, weil die Feiertagspruefung VOR `parseHours` steht
+ * und am 25.12. frueh zurueckkehrt: derselbe Salon antwortete am Feiertag
+ * sauber mit 200 und am Werktag mit 500. Der Unterschied war der Hinweis.
+ */
 export function hoursForDay(openingHours: unknown, date: string): DayHours {
   if (!openingHours || typeof openingHours !== 'object' || Array.isArray(openingHours)) {
     return { kind: 'unknown' }
   }
   const oh = openingHours as Record<string, unknown>
   const key = DAY_KEYS_BY_DOW[dayOfWeek(date)]
-  const roh = oh[key] ?? oh[key.toLowerCase()]
-  if (typeof roh !== 'string' || !roh.trim()) return { kind: 'unknown' }
 
-  if (roh.toLowerCase().includes('geschlossen')) return { kind: 'closed' }
+  // `??` wuerde bei einem ausdruecklichen `null` auf den naechsten Schluessel
+  // ausweichen — und genau dieses `null` ist die Aussage „geschlossen".
+  const roh = key in oh ? oh[key] : oh[key.toLowerCase()]
+  if (roh === undefined) return { kind: 'unknown' }
 
-  const range = parseHoursRange(roh)
-  return range ? { kind: 'open', range } : { kind: 'unknown' }
+  return deuteTag(roh)
 }
 
 export type ClosedReason = 'holiday' | 'closed_day' | 'outside_hours'

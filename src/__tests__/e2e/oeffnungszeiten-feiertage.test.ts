@@ -243,3 +243,74 @@ describe('„Keine Angabe" ist nicht „geschlossen"', () => {
     expect(res.status).toBe(409)
   })
 })
+
+// ────────────────────────────────────────────────────────────────
+/**
+ * Die Datenform, die live wirklich in `salons.opening_hours` steht — und der
+ * Serverfehler, den sie ausgeloest hat.
+ *
+ * Sonde vom 29.08.2026 gegen www.chairmatch.de (Salon „NailLab by Lena",
+ * fuenf von fuenf gepruefte Salons in dieser Form):
+ *
+ *     GET /api/availability?salonId=…&serviceId=…&date=2026-09-15  →  500
+ *     GET /api/availability?salonId=…&serviceId=…&date=2026-12-25  →  200
+ *
+ * Der Unterschied war der Hinweis: die Feiertagspruefung steht VOR der
+ * Zeitendeutung und kehrt am 25.12. frueh zurueck. An jedem gewoehnlichen
+ * Werktag lief die Route dagegen in `parseHours(objekt)` — `if (!hours)`
+ * faellt bei einem Objekt nicht, `.match` gibt es darauf nicht, und um den
+ * GET-Rumpf liegt kein try/catch.
+ *
+ * Das ist nicht ein Randfall, sondern der ganze Buchungskalender dieser
+ * Salons.
+ */
+const LIVE_OEFFNUNGSZEITEN = {
+  mo: { open: '09:00', close: '18:00' },
+  di: { open: '09:00', close: '18:00' },
+  mi: { open: '09:00', close: '18:00' },
+  do: { open: '09:00', close: '20:00' },
+  fr: { open: '09:00', close: '18:00' },
+  sa: { open: '09:00', close: '14:00' },
+  so: null,
+}
+
+describe('Live-Datenform { open, close } — Regression zum 500er', () => {
+  beforeEach(() => {
+    setzeSalon({ opening_hours: LIVE_OEFFNUNGSZEITEN })
+  })
+
+  it('antwortet an einem gewoehnlichen Dienstag mit 200 und echten Slots', async () => {
+    const res = await slotsFuer(FREE_DAY) // 2026-09-15, Dienstag
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.slots.length).toBeGreaterThan(0)
+    expect(body.slots).toContain('09:00')
+    expect(body.slots).not.toContain('17:30') // 17:30 + 60 laege nach 18:00
+  })
+
+  it('beachtet die abweichende Donnerstagszeit (bis 20:00)', async () => {
+    const body = await (await slotsFuer('2026-09-17')).json() // Donnerstag
+    expect(body.slots).toContain('19:00') // 19:00 + 60 = 20:00
+  })
+
+  it('bietet am Sonntag („so": null) nichts an', async () => {
+    const body = await (await slotsFuer('2026-09-20')).json()
+    expect(body.slots).toEqual([])
+  })
+
+  it('sperrt den Feiertag auch in dieser Form', async () => {
+    const body = await (await slotsFuer(WEIHNACHTEN)).json()
+    expect(body.unavailable).toBe('holiday')
+  })
+
+  it('weist eine Buchung ausserhalb dieser Zeiten ab', async () => {
+    const res = await book({ date: FREE_DAY, startTime: '19:00' }) // Di bis 18:00
+    expect(res.status).toBe(409)
+  })
+
+  it('nimmt eine Buchung innerhalb an', async () => {
+    const res = await book({ date: FREE_DAY, startTime: '10:00' })
+    expect(res.status).toBe(201)
+  })
+})

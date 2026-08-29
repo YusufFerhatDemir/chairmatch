@@ -3,25 +3,20 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { minutesOfDay, overlaps, BLOCKING_STATUSES } from '@/modules/booking/booking.service'
 import { berlinToday } from '@/lib/berlin-time'
 import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
-import { CLOSED_MESSAGES, istFeiertag } from '@/lib/salon-open'
+import { CLOSED_MESSAGES, hoursForDay, istFeiertag } from '@/lib/salon-open'
 
 const SLOT_STEP = 15 // minutes
 
-/** Parse "09:00–19:00" or "Geschlossen" */
-function parseHours(hours: string | null): { start: number; end: number } | null {
-  if (!hours || hours === 'Geschlossen' || hours.toLowerCase().includes('geschlossen')) return null
-  const m = hours.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/)
-  if (!m) return null
-  const start = parseInt(m[1], 10) * 60 + parseInt(m[2], 10)
-  const end = parseInt(m[3], 10) * 60 + parseInt(m[4], 10)
-  return { start, end }
-}
-
-/** Get day of week (0=Sun, 1=Mon, ...) for YYYY-MM-DD */
-function getDayOfWeek(dateStr: string): number {
-  const d = new Date(dateStr + 'T12:00:00')
-  return d.getDay()
-}
+/*
+ * Die Tagesangabe wird NICHT mehr hier gedeutet, sondern in
+ * `lib/salon-open.ts` (`hoursForDay`). Der Grund steht dort ausfuehrlich:
+ * die frueher an dieser Stelle stehende `parseHours(hours: string | null)`
+ * begann mit `hours.match(…)`, und live steht in `salons.opening_hours` ein
+ * OBJEKT (`{ "mo": { "open": "09:00", "close": "18:00" }, "so": null }`).
+ * Ein Objekt ist nicht `null`, der Wachposten `if (!hours)` fiel also nicht,
+ * und `.match` gibt es darauf nicht — diese Route antwortete deshalb fuer
+ * jeden Salon in diesem Format an jedem Werktag mit HTTP 500.
+ */
 
 /** Generate time slots for a date given opening hours and duration */
 function generateSlots(
@@ -98,12 +93,9 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    const oh = (salon?.opening_hours as Record<string, string>) ?? {}
-    const dayKeys = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
-    const dow = getDayOfWeek(date)
-    const dayKey = dayKeys[dow]
-    const range = parseHours(oh[dayKey] ?? oh[dayKey.toLowerCase()] ?? null)
-    if (!range) return NextResponse.json({ slots: [] })
+    const tag = hoursForDay(salon?.opening_hours, date)
+    if (tag.kind !== 'open') return NextResponse.json({ slots: [] })
+    const range = tag.range
 
     const { data: existing, error: belegungFehler } = await supabase
       .from('bookings')
@@ -201,12 +193,9 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    const oh = (salon?.opening_hours as Record<string, string>) ?? {}
-    const dayKeys = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
-    const dow = getDayOfWeek(date)
-    const dayKey = dayKeys[dow]
-    const range = parseHours(oh[dayKey] ?? oh[dayKey.toLowerCase()] ?? null)
-    if (!range) return NextResponse.json({ slots: [] })
+    const tag = hoursForDay(salon?.opening_hours, date)
+    if (tag.kind !== 'open') return NextResponse.json({ slots: [] })
+    const range = tag.range
 
     const { data: existing } = await supabase
       .from('rental_bookings')

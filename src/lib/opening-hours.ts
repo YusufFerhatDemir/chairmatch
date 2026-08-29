@@ -52,14 +52,56 @@ const LANGFORM: Record<string, DayKey> = {
   Sonntag: 'So',
 }
 
+/** Kleingeschriebene Kuerzel, wie sie live in der Spalte stehen. */
+const KLEINFORM: Record<string, DayKey> = Object.fromEntries(
+  DAY_KEYS.map(d => [d.toLowerCase(), d]),
+) as Record<string, DayKey>
+
 /**
- * Bestandsdaten im Langformat auf Kuerzel ziehen.
+ * Eine Tagesangabe auf die Textform bringen — String ODER `{open, close}`.
+ *
+ * NACHTRAG TRACK 25: Der Kopfkommentar oben nennt `"09:00 - 18:00"` „das EINE
+ * Format". Die Produktionssonde vom 29.08.2026 widerspricht: die Salons
+ * tragen ein OBJEKT je Tag,
+ *
+ *     { "mo": { "open": "09:00", "close": "18:00" }, …, "so": null }
+ *
+ * — fuenf von fuenf gepruefte Salons. Es gibt also nicht zwei Formate,
+ * sondern drei, und das dritte ist das verbreitete.
+ *
+ * Fuer diese Funktion hiess das: sie liess mit `typeof raw !== 'string'`
+ * JEDEN dieser Tage fallen und gab `null` zurueck. Das Zeiten-Formular des
+ * Anbieters (ProviderDashboardClient) zeigte deshalb LEERE Felder, obwohl
+ * Zeiten gespeichert waren — und wer dort speicherte, ueberschrieb seine
+ * echten Zeiten mit dem, was er gerade in ein leeres Formular getippt hatte.
+ */
+function tagAlsText(raw: unknown): string | null {
+  if (raw === null) return 'Geschlossen'
+  if (typeof raw === 'string') {
+    const t = raw.trim()
+    return HOURS_RE.test(t) ? t : null
+  }
+  if (typeof raw === 'object' && !Array.isArray(raw)) {
+    const o = raw as { open?: unknown; close?: unknown }
+    if (typeof o.open === 'string' && typeof o.close === 'string') {
+      const t = `${o.open.trim()} - ${o.close.trim()}`
+      return HOURS_RE.test(t) ? t : null
+    }
+  }
+  return null
+}
+
+/**
+ * Bestandsdaten auf Kuerzel und Textform ziehen.
  *
  * Die Zeilen, die das alte Dashboard geschrieben hat, stehen in der
  * Datenbank und sind fuer die Buchungslogik unsichtbar. Beim naechsten
  * Lesen im Formular werden sie damit wieder sichtbar, ohne dass jemand sie
  * neu eintippen muss. Was weder Kuerzel noch bekannter Langname ist, faellt
  * weg — erfunden wird hier nichts.
+ *
+ * Erkannt werden drei Schreibweisen der Schluessel (`Mo`, `mo`, `Montag`)
+ * und zwei der Werte (Text und `{open, close}`, dazu `null` = geschlossen).
  */
 export function normalizeOpeningHours(
   value: unknown,
@@ -67,15 +109,17 @@ export function normalizeOpeningHours(
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const out: Record<string, string> = {}
   for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
-    if (typeof raw !== 'string') continue
     const kurz = (DAY_KEYS as readonly string[]).includes(key)
       ? (key as DayKey)
-      : (LANGFORM[key] ?? null)
+      : (KLEINFORM[key] ?? LANGFORM[key] ?? null)
     if (!kurz) continue
-    if (!HOURS_RE.test(raw.trim())) continue
-    // Ein bereits vorhandenes Kuerzel gewinnt gegen die Langform.
+
+    const text = tagAlsText(raw)
+    if (text === null) continue
+
+    // Ein bereits vorhandenes Kuerzel gewinnt gegen die anderen Schreibweisen.
     if (out[kurz] === undefined || (DAY_KEYS as readonly string[]).includes(key)) {
-      out[kurz] = raw.trim()
+      out[kurz] = text
     }
   }
   return Object.keys(out).length > 0 ? out : null

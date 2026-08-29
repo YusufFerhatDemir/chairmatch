@@ -187,3 +187,64 @@ describe('salonGeschlossen', () => {
       .toBeNull()
   })
 })
+
+// ────────────────────────────────────────────────────────────────
+/**
+ * Das Format, das live wirklich in `salons.opening_hours` steht.
+ *
+ * Sonde vom 29.08.2026 gegen www.chairmatch.de, fuenf von fuenf Salons:
+ *
+ *     { "mo": { "open": "09:00", "close": "18:00" }, …, "so": null }
+ *
+ * `lib/opening-hours.ts` fuehrt `"09:00 - 18:00"` als „das EINE Format" —
+ * es gibt drei, und das hier ist das verbreitete.
+ */
+const LIVE_FORMAT = {
+  mo: { open: '09:00', close: '18:00' },
+  di: { open: '09:00', close: '18:00' },
+  mi: { open: '09:00', close: '18:00' },
+  do: { open: '09:00', close: '20:00' },
+  fr: { open: '09:00', close: '18:00' },
+  sa: { open: '09:00', close: '14:00' },
+  so: null,
+}
+
+describe('Live-Format {open, close} mit kleinen Kuerzeln', () => {
+  it('liest den Dienstag als offen — vorher warf .match() auf einem Objekt', () => {
+    // 2026-09-15 ist ein Dienstag. Genau diese Anfrage antwortete in der
+    // Produktion mit HTTP 500.
+    expect(hoursForDay(LIVE_FORMAT, '2026-09-15')).toEqual({
+      kind: 'open', range: { start: 540, end: 1080 },
+    })
+  })
+
+  it('liest den abweichenden Donnerstag (bis 20:00)', () => {
+    // 2026-09-17 ist ein Donnerstag.
+    expect(hoursForDay(LIVE_FORMAT, '2026-09-17')).toEqual({
+      kind: 'open', range: { start: 540, end: 1200 },
+    })
+  })
+
+  it('deutet `"so": null` als geschlossen, nicht als unbekannt', () => {
+    // 2026-09-20 ist ein Sonntag. Der Unterschied ist entscheidend: nur
+    // „closed" weist eine Buchung ab, „unknown" laesst sie durch.
+    expect(hoursForDay(LIVE_FORMAT, '2026-09-20').kind).toBe('closed')
+  })
+
+  it('weist eine Buchung ausserhalb dieser Zeiten ab', () => {
+    expect(salonGeschlossen({
+      date: '2026-09-15', openingHours: LIVE_FORMAT, startMinute: 1200, endMinute: 1260,
+    })).toBe('outside_hours')
+  })
+
+  it('laesst eine Buchung innerhalb zu', () => {
+    expect(salonGeschlossen({
+      date: '2026-09-15', openingHours: LIVE_FORMAT, startMinute: 600, endMinute: 660,
+    })).toBeNull()
+  })
+
+  it('faellt bei unvollstaendigem Objekt auf unbekannt zurueck, nicht auf zu', () => {
+    expect(hoursForDay({ di: { open: '09:00' } }, '2026-09-15').kind).toBe('unknown')
+    expect(hoursForDay({ di: {} }, '2026-09-15').kind).toBe('unknown')
+  })
+})
