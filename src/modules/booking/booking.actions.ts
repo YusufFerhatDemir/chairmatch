@@ -17,6 +17,7 @@ import {
 } from './booking.service'
 import { getServerSession } from '@/modules/auth/session'
 import { checkSalonAcceptsBusiness } from '@/lib/salon-status'
+import { CLOSED_MESSAGES, salonGeschlossen } from '@/lib/salon-open'
 import { sendBookingConfirmation, sendProviderNotification } from '@/lib/email'
 
 /** Rolle des Aufrufers gegenueber einer konkreten Buchung. */
@@ -286,12 +287,17 @@ export async function createBooking(input: unknown) {
    * fremde ID zu setzen heisst, den Termin eines Betriebs auf eine Person
    * eines ANDEREN Betriebs zu schreiben.
    *
-   * Was daran haengt: `getAvailableSlots(salonId, date, duration, staffId)`
-   * filtert die Belegung auf `staff_id` — eine Terminplanung pro Person ist
-   * also vorgesehen und wird kommen. Ab dann waere eine fremde ID nicht nur
-   * eine falsche Zeile, sondern ein Hebel in den Kalender eines fremden
-   * Salons. Der Riegel gehoert an die Stelle, an der die Zeile entsteht, und
-   * zwar bevor sich jemand auf sie verlaesst.
+   * NACHTRAG TRACK 25: Der Satz an dieser Stelle lautete frueher, eine
+   * Terminplanung pro Person sei „vorgesehen und wird kommen" — belegt mit
+   * `getAvailableSlots(salonId, date, duration, staffId)` aus
+   * `lib/scheduling.ts`, das die Belegung auf `staff_id` filtere. Diese
+   * Funktion hatte im gesamten Repository nie einen Aufrufer; sie hat kein
+   * einziges Mal gelaufen und ist inzwischen entfernt. Die Belegung wird
+   * ausschliesslich in `checkConflict` geprueft, und die kennt `staff_id`
+   * nicht: zwei Termine derselben Zeit sind salonweit ein Konflikt,
+   * unabhaengig von der Person. Der Riegel hier bleibt trotzdem richtig —
+   * eine fremde `staff_id` ist eine falsche Zeile in einer
+   * mandantengetrennten Tabelle, ganz ohne kuenftige Planung.
    *
    * Ein Fremdschluessel allein wuerde das nicht abfangen: er prueft, DASS es
    * die Person gibt, nicht, WESSEN Person sie ist.
@@ -342,6 +348,33 @@ export async function createBooking(input: unknown) {
   const endTimeStr = endTimeFor(data.startTime, service.duration_minutes)
   if (!endTimeStr) {
     return { error: 'Dieser Termin wuerde ueber Mitternacht hinausgehen. Bitte einen frueheren Zeitpunkt waehlen.' }
+  }
+
+  /**
+   * Oeffnungszeiten und gesetzliche Feiertage — Track 25.
+   *
+   * Bis hierher war `/api/availability` die EINZIGE Stelle, die
+   * `opening_hours` ueberhaupt ansah, und die ist reine Anzeige. Wer den
+   * Kalender uebersprang und direkt auf `/api/bookings` schrieb, bekam einen
+   * Termin um 03:00 Uhr an einem Sonntag, an dem der Salon geschlossen hat,
+   * samt Bestaetigungsmail an beide Seiten und einem Slot, der ab da als
+   * belegt galt. Der 25. Dezember kam noch dazu: `opening_hours` kennt nur
+   * Wochentage, und Weihnachten faellt auf einen davon.
+   *
+   * Abgewiesen wird nur, was POSITIV als geschlossen bekannt ist. Ein Salon
+   * ohne gepflegte Zeiten bucht weiter wie bisher — aus „ich weiss es nicht"
+   * eine Absage zu machen haette jeden solchen Betrieb ueber Nacht
+   * stillgelegt. Siehe src/lib/salon-open.ts.
+   */
+  const zu = salonGeschlossen({
+    date: data.date,
+    openingHours: salonGuard.salon.opening_hours,
+    state: salonGuard.salon.state,
+    startMinute: minutesOfDay(data.startTime),
+    endMinute: minutesOfDay(endTimeStr),
+  })
+  if (zu) {
+    return { error: CLOSED_MESSAGES[zu], status: 409 }
   }
 
   // Check for slot conflict

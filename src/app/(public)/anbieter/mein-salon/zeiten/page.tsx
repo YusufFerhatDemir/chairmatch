@@ -9,7 +9,7 @@ import { useTranslations } from '@/i18n/client'
  * Öffnungszeiten schreiben nach `salons.opening_hours`.
  *
  * Das dort etablierte Format ist `{ "Mo": "09:00 - 18:00" }` mit deutschen
- * Tageskürzeln — genau das lesen `lib/scheduling.ts`, `/api/availability`
+ * Tageskürzeln — genau das lesen `lib/salon-open.ts`, `/api/availability`
  * und der Schema.org-Export. Die Feld-IDs im Formular (m, t1, w, …) bleiben
  * unverändert, umgerechnet wird hier.
  */

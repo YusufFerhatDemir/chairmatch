@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { minutesOfDay, overlaps, BLOCKING_STATUSES } from '@/modules/booking/booking.service'
 import { berlinToday } from '@/lib/berlin-time'
 import { SALON_SUSPENDED_MESSAGE, salonAcceptsBusiness } from '@/lib/salon-status'
+import { CLOSED_MESSAGES, istFeiertag } from '@/lib/salon-open'
 
 const SLOT_STEP = 15 // minutes
 
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
 
     const { data: salon } = await supabase
       .from('salons')
-      .select('opening_hours, is_active')
+      .select('opening_hours, is_active, state')
       .eq('id', salonId)
       .single()
 
@@ -79,6 +80,21 @@ export async function GET(req: NextRequest) {
         slots: [],
         unavailable: 'salon_inactive',
         message: SALON_SUSPENDED_MESSAGE,
+      })
+    }
+
+    // Gesetzlicher Feiertag → kein Raster.
+    //
+    // `opening_hours` kennt nur Wochentage. Der 25. Dezember 2026 ist ein
+    // Freitag; ohne diese Pruefung bot die Route dafuer das volle
+    // Freitagsraster an, und `createBooking` nahm den Termin an. Die
+    // Pruefung stand seit jeher in `lib/scheduling.ts` — einem Modul ohne
+    // einen einzigen Aufrufer.
+    if (istFeiertag(date, salon?.state)) {
+      return NextResponse.json({
+        slots: [],
+        unavailable: 'holiday',
+        message: CLOSED_MESSAGES.holiday,
       })
     }
 
@@ -162,7 +178,7 @@ export async function GET(req: NextRequest) {
 
     const { data: salon } = await supabase
       .from('salons')
-      .select('opening_hours, is_active')
+      .select('opening_hours, is_active, state')
       .eq('id', equipment.salon_id)
       .single()
 
@@ -171,6 +187,17 @@ export async function GET(req: NextRequest) {
         slots: [],
         unavailable: 'salon_inactive',
         message: SALON_SUSPENDED_MESSAGE,
+      })
+    }
+
+    // Dieselbe Sperre wie im Termin-Zweig: das Stundenraster kommt aus den
+    // Oeffnungszeiten desselben Salons. Die Tages-Miete selbst (Zeitraum
+    // ueber `/api/rental-bookings`) beruehrt das nicht.
+    if (istFeiertag(date, salon?.state)) {
+      return NextResponse.json({
+        slots: [],
+        unavailable: 'holiday',
+        message: CLOSED_MESSAGES.holiday,
       })
     }
 

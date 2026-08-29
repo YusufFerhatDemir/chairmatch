@@ -41,7 +41,7 @@ type Tab = 'overview' | 'edit' | 'services' | 'bookings' | 'fotos' | 'statistik'
  * Tage des Oeffnungszeiten-Formulars.
  *
  * `key` ist der Schluessel in `salons.opening_hours` und MUSS das Kuerzel
- * sein: `/api/availability`, `lib/scheduling.ts` und der Schema.org-Export
+ * sein: `/api/availability`, `lib/salon-open.ts` und der Schema.org-Export
  * lesen nichts anderes. Bis Track 14 stand hier der ausgeschriebene Name,
  * womit jede hier gepflegte Zeit fuer die Buchungslogik unsichtbar war —
  * und ein zuvor korrekt gepflegtes Objekt beim Speichern ueberschrieb.

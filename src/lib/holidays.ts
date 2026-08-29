@@ -74,6 +74,17 @@ const REFORMATIONSTAG_STATES: Bundesland[] = ['BB', 'HB', 'HH', 'MV', 'NI', 'SN'
 const ALLERHEILIGEN_STATES: Bundesland[] = ['BW', 'BY', 'NW', 'RP', 'SL']
 
 /**
+ * Drei Landesfeiertage, die hier gefehlt haben. Alle drei sind jung, deshalb
+ * stehen sie mit dem Jahr, ab dem sie gelten — eine Abfrage fuer 2018 darf
+ * den 8. Maerz in Berlin nicht als Feiertag melden.
+ *
+ *   Internationaler Frauentag  BE ab 2019, MV ab 2023
+ *   Weltkindertag              TH ab 2019
+ */
+const FRAUENTAG_AB: Partial<Record<Bundesland, number>> = { BE: 2019, MV: 2023 }
+const WELTKINDERTAG_AB: Partial<Record<Bundesland, number>> = { TH: 2019 }
+
+/**
  * Get all public holidays for a given year.
  * If state is provided, includes state-specific holidays.
  * If state is omitted, returns only federal (nationwide) holidays.
@@ -136,6 +147,18 @@ export function getPublicHolidays(year: number, state?: Bundesland): PublicHolid
     // Allerheiligen (All Saints' Day) - Nov 1
     if (ALLERHEILIGEN_STATES.includes(state)) {
       holidays.push({ date: `${year}-11-01`, name: 'Allerheiligen' })
+    }
+
+    // Internationaler Frauentag - Mar 8 (BE ab 2019, MV ab 2023)
+    const frauentagAb = FRAUENTAG_AB[state]
+    if (frauentagAb !== undefined && year >= frauentagAb) {
+      holidays.push({ date: `${year}-03-08`, name: 'Internationaler Frauentag' })
+    }
+
+    // Weltkindertag - Sep 20 (TH ab 2019)
+    const kindertagAb = WELTKINDERTAG_AB[state]
+    if (kindertagAb !== undefined && year >= kindertagAb) {
+      holidays.push({ date: `${year}-09-20`, name: 'Weltkindertag' })
     }
   }
 

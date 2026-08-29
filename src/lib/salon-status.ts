@@ -77,8 +77,19 @@ export function salonAcceptsBusiness(
   return salon.is_active !== false
 }
 
+/**
+ * Die Felder, die ein Aufrufer nach bestandener Pruefung ohne zweite Abfrage
+ * weiterverwenden kann. `createBooking` braucht sie fuer den Oeffnungszeiten-
+ * und Feiertagsriegel (siehe src/lib/salon-open.ts).
+ */
+export interface SalonGuardRow {
+  is_active?: boolean | null
+  opening_hours?: unknown
+  state?: unknown
+}
+
 export type SalonGuardResult =
-  | { ok: true }
+  | { ok: true; salon: SalonGuardRow }
   | { ok: false; status: number; error: string }
 
 /**
@@ -94,7 +105,7 @@ export async function checkSalonAcceptsBusiness(
 ): Promise<SalonGuardResult> {
   const { data, error } = await supabase
     .from('salons')
-    .select('id, is_active')
+    .select('id, is_active, opening_hours, state')
     .eq('id', salonId)
     .limit(1)
 
@@ -103,14 +114,14 @@ export async function checkSalonAcceptsBusiness(
     return { ok: false, status: 503, error: 'Salon konnte nicht geprüft werden' }
   }
 
-  const salon = (data?.[0] as { is_active?: boolean | null } | undefined) ?? null
+  const salon = (data?.[0] as SalonGuardRow | undefined) ?? null
   if (!salon) {
     return { ok: false, status: 404, error: 'Salon nicht gefunden' }
   }
   if (!salonAcceptsBusiness(salon)) {
     return { ok: false, status: 409, error: SALON_SUSPENDED_MESSAGE }
   }
-  return { ok: true }
+  return { ok: true, salon }
 }
 
 /**

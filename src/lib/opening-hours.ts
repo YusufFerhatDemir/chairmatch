@@ -4,7 +4,7 @@ import { z } from 'zod'
  * Das EINE Format von `salons.opening_hours`.
  *
  * Gelesen wird die Spalte an drei Stellen: `/api/availability` (das
- * Slot-Raster), `lib/scheduling.ts` und der Schema.org-Export der
+ * Slot-Raster), `lib/salon-open.ts` und der Schema.org-Export der
  * Salon-Seite. Alle drei erwarten deutsche Tageskuerzel — `{ "Mo":
  * "09:00 - 18:00" }`, wahlweise `"Geschlossen"`.
  *

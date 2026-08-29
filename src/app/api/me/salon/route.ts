@@ -12,7 +12,7 @@ import { openingHoursSchema } from '@/lib/opening-hours'
  *
  * Format der Öffnungszeiten ist bewusst das bereits etablierte:
  * `{ "Mo": "09:00 - 18:00", ..., "So": "Geschlossen" }` — genau das lesen
- * schon `lib/scheduling.ts`, `api/availability` und der Schema.org-Export.
+ * schon `lib/salon-open.ts`, `api/availability` und der Schema.org-Export.
  * Ein zweites Format hätte die Buchungslogik still ausgehebelt.
  */
 
