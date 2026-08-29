@@ -11,7 +11,7 @@
  *
  * Unterstützt wird die Teilmenge des Query-Builders, die der Produktivcode
  * tatsächlich benutzt:
- *   from().select().eq()/.neq()/.in()/.lte()/.gte()/.order()/.limit()/.single()
+ *   from().select().eq()/.neq()/.in()/.lte()/.gte()/.order()/.limit()/.range()/.single()
  *   from().select('*', { count: 'exact', head: true })
  *   from().insert().select().single()
  *   from().update().eq()...   from().delete().eq()
@@ -106,6 +106,9 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
   private headOnly = false
   private wantCount = false
   private limitN: number | null = null
+  /** `.range(von, bis)` — beide Grenzen einschliesslich, wie in PostgREST. */
+  private rangeVon: number | null = null
+  private rangeBis: number | null = null
   private orderBy: { column: string; ascending: boolean } | null = null
   private conflictKeys: string[] | null = null
   /** Spalten aus `select('a, b')` — null bei `*` oder eingebetteten Relationen. */
@@ -207,6 +210,21 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
 
   limit(n: number): this {
     this.limitN = n
+    return this
+  }
+
+  /**
+   * `.range(von, bis)` — beide Grenzen EINSCHLIESSLICH, wie PostgREST es
+   * ueber den Range-Header umsetzt (`range(0, 999)` sind 1000 Zeilen).
+   *
+   * Der Nachbau kannte die Methode bis Track 25 nicht. Das ist derselbe
+   * Mechanismus, an dem sich in Track 23 `upsert()` gezeigt hat: wer eine
+   * seitenweise lesende Route testen wollte, bekam „range is not a function"
+   * und liess es. Genau so blieb /api/admin/commissions ohne jeden Test.
+   */
+  range(von: number, bis: number): this {
+    this.rangeVon = von
+    this.rangeBis = bis
     return this
   }
 
@@ -408,6 +426,11 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     if (this.orderBy) {
       const { column, ascending } = this.orderBy
       hit = [...hit].sort((a, b) => (ascending ? cmp(a[column], b[column]) : cmp(b[column], a[column])))
+    }
+    // Reihenfolge wie in PostgREST: erst der Ausschnitt, dann ein
+    // zusaetzliches Limit darauf.
+    if (this.rangeVon !== null && this.rangeBis !== null) {
+      hit = hit.slice(this.rangeVon, this.rangeBis + 1)
     }
     if (this.limitN !== null) hit = hit.slice(0, this.limitN)
 
