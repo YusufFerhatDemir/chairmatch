@@ -93,6 +93,75 @@ function formatDate(iso: string): string {
   } catch { return '' }
 }
 
+/**
+ * „Bewertung melden" — der DSA-Meldeweg.
+ *
+ * `POST /api/reviews/[id]/report` ist seit Track 10 fertig: Rate-Limit pro
+ * Konto, Pruefung auf Existenz der Bewertung, und ein Audit-Eintrag
+ * `REVIEW_FLAGGED`, den /admin/audit-logs mit dem Label „Bewertung gemeldet"
+ * bereits anzeigt. Die Route hatte im gesamten Repository nur nie einen
+ * Aufrufer — die Meldemoeglichkeit, die Art. 16 DSA fuer
+ * nutzergenerierte Inhalte verlangt, existierte als Endpunkt und nicht als
+ * Bedienelement.
+ *
+ * Die Route verlangt eine Anmeldung (`reported_by` ist ein Konto). Ein 401
+ * wird deshalb nicht als Fehler ausgegeben, sondern als das, was es ist.
+ */
+function BewertungMelden({ reviewId }: { reviewId: string }) {
+  const [status, setStatus] = useState<'idle' | 'laeuft' | 'fertig'>('idle')
+  const [fehler, setFehler] = useState<string | null>(null)
+
+  async function melden() {
+    if (status !== 'idle') return
+    setStatus('laeuft')
+    setFehler(null)
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}/report`, { method: 'POST' })
+      if (res.status === 401) {
+        setFehler('Zum Melden bitte anmelden.')
+        setStatus('idle')
+        return
+      }
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setFehler(body?.error || 'Meldung fehlgeschlagen.')
+        setStatus('idle')
+        return
+      }
+      setStatus('fertig')
+    } catch {
+      setFehler('Meldung fehlgeschlagen.')
+      setStatus('idle')
+    }
+  }
+
+  if (status === 'fertig') {
+    return (
+      <p style={{ fontSize: 10, color: 'var(--stone)', marginTop: 8, opacity: 0.85 }}>
+        Gemeldet. Wir sehen uns die Bewertung an.
+      </p>
+    )
+  }
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      <button
+        type="button"
+        onClick={melden}
+        disabled={status === 'laeuft'}
+        style={{
+          background: 'none', border: 'none', padding: 0,
+          color: 'var(--stone)', fontSize: 10, opacity: 0.7,
+          textDecoration: 'underline', cursor: status === 'laeuft' ? 'default' : 'pointer',
+        }}
+      >
+        {status === 'laeuft' ? 'Wird gemeldet …' : 'Bewertung melden'}
+      </button>
+      {fehler && <p style={{ fontSize: 10, color: '#FF9090', marginTop: 4 }}>{fehler}</p>}
+    </div>
+  )
+}
+
 export default function SalonDetailClient({ salon, services, reviews, rentals, breadcrumbs }: Props) {
   const router = useRouter()
   const [isFav, setIsFav] = useState(false)
@@ -311,6 +380,26 @@ export default function SalonDetailClient({ salon, services, reviews, rentals, b
                     {'★'.repeat(Math.round(r.rating))}
                   </div>
                   {r.comment && <p style={{ fontSize: 11.5, color: 'var(--stone)', lineHeight: 1.5 }}>{r.comment}</p>}
+                  {/*
+                    Die Antwort des Salons. `reply` wurde von der Seite seit
+                    jeher HERGEREICHT (`reviews={…, reply: r.reply, …}`) und in
+                    dieser Komponente als Feld deklariert — gerendert hat es
+                    sie nie. Eine Antwort, die oeffentlich niemand sieht, ist
+                    keine; die Anbieter-Seite zeigte sie nur dem Inhaber
+                    selbst.
+                  */}
+                  {r.reply && (
+                    <div style={{
+                      marginTop: 8, paddingLeft: 10,
+                      borderLeft: '2px solid rgba(196,168,106,0.35)',
+                    }}>
+                      <p style={{ fontSize: 10, color: 'var(--gold2)', fontWeight: 700, marginBottom: 2 }}>
+                        Antwort des Salons
+                      </p>
+                      <p style={{ fontSize: 11.5, color: 'var(--stone)', lineHeight: 1.5 }}>{r.reply}</p>
+                    </div>
+                  )}
+                  <BewertungMelden reviewId={r.id} />
                 </div>
               ))}
             </div>

@@ -26,6 +26,17 @@ import { useTranslations } from '@/i18n/client'
  * `GET /api/provider/reviews` — den echten Kundenbewertungen seines Salons —
  * und wenn es keine gibt, steht das da. Kein Fallback auf Beispieldaten:
  * schlaegt der Abruf fehl, sagt die Seite genau das.
+ *
+ * TRACK 25 — DIE ANTWORT. Diese Seite ZEIGTE eine Antwort des Inhabers
+ * (`r.reply &&` weiter unten), bot aber nirgends an, eine zu SCHREIBEN. Der
+ * Weg dorthin war vollstaendig fertig und gehaertet: `POST
+ * /api/reviews/[id]/reply` mit `replyToReview` dahinter (Eigentuemer-Pruefung,
+ * Miet-Bewertungen ausgeschlossen, verschlucktes Update repariert) — nur
+ * hatte die Route im gesamten Repository keinen einzigen Aufrufer. Die
+ * Spalten `reply`/`replied_at` konnten damit nie einen Wert bekommen, und die
+ * Anzeige darunter war seit jeher toter Code. Eine oeffentliche Bewertung,
+ * auf die der Betrieb nicht antworten kann, ist fuer ihn das Ende des
+ * Gespraechs — dabei liest die Salonseite `reply` ebenfalls schon aus.
  */
 
 interface ProviderReview {
@@ -47,6 +58,117 @@ interface ReviewsResponse {
 
 function fmtRating(n: number): string {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+}
+
+/**
+ * Antwort schreiben oder aendern.
+ *
+ * `replySchema` verlangt 1–1000 Zeichen; beides wird hier schon abgefangen,
+ * damit der Anbieter nicht erst nach dem Absenden erfaehrt, dass sein Text zu
+ * lang ist. Die Route bleibt trotzdem die Instanz, die entscheidet.
+ */
+function AntwortFormular({
+  review,
+  onGespeichert,
+}: {
+  review: ProviderReview
+  onGespeichert: (reply: string) => void
+}) {
+  const [offen, setOffen] = useState(false)
+  const [text, setText] = useState(review.reply ?? '')
+  const [speichert, setSpeichert] = useState(false)
+  const [fehler, setFehler] = useState<string | null>(null)
+
+  const MAX = 1000
+  const zuLang = text.length > MAX
+  const leer = text.trim().length === 0
+
+  async function speichern() {
+    if (leer || zuLang) return
+    setSpeichert(true)
+    setFehler(null)
+    try {
+      const res = await fetch(`/api/reviews/${review.id}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reply: text.trim() }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setFehler(body?.error || 'Antwort konnte nicht gespeichert werden.')
+        return
+      }
+      onGespeichert(text.trim())
+      setOffen(false)
+    } catch {
+      setFehler('Antwort konnte nicht gespeichert werden.')
+    } finally {
+      setSpeichert(false)
+    }
+  }
+
+  if (!offen) {
+    return (
+      <button
+        type="button"
+        onClick={() => { setText(review.reply ?? ''); setFehler(null); setOffen(true) }}
+        style={{
+          marginTop: 8, background: 'none', border: '0.5px solid rgba(196,168,106,0.35)',
+          borderRadius: 8, color: 'var(--gold2)', fontSize: 11, padding: '6px 12px', cursor: 'pointer',
+        }}
+      >
+        {review.reply ? 'Antwort bearbeiten' : 'Antworten'}
+      </button>
+    )
+  }
+
+  return (
+    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        rows={3}
+        placeholder="Deine Antwort — für Kundinnen und Kunden öffentlich sichtbar."
+        style={{
+          width: '100%', padding: 10, borderRadius: 8, background: 'var(--c2)',
+          border: '0.5px solid rgba(196,168,106,0.25)', color: 'var(--cream)',
+          fontSize: 12, lineHeight: 1.5, resize: 'vertical', fontFamily: 'inherit',
+        }}
+      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 10, color: zuLang ? '#FF9090' : 'var(--stone)', opacity: 0.8 }}>
+          {text.length} / {MAX}
+        </span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button
+            type="button"
+            onClick={() => { setOffen(false); setFehler(null) }}
+            disabled={speichert}
+            style={{
+              background: 'none', border: 'none', color: 'var(--stone)',
+              fontSize: 11, padding: '6px 10px', cursor: 'pointer',
+            }}
+          >
+            Abbrechen
+          </button>
+          <button
+            type="button"
+            onClick={speichern}
+            disabled={speichert || leer || zuLang}
+            style={{
+              background: 'none', border: '0.5px solid rgba(196,168,106,0.45)', borderRadius: 8,
+              color: speichert || leer || zuLang ? 'var(--stone)' : 'var(--gold2)',
+              fontSize: 11, padding: '6px 12px',
+              cursor: speichert || leer || zuLang ? 'default' : 'pointer',
+            }}
+          >
+            {speichert ? 'Wird gespeichert …' : 'Antwort speichern'}
+          </button>
+        </div>
+      </div>
+      {fehler && <p style={{ fontSize: 11, color: '#FF9090', lineHeight: 1.4 }}>{fehler}</p>}
+    </div>
+  )
 }
 
 function fmtDate(iso: string): string {
@@ -80,6 +202,24 @@ export default function Page() {
   }, [])
 
   const reviews = daten?.reviews ?? []
+
+  /**
+   * Die gespeicherte Antwort sofort in die Liste ziehen, ohne die Seite neu
+   * zu laden. Geschrieben hat sie die Route — hier wird nur nachgezogen, was
+   * dort bereits bestaetigt ist.
+   */
+  function antwortUebernehmen(reviewId: string, reply: string) {
+    setDaten(vorher =>
+      vorher
+        ? {
+            ...vorher,
+            reviews: vorher.reviews.map(r =>
+              r.id === reviewId ? { ...r, reply, repliedAt: new Date().toISOString() } : r,
+            ),
+          }
+        : vorher,
+    )
+  }
 
   return (
     <MeinBereichSubPage
@@ -138,6 +278,7 @@ export default function Page() {
                   <strong style={{ color: 'var(--gold2)' }}>Deine Antwort:</strong> {r.reply}
                 </p>
               )}
+              <AntwortFormular review={r} onGespeichert={reply => antwortUebernehmen(r.id, reply)} />
             </div>
           ))}
         </div>

@@ -399,7 +399,11 @@ class FakeQuery implements PromiseLike<Result<unknown>> {
     }
 
     // --- select ---
-    let hit = rows.filter(r => this.matches(r))
+    // `!inner` schliesst Zeilen ohne Treffer AUS — vor Sortierung und Limit,
+    // wie der Join in Postgres. Siehe FakeSupabase.satisfiesInner().
+    let hit = rows.filter(
+      r => this.matches(r) && this.db.satisfiesInner(this.tableName, r, this.rawSelect),
+    )
 
     if (this.orderBy) {
       const { column, ascending } = this.orderBy
@@ -867,6 +871,43 @@ export class FakeSupabase {
       out[alias] = target ? this.embed(def.table, target, depth + 1) : null
     }
     return out
+  }
+
+  /**
+   * Erfuellt die Zeile alle `!inner`-Bedingungen ihres Selects?
+   *
+   * PostgREST behandelt `salons!inner(owner_id)` als INNER JOIN: findet sich
+   * kein passender Salon, faellt die ZEILE weg. Der Nachbau hat sie bis
+   * Track 25 behalten und `salon: null` angehaengt — also einen LEFT JOIN
+   * gebaut. Das ist genau die Sorte Abweichung, die eine gruene Suite ueber
+   * einen toten Pfad legt:
+   *
+   *   `replyToReview` liest `reviews` mit `salon:salons!inner(owner_id)` und
+   *   greift danach auf `review.salon.owner_id` zu. In Produktion ist das
+   *   sicher — ohne Salon gibt es die Zeile gar nicht. Im Nachbau war
+   *   `review.salon` null, der Zugriff warf, und die Route antwortete 500
+   *   statt 403. Ein Test, der die Eigentuemer-Pruefung belegen wollte, hat
+   *   stattdessen den TypeError des Nachbaus gemessen.
+   *
+   * Bewusst nur im SELECT: `update(...).select(...)` mit `!inner` kommt im
+   * Produktivcode nicht vor, und ein Nachbau, der mehr behauptet als er
+   * kann, ist schlechter als einer mit einer benannten Grenze.
+   */
+  satisfiesInner(table: string, row: Row, select?: string | null): boolean {
+    if (!select || !select.includes('!inner')) return true
+    const rels = this.relations[table]
+    if (!rels) return true
+
+    for (const [alias, def] of Object.entries(rels)) {
+      // Zwei Schreibweisen: `salons!inner(...)` und die aliasierte Form
+      // `salon:salons!inner(...)`, die der Produktivcode ueberall benutzt.
+      const muster = new RegExp(`(^|[\\s,(])${alias}(:[A-Za-z_][A-Za-z0-9_]*)?!inner\\s*\\(`)
+      if (!muster.test(select)) continue
+      const fk = row[def.localKey]
+      if (fk === null || fk === undefined) return false
+      if (!this.row(def.table, fk)) return false
+    }
+    return true
   }
 
   /** Zählt Queries eines Typs — z.B. „wurde wirklich ein Audit-Log geschrieben?“ */
