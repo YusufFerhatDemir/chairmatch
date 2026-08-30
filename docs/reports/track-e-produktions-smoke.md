@@ -323,9 +323,64 @@ und `rental_equipment`, in älteren Notizen noch als offen geführt, sind zu.
 `bash scripts/schema-probe.sh` — „Live-Schema deckt sich mit
 `src/test/live-schema.ts`." 33 Tabellen geprüft.
 
-### Build
+### Build und Typprüfung — ehrlich gesagt: nicht lokal belegt
 
-`npm run build` kompiliert sauber (22,3 min auf dieser Maschine, nur die
-bekannte OpenTelemetry-Warnung aus `@sentry/node`). Die Typprüfung danach lief
-noch, als sie durch die eigenen Änderungen ohnehin veraltet war, und wurde
-abgebrochen; maßgeblich ist der `tsc`-Lauf unten und der Vercel-Build.
+`npm run build` **kompiliert** sauber (22,3 min, nur die bekannte
+OpenTelemetry-Warnung aus `@sentry/node`). Die anschließende Typprüfung ist auf
+dieser Maschine nie durchgelaufen: die Last lag durchgehend bei 39–42
+(parallele Sitzungen), ein `tsc --noEmit` brauchte über eine Stunde und wurde
+zweimal abgebrochen. **`tsc` ist damit nicht belegt** — die Typprüfung liegt
+beim Vercel-Build.
+
+Dabei kam eine eigene Lücke heraus: **`deploy.sh` kannte `SKIP_TYPECHECK`
+nicht.** Der Schalter war in Absprachen dokumentiert, im Skript stand aber ein
+bedingungsloses `npm run typecheck`. Das Skript sah dadurch aus, als hänge es,
+obwohl es nur wartete. Jetzt gebaut — mit einem Hinweis, der die zweite
+Falschaussage gleich mitkorrigiert: der Lauf war nie „warn-only", die Meldung
+`ignoreBuildErrors=true` ist veraltet, ein TS-Fehler bricht heute den
+Vercel-Build.
+
+### Tests
+
+Volle Suite unter dieser Last nicht durchgelaufen. Gezielt gegen die berührten
+Bereiche:
+
+```
+src/lib/__tests__/salon-open.test.ts
+src/__tests__/e2e/booking-availability.test.ts
+src/__tests__/track-19-exporte-downloads-weiterleitungen.test.ts
+src/components/provider/__tests__/DashboardClient.stripe.test.tsx
+src/components/cart/__tests__/CartDrawer.checkout.test.tsx
+```
+
+**154 von 155 grün.** Der eine Ausfall war ein Zeitablauf unter Last
+(`Test timed out in 5000ms`, gemessene Dauer 8712 ms) in einem
+Bestandstest — dieselbe Datei allein: **14/14 grün**. Keine inhaltliche
+Abweichung. Neu hinzugekommen sind 21 Tests, keiner entfernt.
+
+---
+
+## Gegenprobe gegen die Produktion (nach dem Deploy, `8fd49b3`)
+
+| Salon | `state` | Datum | vorher | nachher |
+|---|---|---|---|---|
+| Maison Haarwerk | NRW | 2027-11-01 Allerheiligen | 33 Slots | **0 · `holiday`** |
+| Maison Haarwerk | NRW | 2027-05-27 Fronleichnam | 41 Slots | **0 · `holiday`** |
+| Glow Studio | Bayern | 2027-11-01 | `holiday` | `holiday` ✓ |
+| BlackLabel | Hessen | 2027-11-01 (in HE kein Feiertag) | 34 Slots | 34 Slots ✓ |
+| Maison Haarwerk | NRW | 2027-11-08 (gewöhnlicher Mo) | 33 Slots | 33 Slots ✓ |
+
+Die beiden unteren Zeilen sind die wichtigen: der Riegel greift **nur** an den
+Landesfeiertagen und hat weder einen gewöhnlichen Montag noch ein anderes
+Bundesland mitgesperrt.
+
+Dazu:
+
+```
+/api/availability … date=2026-09-20 (So)
+  → {"slots":[],"unavailable":"closed_day","message":"Der Salon hat an diesem Tag geschlossen."}
+
+/salon/gibtsnicht-xyz
+  → <meta name="robots" content="noindex"/>
+  → <title>Salon nicht gefunden — ChairMatch</title>
+```
