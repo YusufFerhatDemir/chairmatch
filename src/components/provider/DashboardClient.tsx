@@ -294,6 +294,19 @@ export default function DashboardClient({ data, subscriptionTier, salonName }: P
         </div>
       )}
 
+      {/*
+        „0,00 €" ist auf dieser Seite eine Aussage ueber Geld, das der
+        Anbieter erwartet. Konnte die Transaktionstabelle nicht gelesen
+        werden, ist sie unbelegt — und das gehoert ueber die Karten, nicht in
+        eine Serverkonsole. Siehe `earningsLesbar` in dashboard.types.ts.
+      */}
+      {data.earningsLesbar === false && (
+        <div style={{ padding: '10px 12px', borderRadius: 10, marginBottom: 12, background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.32)', color: '#FF8888', fontSize: 12.5, lineHeight: 1.55 }}>
+          Deine Umsätze konnten gerade nicht geladen werden. Die Beträge unten sind
+          <strong> unbekannt</strong> — nicht null. Bitte lade die Seite neu.
+        </div>
+      )}
+
       {/* ═══ Hero Stat-Cards ═══ */}
       <div style={{
         display: 'grid',

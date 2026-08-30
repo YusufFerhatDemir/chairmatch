@@ -47,6 +47,8 @@ interface MISData {
       affiliate: number
     }
   }
+  /** false = `platform_transactions` war nicht lesbar; die Betraege sind unbekannt, nicht null. */
+  platformRevenueLesbar?: boolean
   recentRefunds?: { id: string; type: string; amountEur: number; platformFeeEur: number; createdAt: string }[]
   recentTransactions?: { id: string; type: string; amountEur: number; platformFeeEur: number; status: string; createdAt: string }[]
   generatedAt?: string
@@ -516,6 +518,20 @@ export default function MISPage() {
           <h3 style={{ ...sectionTitle, color: GOLD, borderBottom: `1px solid ${BORDER}`, paddingBottom: 8, marginTop: 40 }}>
             PLATTFORM-UMSATZ
           </h3>
+
+          {/*
+            „0,00 €" heisst hier zweierlei, und der Unterschied ist der
+            zwischen einem leeren Geschaeftsjahr und einem Ausfall der
+            Abfrage. Sagt die Route, dass sie `platform_transactions` nicht
+            lesen konnte, steht das ueber den Zahlen — sonst liest ein Admin
+            einen Lesefehler als Bilanz.
+          */}
+          {data.platformRevenueLesbar === false && (
+            <div style={{ padding: '10px 12px', borderRadius: 8, marginBottom: 12, background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.35)', color: '#FF8888', fontSize: 12, lineHeight: 1.5 }}>
+              Die Transaktionstabelle konnte nicht gelesen werden. Die folgenden
+              Beträge sind <strong>unbekannt</strong>, nicht null. Bitte neu laden.
+            </div>
+          )}
 
           {/* KPI-Cards für Plattform-Gewinn */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 16 }}>

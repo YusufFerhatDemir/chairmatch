@@ -25,8 +25,23 @@ fi
 echo "→ pre-commit-guard..."
 "$SCRIPT_DIR/scripts/precommit-guard.sh"
 
-echo "→ typecheck (warn-only)..."
-npm run typecheck || echo "  ⚠ pre-existing TS errors ignored (Vercel ignoreBuildErrors=true)"
+# SKIP_TYPECHECK=1 ueberspringt den lokalen tsc-Lauf.
+#
+# Der Schalter war dokumentiert, aber nicht gebaut: das Skript rief
+# `npm run typecheck` bedingungslos auf. Auf einer ausgelasteten Maschine
+# braucht der Lauf hier ueber eine Stunde, und `deploy.sh` sah dann aus, als
+# haenge es — obwohl es nur wartete.
+#
+# WICHTIG: Der Lauf ist NICHT wirklich warn-only. Der Text unten stammt aus
+# einer Zeit mit `ignoreBuildErrors=true`; das gilt nicht mehr, ein TS-Fehler
+# bricht heute den Vercel-Build. Wer hier ueberspringt, verlagert die Pruefung
+# also auf Vercel — und muss den Deploy dort nachsehen.
+if [ "${SKIP_TYPECHECK:-}" = "1" ]; then
+  echo "→ typecheck ÜBERSPRUNGEN (SKIP_TYPECHECK=1) — Vercel ist damit die einzige Typprüfung."
+else
+  echo "→ typecheck (warn-only)..."
+  npm run typecheck || echo "  ⚠ pre-existing TS errors ignored"
+fi
 
 echo "→ commit..."
 git commit -m "$COMMIT_MSG"

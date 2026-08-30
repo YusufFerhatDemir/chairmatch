@@ -206,3 +206,34 @@ describe('Transaktions-Details', () => {
     await waitFor(() => expect(screen.queryByText(TX.id)).toBeNull())
   })
 })
+
+/**
+ * Track E — „0,00 €" heisst nicht „nichts verdient".
+ *
+ * `/api/provider/dashboard` hat den Lesefehler ausdruecklich mit einem leeren
+ * Konto gleichgesetzt:
+ *
+ *     if (txError || !txs || txs.length === 0) return emptyDashboard(...)
+ *
+ * und die Serverseite von `/provider/dashboard` sah `error` gar nicht an.
+ * Faellt `platform_transactions` aus, las der Anbieter auf genau der Seite,
+ * auf der er nachsieht, was die Plattform ihm schuldet: „Gesamt 0,00 €".
+ */
+describe('Umsatzzahlen, die nicht gelesen werden konnten', () => {
+  it('sagt es ueber den Karten, statt Null zu behaupten', () => {
+    zeige({ earningsLesbar: false })
+
+    expect(screen.getByText(/unbekannt/i)).toBeInTheDocument()
+    expect(screen.getByText(/nicht geladen werden/i)).toBeInTheDocument()
+  })
+
+  it('schweigt, solange gelesen werden konnte', () => {
+    // Ein wirklich leeres Konto ist eine gueltige Aussage und bekommt keinen
+    // Warnhinweis — sonst waere die Meldung wertlos.
+    zeige({ earningsLesbar: true })
+    expect(screen.queryByText(/nicht geladen werden/i)).toBeNull()
+
+    zeige()
+    expect(screen.queryByText(/nicht geladen werden/i)).toBeNull()
+  })
+})

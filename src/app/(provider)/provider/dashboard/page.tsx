@@ -33,12 +33,14 @@ export default async function ProviderDashboardPage() {
     .maybeSingle()
 
   // ── Transaktionen laden ────────────────────────────────
-  const { data: txs } = await supabase
+  const { data: txs, error: txFehler } = await supabase
     .from('platform_transactions')
     .select('id, type, amount_cents, platform_fee_cents, provider_share_cents, currency, status, created_at')
     .eq('provider_user_id', userId)
     .order('created_at', { ascending: false })
     .limit(200)
+
+  if (txFehler) console.error('provider-dashboard platform_transactions:', txFehler.message)
 
   const now = new Date()
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
@@ -86,6 +88,7 @@ export default async function ProviderDashboardPage() {
       ? 'Tägliche Auszahlung über Stripe Connect'
       : 'Stripe noch nicht aktiv',
     stripeConnected,
+    earningsLesbar: !txFehler,
   }
 
   return (

@@ -31,6 +31,40 @@ const RATE = { scope: 'promote-admin', max: 5, windowMs: 60 * 60_000 }
 /** Kuerzere Schluessel sind kein Schutz — der Endpunkt bleibt dann zu. */
 const MIN_KEY_LENGTH = 24
 
+/**
+ * Die hoechste Rolle der Anwendung zu vergeben, hinterlaesst eine Spur.
+ *
+ * Bis Track E tat sie das NICHT: die Route schrieb `role = 'super_admin'` und
+ * antwortete 200, ohne eine einzige Zeile in `audit_logs`. `/admin/audit-logs`
+ * zeigt Erstattungen, Passwortwechsel und gemeldete Bewertungen — nur die
+ * Vergabe der Vollmacht ueber alles davon war unsichtbar. Wer den Schluessel
+ * hat, war danach Super-Admin, und niemand konnte hinterher sagen, wann und
+ * von welcher Adresse aus.
+ *
+ * Der Schreibfehler wird bewusst NICHT zum Abbruch: die Befoerderung hat zu
+ * diesem Zeitpunkt schon stattgefunden, ein 500 danach wuerde nur eine
+ * falsche Auskunft geben.
+ */
+async function protokolliereBefoerderung(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  args: { profileId: string; email: string | null; vorher: string | null; modus: 'self' | 'email'; ip: string },
+) {
+  const { error } = await supabase.from('audit_logs').insert({
+    user_id: args.profileId,
+    action: 'role.promoted_super_admin',
+    entity: 'profile',
+    entity_id: args.profileId,
+    details: {
+      email: args.email,
+      previous_role: args.vorher,
+      modus: args.modus,
+      ip: args.ip,
+      endpunkt: '/api/setup/promote-admin',
+    },
+  })
+  if (error) console.error('promote-admin audit_logs insert failed:', error.message)
+}
+
 /** Vergleich ohne Laufzeit-Leck; Laengenunterschied ist ohnehin oeffentlich. */
 function keyMatches(provided: string | null, expected: string): boolean {
   if (!provided) return false
@@ -113,6 +147,13 @@ export async function POST(req: NextRequest) {
       return dbError('promote-admin-update', updateError)
     }
     invalidateAccountState(profile.id)
+    await protokolliereBefoerderung(supabase, {
+      profileId: profile.id,
+      email: profile.email ?? null,
+      vorher: profile.role ?? null,
+      modus: 'self',
+      ip: clientIp(req),
+    })
 
     return NextResponse.json({
       success: true,
@@ -150,6 +191,13 @@ export async function POST(req: NextRequest) {
     return dbError('promote-admin-flag', updateError)
   }
   invalidateAccountState(profile.id)
+  await protokolliereBefoerderung(supabase, {
+    profileId: profile.id,
+    email: profile.email ?? null,
+    vorher: profile.role ?? null,
+    modus: 'email',
+    ip: clientIp(req),
+  })
 
   return NextResponse.json({
     success: true,

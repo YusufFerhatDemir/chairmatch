@@ -248,6 +248,46 @@ describe('2. /api/admin/export: der Benutzer-Export ist keine Formel mehr', () =
     const res = await adminExport(req(`${BASE}/api/admin/export?type=users`))
     expect(res.status).toBe(403)
   })
+
+  /*
+   * Track E — ein Lesefehler ist kein leerer Export.
+   *
+   * Jede der vier Abfragen in dieser Route hat nur `data` destrukturiert.
+   * Faellt eine aus, ist `data` gleich `null`, `(data ?? [])` gleich `[]`, und
+   * die Route liefert Status 200 mit einer gueltigen CSV-Datei, die AUSSER
+   * DER KOPFZEILE NICHTS enthaelt — unter dem Namen
+   * `chairmatch-benutzer-<datum>.csv`.
+   *
+   * Dieselbe Klasse wie der Provisionsbefund aus Track 25, aber teurer: die
+   * Datei verlaesst den Bildschirm. In der Buchhaltung, in einer
+   * DSGVO-Auskunft oder beim Steuerberater ist ihr nicht mehr anzusehen, dass
+   * sie nie Daten enthielt.
+   */
+  it('liefert bei einem Lesefehler 503 statt einer leeren Datei', async () => {
+    db().failOn('profiles', 'select', {
+      code: '08006', message: 'connection failure', details: null, hint: null,
+    }, false)
+
+    const res = await adminExport(req(`${BASE}/api/admin/export?type=users`))
+
+    expect(res.status).toBe(503)
+    // Vor allem: KEINE Datei. Eine leere CSV im Download-Ordner ist
+    // schlimmer als eine Fehlermeldung.
+    expect(res.headers.get('content-disposition')).toBeNull()
+    const body = await res.json()
+    expect(body.error).toMatch(/nicht vollständig gelesen/i)
+  })
+
+  it('meldet den Lesefehler auch fuer die anderen Exporttypen', async () => {
+    db().failOn('bookings', 'select', {
+      code: '08006', message: 'connection failure', details: null, hint: null,
+    }, false)
+
+    for (const typ of ['bookings', 'revenue']) {
+      const res = await adminExport(req(`${BASE}/api/admin/export?type=${typ}`))
+      expect(res.status).toBe(503)
+    }
+  })
 })
 
 describe('3. /api/provider/dashboard/export: Semikolon-CSV ohne Formeln', () => {

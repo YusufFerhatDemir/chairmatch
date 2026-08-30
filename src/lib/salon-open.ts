@@ -34,11 +34,17 @@ import { isPublicHoliday, type Bundesland } from '@/lib/holidays'
  *    haette ab sofort keine Buchung mehr annehmen koennen. `hoursForDay`
  *    unterscheidet deshalb `geschlossen` von `unbekannt`, und abgewiesen
  *    wird nur, was positiv als geschlossen bekannt ist.
- *  - Ohne `salons.state` gelten die neun BUNDESWEITEN Feiertage. Die Spalte
- *    wird im gesamten Code an keiner Stelle geschrieben, steht also fuer die
- *    meisten Salons auf NULL. Der Rueckfall erfindet nichts: Neujahr,
- *    Karfreitag, Ostermontag, 1. Mai, Christi Himmelfahrt, Pfingstmontag,
- *    3. Oktober und beide Weihnachtstage gelten in allen 16 Laendern.
+ *  - Ohne verwertbares `salons.state` gelten die neun BUNDESWEITEN Feiertage.
+ *    Der Rueckfall erfindet nichts: Neujahr, Karfreitag, Ostermontag, 1. Mai,
+ *    Christi Himmelfahrt, Pfingstmontag, 3. Oktober und beide Weihnachtstage
+ *    gelten in allen 16 Laendern.
+ *
+ *    ACHTUNG, KORREKTUR ZU TRACK 25: dort steht, die Spalte werde „im
+ *    gesamten Code an keiner Stelle geschrieben" und stehe deshalb meist auf
+ *    NULL. Fuer die Live-Daten stimmt das nicht — alle 15 oeffentlichen
+ *    Salons tragen am 30.08.2026 einen Wert. Der Rueckfall war also kein
+ *    Ruhepolster, sondern hat eine falsche Schreibweise verdeckt; was daran
+ *    hing, steht bei `BUNDESLAND_NAMEN`.
  */
 
 /** Index 0 = Sonntag, wie `Date.getDay()`. */
@@ -49,26 +55,72 @@ const BUNDESLAND_CODES: readonly string[] = [
   'NI', 'NW', 'RP', 'SL', 'SN', 'ST', 'SH', 'TH',
 ]
 
-/** Ausgeschriebene Namen, falls die Spalte so gepflegt wird. */
+/**
+ * Auf Buchstaben reduzieren: Umlaute ausgeschrieben, Bindestriche, Leerzeichen
+ * und Punkte weg. `"Baden-Württemberg"`, `"Baden Wuerttemberg"` und
+ * `"baden-wuerttemberg"` ergeben damit denselben Schluessel.
+ */
+function schluessel(roh: string): string {
+  return roh
+    .toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+    .replace(/[^a-z]/g, '')
+}
+
+/**
+ * Wortformen, die live in `salons.state` stehen koennen — ausgeschriebene
+ * Namen, gaengige Kuerzel und die Beiworte, die Bundeslaender im Amtsdeutsch
+ * tragen ("Freistaat Bayern", "Freie und Hansestadt Hamburg").
+ *
+ * WARUM DAS MEHR ALS DIE 16 NAMEN SEIN MUSS — nachgemessen am 30.08.2026
+ * gegen www.chairmatch.de: die Spalte IST gepflegt (alle 15 oeffentlichen
+ * Salons tragen einen Wert; der Kommentar „wird nirgends geschrieben" aus
+ * Track 25 stimmt fuer die Live-Daten nicht), aber drei Salons tragen dort
+ * `"NRW"`. Das ist kein Laendercode — der lautet `NW` —, also fiel
+ * `normalizeBundesland` auf `undefined` zurueck und damit auf die neun
+ * bundesweiten Feiertage.
+ *
+ * Gemessene Folge, `/api/availability`, Salon „Maison Haarwerk" (NRW):
+ *
+ *     2027-11-01 (Allerheiligen, Montag) → 33 Slots
+ *     2027-05-27 (Fronleichnam, Donnerstag) → 41 Slots
+ *
+ * Zum Vergleich am selben Tag: „Glow Studio" (`state = "Bayern"`) antwortete
+ * am 01.11. mit `unavailable: "holiday"`, „BlackLabel Barbershop"
+ * (`"Hessen"`) am 27.05. ebenso. Die Kette funktioniert also — sie ist nur an
+ * einer Schreibweise vorbeigelaufen. Der Salon nahm an beiden Feiertagen
+ * Termine an, und `createBooking` haette sie ueber denselben Riegel
+ * angenommen.
+ */
 const BUNDESLAND_NAMEN: Record<string, Bundesland> = {
-  'baden-wuerttemberg': 'BW',
-  'baden-württemberg': 'BW',
-  'bayern': 'BY',
-  'berlin': 'BE',
-  'brandenburg': 'BB',
-  'bremen': 'HB',
-  'hamburg': 'HH',
-  'hessen': 'HE',
-  'mecklenburg-vorpommern': 'MV',
-  'niedersachsen': 'NI',
-  'nordrhein-westfalen': 'NW',
-  'rheinland-pfalz': 'RP',
-  'saarland': 'SL',
-  'sachsen': 'SN',
-  'sachsen-anhalt': 'ST',
-  'schleswig-holstein': 'SH',
-  'thueringen': 'TH',
-  'thüringen': 'TH',
+  badenwuerttemberg: 'BW',
+  bawue: 'BW',
+  bayern: 'BY',
+  freistaatbayern: 'BY',
+  berlin: 'BE',
+  brandenburg: 'BB',
+  bremen: 'HB',
+  freiehansestadtbremen: 'HB',
+  hansestadtbremen: 'HB',
+  hamburg: 'HH',
+  freieundhansestadthamburg: 'HH',
+  hansestadthamburg: 'HH',
+  hessen: 'HE',
+  mecklenburgvorpommern: 'MV',
+  meckpomm: 'MV',
+  niedersachsen: 'NI',
+  nds: 'NI',
+  nordrheinwestfalen: 'NW',
+  nrw: 'NW',
+  rheinlandpfalz: 'RP',
+  rlp: 'RP',
+  saarland: 'SL',
+  sachsen: 'SN',
+  freistaatsachsen: 'SN',
+  sachsenanhalt: 'ST',
+  schleswigholstein: 'SH',
+  thueringen: 'TH',
+  freistaatthueringen: 'TH',
 }
 
 /**
@@ -81,7 +133,7 @@ export function normalizeBundesland(value: unknown): Bundesland | undefined {
   if (!roh) return undefined
   const gross = roh.toUpperCase()
   if (BUNDESLAND_CODES.includes(gross)) return gross as Bundesland
-  return BUNDESLAND_NAMEN[roh.toLowerCase()]
+  return BUNDESLAND_NAMEN[schluessel(roh)]
 }
 
 export interface HoursRange {

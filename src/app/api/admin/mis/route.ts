@@ -383,13 +383,31 @@ export const GET = withApi(async () => {
     }
     let recentRefunds: PlatformTx[] = []
     let platformTransactions: PlatformTx[] = []
+    /**
+     * Konnte `platform_transactions` gelesen werden?
+     *
+     * Ohne diese Angabe war eine ausgefallene Abfrage von einem leeren
+     * Geschaeftsjahr nicht zu unterscheiden: der `catch` unten hat den Fehler
+     * nur in die Serverkonsole geschrieben, und auf `/admin/mis` stand
+     * anschliessend „0,00 €" Plattformumsatz — die Aussage „die Plattform hat
+     * nichts verdient", wo „wir konnten es nicht lesen" gemeint war. Dieselbe
+     * Klasse, die Track 25 fuer `/api/admin/commissions` geschlossen hat.
+     *
+     * Die Tabelle EXISTIERT live (Sonde vom 30.08.2026: 42501 statt PGRST205,
+     * also vorhanden und fuer anon gesperrt). Der Kommentar „noch nicht
+     * verfuegbar" traf also nicht mehr zu und hat einen echten Lesefehler als
+     * Normalzustand ausgegeben.
+     */
+    let platformRevenueLesbar = true
 
     try {
-      const { data: txs } = await supabase
+      const { data: txs, error: txFehler } = await supabase
         .from('platform_transactions')
         .select('id, type, platform_fee_cents, amount_cents, status, created_at, provider_user_id, customer_user_id')
         .order('created_at', { ascending: false })
         .limit(500)
+
+      if (txFehler) throw txFehler
 
       platformTransactions = (txs as PlatformTx[]) ?? []
 
@@ -438,7 +456,8 @@ export const GET = withApi(async () => {
         .filter(tx => tx.status === 'refunded')
         .slice(0, 10)
     } catch (err) {
-      console.warn('platform_transactions noch nicht verfügbar:', err)
+      console.error('platform_transactions konnte nicht gelesen werden:', err)
+      platformRevenueLesbar = false
     }
 
     // Recent transactions für UI (Top 25 succeeded/pending)
@@ -489,6 +508,8 @@ export const GET = withApi(async () => {
       recentErrors,
       onboardingPipeline,
       platformRevenue,
+      /** false = die Zahlen darueber sind NICHT „null Euro", sondern unbekannt. */
+      platformRevenueLesbar,
       recentRefunds: recentRefunds.map(r => ({
         id: r.id,
         type: r.type,

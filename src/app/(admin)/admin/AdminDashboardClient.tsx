@@ -13,15 +13,21 @@ interface Props {
     pendingBookings: number
     reviews: number
     orders: number
-    totalRevenueCents: number
+    /** `null` = nicht lesbar. NICHT dasselbe wie 0 — siehe admin/page.tsx. */
+    totalRevenueCents: number | null
   }
   recentBookings: Record<string, unknown>[]
   recentUsers: Record<string, unknown>[]
   pendingSalons: Record<string, unknown>[]
+  /** false = die Liste konnte nicht gelesen werden; „leer" waere eine Luege. */
+  pendingSalonsLesbar?: boolean
 }
 
-export default function AdminDashboardClient({ stats, recentBookings, recentUsers, pendingSalons }: Props) {
-  const revenue = (stats.totalRevenueCents / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
+export default function AdminDashboardClient({ stats, recentBookings, recentUsers, pendingSalons, pendingSalonsLesbar = true }: Props) {
+  const revenue =
+    stats.totalRevenueCents === null
+      ? 'unbekannt'
+      : (stats.totalRevenueCents / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
 
   return (
     <div>
@@ -33,13 +39,31 @@ export default function AdminDashboardClient({ stats, recentBookings, recentUser
         <StatCard label="Buchungen" value={stats.bookings} icon="📅" sub={`${stats.pendingBookings} ausstehend`} color="green" />
         <StatCard label="Bewertungen" value={stats.reviews} icon="⭐" color="gold" />
         <StatCard label="Bestellungen" value={stats.orders} icon="📦" color="blue" />
-        <StatCard label="Umsatz" value={revenue} icon="💰" color="green" />
+        <StatCard
+          label="Umsatz"
+          value={revenue}
+          icon="💰"
+          color="green"
+          sub={stats.totalRevenueCents === null ? 'nicht lesbar — bitte neu laden' : undefined}
+        />
       </div>
 
       {/* Pending verifications */}
       <div style={{ marginBottom: 32 }}>
-        <SectionHeader title="Ausstehende Verifizierungen" subtitle={`${pendingSalons.length} Salons warten`} action={{ label: 'Alle anzeigen', href: '/admin/anbieter' }} />
-        {pendingSalons.length > 0 ? (
+        <SectionHeader
+          title="Ausstehende Verifizierungen"
+          subtitle={pendingSalonsLesbar ? `${pendingSalons.length} Salons warten` : 'nicht lesbar'}
+          action={{ label: 'Alle anzeigen', href: '/admin/anbieter' }}
+        />
+        {!pendingSalonsLesbar ? (
+          // Kein „✅ Alles verifiziert" auf einen Lesefehler hin. Das ist die
+          // Entwarnung fuer das Freischalt-Tor, und sie waere unbelegt.
+          <EmptyState
+            icon="⚠️"
+            title="Liste nicht lesbar"
+            description="Ob Salons auf Freischaltung warten, ist gerade nicht feststellbar. Bitte neu laden."
+          />
+        ) : pendingSalons.length > 0 ? (
           <DataTable
             columns={[
               { key: 'name', label: 'Salon' },

@@ -91,7 +91,46 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch {}
 
-  return { title: 'Salon — ChairMatch' }
+  /*
+   * Hier landet JEDER Slug, den die Seite anschliessend mit `notFound()`
+   * beantwortet: der unbekannte, der gesperrte, der nie freigeschaltete.
+   *
+   * DASS DAS EIGENE METADATEN BRAUCHT, liegt am Statuscode — und der ist
+   * nicht 404, sondern 200. Nachgemessen am 30.08.2026:
+   *
+   *     GET https://www.chairmatch.de/salon/gibtsnicht-xyz  →  200
+   *
+   * Der Rumpf ist korrekt („Seite nicht gefunden"), nur der Status nicht.
+   * Denselben Soft-404 hat `magazin/[slug]/page.tsx` schon beschrieben —
+   * „Ohne dies streamte Next bei on-demand-Rendern bereits 200, bevor
+   * notFound() griff". Dort war er mit `dynamicParams = false` zu loesen,
+   * weil alle gueltigen Slugs zur Bauzeit feststehen; hier stehen sie in der
+   * Datenbank, und ein neu freigeschalteter Salon muss ohne Deploy erreichbar
+   * sein. Die Messung stuetzt das: JEDE Route mit `dynamicParams = false`
+   * (/magazin, /category, /[stadt]) antwortet sauber mit 404, und genau die
+   * zwei ohne (/salon, /listings) antworten mit 200.
+   *
+   * NAHELIEGENDE, ABER NICHT NACHGEMESSENE URSACHE: unter `(public)` liegt
+   * ein `loading.tsx` und damit eine Suspense-Grenze, an der Next die Huelle
+   * mitsamt Status hinausschiebt, bevor die Abfrage hier zurueck ist. Wer das
+   * angeht, misst es bitte zuerst nach.
+   *
+   * Was blieb, war der SEO-Schaden, und der hing NICHT am Status allein:
+   * hier stand bis hierher `{ title: 'Salon — ChairMatch' }` und sonst
+   * nichts. Eine Seite mit Status 200, ohne `noindex`, mit einem generischen
+   * Titel — das ist die Einladung, jeden Tippfehler-Link und jeden gesperrten
+   * Salon als eigene Seite in den Index zu nehmen. `/listings/[slug]` macht
+   * es im selben Repo seit jeher richtig (`robots: { index: false }`).
+   *
+   * Der Statuscode bleibt offen und ist im Bericht als solcher vermerkt: ihn
+   * zu heilen hiesse, die Suspense-Grenze fuer den gesamten oeffentlichen
+   * Bereich aufzugeben, und damit den Ladebildschirm. Das ist eine
+   * Produktentscheidung, keine, die ein Haerte-Track still trifft.
+   */
+  return {
+    title: 'Salon nicht gefunden — ChairMatch',
+    robots: { index: false, follow: true },
+  }
 }
 
 export default async function SalonDetailPage({ params }: Props) {

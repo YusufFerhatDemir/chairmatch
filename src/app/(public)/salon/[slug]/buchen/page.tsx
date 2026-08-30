@@ -88,6 +88,17 @@ export default function BuchenPage() {
   const [slots, setSlots] = useState<string[]>([])
   const [laedtSlots, setLaedtSlots] = useState(false)
   const [slotFehler, setSlotFehler] = useState<string | null>(null)
+  /**
+   * Der Grund, den `/api/availability` mitschickt (`message`), wenn der Tag
+   * nicht am Andrang liegt: Feiertag, Ruhetag, gesperrter Salon.
+   *
+   * Bis hierher hat diese Seite das Feld weggeworfen und JEDEN leeren Tag mit
+   * „An diesem Tag ist nichts mehr frei" beschriftet — auch den 25. Dezember
+   * und den Salon, den die Plattform gerade gesperrt hat. Das ist nicht nur
+   * ungenau, es schickt den Kunden auf die Suche nach einem freien Slot, den
+   * es an keinem Tag geben wird.
+   */
+  const [slotHinweis, setSlotHinweis] = useState<string | null>(null)
 
   const [submitting, setSubmitting] = useState(false)
   const [fehler, setFehler] = useState<string | null>(null)
@@ -134,6 +145,7 @@ export default function BuchenPage() {
     if (!salon?.id || !serviceId || !dateIso) return
     setLaedtSlots(true)
     setSlotFehler(null)
+    setSlotHinweis(null)
     setTimeSlot('')
     try {
       const url = `/api/availability?salonId=${encodeURIComponent(salon.id)}&serviceId=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(dateIso)}`
@@ -145,6 +157,7 @@ export default function BuchenPage() {
       }
       const data = await res.json()
       const roh: string[] = Array.isArray(data?.slots) ? data.slots : []
+      setSlotHinweis(typeof data?.message === 'string' ? data.message : null)
 
       // Heute keine Zeiten anbieten, die schon vorbei sind. Der Server weist
       // sie ohnehin ab (`startsInPast`); sie erst gar nicht anzuklicken zu
@@ -431,7 +444,9 @@ export default function BuchenPage() {
 
                   {!laedtSlots && !slotFehler && slots.length === 0 && (
                     <p style={{ fontSize: 12.5, color: 'var(--stone)', lineHeight: 1.6 }}>
-                      An diesem Tag ist nichts mehr frei. Bitte einen anderen Tag wählen.
+                      {slotHinweis
+                        ? `${slotHinweis} Bitte einen anderen Tag wählen.`
+                        : 'An diesem Tag ist nichts mehr frei. Bitte einen anderen Tag wählen.'}
                     </p>
                   )}
 

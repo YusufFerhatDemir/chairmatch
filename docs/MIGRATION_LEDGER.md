@@ -69,8 +69,57 @@ Der Produktivcode aus CM23 läuft **ohne** diese Migration: er schreibt kein
 Die Migration schreibt die Regeln zusätzlich in die Datenbank; jeder Constraint
 zählt vorher die verletzenden Zeilen und bricht mit klarer Meldung ab.
 
+---
+
+## CM24 — `services` und `salon_images` sind für anon offen (Track E, 30.08.2026)
+
+| Repo-Datei | Repo-Timestamp | Track | Status |
+|---|---|---|---|
+| `20260830_services_anon_lockdown.sql` | 20260830 | CM24 | **OFFEN — nicht angewendet** |
+
+### Befund (nur lesend, nur mit dem öffentlichen ANON-Key)
+
+`GET /rest/v1/services?select=*` antwortet mit **200** und liefert alle 64
+Zeilen. Sie verteilen sich auf **16** Salons — öffentlich sichtbar sind aber
+nur **15**:
+
+```
+GET /api/salons/cccccccc-0000-4000-a000-000000000003   →  404
+GET /rest/v1/services?salon_id=eq.cccccccc-…-000003    →  200
+    Botox Behandlung   299,00 €
+    Hyaluron Filler    399,00 €
+    PRP Therapie           …
+```
+
+Der Salon ist `is_active = false`, `salonIsPubliclyVisible` verbirgt ihn — und
+seine vollständige Preisliste steht trotzdem unter dem öffentlichen Schlüssel.
+Das ist der Rest des Track-20-Befunds eine Ebene tiefer.
+
+`salon_images` gehört zur selben Klasse (heute 0 Zeilen, also noch ohne
+Schaden) und wird mitgesperrt.
+
+### Warum das stehenblieb
+
+`20260827_anon_grant_lockdown.sql` hat beide ausdrücklich ausgenommen
+(„tragen öffentlichen Katalog-inhalt … sollen es bleiben"). Diese Einschätzung
+stammt von **vor** Track 20, seit dem „welcher Salon ist öffentlich" eine
+Entscheidung der Plattform ist. `rental_equipment` aus derselben Aufzählung
+wurde in Track 22 aus genau diesem Grund gesperrt.
+
+### Risiko der Anwendung: gering
+
+Alle sechs lesenden Stellen im Code laufen über `getSupabaseAdmin()`
+(`service_role`), und `service_role` ist von `REVOKE … FROM anon` nicht
+betroffen. Es gibt keinen Client, der `services` oder `salon_images` direkt
+liest. Gegenprobe nach der Anwendung:
+
+```
+bash scripts/negativtest-anon-lesen.sh      # services → 401 statt 200
+curl -s -o /dev/null -w '%{http_code}' https://www.chairmatch.de/salon/naillab-by-lena   # muss 200 bleiben
+```
+
 ## Gesamtstand
 
 - **Total Migrationen in Supabase**: 49
 - **Letzte Version**: 20260828230000
-- **HEAD**: bf6fcf6
+- **Offen**: CM23 (Schema-Teil), CM24 (`services`/`salon_images` anon-Lockdown)

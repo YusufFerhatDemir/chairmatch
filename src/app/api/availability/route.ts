@@ -94,6 +94,18 @@ export async function GET(req: NextRequest) {
     }
 
     const tag = hoursForDay(salon?.opening_hours, date)
+    // `closed` und `unknown` sind NICHT dasselbe und duerfen nicht dasselbe
+    // melden. „Der Salon hat montags zu" ist eine Auskunft; „wir kennen die
+    // Zeiten nicht" ist keine — und `createBooking` weist nur das erste ab
+    // (siehe `salonGeschlossen`). Ein leeres `slots` ohne Grund liess die
+    // Oberflaeche beides als „ausgebucht" anzeigen.
+    if (tag.kind === 'closed') {
+      return NextResponse.json({
+        slots: [],
+        unavailable: 'closed_day',
+        message: CLOSED_MESSAGES.closed_day,
+      })
+    }
     if (tag.kind !== 'open') return NextResponse.json({ slots: [] })
     const range = tag.range
 
@@ -194,18 +206,45 @@ export async function GET(req: NextRequest) {
     }
 
     const tag = hoursForDay(salon?.opening_hours, date)
+    // `closed` und `unknown` sind NICHT dasselbe und duerfen nicht dasselbe
+    // melden. „Der Salon hat montags zu" ist eine Auskunft; „wir kennen die
+    // Zeiten nicht" ist keine — und `createBooking` weist nur das erste ab
+    // (siehe `salonGeschlossen`). Ein leeres `slots` ohne Grund liess die
+    // Oberflaeche beides als „ausgebucht" anzeigen.
+    if (tag.kind === 'closed') {
+      return NextResponse.json({
+        slots: [],
+        unavailable: 'closed_day',
+        message: CLOSED_MESSAGES.closed_day,
+      })
+    }
     if (tag.kind !== 'open') return NextResponse.json({ slots: [] })
     const range = tag.range
 
-    const { data: existing } = await supabase
+    const { data: existing, error: mietBelegungFehler } = await supabase
       .from('rental_bookings')
       .select('start_date, end_date')
       .eq('equipment_id', resourceId)
       .in('status', [...BLOCKING_STATUSES])
 
+    // Derselbe Riegel wie im Termin-Zweig weiter oben, der hier fehlte: ohne
+    // Fehlerpruefung ergibt ein Ausfall der Belegungsabfrage `existing = null`
+    // — und damit ein VOLLES Raster fuer ein Geraet, das laengst vermietet
+    // ist. Lieber ehrlich nichts anbieten als eine erfundene freie Zeit.
+    if (mietBelegungFehler) {
+      return NextResponse.json(
+        { error: 'Belegung konnte nicht geladen werden.' },
+        { status: 503 },
+      )
+    }
+
     for (const b of existing ?? []) {
       if (date >= b.start_date && date <= b.end_date) {
-        return NextResponse.json({ slots: [] })
+        return NextResponse.json({
+          slots: [],
+          unavailable: 'booked',
+          message: 'Dieses Mietobjekt ist an diesem Tag bereits vergeben.',
+        })
       }
     }
 

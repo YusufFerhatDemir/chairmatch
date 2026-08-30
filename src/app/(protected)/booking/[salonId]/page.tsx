@@ -132,6 +132,13 @@ export default function BookingPage() {
   const [slots, setSlots] = useState<string[]>([])
   const [laedtSlots, setLaedtSlots] = useState(false)
   const [slotFehler, setSlotFehler] = useState<string | null>(null)
+  /**
+   * `message` aus `/api/availability` — der Grund, warum der Tag leer ist,
+   * wenn er nicht am Andrang liegt (Feiertag, Ruhetag, gesperrter Salon).
+   * Ohne ihn stand hier fuer jeden leeren Tag dieselbe Vermutung
+   * („geschlossen oder ausgebucht"), auch wenn der Server es genau wusste.
+   */
+  const [slotHinweis, setSlotHinweis] = useState<string | null>(null)
 
   /**
    * Beispiel-Eintrag aus `PROVS`? Dann ist hier nichts buchbar — weder der
@@ -191,6 +198,7 @@ export default function BookingPage() {
     }
     setLaedtSlots(true)
     setSlotFehler(null)
+    setSlotHinweis(null)
     setStartTime('')
     try {
       const url =
@@ -207,6 +215,7 @@ export default function BookingPage() {
       }
       const data = await res.json()
       setSlots(Array.isArray(data?.slots) ? (data.slots as string[]) : [])
+      setSlotHinweis(typeof data?.message === 'string' ? data.message : null)
     } catch {
       setSlots([])
       setSlotFehler('Verbindungsfehler — freie Zeiten konnten nicht geladen werden.')
@@ -437,8 +446,9 @@ export default function BookingPage() {
               <p style={{ fontSize: 12.5, color: 'var(--red)', lineHeight: 1.5, marginBottom: 20 }}>{slotFehler}</p>
             ) : slots.length === 0 ? (
               <p style={{ fontSize: 12.5, color: 'var(--stone)', lineHeight: 1.5, marginBottom: 20 }}>
-                Am {days[selectedDay]?.full} ist für diesen Service nichts mehr frei —
-                der Salon hat geschlossen oder der Tag ist ausgebucht. Wähle einen anderen Tag.
+                {slotHinweis
+                  ? `${slotHinweis} Wähle einen anderen Tag.`
+                  : `Am ${days[selectedDay]?.full} ist für diesen Service nichts mehr frei — der Salon hat geschlossen oder der Tag ist ausgebucht. Wähle einen anderen Tag.`}
               </p>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 20 }}>

@@ -4,47 +4,142 @@ import { useCart } from './CartProvider'
 import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
+/**
+ * Die Lieferadresse — die vier Felder, die `POST /api/orders` mit zod prueft
+ * (`shippingSchema`: Name ≥ 2, Strasse ≥ 3, Ort ≥ 2, PLZ ≥ 3).
+ */
+interface Lieferadresse {
+  name: string
+  street: string
+  city: string
+  postalCode: string
+}
+
+const LEERE_ADRESSE: Lieferadresse = { name: '', street: '', city: '', postalCode: '' }
+
+const FELDER: Array<{ key: keyof Lieferadresse; label: string; autoComplete: string; inputMode?: 'text' | 'numeric' }> = [
+  { key: 'name', label: 'Name', autoComplete: 'name' },
+  { key: 'street', label: 'Straße + Nr.', autoComplete: 'street-address' },
+  { key: 'postalCode', label: 'PLZ', autoComplete: 'postal-code', inputMode: 'numeric' },
+  { key: 'city', label: 'Ort', autoComplete: 'address-level2' },
+]
+
 export function CartDrawer() {
   const { items, isOpen, setIsOpen, totalCents, removeItem, updateQuantity, loading } = useCart()
   const [checkingOut, setCheckingOut] = useState(false)
+  /**
+   * Adresse und Fehler stehen jetzt im Drawer.
+   *
+   * WAS HIER STAND: vier `prompt()`-Dialoge hintereinander („Liefername:",
+   * „Straße + Nr:", „Stadt:", „PLZ:") und ein `alert()` fuer jeden Fehler.
+   *
+   * Das ist keine Kosmetik. Ein `prompt()` hat kein Zurueck — wer sich im
+   * dritten Feld vertippt, faengt von vorn an; es kennt keine Vorschlaege des
+   * Browsers (`autocomplete`), keine Tastatur fuer Zahlen, und Safari sowie
+   * mehrere mobile Browser unterdruecken es nach dem ersten Dialog oder ganz.
+   * Auf genau der Strecke, auf der anschliessend Geld fliesst, hing die
+   * Bestellung damit an einem Dialogfeld, das der Browser abschalten darf.
+   *
+   * Dazu warf der Aufruf die Auskunft des Servers weg: `/api/orders` antwortet
+   * bei einer unvollstaendigen Adresse mit 400 und einem `details`-Objekt je
+   * Feld, hier stand `throw new Error('Order fehlgeschlagen')`.
+   */
+  const [adresse, setAdresse] = useState<Lieferadresse>(LEERE_ADRESSE)
+  const [feldFehler, setFeldFehler] = useState<Partial<Record<keyof Lieferadresse, string>>>({})
+  const [fehler, setFehler] = useState<string | null>(null)
 
   if (!isOpen) return null
 
   const shippingCents = totalCents >= 5000 ? 0 : 499
   const grandTotal = totalCents + shippingCents
 
+  function setzeFeld(key: keyof Lieferadresse, wert: string) {
+    setAdresse(a => ({ ...a, [key]: wert }))
+    setFeldFehler(f => (f[key] ? { ...f, [key]: undefined } : f))
+  }
+
+  /** Dieselben Mindestlaengen wie `shippingSchema` — nur frueher gemeldet. */
+  function pruefeLokal(a: Lieferadresse): Partial<Record<keyof Lieferadresse, string>> {
+    const f: Partial<Record<keyof Lieferadresse, string>> = {}
+    if (a.name.trim().length < 2) f.name = 'Bitte Namen angeben.'
+    if (a.street.trim().length < 3) f.street = 'Bitte Straße und Hausnummer angeben.'
+    if (a.postalCode.trim().length < 3) f.postalCode = 'Bitte PLZ angeben.'
+    if (a.city.trim().length < 2) f.city = 'Bitte Ort angeben.'
+    return f
+  }
+
   async function handleCheckout() {
+    setFehler(null)
+
+    const lokal = pruefeLokal(adresse)
+    if (Object.keys(lokal).length > 0) {
+      setFeldFehler(lokal)
+      return
+    }
+
     setCheckingOut(true)
     try {
-      // Step 1: create order
-      const name = prompt('Liefername:')
-      const street = prompt('Straße + Nr:')
-      const city = prompt('Stadt:')
-      const postalCode = prompt('PLZ:')
-      if (!name || !street || !city || !postalCode) {
-        setCheckingOut(false)
-        return
-      }
-
+      // Schritt 1: Bestellung anlegen
       const orderRes = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, street, city, postalCode }),
+        body: JSON.stringify({
+          name: adresse.name.trim(),
+          street: adresse.street.trim(),
+          city: adresse.city.trim(),
+          postalCode: adresse.postalCode.trim(),
+        }),
       })
-      if (!orderRes.ok) throw new Error('Order fehlgeschlagen')
+
+      if (!orderRes.ok) {
+        // Die Route sagt genau, was fehlt — das gehoert an die Felder.
+        const body = await orderRes.json().catch(() => null)
+        const details = body?.details as Record<string, string[]> | undefined
+        if (details) {
+          const uebernommen: Partial<Record<keyof Lieferadresse, string>> = {}
+          for (const key of ['name', 'street', 'city', 'postalCode'] as const) {
+            const m = details[key]?.[0]
+            if (m) uebernommen[key] = m
+          }
+          setFeldFehler(uebernommen)
+        }
+        setFehler(
+          typeof body?.error === 'string'
+            ? body.error
+            : 'Die Bestellung konnte nicht angelegt werden.',
+        )
+        return
+      }
+
       const order = await orderRes.json()
 
-      // Step 2: Stripe checkout
+      // Schritt 2: Stripe-Checkout
       const stripeRes = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'product_order', orderId: order.id }),
       })
-      if (!stripeRes.ok) throw new Error('Checkout fehlgeschlagen')
+
+      if (!stripeRes.ok) {
+        // 503 heisst seit Track 24: Stripe ist hier nicht eingerichtet. Der
+        // Text der Route sagt das, und er ist besser als jeder eigene.
+        const body = await stripeRes.json().catch(() => null)
+        setFehler(
+          typeof body?.error === 'string'
+            ? body.error
+            : 'Die Bezahlung konnte nicht gestartet werden. Deine Bestellung ist angelegt.',
+        )
+        return
+      }
+
       const { url } = await stripeRes.json()
-      if (url) window.location.href = url
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Fehler beim Checkout')
+      if (url) {
+        window.location.href = url
+        return
+      }
+      setFehler('Die Bezahlseite konnte nicht geöffnet werden. Deine Bestellung ist angelegt.')
+    } catch {
+      setFehler('Verbindungsfehler. Bitte erneut versuchen.')
     } finally {
       setCheckingOut(false)
     }
@@ -143,6 +238,45 @@ export function CartDrawer() {
               <span>Gesamt</span>
               <span className="text-[#c8a84b]">{(grandTotal / 100).toFixed(2)} €</span>
             </div>
+
+            {/* Lieferadresse — bis Track E vier prompt()-Dialoge, s. handleCheckout */}
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/50">
+                Lieferadresse
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {FELDER.map(feld => (
+                  <div key={feld.key} className={feld.key === 'postalCode' ? '' : 'col-span-2'}>
+                    <input
+                      type="text"
+                      value={adresse[feld.key]}
+                      onChange={e => setzeFeld(feld.key, e.target.value)}
+                      placeholder={feld.label}
+                      aria-label={feld.label}
+                      autoComplete={feld.autoComplete}
+                      inputMode={feld.inputMode}
+                      disabled={checkingOut}
+                      className={`w-full px-3 py-2 rounded-lg bg-white/5 text-sm text-white placeholder-white/35 border outline-none focus:border-[#c8a84b] disabled:opacity-50 ${
+                        feldFehler[feld.key] ? 'border-red-400/60' : 'border-white/10'
+                      }`}
+                    />
+                    {feldFehler[feld.key] && (
+                      <p className="mt-1 text-[11px] text-red-400">{feldFehler[feld.key]}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {fehler && (
+              <p
+                role="alert"
+                className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-400/30 text-xs text-red-300 leading-relaxed"
+              >
+                {fehler}
+              </p>
+            )}
+
             <button
               onClick={handleCheckout}
               disabled={checkingOut || loading}

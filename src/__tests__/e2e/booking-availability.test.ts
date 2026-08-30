@@ -169,4 +169,42 @@ describe('Geschlossene Tage', () => {
     const body = await (await slotsFuer(FREE_DAY)).json()
     expect(body.slots).toEqual([])
   })
+
+  /*
+   * Track E. Ein leeres `slots` ohne Grund liess beide Buchungs-Oberflaechen
+   * denselben Satz anzeigen — „An diesem Tag ist nichts mehr frei" —, und
+   * zwar auch am Ruhetag, am Feiertag und beim gesperrten Salon. Der Kunde
+   * suchte dann nach einem freien Slot, den es an keinem Tag geben wird.
+   *
+   * Die Route WEISS den Unterschied (`hoursForDay` trennt `closed` von
+   * `unknown`, siehe lib/salon-open.ts) — sie hat ihn nur nicht gesagt.
+   */
+  it('nennt den Ruhetag als Grund', async () => {
+    db().rows('salons').forEach(s => {
+      if (s.id === IDS.salon) s.opening_hours = { ...(s.opening_hours as object), Di: 'Geschlossen' }
+    })
+    const body = await (await slotsFuer(FREE_DAY)).json()
+    expect(body.unavailable).toBe('closed_day')
+    expect(body.message).toMatch(/geschlossen/i)
+  })
+
+  it('behauptet bei fehlender Angabe NICHTS', async () => {
+    // „Keine Angabe" ist nicht „geschlossen" — `createBooking` weist diesen
+    // Fall bewusst nicht ab. Ein `closed_day` hier waere eine Aussage, die
+    // die Route nicht decken kann.
+    db().rows('salons').forEach(s => {
+      if (s.id === IDS.salon) s.opening_hours = null
+    })
+    const body = await (await slotsFuer(FREE_DAY)).json()
+    expect(body.slots).toEqual([])
+    expect(body.unavailable).toBeUndefined()
+    expect(body.message).toBeUndefined()
+  })
+
+  it('nennt den Feiertag als Grund', async () => {
+    // 03.10.2026 ist der Tag der Deutschen Einheit, bundesweit.
+    const body = await (await slotsFuer('2026-10-03')).json()
+    expect(body.unavailable).toBe('holiday')
+    expect(body.message).toMatch(/Feiertag/i)
+  })
 })

@@ -45,21 +45,39 @@ export default async function AdminPage() {
     .order('created_at', { ascending: false })
     .limit(10)
 
-  // Revenue calculation
-  const { data: paidBookings } = await supabase
+  /*
+   * Umsatz und offene Freischaltungen — zwei Zahlen, bei denen „0" und
+   * „konnten wir nicht lesen" bis Track E dasselbe Bild ergaben.
+   *
+   * Beide Abfragen haben nur `data` destrukturiert. Faellt der Umsatz aus,
+   * stand im Cockpit „0,00 €" — die Aussage, die Plattform habe nichts
+   * eingenommen. Faellt die Salonliste aus, stand dort „✅ Alles verifiziert
+   * — Keine Salons warten auf Verifizierung": eine Entwarnung fuer genau das
+   * Tor, das Track 15 und 20 scharf gestellt haben. Ein Admin, der das liest,
+   * schaltet niemanden frei.
+   *
+   * `null` heisst hier „unbekannt" — dieselbe Konvention wie in
+   * `/api/admin/kpi` seit Track 11.
+   */
+  const { data: paidBookings, error: umsatzFehler } = await supabase
     .from('bookings')
     .select('price_cents')
     .eq('payment_status', 'paid')
 
-  const totalRevenue = (paidBookings || []).reduce((sum, b) => sum + (Number(b.price_cents) || 0), 0)
+  if (umsatzFehler) console.error('admin-dashboard Umsatz:', umsatzFehler.message)
+  const totalRevenue = umsatzFehler
+    ? null
+    : (paidBookings || []).reduce((sum, b) => sum + (Number(b.price_cents) || 0), 0)
 
   // Unverified salons (pending verification)
-  const { data: pendingSalons } = await supabase
+  const { data: pendingSalons, error: pendingFehler } = await supabase
     .from('salons')
     .select('id, name, city, category, created_at')
     .eq('is_verified', false)
     .order('created_at', { ascending: false })
     .limit(5)
+
+  if (pendingFehler) console.error('admin-dashboard offene Freischaltungen:', pendingFehler.message)
 
   return (
     <AdminDashboardClient
@@ -78,6 +96,7 @@ export default async function AdminPage() {
       recentBookings={(recentBookings || []) as Record<string, unknown>[]}
       recentUsers={(recentUsers || []) as Record<string, unknown>[]}
       pendingSalons={(pendingSalons || []) as Record<string, unknown>[]}
+      pendingSalonsLesbar={!pendingFehler}
     />
   )
 }

@@ -47,7 +47,15 @@ export const GET = withApi(async () => {
     .order('created_at', { ascending: false })
     .limit(50)
 
-  if (txError || !txs || txs.length === 0) {
+  // Ein Lesefehler ist KEIN leeres Konto. Der leere Dashboard-Rumpf bleibt
+  // (die Seite soll sich zeichnen lassen), aber er sagt jetzt, dass die
+  // Zahlen unbekannt sind — siehe `earningsLesbar` in dashboard.types.ts.
+  if (txError) {
+    console.error('provider-dashboard platform_transactions:', txError.message)
+    return NextResponse.json({ ...emptyDashboard(stripeConnected), earningsLesbar: false })
+  }
+
+  if (!txs || txs.length === 0) {
     return NextResponse.json(emptyDashboard(stripeConnected))
   }
 

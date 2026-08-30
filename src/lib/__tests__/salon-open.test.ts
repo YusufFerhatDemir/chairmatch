@@ -110,6 +110,63 @@ describe('normalizeBundesland erfindet nichts', () => {
     expect(istFeiertag('2026-12-25', 'Quatsch')).toBe(true)
     expect(istFeiertag('2027-05-27', 'Quatsch')).toBe(false)
   })
+
+  /*
+   * Track E. Die Werte hier sind KEINE erfundenen Varianten, sondern das,
+   * was am 30.08.2026 wirklich in `salons.state` stand — ausgelesen ueber
+   * `GET https://www.chairmatch.de/api/salons/<slug>` fuer alle 15
+   * oeffentlichen Salons: "Hamburg", "Bayern", "Berlin", "Hessen",
+   * "Baden-Württemberg" und dreimal "NRW".
+   *
+   * "NRW" ist kein Laendercode (der lautet NW) und stand in keiner Liste.
+   * `normalizeBundesland` gab dafuer `undefined` zurueck, also galten fuer
+   * diese drei Salons nur die bundesweiten Feiertage — nachgemessen an
+   * `/api/availability`, Salon „Maison Haarwerk":
+   *
+   *     2027-11-01 (Allerheiligen, Montag)   → 33 Slots
+   *     2027-05-27 (Fronleichnam, Donnerstag) → 41 Slots
+   */
+  it('erkennt die Schreibweisen, die live in salons.state stehen', () => {
+    expect(normalizeBundesland('NRW')).toBe('NW')
+    expect(normalizeBundesland('nrw')).toBe('NW')
+    expect(normalizeBundesland('Hamburg')).toBe('HH')
+    expect(normalizeBundesland('Hessen')).toBe('HE')
+    expect(normalizeBundesland('Berlin')).toBe('BE')
+  })
+
+  it('stoert sich nicht an Leerzeichen statt Bindestrich', () => {
+    expect(normalizeBundesland('Baden Württemberg')).toBe('BW')
+    expect(normalizeBundesland('Nordrhein Westfalen')).toBe('NW')
+    expect(normalizeBundesland('Sachsen-Anhalt')).toBe('ST')
+    expect(normalizeBundesland('Mecklenburg Vorpommern')).toBe('MV')
+  })
+
+  it('nimmt die amtlichen Beiworte mit', () => {
+    expect(normalizeBundesland('Freistaat Bayern')).toBe('BY')
+    expect(normalizeBundesland('Freie und Hansestadt Hamburg')).toBe('HH')
+    expect(normalizeBundesland('Freie Hansestadt Bremen')).toBe('HB')
+  })
+
+  it('sperrt fuer NRW jetzt Fronleichnam und Allerheiligen', () => {
+    // Beides sind Landesfeiertage in NW — und beide Tage fielen 2027 auf
+    // einen Werktag, an dem der Salon geoeffnet hat.
+    expect(istFeiertag('2027-05-27', 'NRW')).toBe(true)
+    expect(istFeiertag('2027-11-01', 'NRW')).toBe(true)
+    // Gegenprobe mit einem Land, das Allerheiligen NICHT kennt.
+    expect(istFeiertag('2027-11-01', 'Hessen')).toBe(false)
+    // … und mit einem gewoehnlichen Montag im selben Land.
+    expect(istFeiertag('2027-11-08', 'NRW')).toBe(false)
+  })
+
+  it('weist die Buchung an diesen Tagen ebenfalls ab', () => {
+    const offenMontag = { mo: { open: '09:00', close: '18:00' } }
+    expect(
+      salonGeschlossen({ date: '2027-11-01', openingHours: offenMontag, state: 'NRW' }),
+    ).toBe('holiday')
+    expect(
+      salonGeschlossen({ date: '2027-11-08', openingHours: offenMontag, state: 'NRW' }),
+    ).toBeNull()
+  })
 })
 
 describe('parseHoursRange', () => {
