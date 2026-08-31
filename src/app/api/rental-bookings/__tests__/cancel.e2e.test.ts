@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 import { fakeDb, type Row } from '@/test/fake-supabase'
 import { applyLiveSchema } from '@/test/live-schema'
+import { berlinToday } from '@/lib/berlin-time'
 
 /**
  * Storno einer Miet-Buchung — die Kette, die es bis Track 12 gar nicht gab.
@@ -70,11 +71,18 @@ beforeAll(async () => {
   cancelRental = mod.POST as unknown as Handler
 })
 
-/** Tage relativ zu heute, als ISO-Datum — dieselbe Form wie `start_date`. */
+/**
+ * Tage relativ zu heute, als ISO-Datum — dieselbe Form wie `start_date`.
+ *
+ * Anker ist bewusst `berlinToday()` und nicht der UTC-Kalender: die Route
+ * vergleicht `start_date` gegen den Berliner Kalendertag. Zwischen
+ * Mitternacht und 02:00 Berliner Zeit sind beide Kalender einen Tag
+ * auseinander — mit `new Date().setUTCDate(...)` schlug „am Tag vor dem
+ * Mietbeginn" in diesem Zeitfenster fehl, und zwar nur dort.
+ */
 function tag(versatz: number): string {
-  const d = new Date()
-  d.setUTCDate(d.getUTCDate() + versatz)
-  return d.toISOString().slice(0, 10)
+  const [y, m, d] = berlinToday().split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d + versatz)).toISOString().slice(0, 10)
 }
 
 function seedRental(overrides: Row = {}): Row {

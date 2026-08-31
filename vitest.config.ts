@@ -13,6 +13,13 @@ export default defineConfig({
     // unter src/, Playwright laeuft ueber `npm run test:e2e`.
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules/**', 'e2e/**', 'mobile/**', '.next/**'],
+    // Vitests Vorgabe sind 5s. Das reicht fuer einen ruhigen Rechner, aber
+    // nicht fuer einen ausgelasteten: ein jsdom-`render()` der Dashboard-
+    // Komponenten braucht dort mehr, und dann faellt bei jedem Lauf eine
+    // andere Handvoll Tests aus — auch rein synchrone. Das sind keine
+    // echten Fehlschlaege, sondern Wartezeit auf die CPU.
+    testTimeout: 20_000,
+    hookTimeout: 20_000,
     server: {
       deps: {
         // next-auth muss durch Vite laufen, sonst greift der 'next/server'-
