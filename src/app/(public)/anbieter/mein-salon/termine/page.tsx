@@ -176,6 +176,44 @@ export default function TermineAnbieterPage() {
     }
   }
 
+  /**
+   * Anfrage ablehnen bzw. bestaetigten Termin absagen.
+   *
+   * Diese Bedienung fehlte komplett: der Kalender kannte nur „Bestaetigen".
+   * Eine offene Anfrage belegt den Slot aber genauso wie ein bestaetigter
+   * Termin (`BLOCKING_STATUSES`) — ohne Ablehnen blieb sie stehen und sperrte
+   * die Zeit, bis sie in der Vergangenheit lag.
+   */
+  async function absagen(b: ApiBooking) {
+    const offen = String(b.status).toLowerCase() === 'pending'
+    const frage = offen
+      ? 'Diese Anfrage ablehnen? Der Kunde wird benachrichtigt und der Zeitraum wird wieder frei.'
+      : 'Diesen bestätigten Termin absagen? Der Kunde wird benachrichtigt.'
+    if (!confirm(frage)) return
+
+    const grund = prompt('Grund (optional, wird dem Kunden mitgeteilt):') ?? ''
+
+    setAendert(b.id)
+    setFehler(null)
+    try {
+      const res = await fetch(`/api/bookings/${b.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newStatus: 'cancelled', reason: grund.trim() || undefined }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setFehler(data?.error || (offen ? 'Die Anfrage konnte nicht abgelehnt werden.' : 'Der Termin konnte nicht abgesagt werden.'))
+        return
+      }
+      await laden()
+    } catch {
+      setFehler('Verbindungsfehler — es wurde nichts geändert.')
+    } finally {
+      setAendert(null)
+    }
+  }
+
   return (
     <div style={{
       minHeight: '100vh', background: 'var(--bg)',
@@ -304,10 +342,17 @@ export default function TermineAnbieterPage() {
                               {typeof b.price_cents === 'number' ? euro(b.price_cents) : '—'}
                             </span>
                           </div>
-                          {offen && (
-                            <button onClick={() => bestaetigen(b.id)} disabled={aendert === b.id}
-                              style={{ marginTop: 8, fontSize: 11, color: '#6ABF80', background: 'transparent', border: '1px solid rgba(74,138,90,0.35)', borderRadius: 8, padding: '5px 10px', cursor: aendert === b.id ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: aendert === b.id ? 0.6 : 1 }}
-                            >{aendert === b.id ? 'Bestätige …' : '✓ Bestätigen'}</button>
+                          {(offen || status === 'confirmed') && (
+                            <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                              {offen && (
+                                <button onClick={() => bestaetigen(b.id)} disabled={aendert === b.id}
+                                  style={{ fontSize: 11, color: '#6ABF80', background: 'transparent', border: '1px solid rgba(74,138,90,0.35)', borderRadius: 8, padding: '7px 12px', minHeight: 32, cursor: aendert === b.id ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: aendert === b.id ? 0.6 : 1 }}
+                                >{aendert === b.id ? 'Bestätige …' : '✓ Bestätigen'}</button>
+                              )}
+                              <button onClick={() => absagen(b)} disabled={aendert === b.id}
+                                style={{ fontSize: 11, color: '#FF8888', background: 'transparent', border: '1px solid rgba(232,80,64,0.35)', borderRadius: 8, padding: '7px 12px', minHeight: 32, cursor: aendert === b.id ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: aendert === b.id ? 0.6 : 1 }}
+                              >{offen ? '✕ Ablehnen' : '✕ Absagen'}</button>
+                            </div>
                           )}
                         </div>
                       </div>

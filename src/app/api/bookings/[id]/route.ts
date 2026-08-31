@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getServerSession } from '@/modules/auth/session'
-import { confirmBooking, completeBooking, markNoShow } from '@/modules/booking/booking.actions'
+import { confirmBooking, completeBooking, markNoShow, cancelBooking } from '@/modules/booking/booking.actions'
 import { createNotification } from '@/lib/notifications'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -97,6 +97,23 @@ export async function PATCH(
         break
       case 'no_show':
         result = await markNoShow(id)
+        break
+      /*
+       * `cancelled` fehlte hier — und damit dem Anbieter jeder Weg, eine
+       * Anfrage abzulehnen. Der einzige andere Einstieg,
+       * `POST /api/bookings/[id]/cancel`, wies ihn ausserdem ab, weil
+       * `pending -> cancelled` nur fuer den Kunden eingetragen war (siehe
+       * VALID_TRANSITIONS). Eine offene Anfrage blockiert den Slot, also
+       * braucht es einen Weg, sie zu schliessen.
+       *
+       * `cancelBooking` benachrichtigt die Gegenseite selbst; deshalb steht
+       * `cancelled` unten nicht in `statusLabels`.
+       */
+      case 'cancelled':
+        result = await cancelBooking({
+          bookingId: id,
+          reason: typeof body.reason === 'string' ? body.reason.slice(0, 500) : undefined,
+        })
         break
       default:
         return NextResponse.json({ error: 'Ungültiger Status' }, { status: 400 })

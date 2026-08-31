@@ -53,6 +53,22 @@ export type StatusTransition = {
 export const VALID_TRANSITIONS: StatusTransition[] = [
   { from: 'pending', to: 'confirmed', actor: 'provider' },
   { from: 'pending', to: 'cancelled', actor: 'customer' },
+  /*
+   * Der Salon darf eine Anfrage auch ABLEHNEN — diese Zeile fehlte.
+   *
+   * `pending` ist ein belegender Status (`BLOCKING_STATUSES`): eine offene
+   * Anfrage sperrt den Slot in `checkConflict` und in `/api/availability`
+   * fuer alle anderen. Der Anbieter hatte dafuer aber nur den Knopf
+   * „Bestaetigen"; `cancelBooking` wies ihn mit „Stornierung nicht moeglich"
+   * ab, weil `pending -> cancelled` nur fuer `customer` eingetragen war, und
+   * `PATCH /api/bookings/[id]` kannte den Zielstatus `cancelled` gar nicht.
+   *
+   * Damit gab es keinen Weg, eine Anfrage abzulehnen, die der Salon nicht
+   * annehmen kann (Urlaub, Doppelbelegung ausserhalb des Systems, Kunde
+   * meldet sich nicht). Sie blieb offen stehen und blockierte den Termin
+   * dauerhaft — bis sie irgendwann in der Vergangenheit lag.
+   */
+  { from: 'pending', to: 'cancelled', actor: 'provider' },
   { from: 'confirmed', to: 'completed', actor: 'provider' },
   { from: 'confirmed', to: 'cancelled', actor: 'customer' },
   { from: 'confirmed', to: 'cancelled', actor: 'provider' },

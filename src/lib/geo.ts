@@ -13,9 +13,20 @@ export function haversine(lat1: number, lng1: number, lat2: number, lng2: number
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-/** Format distance for display: "0,8 km", "2,3 km", "12 km" */
+/**
+ * Entfernung fuer die Anzeige: "300 m", "0,8 km", "2,3 km", "12 km".
+ *
+ * Der Meter-Zweig lautete `${(km * 10).toFixed(0).replace('.', ',')}00 m` —
+ * also "Zehntelkilometer, dann zwei Nullen drankleben". Fuer alles unter
+ * 50 Metern ergibt das die Ausgabe "000 m", und das `.replace('.', ',')`
+ * konnte nie greifen, weil `toFixed(0)` gar keinen Punkt enthaelt. Jetzt
+ * wird auf 10 Meter gerundet, und unter 10 Metern steht dort "nebenan".
+ */
 export function formatDistance(km: number): string {
-  if (km < 1) return `${(km * 10).toFixed(0).replace('.', ',')}00 m`
+  if (km < 1) {
+    const meter = Math.round(km * 1000 / 10) * 10
+    return meter < 10 ? 'nebenan' : `${meter} m`
+  }
   if (km < 10) return `${km.toFixed(1).replace('.', ',')} km`
   return `${Math.round(km)} km`
 }

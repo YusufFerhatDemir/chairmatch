@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PROVS } from '@/lib/demo-data'
 import { haversine, formatDistance, requestUserLocation, geocodeCity } from '@/lib/geo'
+import { sortSalons } from '@/lib/search-sort'
 
 interface Salon {
   id: string
@@ -12,6 +13,9 @@ interface Salon {
   city: string | null
   avg_rating: number
   category?: string | null
+  /** Naeherungskoordinaten, serverseitig aus dem Stadtnamen bestimmt. */
+  lat?: number | null
+  lng?: number | null
 }
 
 type SortMode = 'rating' | 'nearest'
@@ -72,20 +76,26 @@ export default function SearchClient({
   // Use PLZ location or user location for distance
   const refLocation = plzLocation || userLocation
 
-  // Enrich with demo provider lat/lng
+  /*
+   * Die Koordinaten kommen jetzt vom Server (Naeherung ueber den Stadtnamen,
+   * siehe search/page.tsx). `PROVS` bleibt als Rueckfall fuer Zeilen ohne
+   * Stadt stehen — vorher war es die EINZIGE Quelle, weshalb jeder echte
+   * Salon `dist = null` hatte und in der Umkreissortierung gar nicht vorkam.
+   */
   const salonsWithGeo = salons.map(s => {
-    const demo = PROVS.find(p => p.id === s.id || p.nm.toLowerCase() === s.name.toLowerCase())
-    const lat = demo?.lat || 0
-    const lng = demo?.lng || 0
+    const demo =
+      s.lat == null
+        ? PROVS.find(p => p.id === s.id || p.nm.toLowerCase() === s.name.toLowerCase())
+        : undefined
+    const lat = s.lat ?? demo?.lat ?? 0
+    const lng = s.lng ?? demo?.lng ?? 0
     const dist = refLocation && lat ? haversine(refLocation.lat, refLocation.lng, lat, lng) : null
     return { ...s, lat, lng, dist }
   })
 
-  // Sort
-  const sorted = [...salonsWithGeo].sort((a, b) => {
-    if (sortMode === 'nearest' && a.dist !== null && b.dist !== null) return a.dist - b.dist
-    return b.avg_rating - a.avg_rating
-  })
+  // Sortierung: Eintraege OHNE Entfernung ans Ende, nicht dazwischen.
+  // Warum das ein echter Fehler war, steht in lib/search-sort.ts.
+  const sorted = sortSalons(salonsWithGeo, sortMode)
 
   const title = initialQ ? `Suche: "${initialQ}"` : initialCity ? `Salons in ${initialCity}` : 'Suche'
 

@@ -18,7 +18,8 @@ import {
 import { getServerSession } from '@/modules/auth/session'
 import { checkSalonAcceptsBusiness } from '@/lib/salon-status'
 import { CLOSED_MESSAGES, salonGeschlossen } from '@/lib/salon-open'
-import { sendBookingConfirmation, sendProviderNotification } from '@/lib/email'
+import { sendBookingConfirmation, sendProviderNotification, sendBookingCancellation } from '@/lib/email'
+import { createNotification } from '@/lib/notifications'
 
 /** Rolle des Aufrufers gegenueber einer konkreten Buchung. */
 type BookingActor = 'customer' | 'provider'
@@ -92,6 +93,66 @@ function requireProviderActor(result: ActorResult): ActionFailure | null {
     return { error: 'Nur Saloninhaber oder Admins koennen den Status aendern.', status: 403 }
   }
   return null
+}
+
+/**
+ * Schreibt den neuen Status — und meldet einen Fehlschlag als Fehlschlag.
+ *
+ * Alle vier Statuswechsel (bestaetigen, abschliessen, No-Show, stornieren)
+ * standen als `await supabase.from('bookings').update(...)` ohne jede
+ * Auswertung da und gaben danach bedingungslos `{ success: true }` zurueck.
+ * supabase-js WIRFT bei Datenbankfehlern nicht, es gibt `{ error }` zurueck —
+ * ein Rechteproblem, ein Verbindungsabbruch oder eine fehlende Spalte fuehrte
+ * also dazu, dass die Oberflaeche „Termin bestaetigt" meldete, waehrend die
+ * Zeile unveraendert auf `pending` stand. Genau die stille Erfolgsmeldung,
+ * die dieses Projekt an anderer Stelle schon ausgebaut hat.
+ *
+ * Zusaetzlich sichert `.eq('status', erwartet)` den Wechsel gegen ein Rennen
+ * ab: hat inzwischen jemand anderes den Status veraendert, trifft das UPDATE
+ * keine Zeile mehr und der Aufrufer erfaehrt es, statt einen Wechsel zu
+ * melden, den es nicht gab.
+ */
+async function writeStatus(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  bookingId: string,
+  erwarteterStatus: string | null,
+  patch: Record<string, unknown>,
+  fehlermeldung: string,
+): Promise<ActionFailure | { geschrieben: boolean }> {
+  let query = supabase.from('bookings').update(patch).eq('id', bookingId)
+  // Nur absichern, wenn wir einen Ausgangsstatus KENNEN. `.eq('status', null)`
+  // waere kein „egal", sondern ein Filter, der nie zutrifft.
+  if (erwarteterStatus !== null) query = query.eq('status', erwarteterStatus)
+
+  const { data, error } = await query.select('id')
+
+  if (error) {
+    console.error('[booking] Statuswechsel fehlgeschlagen:', error.message)
+    return { error: fehlermeldung, status: 503 }
+  }
+
+  if (!data || data.length === 0) {
+    // Keine Zeile getroffen. Zwei sehr verschiedene Faelle:
+    //
+    //  a) Jemand hat parallel GENAU denselben Wechsel gemacht (Doppelklick,
+    //     zwei Geraete). Das Ergebnis ist da, es war nur nicht dieser
+    //     Aufruf — ein Fehler waere hier schlicht falsch. `geschrieben:
+    //     false` sagt dem Aufrufer, dass er Mails und Protokoll nicht ein
+    //     zweites Mal ausloesen soll.
+    //  b) Der Status ist inzwischen ein ANDERER. Dann darf dieser Aufruf
+    //     nichts melden, was nicht passiert ist.
+    const { data: aktuell } = await supabase
+      .from('bookings')
+      .select('status')
+      .eq('id', bookingId)
+      .maybeSingle()
+    const jetzt = String(aktuell?.status ?? '').toLowerCase()
+    const ziel = String(patch.status ?? '').toLowerCase()
+    if (jetzt && jetzt === ziel) return { geschrieben: false }
+    return { error: 'Der Termin wurde zwischenzeitlich geändert. Bitte neu laden.', status: 409 }
+  }
+
+  return { geschrieben: true }
 }
 
 /**
@@ -570,6 +631,109 @@ export async function createBooking(input: unknown) {
   }
 }
 
+/**
+ * Sagt die Gegenseite Bescheid — beide Richtungen.
+ *
+ * Eine Absage erreichte bis hierher NIEMANDEN: `cancelBooking` schrieb den
+ * Status und legte einen Audit-Eintrag an, mehr nicht. Der Salon erfuhr von
+ * der Absage seines Kunden nur beim naechsten Neuladen des Kalenders, und ein
+ * vom Salon abgesagter Termin stand beim Kunden weiter im Kalender. Das
+ * Anlegen einer Buchung verschickt seit jeher Mails an beide Seiten — die
+ * Absage ist die Nachricht, die noch dringender ist.
+ *
+ * Alles hier ist „best effort": eine nicht zugestellte Mail darf die bereits
+ * geschriebene Absage nicht rueckgaengig machen.
+ */
+async function benachrichtigeGegenseiteUeberAbsage(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  booking: Record<string, string | null>,
+  actor: BookingActor,
+  reason: string | null | undefined,
+): Promise<void> {
+  try {
+    const salonId = String(booking.salon_id ?? '')
+    const customerId = String(booking.customer_id ?? '')
+    const bookingId = String(booking.id ?? '')
+    const datum = String(booking.booking_date ?? '')
+    const uhrzeit = String(booking.start_time ?? '').slice(0, 5)
+
+    const [salonRes, kundeRes, leistungRes] = await Promise.all([
+      supabase.from('salons').select('name, owner_id').eq('id', salonId).maybeSingle(),
+      supabase.from('profiles').select('email, full_name').eq('id', customerId).maybeSingle(),
+      booking.service_id
+        ? supabase.from('services').select('name').eq('id', String(booking.service_id)).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ])
+
+    const salonName = salonRes.data?.name ?? 'ChairMatch Salon'
+    const leistung = (leistungRes as { data?: { name?: string } | null }).data?.name ?? 'Termin'
+    const kundenName = kundeRes.data?.full_name ?? undefined
+    const wann = datum ? `${datum}${uhrzeit ? ` um ${uhrzeit} Uhr` : ''}` : 'dem gebuchten Termin'
+
+    const aufgaben: Promise<unknown>[] = []
+
+    if (actor === 'provider') {
+      // Der Salon hat abgesagt — der Kunde muss es erfahren.
+      if (customerId) {
+        aufgaben.push(
+          createNotification(
+            customerId,
+            'Termin abgesagt',
+            `Dein Termin bei ${salonName} am ${wann} wurde vom Salon abgesagt.`,
+            'booking',
+            bookingId,
+            'booking',
+          ),
+        )
+      }
+      if (kundeRes.data?.email) {
+        aufgaben.push(
+          sendBookingCancellation(kundeRes.data.email, {
+            bookingId,
+            salonName,
+            serviceName: leistung,
+            date: datum,
+            startTime: uhrzeit,
+            customerName: kundenName,
+            cancelledBy: 'provider',
+            reason: reason ?? null,
+          }),
+        )
+      }
+    } else {
+      // Der Kunde hat abgesagt — der Salon gibt den Slot wieder frei.
+      const ownerId = salonRes.data?.owner_id
+      if (ownerId) {
+        aufgaben.push(
+          createNotification(
+            String(ownerId),
+            'Termin abgesagt',
+            `${kundenName ?? 'Ein Kunde'} hat den Termin am ${wann} abgesagt.`,
+            'booking',
+            bookingId,
+            'booking',
+          ),
+        )
+        const ownerRes = await supabase.from('profiles').select('email').eq('id', ownerId).maybeSingle()
+        if (ownerRes.data?.email) {
+          aufgaben.push(
+            sendProviderNotification(ownerRes.data.email, 'cancellation', {
+              salonName,
+              customerName: kundenName,
+              bookingId,
+              message: `Absage: ${leistung} am ${wann}.${reason ? ` Grund: ${reason}` : ''}`,
+            }),
+          )
+        }
+      }
+    }
+
+    await Promise.allSettled(aufgaben)
+  } catch (e) {
+    console.error('[booking] Absage-Benachrichtigung fehlgeschlagen:', e)
+  }
+}
+
 export async function cancelBooking(input: unknown) {
   const parsed = cancelBookingSchema.safeParse(input)
   if (!parsed.success) {
@@ -613,14 +777,26 @@ export async function cancelBooking(input: unknown) {
     policy.cancellationHours,
   )
 
-  // Sequential calls (best effort)
-  await supabase
-    .from('bookings')
-    .update({
-      status: 'cancelled',
-      cancellation_reason: reason || null,
-    })
-    .eq('id', bookingId)
+  const dbStatus = typeof booking.status === 'string' && booking.status ? booking.status : null
+  const geschrieben = await writeStatus(
+    supabase,
+    bookingId,
+    dbStatus,
+    { status: 'cancelled', cancellation_reason: reason || null },
+    'Die Absage konnte nicht gespeichert werden. Bitte erneut versuchen.',
+  )
+  if ('error' in geschrieben) return geschrieben
+
+  // Eine zweite, gleichzeitige Absage darf weder ein zweites Mal protokolliert
+  // noch ein zweites Mal verschickt werden.
+  if (!geschrieben.geschrieben) {
+    return {
+      success: true,
+      freeOfCharge: frist.freeOfCharge,
+      deadlinePassed: frist.deadlinePassed,
+      cancellationHours: frist.cancellationHours,
+    }
+  }
 
   try {
     await supabase.from('audit_logs').insert({
@@ -644,6 +820,8 @@ export async function cancelBooking(input: unknown) {
     console.error('Failed to create audit log')
   }
 
+  await benachrichtigeGegenseiteUeberAbsage(supabase, booking, actor, reason)
+
   return {
     success: true,
     freeOfCharge: frist.freeOfCharge,
@@ -665,10 +843,14 @@ export async function confirmBooking(bookingId: string) {
     return { error: 'Bestätigung nicht möglich.' }
   }
 
-  await supabase
-    .from('bookings')
-    .update({ status: 'confirmed' })
-    .eq('id', bookingId)
+  const geschrieben = await writeStatus(
+    supabase,
+    bookingId,
+    typeof booking.status === 'string' && booking.status ? booking.status : null,
+    { status: 'confirmed' },
+    'Der Termin konnte nicht bestaetigt werden. Bitte erneut versuchen.',
+  )
+  if ('error' in geschrieben) return geschrieben
 
   try {
     await supabase.from('audit_logs').insert({
@@ -697,10 +879,14 @@ export async function completeBooking(bookingId: string) {
     return { error: 'Abschluss nicht möglich.' }
   }
 
-  await supabase
-    .from('bookings')
-    .update({ status: 'completed' })
-    .eq('id', bookingId)
+  const geschrieben = await writeStatus(
+    supabase,
+    bookingId,
+    typeof booking.status === 'string' && booking.status ? booking.status : null,
+    { status: 'completed' },
+    'Der Abschluss konnte nicht gespeichert werden. Bitte erneut versuchen.',
+  )
+  if ('error' in geschrieben) return geschrieben
 
   try {
     await supabase.from('audit_logs').insert({
@@ -729,10 +915,14 @@ export async function markNoShow(bookingId: string) {
     return { error: 'No-Show Markierung nicht möglich.' }
   }
 
-  await supabase
-    .from('bookings')
-    .update({ status: 'no_show' })
-    .eq('id', bookingId)
+  const geschrieben = await writeStatus(
+    supabase,
+    bookingId,
+    typeof booking.status === 'string' && booking.status ? booking.status : null,
+    { status: 'no_show' },
+    'Die Markierung konnte nicht gespeichert werden. Bitte erneut versuchen.',
+  )
+  if ('error' in geschrieben) return geschrieben
 
   try {
     await supabase.from('audit_logs').insert({

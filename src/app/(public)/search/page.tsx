@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { PROVS } from '@/lib/demo-data'
+import { cityToCoords } from '@/lib/geo/city-coords'
 import type { Metadata } from 'next'
 import SearchClient from './SearchClient'
 
@@ -16,6 +17,17 @@ interface Salon {
   city: string | null
   avg_rating: number
   category?: string | null
+  /*
+   * Naeherungskoordinaten aus dem Stadtnamen — `salons` hat live keine
+   * lat/lng-Spalten (siehe lib/geo/city-coords.ts). Die Umkreissortierung
+   * lief bis hierher NUR fuer die Demo-Anbieter: `SearchClient` holte lat/lng
+   * ausschliesslich aus `PROVS`, jeder echte Salon bekam `lat = 0` und damit
+   * `dist = null`. „Naechste zuerst" hat echte Salons also nie sortiert.
+   *
+   * Die Tabelle bleibt serverseitig; der Client bekommt nur zwei Zahlen.
+   */
+  lat?: number | null
+  lng?: number | null
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
@@ -54,11 +66,25 @@ export default async function SearchPage({ searchParams }: Props) {
     }
 
     if (city) {
-      query = query.ilike('city', city)
+      /*
+       * `ilike` OHNE Platzhalter ist ein exakter (nur case-insensitiver)
+       * Vergleich. Die Stadt-Schnellfilter dieser Seite verlinken auf
+       * `?city=Frankfurt`, in `salons.city` steht aber „Frankfurt am Main"
+       * — ein echter Salon dort war ueber den eigenen Filter nicht zu
+       * finden. Gefunden wurden nur die Demo-Anbieter, weil die weiter
+       * unten mit `includes()` verglichen werden.
+       */
+      const safeCity = city.replace(/[%_,()]/g, '').trim()
+      if (safeCity) query = query.ilike('city', `%${safeCity}%`)
     }
 
     const { data } = await query
-    if (data) salons = data
+    if (data) {
+      salons = data.map(s => {
+        const coords = cityToCoords(s.city)
+        return { ...s, lat: coords?.lat ?? null, lng: coords?.lng ?? null }
+      })
+    }
   } catch {
     // DB connection failed
   }
@@ -79,6 +105,8 @@ export default async function SearchPage({ searchParams }: Props) {
       city: p.city,
       avg_rating: p.rt,
       category: p.cat,
+      lat: p.lat,
+      lng: p.lng,
     }))
 
     // Merge, deduplicate by name

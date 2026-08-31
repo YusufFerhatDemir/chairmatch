@@ -228,6 +228,54 @@ export async function sendBookingConfirmation(to: string, details: BookingEmailD
 }
 
 /**
+ * Absage an die Kundin/den Kunden — wenn der SALON den Termin absagt.
+ *
+ * Diesen Weg gab es nicht. `cancelBooking` schrieb den Status, legte einen
+ * Audit-Eintrag an und war fertig: wer abgesagt wurde, erfuhr es nur, wenn er
+ * zufaellig die Terminliste neu lud. Fuer eine Absage durch den Betrieb ist
+ * das keine Nebensache — der Kunde plant den Tag danach.
+ *
+ * Ein Betrag steht bewusst nicht drin (siehe `cancelBooking`): fuer eine
+ * Stornogebuehr gibt es keine Spalte, jede Zahl waere erfunden.
+ */
+export interface BookingCancellationDetails {
+  bookingId: string
+  salonName: string
+  serviceName: string
+  date: string
+  startTime: string
+  customerName?: string
+  cancelledBy: 'customer' | 'provider'
+  reason?: string | null
+}
+
+export async function sendBookingCancellation(
+  to: string,
+  details: BookingCancellationDetails,
+) {
+  const durchSalon = details.cancelledBy === 'provider'
+  const subject = `Termin abgesagt — ${details.salonName}`
+  const html = baseLayout(subject, `
+    <h2 style="margin:0 0 16px;color:#D4AF37;font-size:18px">Termin abgesagt</h2>
+    <p>Hallo${details.customerName ? ` ${esc(details.customerName)}` : ''},</p>
+    <p>${durchSalon
+      ? `dein Termin bei <strong>${esc(details.salonName)}</strong> wurde vom Salon abgesagt.`
+      : `deine Absage bei <strong>${esc(details.salonName)}</strong> ist eingegangen.`}</p>
+    <div style="background:#1a1a1a;border-radius:8px;border-left:4px solid #D4AF37;padding:20px;margin:20px 0">
+      <p style="margin:0;color:#D4AF37;font-weight:700;font-size:16px">${esc(details.serviceName)}</p>
+      <p style="margin:6px 0 0;color:#e0e0e0">${formatDate(details.date)} um ${esc(details.startTime)} Uhr</p>
+    </div>
+    ${details.reason ? `<p style="color:#999;font-size:13px">Grund: ${esc(details.reason)}</p>` : ''}
+    <p style="font-size:13px;color:#999">Buchungs-ID: ${esc(details.bookingId)}</p>
+    ${durchSalon
+      ? goldButton('Neuen Termin finden', `${APP_URL}/search`)
+      : goldButton('Meine Termine', `${APP_URL}/termine`)}
+  `)
+
+  return send(to, subject, html)
+}
+
+/**
  * Send a booking reminder email (typically 24h before appointment).
  */
 export async function sendBookingReminder(to: string, details: BookingEmailDetails) {

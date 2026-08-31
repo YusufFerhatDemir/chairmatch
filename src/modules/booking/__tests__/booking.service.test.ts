@@ -17,6 +17,10 @@ describe('validateTransition', () => {
     expect(validateTransition('confirmed', 'completed', 'provider')).toBe(true)
     expect(validateTransition('confirmed', 'cancelled', 'customer')).toBe(true)
     expect(validateTransition('confirmed', 'cancelled', 'provider')).toBe(true)
+    // Track C: der Salon darf eine offene Anfrage auch ABLEHNEN. Diese Zeile
+    // fehlte — und damit jeder Weg, einen Slot wieder freizugeben, den der
+    // Betrieb nicht annehmen kann.
+    expect(validateTransition('pending', 'cancelled', 'provider')).toBe(true)
     expect(validateTransition('confirmed', 'no_show', 'provider')).toBe(true)
   })
 
