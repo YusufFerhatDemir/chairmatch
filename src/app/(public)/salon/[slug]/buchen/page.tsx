@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
 import { berlinToday } from '@/lib/berlin-time'
+import { tagGesperrt as tagGesperrtFuer, TAG_GESPERRT_TEXT } from '@/lib/booking-days'
 
 /**
  * Termin buchen — /salon/[slug]/buchen
@@ -46,6 +47,12 @@ interface ApiSalon {
   id: string
   name?: string
   services?: ApiService[]
+  /*
+   * Beide Felder stehen schon in `SALON_PUBLIC_COLUMNS` von
+   * /api/salons/[slug] — diese Seite hat sie nur nie angesehen.
+   */
+  state?: string | null
+  opening_hours?: unknown
 }
 
 const DAY_NAMES = ['Mo','Di','Mi','Do','Fr','Sa','So']
@@ -262,7 +269,13 @@ export default function BuchenPage() {
     else setCalMonth(nm)
   }
 
-  const isOff = (d: number): boolean => iso(calYear, calMonth, d) < heute
+  /*
+   * Warum ein Tag nicht waehlbar ist — die Regel steht in
+   * `lib/booking-days.ts`, damit beide Buchungsstrecken dieselbe benutzen
+   * und sie pruefbar ist.
+   */
+  const tagGesperrt = (d: number) => tagGesperrtFuer(iso(calYear, calMonth, d), salon, heute)
+
   const dateLabel = date ? `${date.d}. ${MONTHS[date.m]} ${date.y}` : ''
   const preis = priceLabel(service?.price_cents)
 
@@ -404,7 +417,9 @@ export default function BuchenPage() {
                   ))}
                   {calendar.map((d, i) => {
                     if (d === null) return <div key={i}></div>
-                    const off = isOff(d)
+                    const grund = tagGesperrt(d)
+                    const off = grund !== null
+                    const geschlossen = grund === 'feiertag' || grund === 'ruhetag'
                     const isToday = iso(calYear, calMonth, d) === heute
                     const isSelected = date?.d === d && date?.m === calMonth && date?.y === calYear
                     return (
@@ -412,13 +427,19 @@ export default function BuchenPage() {
                         key={i}
                         onClick={() => !off && setDate({ y: calYear, m: calMonth, d })}
                         disabled={off}
+                        title={grund ? TAG_GESPERRT_TEXT[grund] : undefined}
+                        aria-label={grund ? `${d}. ${MONTHS[calMonth]} — ${TAG_GESPERRT_TEXT[grund]}` : `${d}. ${MONTHS[calMonth]}`}
                         style={{
                           aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           borderRadius: 8, fontSize: 13, cursor: off ? 'not-allowed' : 'pointer',
                           background: isSelected ? 'linear-gradient(135deg, #BF953F 0%, #FCF6BA 22%, #B38728 45%, #FBF5B7 67%, #AA771C 100%)' : 'var(--c1)',
                           border: isToday ? '1px solid var(--gold)' : '0.5px solid rgba(196,168,106,0.08)',
-                          color: isSelected ? '#1a1000' : 'var(--cream)',
-                          opacity: off ? 0.25 : 1,
+                          // Geschlossene Tage sind sichtbar geschlossen, nicht
+                          // nur blass: „vergangen" und „Feiertag" duerfen
+                          // nicht gleich aussehen.
+                          color: isSelected ? '#1a1000' : geschlossen ? '#8A6A64' : 'var(--cream)',
+                          textDecoration: geschlossen ? 'line-through' : 'none',
+                          opacity: grund === 'vergangen' ? 0.25 : geschlossen ? 0.55 : 1,
                           fontWeight: isSelected ? 700 : 400,
                           fontFamily: 'inherit',
                         }}
@@ -426,6 +447,13 @@ export default function BuchenPage() {
                     )
                   })}
                 </div>
+                {/*
+                  Ohne diese Zeile ist der durchgestrichene Tag auf dem Handy
+                  nicht erklaerbar: `title` zeigt nur ein Zeigergeraet an.
+                */}
+                <p style={{ fontSize: 10.5, color: 'var(--stone)', marginTop: 8, lineHeight: 1.5 }}>
+                  <span style={{ textDecoration: 'line-through' }}>Durchgestrichen</span> = Ruhetag oder gesetzlicher Feiertag.
+                </p>
               </div>
 
               {date && (

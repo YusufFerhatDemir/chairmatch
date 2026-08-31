@@ -1,4 +1,5 @@
 import { berlinToday } from '@/lib/berlin-time'
+import { hoursForDay, istFeiertag } from '@/lib/salon-open'
 
 /**
  * Der Tagesstreifen der Buchungsstrecke.
@@ -67,4 +68,42 @@ export function naechsteTage(anzahl: number, heute: string = berlinToday()): Boo
     const tag = wochentag(iso)
     return { day: tag, dt, mo, full: `${tag} ${dt}.${mo}`, iso }
   })
+}
+
+/**
+ * Warum ein Kalendertag nicht buchbar ist — oder `null`, wenn er es ist.
+ *
+ * Beide Buchungsstrecken zeigten Feiertage und Ruhetage des Salons als ganz
+ * normale, anklickbare Tage. Serverseitig ist das seit Track 25 dicht
+ * (`salonGeschlossen` in `createBooking`, `unavailable` in
+ * `/api/availability`) — der Kunde erfuhr es aber erst NACH der Auswahl und
+ * einem Aufruf der Route, und musste danach raten, welcher Tag denn geht.
+ *
+ * Gerechnet wird mit denselben Funktionen wie serverseitig
+ * (`lib/salon-open.ts` ist reines Rechnen, kein Serverbezug), damit Anzeige
+ * und Abweisung nicht auseinanderlaufen koennen.
+ *
+ * WICHTIG, wie serverseitig: „keine Angabe" ist NICHT „geschlossen". Ein
+ * Salon ohne gepflegte Oeffnungszeiten (`hoursForDay(...) === 'unknown'`)
+ * bleibt buchbar — sonst haette eine leere Spalte den Betrieb stillgelegt.
+ */
+export type TagGesperrtGrund = 'vergangen' | 'feiertag' | 'ruhetag'
+
+export function tagGesperrt(
+  isoTag: string,
+  salon: { state?: unknown; opening_hours?: unknown } | null | undefined,
+  heute: string = berlinToday(),
+): TagGesperrtGrund | null {
+  if (isoTag < heute) return 'vergangen'
+  if (!salon) return null
+  if (istFeiertag(isoTag, salon.state)) return 'feiertag'
+  if (hoursForDay(salon.opening_hours, isoTag).kind === 'closed') return 'ruhetag'
+  return null
+}
+
+/** Was dem Kunden zu einem gesperrten Tag angezeigt wird. */
+export const TAG_GESPERRT_TEXT: Record<TagGesperrtGrund, string> = {
+  vergangen: 'Dieser Tag liegt in der Vergangenheit.',
+  feiertag: 'Gesetzlicher Feiertag — an diesem Tag ist geschlossen.',
+  ruhetag: 'An diesem Wochentag hat der Salon geschlossen.',
 }

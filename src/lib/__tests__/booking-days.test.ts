@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest'
-import { naechsteTage, tagePlus, wochentag } from '@/lib/booking-days'
+import { naechsteTage, tagePlus, wochentag, tagGesperrt } from '@/lib/booking-days'
 import { berlinToday } from '@/lib/berlin-time'
 
 /**
@@ -77,5 +77,66 @@ describe('tagePlus / wochentag', () => {
     expect(wochentag('2026-08-27')).toBe('Do')
     expect(wochentag('2026-01-01')).toBe('Do')
     expect(wochentag('2026-03-29')).toBe('So') // Beginn der Sommerzeit
+  })
+})
+
+/**
+ * `tagGesperrt` — warum ein Kalendertag nicht buchbar ist.
+ *
+ * Beide Buchungsstrecken zeigten Feiertage und Ruhetage des Salons als ganz
+ * normale, anklickbare Tage. Serverseitig weist `createBooking` sie seit
+ * Track 25 ab; der Kunde erfuhr es aber erst nach der Auswahl und einem
+ * Aufruf von /api/availability — und musste danach raten, welcher Tag geht.
+ */
+describe('tagGesperrt', () => {
+  const SALON = {
+    state: 'NW',
+    opening_hours: {
+      mo: { open: '09:00', close: '18:00' },
+      di: { open: '09:00', close: '18:00' },
+      mi: { open: '09:00', close: '18:00' },
+      do: { open: '09:00', close: '18:00' },
+      fr: { open: '09:00', close: '18:00' },
+      sa: { open: '10:00', close: '16:00' },
+      so: null,
+    },
+  }
+
+  it('sperrt vergangene Tage', () => {
+    expect(tagGesperrt('2026-08-30', SALON, '2026-09-01')).toBe('vergangen')
+  })
+
+  it('sperrt gesetzliche Feiertage', () => {
+    // 25.12.2026 ist ein Freitag — ohne Feiertagspruefung ein ganz normaler
+    // Oeffnungstag.
+    expect(tagGesperrt('2026-12-25', SALON, '2026-09-01')).toBe('feiertag')
+  })
+
+  it('sperrt den Ruhetag des Salons', () => {
+    // 06.09.2026 ist ein Sonntag, `so: null`.
+    expect(tagGesperrt('2026-09-06', SALON, '2026-09-01')).toBe('ruhetag')
+  })
+
+  it('laesst einen gewoehnlichen Oeffnungstag zu', () => {
+    // 02.09.2026 ist ein Mittwoch.
+    expect(tagGesperrt('2026-09-02', SALON, '2026-09-01')).toBeNull()
+  })
+
+  it('sperrt NICHT, wenn der Salon gar keine Zeiten gepflegt hat', () => {
+    // „Keine Angabe" ist nicht „geschlossen" — dieselbe Entscheidung wie
+    // serverseitig in `salonGeschlossen`. Sonst legt eine leere Spalte den
+    // Betrieb still.
+    expect(tagGesperrt('2026-09-06', { state: 'NW', opening_hours: null }, '2026-09-01')).toBeNull()
+  })
+
+  it('sperrt nichts, solange der Salon noch nicht geladen ist', () => {
+    expect(tagGesperrt('2026-09-06', null, '2026-09-01')).toBeNull()
+    expect(tagGesperrt('2026-08-30', null, '2026-09-01')).toBe('vergangen')
+  })
+
+  it('kennt landesspezifische Feiertage', () => {
+    // Fronleichnam 2026 (04.06.) ist in NW Feiertag, in Berlin nicht.
+    expect(tagGesperrt('2026-06-04', SALON, '2026-01-01')).toBe('feiertag')
+    expect(tagGesperrt('2026-06-04', { ...SALON, state: 'BE' }, '2026-01-01')).toBeNull()
   })
 })

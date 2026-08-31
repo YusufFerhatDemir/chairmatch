@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PROVS, type DemoSpec } from '@/lib/demo-data'
-import { naechsteTage } from '@/lib/booking-days'
+import { naechsteTage, tagGesperrt, TAG_GESPERRT_TEXT } from '@/lib/booking-days'
 
 /**
  * Termin-Buchung — /booking/[salonId]
@@ -98,6 +98,13 @@ interface SalonData {
   phone?: string
   services: Service[]
   staff: Staff[]
+  /*
+   * Beide Felder liefert /api/salons/[id] laengst mit
+   * (`SALON_PUBLIC_COLUMNS`) — der Tagesstreifen hat sie nur nie angesehen
+   * und deshalb Feiertage und Ruhetage als waehlbare Tage angeboten.
+   */
+  state?: string | null
+  opening_hours?: unknown
 }
 
 /** Antwort von POST /api/bookings fuer eine wirklich angelegte Buchung. */
@@ -182,6 +189,22 @@ export default function BookingPage() {
    * Punkt 4 im Kopfkommentar).
    */
   const days = useMemo(() => naechsteTage(7), [])
+
+  /*
+   * Vorauswahl auf den ersten OFFENEN Tag ruecken.
+   *
+   * `selectedDay` steht auf 0, also auf heute. Faellt heute auf einen
+   * Feiertag oder den Ruhetag des Salons, stand die Strecke damit auf einem
+   * Tag, an dem es nie einen Slot geben kann — und die erste Auskunft war
+   * „geschlossen", obwohl morgen offen ist. Erst moeglich, seit der Salon
+   * seine Zeiten mitbringt (siehe SalonData.opening_hours).
+   */
+  useEffect(() => {
+    if (!salon) return
+    if (!tagGesperrt(days[selectedDay]?.iso ?? '', salon)) return
+    const ersterOffener = days.findIndex(d => !tagGesperrt(d.iso, salon))
+    if (ersterOffener >= 0) setSelectedDay(ersterOffener)
+  }, [salon, days, selectedDay])
 
   const dateIso = days[selectedDay]?.iso ?? ''
 
@@ -415,17 +438,34 @@ export default function BookingPage() {
             {/* Day Selection — 7 day scroll */}
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 10 }}>Tag</p>
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 20, paddingBottom: 4 }}>
-              {days.map((d, i) => (
-                <button key={i} onClick={() => setSelectedDay(i)} style={{
-                  flexShrink: 0, width: 56, padding: '10px 0', borderRadius: 14, textAlign: 'center', cursor: 'pointer',
-                  background: selectedDay === i ? 'rgba(176,144,96,.1)' : 'var(--c2)',
-                  border: selectedDay === i ? '1.5px solid var(--gold)' : '1px solid var(--border)',
-                }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: selectedDay === i ? 'var(--gold2)' : 'var(--stone)' }}>{d.day}</p>
-                  <p style={{ fontSize: 18, fontWeight: 800, color: selectedDay === i ? 'var(--gold2)' : 'var(--cream)' }}>{d.dt}</p>
-                  <p style={{ fontSize: 10, color: 'var(--stone)' }}>{d.mo}.</p>
-                </button>
-              ))}
+              {days.map((d, i) => {
+                const grund = tagGesperrt(d.iso, salon)
+                const zu = grund !== null
+                return (
+                  <button
+                    key={i}
+                    onClick={() => !zu && setSelectedDay(i)}
+                    disabled={zu}
+                    title={grund ? TAG_GESPERRT_TEXT[grund] : undefined}
+                    aria-label={grund ? `${d.full} — ${TAG_GESPERRT_TEXT[grund]}` : d.full}
+                    style={{
+                      flexShrink: 0, width: 56, padding: '10px 0', borderRadius: 14, textAlign: 'center',
+                      cursor: zu ? 'not-allowed' : 'pointer',
+                      background: selectedDay === i ? 'rgba(176,144,96,.1)' : 'var(--c2)',
+                      border: selectedDay === i ? '1.5px solid var(--gold)' : '1px solid var(--border)',
+                      opacity: zu ? 0.45 : 1,
+                    }}
+                  >
+                    <p style={{ fontSize: 11, fontWeight: 700, color: selectedDay === i ? 'var(--gold2)' : 'var(--stone)' }}>{d.day}</p>
+                    <p style={{
+                      fontSize: 18, fontWeight: 800,
+                      color: selectedDay === i ? 'var(--gold2)' : 'var(--cream)',
+                      textDecoration: zu ? 'line-through' : 'none',
+                    }}>{d.dt}</p>
+                    <p style={{ fontSize: 10, color: 'var(--stone)' }}>{zu ? 'zu' : `${d.mo}.`}</p>
+                  </button>
+                )
+              })}
             </div>
 
             {/* Time Grid */}
