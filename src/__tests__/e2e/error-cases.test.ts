@@ -33,6 +33,8 @@ vi.mock('@/modules/auth/session', () => ({ getServerSession: async () => state.s
 vi.mock('@/lib/email', () => ({
   sendBookingConfirmation: vi.fn(async () => ({ ok: true })),
   sendProviderNotification: vi.fn(async () => ({ ok: true })),
+  // Track C: `cancelBooking` benachrichtigt jetzt die Gegenseite.
+  sendBookingCancellation: vi.fn(async () => ({ ok: true })),
 }))
 vi.mock('@/modules/marketplace/commission.service', () => ({
   calculateNewCustomerCommission: vi.fn(async () => null),

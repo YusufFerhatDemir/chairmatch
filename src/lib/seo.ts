@@ -154,6 +154,14 @@ export interface SalonSchemaInput {
   opening_hours?: Record<string, string | { open?: string; close?: string } | null> | null
   latitude?: number | null
   longitude?: number | null
+  /**
+   * Bild-URLs des Salons (Cover, Logo, Galerie) aus `salon_images`.
+   *
+   * `image` ist fuer LocalBusiness das Feld, ueber das Google ueberhaupt ein
+   * Bild zum Eintrag anzeigen kann. Es stand nie im Schema, obwohl Anbieter
+   * seit jeher Bilder hochladen koennen.
+   */
+  images?: (string | null | undefined)[] | null
 }
 
 // Kategorie → spezifischer schema.org-Typ (ehem. in components/SchemaOrg.tsx).
@@ -207,6 +215,14 @@ export function salonSchema(salon: SalonSchemaInput) {
 
   if (salon.phone) {
     schema.telephone = salon.phone
+  }
+
+  // Nur absolute URLs — ein relativer Pfad ist fuer Google kein Bild.
+  const bilder = (salon.images ?? []).filter(
+    (u): u is string => typeof u === 'string' && /^https?:\/\//.test(u),
+  )
+  if (bilder.length > 0) {
+    schema.image = bilder.slice(0, 12)
   }
 
   if (salon.avg_rating && salon.review_count) {

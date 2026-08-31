@@ -14,6 +14,15 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
+/** Nur diese Form kann eine `salons.id` sein — alles andere ist ein Slug. */
+const UUID_MUSTER = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+interface SalonBildZeile {
+  url: string | null
+  image_type: string | null
+  sort_order: number | null
+}
+
 /**
  * Breadcrumb-Kette für Salon-Seiten: Stadt nur verlinken,
  * wenn es dafür eine Stadt-Hub-Route gibt (PHASE_1_CITIES).
@@ -209,127 +218,198 @@ export default async function SalonDetailPage({ params }: Props) {
     )
   }
 
-  // Otherwise try DB
-  try {
-    const supabase = getSupabaseAdmin()
+  /*
+   * Kein `try { … } catch { notFound() }` mehr um diesen ganzen Block.
+   *
+   * Der Rahmen fing ALLES: den Verbindungsabbruch, das entzogene Recht, den
+   * Programmierfehler — und beantwortete jedes davon mit „Seite nicht
+   * gefunden". Das ist die falsche Auskunft (der Salon existiert), sie steht
+   * mit `robots: noindex` im Kopf, und weil die Seite mit ISR laeuft
+   * (revalidate 300), bleibt sie bis zu fuenf Minuten fuer alle stehen.
+   *
+   * Jetzt entscheidet jede Abfrage einzeln: keine Zeile → `notFound()`,
+   * Fehler → geworfen, also `(public)/error.tsx` mit „bitte neu versuchen".
+   */
+  const supabase = getSupabaseAdmin()
 
-    let salon = null
-    const { data: bySlug } = await supabase
+  let salon = null
+  const { data: bySlug, error: slugFehler } = await supabase
+    .from('salons')
+    .select('*')
+    .eq('slug', slug)
+    .limit(1)
+    .maybeSingle()
+
+  /*
+   * Ein LESEFEHLER ist kein „diesen Salon gibt es nicht".
+   *
+   * Bis hierher lag der ganze Block in `try { … } catch { notFound() }`,
+   * und der Fehler der Abfrage wurde gar nicht erst angesehen. Faellt die
+   * Datenbank aus, ist ein Recht entzogen oder laeuft die Abfrage in einen
+   * Timeout, antwortete die Seite eines BESTEHENDEN Salons mit „Seite
+   * nicht gefunden" — mitsamt `robots: noindex` im Kopf. Und weil die
+   * Seite mit ISR laeuft (revalidate 300), haelt eine solche Antwort bis
+   * zu fuenf Minuten fuer alle Besucher.
+   *
+   * Ein geworfener Fehler landet dagegen in `(public)/error.tsx`: „konnte
+   * nicht geladen werden, bitte neu versuchen" — die richtige Auskunft,
+   * und nichts, was Google als 404 einsammelt.
+   */
+  if (slugFehler) {
+    console.error('[salon] Abfrage nach slug fehlgeschlagen:', slugFehler.message)
+    throw new Error('Salon konnte nicht geladen werden')
+  }
+
+  if (bySlug) {
+    salon = bySlug
+  } else if (UUID_MUSTER.test(slug)) {
+    // Nur nachschlagen, wenn der Slug ueberhaupt eine UUID sein KANN.
+    // Sonst antwortet Postgres mit 22P02 („invalid input syntax for type
+    // uuid") — ein Fehler fuer jeden gewoehnlichen Tippfehler-Link.
+    const { data: byId, error: idFehler } = await supabase
       .from('salons')
       .select('*')
-      .eq('slug', slug)
+      .eq('id', slug)
       .limit(1)
       .maybeSingle()
-    if (bySlug) {
-      salon = bySlug
-    } else {
-      const { data: byId } = await supabase
-        .from('salons')
-        .select('*')
-        .eq('id', slug)
-        .limit(1)
-        .maybeSingle()
-      salon = byId
+    if (idFehler) {
+      console.error('[salon] Abfrage nach id fehlgeschlagen:', idFehler.message)
+      throw new Error('Salon konnte nicht geladen werden')
     }
-
-    if (!salon) notFound()
-
-    /*
-     * Track 20: `is_active` entscheidet auch ueber die SICHTBARKEIT.
-     *
-     * Track 15 hat den nicht freigegebenen Salon von den Geldstrecken
-     * genommen und den Direktlink stehen lassen. Diese Seite war der
-     * Direktlink: sie hat jeden Salon gerendert, den sie in der Datenbank
-     * fand — auch den gerade gesperrten und den, der sich vor fuenf Minuten
-     * ueber das oeffentliche Formular selbst eingetragen hat. Mit
-     * Geschaeftsname, Adresse, Telefonnummer, Preisliste und einem
-     * LocalBusiness-JSON-LD fuer Suchmaschinen.
-     *
-     * OPERATIVE FOLGE: ein Anbieter sieht seine oeffentliche Seite erst nach
-     * dem Freischalten in /admin/anbieter. Vorher ist sie 404 — auch fuer
-     * ihn selbst. Die Session hier zu lesen waere der falsche Preis: die
-     * Seite laeuft mit ISR (revalidate 300), `cookies()` wuerde sie in
-     * dynamisches Rendern zwingen und die Zwischenspeicherung fuer alle
-     * kosten. Sein eigener Stand steht ohnehin im Anbieter-Bereich.
-     */
-    if (!salonIsPubliclyVisible(salon)) notFound()
-
-    /*
-     * Bewertungen kommen ueber `getReviews`, NICHT ueber eine eigene Abfrage.
-     *
-     * Hier stand bis Track 9 ein direktes
-     * `from('reviews').select('*, customer:profiles(full_name)')` ohne jeden
-     * Filter auf den Bewertungstyp. Miet-Bewertungen tragen aus
-     * Legacy-Gruenden dieselbe `salon_id`, sind aber double-blind: sie werden
-     * erst sichtbar, wenn beide Seiten bewertet haben oder 14 Tage vergangen
-     * sind (`published`, /api/cron/publish-reviews). Diese Seite hat sie
-     * ausnahmslos veroeffentlicht — auch die noch gesperrten, mit dem Namen
-     * des Bewertenden daneben. Genau die Sperre, die /api/reviews/rental und
-     * /api/reviews/aggregate sorgfaeltig durchsetzen, war ueber die
-     * oeffentliche Salonseite zu umgehen.
-     *
-     * `getReviews` haelt die Regel an einer Stelle (`isSalonReview`). Die
-     * Begrenzung auf zehn passiert NACH dem Filter — vorher haette ein Salon
-     * mit zehn Miet-Bewertungen gar keine Kundenbewertung mehr gezeigt.
-     */
-    const [servicesRes, alleSalonReviews, staffRes, rentalsRes] = await Promise.all([
-      supabase.from('services').select('*').eq('salon_id', salon.id).eq('is_active', true).order('sort_order', { ascending: true }),
-      getReviews(salon.id),
-      supabase.from('staff').select('*').eq('salon_id', salon.id).eq('is_active', true),
-      supabase.from('rental_equipment').select('*').eq('salon_id', salon.id).eq('is_available', true),
-    ])
-    const reviewsSichtbar = alleSalonReviews.slice(0, 10)
-
-    const salonData = {
-      id: salon.id,
-      name: salon.name,
-      slug: salon.slug,
-      description: salon.description,
-      category: salon.category || 'barber',
-      city: salon.city,
-      street: salon.street,
-      avg_rating: salon.avg_rating,
-      review_count: salon.review_count,
-      is_verified: salon.is_verified,
-      subscription_tier: salon.subscription_tier || 'starter',
-      tagline: salon.description || '',
-      tags: [] as string[],
-      phone: salon.phone,
-      opening_hours: salon.opening_hours as Record<string, { open: string; close: string } | null> | null,
-    }
-
-    const dbJsonLd = salonSchema({
-      id: salon.id,
-      name: salon.name,
-      slug: salon.slug || salon.id,
-      description: salon.description,
-      category: salon.category,
-      street: salon.street,
-      postal_code: salon.postal_code,
-      city: salon.city,
-      phone: salon.phone,
-      avg_rating: salon.avg_rating,
-      review_count: salon.review_count,
-      price_range: salon.price_range,
-      opening_hours: salon.opening_hours as Record<string, string> | null,
-      latitude: salon.latitude,
-      longitude: salon.longitude,
-    })
-
-    return (
-      <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(dbJsonLd) }} />
-      <SalonDetailClient
-        salon={salonData}
-        services={(servicesRes.data || []).map(s => ({ id: s.id, name: s.name, duration_minutes: s.duration_minutes, price_cents: s.price_cents }))}
-        staff={(staffRes.data || []).map(m => ({ id: m.id, name: m.name, title: m.title, avatar_url: m.avatar_url }))}
-        reviews={reviewsSichtbar.map(r => ({ id: r.id, rating: r.rating, comment: r.comment, reply: r.reply, customer: r.customer, created_at: r.created_at }))}
-        rentals={(rentalsRes.data || []).map(r => ({ id: r.id, type: r.type, name: r.name, price_per_day_cents: r.price_per_day_cents, description: r.description }))}
-        breadcrumbs={salonBreadcrumbs(salon.name, slug, salon.city)}
-      />
-      </>
-    )
-  } catch {
-    notFound()
+    salon = byId
   }
+
+  if (!salon) notFound()
+
+  /*
+   * Track 20: `is_active` entscheidet auch ueber die SICHTBARKEIT.
+   *
+   * Track 15 hat den nicht freigegebenen Salon von den Geldstrecken
+   * genommen und den Direktlink stehen lassen. Diese Seite war der
+   * Direktlink: sie hat jeden Salon gerendert, den sie in der Datenbank
+   * fand — auch den gerade gesperrten und den, der sich vor fuenf Minuten
+   * ueber das oeffentliche Formular selbst eingetragen hat. Mit
+   * Geschaeftsname, Adresse, Telefonnummer, Preisliste und einem
+   * LocalBusiness-JSON-LD fuer Suchmaschinen.
+   *
+   * OPERATIVE FOLGE: ein Anbieter sieht seine oeffentliche Seite erst nach
+   * dem Freischalten in /admin/anbieter. Vorher ist sie 404 — auch fuer
+   * ihn selbst. Die Session hier zu lesen waere der falsche Preis: die
+   * Seite laeuft mit ISR (revalidate 300), `cookies()` wuerde sie in
+   * dynamisches Rendern zwingen und die Zwischenspeicherung fuer alle
+   * kosten. Sein eigener Stand steht ohnehin im Anbieter-Bereich.
+   */
+  if (!salonIsPubliclyVisible(salon)) notFound()
+
+  /*
+   * Bewertungen kommen ueber `getReviews`, NICHT ueber eine eigene Abfrage.
+   *
+   * Hier stand bis Track 9 ein direktes
+   * `from('reviews').select('*, customer:profiles(full_name)')` ohne jeden
+   * Filter auf den Bewertungstyp. Miet-Bewertungen tragen aus
+   * Legacy-Gruenden dieselbe `salon_id`, sind aber double-blind: sie werden
+   * erst sichtbar, wenn beide Seiten bewertet haben oder 14 Tage vergangen
+   * sind (`published`, /api/cron/publish-reviews). Diese Seite hat sie
+   * ausnahmslos veroeffentlicht — auch die noch gesperrten, mit dem Namen
+   * des Bewertenden daneben. Genau die Sperre, die /api/reviews/rental und
+   * /api/reviews/aggregate sorgfaeltig durchsetzen, war ueber die
+   * oeffentliche Salonseite zu umgehen.
+   *
+   * `getReviews` haelt die Regel an einer Stelle (`isSalonReview`). Die
+   * Begrenzung auf zehn passiert NACH dem Filter — vorher haette ein Salon
+   * mit zehn Miet-Bewertungen gar keine Kundenbewertung mehr gezeigt.
+   */
+  const [servicesRes, alleSalonReviews, staffRes, rentalsRes, bilderRes] = await Promise.all([
+    supabase.from('services').select('*').eq('salon_id', salon.id).eq('is_active', true).order('sort_order', { ascending: true }),
+    getReviews(salon.id),
+    supabase.from('staff').select('*').eq('salon_id', salon.id).eq('is_active', true),
+    supabase.from('rental_equipment').select('*').eq('salon_id', salon.id).eq('is_available', true),
+    /*
+     * Die Bilder des Salons — bis Track C wurden sie hier NIE geladen.
+     *
+     * Anbieter koennen ueber /provider/bilder Logo, Cover, Galerie, Team
+     * und Vorher-Nachher hochladen (`POST /api/upload` schreibt nach
+     * `salon_images`), und `/listings/[slug]` zeigt daraus wenigstens das
+     * Logo. Die oeffentliche Salonseite — die Seite, fuer die man Bilder
+     * hochlaedt — zeigte stattdessen einen Farbverlauf mit einem
+     * Bild-Platzhalter-Symbol und die Initialen des Salons.
+     */
+    supabase
+      .from('salon_images')
+      .select('url, image_type, sort_order')
+      .eq('salon_id', salon.id)
+      .order('sort_order', { ascending: true, nullsFirst: false }),
+  ])
+  const reviewsSichtbar = alleSalonReviews.slice(0, 10)
+
+  // Ein Lesefehler auf den Bildern darf die Seite NICHT kippen — sie ist
+  // ohne Bilder vollstaendig bedienbar. Er darf nur nicht als „keine
+  // Bilder vorhanden" durchgehen, deshalb die Zeile im Log.
+  if (bilderRes.error) {
+    console.error('[salon] Bilder nicht lesbar:', bilderRes.error.message)
+  }
+  const bilder = (bilderRes.data ?? []) as SalonBildZeile[]
+  const bildUrls = (typ: string) =>
+    bilder.filter(b => b.image_type === typ && b.url).map(b => b.url as string)
+  const salonBilder = {
+    logo: bildUrls('logo')[0] ?? null,
+    cover: bildUrls('cover')[0] ?? null,
+    gallery: [...bildUrls('gallery'), ...bildUrls('before_after')].slice(0, 12),
+  }
+
+  const salonData = {
+    id: salon.id,
+    name: salon.name,
+    slug: salon.slug,
+    description: salon.description,
+    category: salon.category || 'barber',
+    city: salon.city,
+    street: salon.street,
+    avg_rating: salon.avg_rating,
+    review_count: salon.review_count,
+    is_verified: salon.is_verified,
+    subscription_tier: salon.subscription_tier || 'starter',
+    tagline: salon.description || '',
+    tags: [] as string[],
+    phone: salon.phone,
+    opening_hours: salon.opening_hours as Record<string, { open: string; close: string } | null> | null,
+  }
+
+  const dbJsonLd = salonSchema({
+    id: salon.id,
+    name: salon.name,
+    slug: salon.slug || salon.id,
+    description: salon.description,
+    category: salon.category,
+    street: salon.street,
+    postal_code: salon.postal_code,
+    city: salon.city,
+    phone: salon.phone,
+    avg_rating: salon.avg_rating,
+    review_count: salon.review_count,
+    price_range: salon.price_range,
+    opening_hours: salon.opening_hours as Record<string, string> | null,
+    latitude: salon.latitude,
+    longitude: salon.longitude,
+    // Bilder gehoeren auch ins Schema: ohne `image` zeigt Google fuer den
+    // Eintrag gar kein Bild an, obwohl der Salon welche hochgeladen hat.
+    images: [salonBilder.cover, salonBilder.logo, ...salonBilder.gallery].filter(
+      (u): u is string => Boolean(u),
+    ),
+  })
+
+  return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(dbJsonLd) }} />
+    <SalonDetailClient
+      salon={salonData}
+      images={salonBilder}
+      services={(servicesRes.data || []).map(s => ({ id: s.id, name: s.name, duration_minutes: s.duration_minutes, price_cents: s.price_cents }))}
+      staff={(staffRes.data || []).map(m => ({ id: m.id, name: m.name, title: m.title, avatar_url: m.avatar_url }))}
+      reviews={reviewsSichtbar.map(r => ({ id: r.id, rating: r.rating, comment: r.comment, reply: r.reply, customer: r.customer, created_at: r.created_at }))}
+      rentals={(rentalsRes.data || []).map(r => ({ id: r.id, type: r.type, name: r.name, price_per_day_cents: r.price_per_day_cents, description: r.description }))}
+      breadcrumbs={salonBreadcrumbs(salon.name, slug, salon.city)}
+    />
+    </>
+  )
 }

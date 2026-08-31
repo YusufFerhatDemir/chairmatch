@@ -27,6 +27,8 @@ vi.mock('@/modules/auth/auth.config', () => ({ auth: async () => state.session }
 vi.mock('@/lib/email', () => ({
   sendBookingConfirmation: vi.fn(async () => ({ ok: true })),
   sendProviderNotification: vi.fn(async () => ({ ok: true })),
+  // Track C: `cancelBooking` benachrichtigt jetzt die Gegenseite.
+  sendBookingCancellation: vi.fn(async () => ({ ok: true })),
 }))
 
 import { POST as bookingsPost } from '@/app/api/bookings/route'

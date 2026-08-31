@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import BottomNav from '@/components/BottomNav'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import type { BreadcrumbItem } from '@/lib/seo'
@@ -55,8 +56,24 @@ interface SalonRental {
   description: string | null
 }
 
+/**
+ * Bilder des Salons aus `salon_images`.
+ *
+ * Bis Track C bekam diese Komponente ueberhaupt keine Bilder: der Kopf der
+ * Seite war ein Farbverlauf mit einem Bild-Platzhalter-Symbol, der Avatar
+ * waren die zwei Anfangsbuchstaben. Hochgeladen werden konnten Bilder die
+ * ganze Zeit (/provider/bilder → `salon_images`) — sie waren auf der
+ * oeffentlichen Salonseite nur nirgends zu sehen.
+ */
+export interface SalonBilder {
+  logo: string | null
+  cover: string | null
+  gallery: string[]
+}
+
 interface Props {
   salon: SalonData
+  images?: SalonBilder
   services: SalonService[]
   staff: SalonStaff[]
   reviews: SalonReview[]
@@ -162,7 +179,7 @@ function BewertungMelden({ reviewId }: { reviewId: string }) {
   )
 }
 
-export default function SalonDetailClient({ salon, services, reviews, rentals, breadcrumbs }: Props) {
+export default function SalonDetailClient({ salon, images, services, reviews, rentals, breadcrumbs }: Props) {
   const router = useRouter()
   const [isFav, setIsFav] = useState(false)
 
@@ -186,6 +203,10 @@ export default function SalonDetailClient({ salon, services, reviews, rentals, b
 
   const bgGradient = CATEGORY_FALLBACK_BG[salon.category] || 'linear-gradient(135deg,#3A3025,#1F1A0F)'
   const initials = salon.name.slice(0, 2).toUpperCase()
+  // Kopfbild: Cover, sonst das erste Galeriebild. Ohne Bild bleibt es beim
+  // Farbverlauf — der ist der Rueckfall, nicht mehr die einzige Anzeige.
+  const coverBild = images?.cover ?? images?.gallery?.[0] ?? null
+  const galerie = (images?.gallery ?? []).filter(u => u !== coverBild)
   const minPrice = services.length > 0 ? Math.min(...services.map(s => s.price_cents)) / 100 : null
   const cityLine = salon.street ? `${salon.street}, ${salon.city || ''}` : salon.city || ''
 
@@ -207,11 +228,30 @@ export default function SalonDetailClient({ salon, services, reviews, rentals, b
           width: '100%', aspectRatio: '5/4', background: bgGradient,
           position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(196,168,106,0.4)" strokeWidth="1" style={{ opacity: 0.5 }}>
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="9" cy="9" r="2"/>
-            <path d="M21 15l-5-5L5 21"/>
-          </svg>
+          {coverBild ? (
+            <>
+              <Image
+                src={coverBild}
+                alt={`${salon.name} — Innenansicht`}
+                fill
+                sizes="(max-width: 460px) 100vw, 430px"
+                priority
+                style={{ objectFit: 'cover' }}
+              />
+              {/* Verlauf nach unten, damit die runden Knoepfe auf jedem Bild lesbar bleiben */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(180deg, rgba(11,11,15,0.45) 0%, rgba(11,11,15,0) 35%, rgba(11,11,15,0.35) 100%)',
+                pointerEvents: 'none',
+              }} />
+            </>
+          ) : (
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(196,168,106,0.4)" strokeWidth="1" style={{ opacity: 0.5 }} aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="9" cy="9" r="2"/>
+              <path d="M21 15l-5-5L5 21"/>
+            </svg>
+          )}
           <button
             onClick={() => router.back()}
             style={{
@@ -267,11 +307,21 @@ export default function SalonDetailClient({ salon, services, reviews, rentals, b
             border: '2px solid var(--gold2)',
             background: 'linear-gradient(135deg,#2A2418,#161210)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
+            flexShrink: 0, overflow: 'hidden', position: 'relative',
           }}>
-            <span className="cinzel text-gold-metallic" style={{ fontSize: 22, fontWeight: 600 }}>
-              {initials}
-            </span>
+            {images?.logo ? (
+              <Image
+                src={images.logo}
+                alt={`Logo ${salon.name}`}
+                fill
+                sizes="58px"
+                style={{ objectFit: 'cover' }}
+              />
+            ) : (
+              <span className="cinzel text-gold-metallic" style={{ fontSize: 22, fontWeight: 600 }}>
+                {initials}
+              </span>
+            )}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--cream)' }}>{salon.name}</p>
@@ -286,6 +336,40 @@ export default function SalonDetailClient({ salon, services, reviews, rentals, b
             )}
           </div>
         </div>
+
+        {/* Galerie — nur wenn es ausser dem Kopfbild noch etwas zu zeigen gibt */}
+        {galerie.length > 0 && (
+          <div style={{ margin: '14px 0 0' }}>
+            <div
+              style={{
+                display: 'flex', gap: 8, overflowX: 'auto',
+                padding: '0 20px 4px', scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
+              {galerie.map((url, i) => (
+                <div
+                  key={url}
+                  style={{
+                    position: 'relative', flexShrink: 0,
+                    width: 132, height: 92, borderRadius: 12, overflow: 'hidden',
+                    border: '1px solid rgba(196,168,106,0.18)', scrollSnapAlign: 'start',
+                    background: bgGradient,
+                  }}
+                >
+                  <Image
+                    src={url}
+                    alt={`${salon.name} — Bild ${i + 2}`}
+                    fill
+                    sizes="132px"
+                    loading="lazy"
+                    style={{ objectFit: 'cover' }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Breadcrumbs */}
         {breadcrumbs && breadcrumbs.length > 0 && (

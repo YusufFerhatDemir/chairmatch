@@ -51,6 +51,8 @@ vi.mock('@/lib/notifications', () => ({
 vi.mock('@/lib/email', () => ({
   sendBookingConfirmation: async () => ({ ok: true }),
   sendProviderNotification: async () => ({ ok: true }),
+  // Track C: `cancelBooking` benachrichtigt jetzt die Gegenseite.
+  sendBookingCancellation: vi.fn(async () => ({ ok: true })),
 }))
 vi.mock('@/lib/stripe', () => ({
   isStripeConfigured: () => true,

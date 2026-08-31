@@ -59,6 +59,8 @@ vi.mock('@/lib/error-tracking', () => ({
 vi.mock('@/lib/email', () => ({
   sendBookingConfirmation: async () => ({ success: true }),
   sendProviderNotification: async () => ({ success: true }),
+  // Track C: `cancelBooking` benachrichtigt jetzt die Gegenseite.
+  sendBookingCancellation: vi.fn(async () => ({ ok: true })),
 }))
 vi.mock('next/cache', () => ({ revalidateTag: () => undefined }))
 

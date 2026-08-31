@@ -51,6 +51,8 @@ vi.mock('@supabase/supabase-js', () => ({
 vi.mock('@/lib/email', () => ({
   sendProviderWelcomeEmail: (...a: never[]) => state.welcomeMail(...a),
   sendWelcomeEmail: vi.fn(async () => ({ success: true })),
+  // Track C: `cancelBooking` benachrichtigt jetzt die Gegenseite.
+  sendBookingCancellation: vi.fn(async () => ({ ok: true })),
 }))
 
 import { POST as registerProvider } from '@/app/api/register-provider/route'
