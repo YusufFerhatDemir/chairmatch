@@ -143,7 +143,13 @@ export default async function KartePage({ searchParams }: Props) {
                   key={f.key}
                   href={isActive ? '/karte' : `/karte?type=${f.key}`}
                   className={isActive ? 'bgold' : 'boutline'}
-                  style={{ padding: '8px 16px', fontSize: 12, whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-block', borderRadius: 20 }}
+                  aria-current={isActive ? 'true' : undefined}
+                  style={{
+                    // Wie auf /search: 40 px Mindesthoehe fuer die Filterchips.
+                    minHeight: 40, display: 'inline-flex', alignItems: 'center',
+                    padding: '0 18px', fontSize: 12, whiteSpace: 'nowrap',
+                    textDecoration: 'none', borderRadius: 20,
+                  }}
                 >
                   {f.label}
                 </a>

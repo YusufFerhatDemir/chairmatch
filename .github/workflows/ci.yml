@@ -39,3 +39,12 @@ jobs:
 
       - name: Unit tests (vitest)
         run: npx vitest run --reporter=dot
+
+      # ESLint laeuft bewusst NUR auf Fehler (--max-warnings ist nicht gesetzt).
+      # `next.config.ts` hat `eslint: { ignoreDuringBuilds: true }`, der
+      # Vercel-Build prueft also nichts davon; ohne diesen Schritt lief ESLint
+      # ueberhaupt nirgends automatisch. Die ~20 offenen Warnungen (img-Tags,
+      # ungenutzte Variablen) blockieren nichts und werden laufend abgebaut —
+      # ein neuer FEHLER faellt jetzt hier auf statt gar nicht.
+      - name: Lint (nur Fehler)
+        run: npm run lint

@@ -147,7 +147,7 @@ export default function SearchClient({
               className="boutline"
               onClick={() => handlePlzSearch()}
               disabled={plzLoading}
-              style={{ padding: '10px 14px', fontSize: 12, whiteSpace: 'nowrap', borderRadius: 12 }}
+              style={{ minHeight: 44, padding: '0 16px', fontSize: 12, whiteSpace: 'nowrap', borderRadius: 12 }}
             >
               {plzLoading ? '...' : '📍 PLZ suchen'}
             </button>
@@ -161,7 +161,14 @@ export default function SearchClient({
                   key={c}
                   href={`/search?city=${encodeURIComponent(c)}`}
                   className="boutline"
-                  style={{ padding: '6px 14px', fontSize: 11, whiteSpace: 'nowrap', textDecoration: 'none', borderRadius: 20 }}
+                  style={{
+                    // 40 px statt der bisherigen ~25 px: die Stadt-Chips und
+                    // die Sortierknoepfe waren die kleinsten Ziele der Seite,
+                    // und diese Seite wird fast nur auf dem Handy benutzt.
+                    minHeight: 40, display: 'inline-flex', alignItems: 'center',
+                    padding: '0 16px', fontSize: 12, whiteSpace: 'nowrap',
+                    textDecoration: 'none', borderRadius: 20,
+                  }}
                 >
                   {c}
                 </a>
@@ -174,8 +181,9 @@ export default function SearchClient({
             <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
               <button
                 onClick={() => setSortMode('rating')}
+                aria-pressed={sortMode === 'rating'}
                 style={{
-                  padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                  minHeight: 40, padding: '0 16px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   background: sortMode === 'rating' ? 'var(--gold)' : 'var(--c3)',
                   color: sortMode === 'rating' ? '#080706' : 'var(--stone)', border: 'none',
                 }}
@@ -184,8 +192,9 @@ export default function SearchClient({
               </button>
               <button
                 onClick={() => setSortMode('nearest')}
+                aria-pressed={sortMode === 'nearest'}
                 style={{
-                  padding: '6px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                  minHeight: 40, padding: '0 16px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   background: sortMode === 'nearest' ? 'var(--gold)' : 'var(--c3)',
                   color: sortMode === 'nearest' ? '#080706' : 'var(--stone)', border: 'none',
                 }}
