@@ -44,10 +44,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
   }
 
-  let body: { salonId?: unknown; equipmentId?: unknown; action?: unknown } = {}
-  try {
-    body = await req.json()
-  } catch {
+  const body = (await req.json().catch(() => null)) as {
+    salonId?: unknown
+    equipmentId?: unknown
+    action?: unknown
+  } | null
+  if (!body) {
     return NextResponse.json({ error: 'Ungültige Anfrage' }, { status: 400 })
   }
 

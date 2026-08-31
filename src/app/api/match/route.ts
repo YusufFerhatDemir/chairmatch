@@ -33,14 +33,32 @@ export async function POST(req: Request) {
     const { data, error } = await supabase
       .from('rental_equipment')
       .select(
-        'id, salon_id, type, name, description, price_per_day_cents, price_per_month_cents, is_available, images, salon:salons(id, name, slug, city, avg_rating, review_count, is_verified, category)'
+        'id, salon_id, type, name, description, price_per_day_cents, price_per_month_cents, is_available, images, salon:salons(id, name, slug, city, avg_rating, review_count, is_verified, category, is_active)'
       )
       .eq('is_available', true)
       .limit(500)
 
     if (error) throw error
 
-    const listings = (data ?? []) as unknown as MatchListing[]
+    // Gesperrte Anbieter fliegen aus dem Matching.
+    //
+    // Track 15 hat diesen Filter in /api/rental-listings eingezogen, die
+    // Geldstrecken (createBooking, rental-bookings, rental-requests) sind
+    // seitdem fail closed. Das Matching ist danach die letzte oeffentliche
+    // Liste ohne den Riegel geblieben: es fragte dieselbe Tabelle, filterte
+    // aber nur `is_available` — die Eigenschaft des Inserats, nicht die des
+    // Betriebs. Ein von /admin/anbieter gesperrter Salon wurde damit von der
+    // Plattform aktiv weiterempfohlen, mit Namen, Bewertung und Verifiziert-
+    // Haken, und der Link fuehrte auf eine Salonseite, die seit Track 20 mit
+    // 404 antwortet.
+    //
+    // Bewusst nur bei einem AUSDRUECKLICHEN `false` — wie in
+    // /api/rental-listings und aus demselben Grund: ein „im Zweifel raus"
+    // wuerde beim Ausfall der Einbettung jedes Ergebnis verschlucken und dem
+    // Nutzer „keine Treffer" zeigen, ohne dass jemand etwas gesperrt haette.
+    const listings = ((data ?? []) as unknown as MatchListing[]).filter(
+      (l) => l.salon?.is_active !== false,
+    )
     const ranked = rankListings(criteria, listings).slice(0, 20)
 
     return NextResponse.json({

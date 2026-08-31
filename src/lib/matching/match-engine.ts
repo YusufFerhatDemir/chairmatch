@@ -27,6 +27,8 @@ export interface MatchSalon {
   review_count: number | null
   is_verified: boolean | null
   category: string | null
+  /** Von /admin/anbieter gesetzte Plattform-Sperre. Siehe src/lib/salon-status.ts. */
+  is_active?: boolean | null
 }
 
 export interface MatchListing {

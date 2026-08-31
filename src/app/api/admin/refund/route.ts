@@ -28,10 +28,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  let body: { transaction_id?: string } = {}
-  try {
-    body = await req.json()
-  } catch {
+  const body = (await req.json().catch(() => null)) as { transaction_id?: string } | null
+  if (!body) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 

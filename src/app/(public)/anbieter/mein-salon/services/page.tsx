@@ -16,10 +16,11 @@ import { useTranslations } from '@/i18n/client'
  *
  * Die einzige Oberflaeche, die Leistungen wirklich pflegen konnte, war
  * `src/components/ProviderDashboardClient.tsx` — eine Komponente, die
- * nirgends mehr importiert wird (die Route /provider/dashboard rendert
+ * nirgends mehr importiert wurde (die Route /provider/dashboard rendert
  * `components/provider/DashboardClient.tsx`). Anbieter hatten damit keinen
  * Weg, ihre Leistungen zu pflegen; genau die Leistungen, aus denen die
- * Buchungsstrecke Preis und Dauer nimmt.
+ * Buchungsstrecke Preis und Dauer nimmt. Die tote Komponente ist inzwischen
+ * geloescht — diese Seite hier hat ihre Aufgabe uebernommen.
  *
  * Jetzt: echter Bestand aus `GET /api/provider/services`, Anlegen und
  * Loeschen ueber dieselben (bereits besitzgepruef­ten) Endpunkte, und ein

@@ -56,7 +56,19 @@ export default function OnboardingGate({ slides, children }: Props) {
   // Onboarding state
   const [step, setStep] = useState(0)
   const [phase, setPhase] = useState<Phase>('roleSelect')
-  const [role, setRole] = useState<'CUSTOMER' | 'PROVIDER' | 'B2B'>('CUSTOMER')
+  // `role` wird gelesen (Ueberschrift der Profil-Maske, der B2B-Block und
+  // `finish(role)`), aber nirgends mehr gesetzt: der Setter hing allein an
+  // `selectRole()`, einer Funktion, die niemand aufrief. Die Rollenauswahl
+  // weiter unten (V14_ROLES) arbeitet nicht mit diesem State, sondern legt
+  // `cm_role` im localStorage ab und verlaesst die Komponente per
+  // `window.location.assign(role.href)`.
+  //
+  // Der Wert steht damit fest auf 'CUSTOMER' — der B2B-Zweig ist toter Code,
+  // und `finish()` meldet jede Anmeldung als Kundin. Das ist eine
+  // Produktentscheidung (welcher der beiden Onboarding-Wege gilt) und wird
+  // hier nicht heimlich mitentschieden; der Setter ist nur nicht mehr da, wo
+  // er den Befund verdeckt.
+  const [role] = useState<'CUSTOMER' | 'PROVIDER' | 'B2B'>('CUSTOMER')
 
   // Login state
   const [loginEmail, setLoginEmail] = useState('')
@@ -146,16 +158,6 @@ export default function OnboardingGate({ slides, children }: Props) {
     }
 
     setDone(true)
-  }
-
-  function selectRole(r: 'CUSTOMER' | 'PROVIDER' | 'B2B') {
-    setRole(r)
-    if (r === 'CUSTOMER') {
-      setPhase('customerSetup')
-    } else {
-      setPhase('provSetup')
-      setProvStep(1)
-    }
   }
 
   function updateProfile(key: keyof ProfileData, val: string) {

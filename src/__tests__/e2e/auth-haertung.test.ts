@@ -33,6 +33,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createDb, sessionFor, postRequest, rawRequest, IDS, type TestSession } from './_harness/fixtures'
 import type { FakeSupabase } from './_harness/fake-supabase'
+import { __resetRateLimits } from '@/lib/rate-limit'
 
 const PASSWORT = 'Sicher!2026'
 const NEUES_PASSWORT = 'NeuSicher!2026'
@@ -121,6 +122,11 @@ function createAnonClient() {
 }
 
 beforeEach(() => {
+  // Seit /api/auth/change-password pro Konto UND pro IP drosselt, teilen sich
+  // alle Faelle dieser Datei denselben Zaehler (`clientIp` liest ohne
+  // x-forwarded-for 'unknown'). Ohne Reset haengt das Ergebnis eines Tests
+  // davon ab, wie viele vor ihm liefen.
+  __resetRateLimits()
   state.db = createDb()
   state.session = null
   state.anon = createAnonClient()

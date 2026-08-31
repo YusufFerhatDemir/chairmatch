@@ -112,7 +112,7 @@ export default function BuchenPage() {
   const [einwilligung, setEinwilligung] = useState(false)
 
   const heute = berlinToday()
-  const [heuteY, heuteM, heuteD] = heute.split('-').map(Number)
+  const [heuteY, heuteM] = heute.split('-').map(Number)
   const [calYear, setCalYear] = useState(heuteY)
   const [calMonth, setCalMonth] = useState(heuteM - 1)
 

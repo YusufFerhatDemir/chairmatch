@@ -9,6 +9,7 @@ import {
 } from '@/modules/auth/session'
 import { withApi, apiError } from '@/lib/api-wrapper'
 import { logger } from '@/lib/logger'
+import { checkRateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 /**
  * POST /api/auth/change-password
@@ -35,10 +36,42 @@ const schema = z.object({
   currentPassword: z.string().optional(),
 })
 
+/**
+ * Drosselung — dieser Endpunkt ist das einzige Passwort-Orakel der Plattform.
+ *
+ * Im freiwilligen Modus prueft er `currentPassword` per
+ * `signInWithPassword` und antwortet unterscheidbar: 403 „Aktuelles Passwort
+ * ist falsch" gegen alles andere. Wer ein Sitzungscookie erbeutet hat — der
+ * Fall, fuer den es den Sitzungswiderruf weiter unten ueberhaupt gibt —
+ * konnte damit das echte Passwort erraten, beliebig oft. Genau dieses
+ * Passwort ist die Beute, die das Cookie nicht hergibt: es ueberlebt den
+ * Widerruf und wird anderswo wiederverwendet.
+ *
+ * Gezaehlt wird am KONTO, nicht nur an der IP. Der Riegel in `middleware.ts`
+ * (10/min fuer /api/auth/*) zaehlt ausschliesslich pro IP — gegen einen
+ * Angreifer mit wechselnden Adressen ist er wirkungslos, und angegriffen
+ * wird ohnehin ein bestimmtes Konto. Beide Zaehler laufen nebeneinander, wie
+ * schon bei forgot-password (IP + Adresse).
+ *
+ * Die Grenze richtet sich nach 2fa-verify (5 Versuche je 5 Minuten): auch
+ * dort wird ein Geheimnis geraten. Wer sein eigenes Passwort tippt, braucht
+ * keine zehn Anlaeufe je Viertelstunde.
+ *
+ * Der erzwungene Wechsel (`passwordMustChange`) prueft kein altes Passwort
+ * und ist deshalb kein Orakel — er faellt nur unter das IP-Limit.
+ */
+const RATE_PER_IP = { scope: 'change-password-ip', max: 10, windowMs: 15 * 60_000 }
+const RATE_PER_ACCOUNT = { scope: 'change-password-account', max: 5, windowMs: 15 * 60_000 }
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export const POST = withApi(async (req: Request) => {
+  const ipLimit = checkRateLimit(clientIp(req), RATE_PER_IP)
+  if (ipLimit.limited) {
+    return rateLimitResponse(ipLimit, 'Zu viele Versuche. Bitte später erneut versuchen.')
+  }
+
   const session = await getServerSession()
   if (!session?.user?.id) return apiError('Nicht angemeldet', 401)
 
@@ -58,6 +91,17 @@ export const POST = withApi(async (req: Request) => {
     }
     const email = session.user.email
     if (!email) return apiError('Session ohne E-Mail', 400)
+
+    // Erst hier — der Zaehler soll Rateversuche zaehlen, nicht Aufrufe ohne
+    // Passwort im Body. Sonst sperrt sich ein Formularfehler das Konto selbst.
+    const accountLimit = checkRateLimit(userId, RATE_PER_ACCOUNT)
+    if (accountLimit.limited) {
+      logger.warn('auth.change_password.rate_limited', { userId })
+      return rateLimitResponse(
+        accountLimit,
+        'Zu viele Versuche mit falschem Passwort. Bitte später erneut versuchen.',
+      )
+    }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const { error: verifyErr } = await supabase.auth.signInWithPassword({
