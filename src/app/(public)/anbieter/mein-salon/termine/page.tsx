@@ -36,6 +36,7 @@ interface ApiBooking {
   booking_date: string
   start_time: string
   status: string
+  payment_status?: string | null
   price_cents: number | null
   service?: { name?: string; duration_minutes?: number } | null
   customer?: { full_name?: string } | null
@@ -69,6 +70,7 @@ export default function TermineAnbieterPage() {
   const [bookings, setBookings] = useState<ApiBooking[]>([])
   const [laedt, setLaedt] = useState(true)
   const [fehler, setFehler] = useState<string | null>(null)
+  const [hinweis, setHinweis] = useState<string | null>(null)
   const [aendert, setAendert] = useState<string | null>(null)
 
   const laden = useCallback(async () => {
@@ -157,6 +159,7 @@ export default function TermineAnbieterPage() {
   async function bestaetigen(id: string) {
     setAendert(id)
     setFehler(null)
+    setHinweis(null)
     try {
       const res = await fetch(`/api/bookings/${id}`, {
         method: 'PATCH',
@@ -186,25 +189,40 @@ export default function TermineAnbieterPage() {
    */
   async function absagen(b: ApiBooking) {
     const offen = String(b.status).toLowerCase() === 'pending'
+    const bezahlt = String(b.payment_status ?? '') === 'paid'
+    const zahlungssatz = bezahlt
+      ? ' Der Termin ist bezahlt — die Zahlung wird dabei vollständig erstattet.'
+      : ''
     const frage = offen
-      ? 'Diese Anfrage ablehnen? Der Kunde wird benachrichtigt und der Zeitraum wird wieder frei.'
-      : 'Diesen bestätigten Termin absagen? Der Kunde wird benachrichtigt.'
+      ? `Diese Anfrage ablehnen? Der Kunde wird benachrichtigt und der Zeitraum wird wieder frei.${zahlungssatz}`
+      : `Diesen bestätigten Termin absagen? Der Kunde wird benachrichtigt.${zahlungssatz}`
     if (!confirm(frage)) return
 
     const grund = prompt('Grund (optional, wird dem Kunden mitgeteilt):') ?? ''
 
     setAendert(b.id)
     setFehler(null)
+    setHinweis(null)
     try {
       const res = await fetch(`/api/bookings/${b.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newStatus: 'cancelled', reason: grund.trim() || undefined }),
       })
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
         setFehler(data?.error || (offen ? 'Die Anfrage konnte nicht abgelehnt werden.' : 'Der Termin konnte nicht abgesagt werden.'))
         return
+      }
+      // Sagt der Salon einen BEZAHLTEN Termin ab, wird immer voll erstattet
+      // (siehe cancelBooking). Das muss er wissen, bevor er klickt — und
+      // bestaetigt bekommen, nachdem er geklickt hat.
+      if (data?.refunded) {
+        setHinweis('Abgesagt. Die Zahlung des Kunden wurde vollständig erstattet.')
+      } else if (typeof data?.refundHinweis === 'string') {
+        setHinweis(`Abgesagt. ${data.refundHinweis}`)
+      } else {
+        setHinweis(null)
       }
       await laden()
     } catch {
@@ -250,6 +268,12 @@ export default function TermineAnbieterPage() {
         {fehler && (
           <div style={{ margin: '0 16px 12px', padding: '10px 14px', borderRadius: 12, background: 'rgba(232,80,64,0.1)', border: '1px solid rgba(232,80,64,0.3)', color: '#FF8888', fontSize: 12.5, lineHeight: 1.5 }}>
             {fehler}
+          </div>
+        )}
+
+        {hinweis && (
+          <div role="status" style={{ margin: '0 16px 12px', padding: '10px 14px', borderRadius: 12, background: 'rgba(74,138,90,0.1)', border: '1px solid rgba(74,138,90,0.3)', color: '#6ABF80', fontSize: 12.5, lineHeight: 1.5 }}>
+            {hinweis}
           </div>
         )}
 

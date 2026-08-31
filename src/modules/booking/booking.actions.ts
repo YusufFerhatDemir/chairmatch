@@ -20,6 +20,7 @@ import { checkSalonAcceptsBusiness } from '@/lib/salon-status'
 import { CLOSED_MESSAGES, salonGeschlossen } from '@/lib/salon-open'
 import { sendBookingConfirmation, sendProviderNotification, sendBookingCancellation } from '@/lib/email'
 import { createNotification } from '@/lib/notifications'
+import { createRefund, isStripeConfigured } from '@/lib/stripe'
 
 /** Rolle des Aufrufers gegenueber einer konkreten Buchung. */
 type BookingActor = 'customer' | 'provider'
@@ -777,12 +778,75 @@ export async function cancelBooking(input: unknown) {
     policy.cancellationHours,
   )
 
+  /*
+   * BEZAHLTE TERMINE — bis Track C ging das Geld hier verloren.
+   *
+   * `cancelBooking` hat `payment_status` nie angesehen. Ein bezahlter Termin
+   * liess sich absagen, und danach stand die Buchung auf `cancelled` und die
+   * Zahlung unveraendert auf `paid`: keine Erstattung, kein Hinweis, kein
+   * Vermerk — das Geld blieb liegen, und niemand erfuhr davon. Die
+   * Miet-Strecke (`/api/rental-bookings/[id]/cancel`) macht es seit jeher
+   * richtig; der Termin, das Kernprodukt, stand daneben.
+   *
+   * WER BEKOMMT SEIN GELD AUTOMATISCH ZURUECK:
+   *
+   *  - Der Salon sagt ab → immer. Der Kunde hat sich nichts vorzuwerfen.
+   *  - Der Kunde sagt FRISTGERECHT ab → immer. Genau das sagt die Frist zu.
+   *  - Der Kunde sagt VERSPAETET ab → NICHT automatisch. Was dem Salon dann
+   *    zusteht, ist seine Entscheidung; `bookings` hat keine Spalte fuer eine
+   *    Stornogebuehr, und `booking_policies` fuehrt nur `no_show_fee_cents`
+   *    (Nichterscheinen, nicht verspaetete Absage). Eine automatische
+   *    Vollerstattung waere hier genauso erfunden wie ein einbehaltener
+   *    Betrag. Der Fall wird benannt und geht ueber /api/admin/refund.
+   *
+   * Scheitert die Erstattung, wird NICHT storniert: eine stornierte Buchung
+   * ohne Geld zurueck ist der schlechteste aller Zustaende.
+   */
+  const bezahlt = String(booking.payment_status ?? '') === 'paid'
+  const erstattungFaellig = bezahlt && (actor === 'provider' || frist.freeOfCharge)
+  let erstattet = false
+  let erstattungHinweis: string | null = null
+
+  if (bezahlt) {
+    const paymentIntent = booking.stripe_payment_intent
+    if (!erstattungFaellig) {
+      erstattungHinweis =
+        'Die Stornofrist des Salons war bereits abgelaufen — die Zahlung wird deshalb nicht automatisch erstattet. Der Salon entscheidet darüber.'
+    } else if (!paymentIntent) {
+      // Bezahlt laut Datenbank, aber ohne Zahlungsbezug. Hier waere jede
+      // automatische Erstattung geraten. Storniert wird trotzdem, der
+      // Zahlungsstatus bleibt stehen und der Fall sichtbar.
+      erstattungHinweis =
+        'Zu dieser Zahlung ist keine Referenz hinterlegt — die Erstattung muss vom Support ausgelöst werden.'
+      console.error('[booking] bezahlt, aber ohne stripe_payment_intent:', bookingId)
+    } else if (!isStripeConfigured()) {
+      erstattungHinweis =
+        'Die Zahlungsanbindung ist derzeit nicht verfügbar — die Erstattung wird nachgeholt.'
+    } else {
+      try {
+        await createRefund(String(paymentIntent))
+        erstattet = true
+      } catch (err) {
+        console.error('[booking] Erstattung fehlgeschlagen:', err)
+        return {
+          error:
+            'Die Erstattung konnte nicht ausgelöst werden. Der Termin wurde NICHT abgesagt. Bitte später erneut versuchen.',
+          status: 502,
+        }
+      }
+    }
+  }
+
   const dbStatus = typeof booking.status === 'string' && booking.status ? booking.status : null
   const geschrieben = await writeStatus(
     supabase,
     bookingId,
     dbStatus,
-    { status: 'cancelled', cancellation_reason: reason || null },
+    {
+      status: 'cancelled',
+      cancellation_reason: reason || null,
+      ...(erstattet ? { payment_status: 'refunded' } : {}),
+    },
     'Die Absage konnte nicht gespeichert werden. Bitte erneut versuchen.',
   )
   if ('error' in geschrieben) return geschrieben
@@ -795,6 +859,8 @@ export async function cancelBooking(input: unknown) {
       freeOfCharge: frist.freeOfCharge,
       deadlinePassed: frist.deadlinePassed,
       cancellationHours: frist.cancellationHours,
+      refunded: erstattet,
+      refundHinweis: erstattungHinweis,
     }
   }
 
@@ -814,6 +880,11 @@ export async function cancelBooking(input: unknown) {
           frist.hoursBeforeStart === null ? null : Math.round(frist.hoursBeforeStart * 100) / 100,
         freeOfCharge: frist.freeOfCharge,
         deadlinePassed: frist.deadlinePassed,
+        // Was mit einer geleisteten Zahlung passiert ist — der einzige Ort,
+        // an dem das haltbar festgehalten wird.
+        wasPaid: bezahlt,
+        refunded: erstattet,
+        refundHinweis: erstattungHinweis,
       },
     })
   } catch {
@@ -827,6 +898,8 @@ export async function cancelBooking(input: unknown) {
     freeOfCharge: frist.freeOfCharge,
     deadlinePassed: frist.deadlinePassed,
     cancellationHours: frist.cancellationHours,
+    refunded: erstattet,
+    refundHinweis: erstattungHinweis,
   }
 }
 

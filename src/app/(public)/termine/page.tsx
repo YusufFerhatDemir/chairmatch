@@ -168,11 +168,24 @@ export default function TermineKundePage() {
         return
       }
 
-      setHinweis(
+      /*
+       * Was mit einer geleisteten Zahlung passiert ist, gehoert hierhin.
+       *
+       * Bis Track C sagte diese Meldung nur etwas ueber die Frist. Ob das
+       * bezahlte Geld zurueckkommt — die eigentliche Frage des Kunden —
+       * stand nirgends, weil `cancelBooking` `payment_status` gar nicht
+       * angesehen hat.
+       */
+      const fristText =
         data?.freeOfCharge === false
           ? `Termin abgesagt. Die Frist des Salons (${data?.cancellationHours ?? 24} Std.) war bereits abgelaufen — der Salon kann dafür eine Gebühr berechnen.`
-          : 'Termin abgesagt — fristgerecht und damit kostenfrei.',
-      )
+          : 'Termin abgesagt — fristgerecht und damit kostenfrei.'
+      const zahlungText = data?.refunded
+        ? ' Die Zahlung wurde erstattet — sie erscheint je nach Bank in wenigen Werktagen auf deinem Konto.'
+        : typeof data?.refundHinweis === 'string'
+          ? ` ${data.refundHinweis}`
+          : ''
+      setHinweis(fristText + zahlungText)
       await laden()
     } catch {
       setFehler('Verbindungsfehler — der Termin wurde nicht abgesagt.')

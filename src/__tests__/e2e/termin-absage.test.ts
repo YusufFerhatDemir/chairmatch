@@ -29,6 +29,11 @@ const state = vi.hoisted(() => ({
     provider: [] as { to: string; type: string; details: Record<string, unknown> }[],
     cancellation: [] as { to: string; details: Record<string, unknown> }[],
   },
+  stripe: {
+    konfiguriert: true,
+    refunds: [] as string[],
+    scheitert: false,
+  },
 }))
 
 vi.mock('@/lib/supabase-server', () => ({ getSupabaseAdmin: () => state.db }))
@@ -45,6 +50,15 @@ vi.mock('@/lib/email', () => ({
   sendBookingCancellation: async (to: string, details: Record<string, unknown>) => {
     state.emails.cancellation.push({ to, details })
     return { ok: true }
+  },
+}))
+
+vi.mock('@/lib/stripe', () => ({
+  isStripeConfigured: () => state.stripe.konfiguriert,
+  createRefund: async (paymentIntent: string) => {
+    if (state.stripe.scheitert) throw new Error('Stripe: card_error')
+    state.stripe.refunds.push(paymentIntent)
+    return { id: 're_test' }
   },
 }))
 
@@ -94,6 +108,9 @@ beforeEach(() => {
   state.session = sessionFor('owner')
   state.emails.provider.length = 0
   state.emails.cancellation.length = 0
+  state.stripe.konfiguriert = true
+  state.stripe.refunds.length = 0
+  state.stripe.scheitert = false
 })
 
 afterEach(() => {
@@ -248,5 +265,142 @@ describe('Ein fehlgeschlagener Statuswechsel meldet keinen Erfolg', () => {
 
     expect(res.status).toBe(409)
     expect(db().row('bookings', OFFEN)?.status).toBe('cancelled')
+  })
+})
+
+/**
+ * Bezahlte Termine — bis Track C blieb das Geld bei einer Absage liegen.
+ *
+ * `cancelBooking` hat `payment_status` nie angesehen: der Termin ging auf
+ * `cancelled`, die Zahlung blieb auf `paid`, und weder Kunde noch Salon
+ * erfuhren etwas davon. Die Miet-Strecke macht es seit jeher richtig
+ * (/api/rental-bookings/[id]/cancel) — der Termin, das Kernprodukt, stand
+ * daneben.
+ */
+const BEZAHLT = '66666666-6666-4666-8666-66666666bbbb'
+
+function seedBezahltenTermin(datum: string, zeit = '10:00:00', intent: string | null = 'pi_test_123'): Row {
+  const row: Row = {
+    id: BEZAHLT,
+    customer_id: IDS.customer,
+    salon_id: IDS.salon,
+    service_id: IDS.service,
+    staff_id: null,
+    booking_date: datum,
+    start_time: zeit,
+    end_time: '11:00:00',
+    status: 'confirmed',
+    payment_status: 'paid',
+    stripe_payment_intent: intent,
+    price_cents: 5000,
+    notes: null,
+    cancellation_reason: null,
+    created_at: '2026-08-20T09:00:00.000Z',
+  }
+  db().rows('bookings').push(row)
+  return row
+}
+
+describe('Absage eines bezahlten Termins', () => {
+  it('der Salon sagt ab: volle Erstattung, egal wie kurzfristig', async () => {
+    // Morgen um 10:00 — deutlich innerhalb der 48-Stunden-Frist des Salons.
+    // Der Kunde hat sich nichts vorzuwerfen, also gibt es das Geld zurueck.
+    seedBezahltenTermin('2026-09-02')
+    state.session = sessionFor('owner')
+
+    const res = await patchBookingRoute(
+      patchRequest(`https://www.chairmatch.de/api/bookings/${BEZAHLT}`, { newStatus: 'cancelled' }),
+      ctx({ id: BEZAHLT }),
+    )
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ refunded: true })
+    expect(state.stripe.refunds).toEqual(['pi_test_123'])
+    expect(db().row('bookings', BEZAHLT)?.payment_status).toBe('refunded')
+    expect(db().row('bookings', BEZAHLT)?.status).toBe('cancelled')
+  })
+
+  it('die Kundin sagt fristgerecht ab: Erstattung', async () => {
+    seedBezahltenTermin(BUSY_DAY, '14:00:00')
+    state.session = sessionFor('customer')
+
+    const res = await cancelBookingRoute(
+      postRequest(`https://www.chairmatch.de/api/bookings/${BEZAHLT}/cancel`, {}),
+      ctx({ id: BEZAHLT }),
+    )
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toMatchObject({ freeOfCharge: true, refunded: true })
+    expect(state.stripe.refunds).toEqual(['pi_test_123'])
+    expect(db().row('bookings', BEZAHLT)?.payment_status).toBe('refunded')
+  })
+
+  it('die Kundin sagt verspaetet ab: KEINE automatische Erstattung, aber eine klare Auskunft', async () => {
+    // Morgen 10:00 liegt innerhalb der 48-Stunden-Frist des Salons.
+    seedBezahltenTermin('2026-09-02')
+    state.session = sessionFor('customer')
+
+    const res = await cancelBookingRoute(
+      postRequest(`https://www.chairmatch.de/api/bookings/${BEZAHLT}/cancel`, {}),
+      ctx({ id: BEZAHLT }),
+    )
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.freeOfCharge).toBe(false)
+    expect(body.refunded).toBe(false)
+    // Weder eine erfundene Gebuehr noch eine stillschweigende Vollerstattung —
+    // der Fall wird benannt.
+    expect(String(body.refundHinweis)).toMatch(/nicht automatisch erstattet/i)
+    expect(state.stripe.refunds).toEqual([])
+    expect(db().row('bookings', BEZAHLT)?.payment_status).toBe('paid')
+    expect(db().row('bookings', BEZAHLT)?.status).toBe('cancelled')
+  })
+
+  it('scheitert die Erstattung, wird NICHT storniert', async () => {
+    seedBezahltenTermin(BUSY_DAY, '14:00:00')
+    state.session = sessionFor('customer')
+    state.stripe.scheitert = true
+
+    const res = await cancelBookingRoute(
+      postRequest(`https://www.chairmatch.de/api/bookings/${BEZAHLT}/cancel`, {}),
+      ctx({ id: BEZAHLT }),
+    )
+
+    expect(res.status).toBe(502)
+    expect(db().row('bookings', BEZAHLT)?.status).toBe('confirmed')
+    expect(db().row('bookings', BEZAHLT)?.payment_status).toBe('paid')
+  })
+
+  it('bezahlt ohne Zahlungsreferenz: storniert, aber der Fall wird benannt', async () => {
+    seedBezahltenTermin(BUSY_DAY, '14:00:00', null)
+    state.session = sessionFor('customer')
+
+    const res = await cancelBookingRoute(
+      postRequest(`https://www.chairmatch.de/api/bookings/${BEZAHLT}/cancel`, {}),
+      ctx({ id: BEZAHLT }),
+    )
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.refunded).toBe(false)
+    expect(String(body.refundHinweis)).toMatch(/keine Referenz/i)
+    expect(state.stripe.refunds).toEqual([])
+    expect(db().row('bookings', BEZAHLT)?.status).toBe('cancelled')
+    expect(db().row('bookings', BEZAHLT)?.payment_status).toBe('paid')
+  })
+
+  it('ein unbezahlter Termin loest keine Erstattung aus', async () => {
+    state.session = sessionFor('customer')
+
+    const res = await cancelBookingRoute(
+      postRequest(`https://www.chairmatch.de/api/bookings/${IDS.bookingConfirmed}/cancel`, {}),
+      ctx({ id: IDS.bookingConfirmed }),
+    )
+
+    expect(res.status).toBe(200)
+    expect((await res.json()).refunded).toBe(false)
+    expect(state.stripe.refunds).toEqual([])
   })
 })
