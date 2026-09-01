@@ -145,7 +145,9 @@ export default function ChatDetailPage() {
         display: 'flex', flexDirection: 'column',
       }}>
         <div style={{ padding: '16px 20px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button onClick={() => router.back()}
+          <button
+            aria-label="Zurück"
+            onClick={() => router.back()}
             style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 18, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}
           >‹</button>
           <span style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>Chat</span>
@@ -241,7 +243,7 @@ export default function ChatDetailPage() {
         {/* Input-Bar — nur wenn es einen Faden gibt, in den geschrieben werden kann. */}
         {state.kind === 'ready' && (
           <div style={{ display: 'flex', gap: 8, padding: '14px 20px', borderTop: '1px solid rgba(196,168,106,0.1)' }}>
-            <input type="text" value={input} onChange={(e) => setInput(e.target.value)}
+            <input aria-label="Nachricht schreiben…" type="text" value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') send() }}
               disabled={sending}
               placeholder="Nachricht schreiben…"

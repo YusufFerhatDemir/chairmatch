@@ -47,14 +47,14 @@ export function ComplianceDocumentForm({ locationId }: { locationId: string }) {
   return (
     <form onSubmit={submit} className="card" style={{ padding: 16 }}>
       <p style={{ color: 'var(--cream)', fontWeight: 600, marginBottom: 10 }}>Dokument einreichen</p>
-      <label style={{ display: 'block', fontSize: 12, color: 'var(--stone)', marginBottom: 4 }}>Dokumenttyp</label>
-      <select value={docType} onChange={e => setDocType(e.target.value)} style={{ width: '100%', padding: 10, marginBottom: 10, borderRadius: 10, background: 'var(--c2)', border: '1px solid var(--border)', color: 'var(--cream)', fontSize: 13 }}>
+      <label style={{ display: 'block', fontSize: 12, color: 'var(--stone)', marginBottom: 4 }} htmlFor="compliance-dokumenttyp">Dokumenttyp</label>
+      <select id="compliance-dokumenttyp" value={docType} onChange={e => setDocType(e.target.value)} style={{ width: '100%', padding: 10, marginBottom: 10, borderRadius: 10, background: 'var(--c2)', border: '1px solid var(--border)', color: 'var(--cream)', fontSize: 13 }}>
         {DOC_TYPES.map(t => (
           <option key={t} value={t}>{t}</option>
         ))}
       </select>
-      <label style={{ display: 'block', fontSize: 12, color: 'var(--stone)', marginBottom: 4 }}>Link zu Datei (optional)</label>
-      <input type="url" placeholder="https://…" value={fileUrl} onChange={e => setFileUrl(e.target.value)} className="inp" style={{ marginBottom: 12 }} />
+      <label style={{ display: 'block', fontSize: 12, color: 'var(--stone)', marginBottom: 4 }} htmlFor="compliance-datei-url">Link zu Datei (optional)</label>
+      <input id="compliance-datei-url" type="url" placeholder="https://…" value={fileUrl} onChange={e => setFileUrl(e.target.value)} className="inp" style={{ marginBottom: 12 }} />
       <p style={{ fontSize: 11, color: 'var(--stone2)', marginBottom: 10 }}>Du kannst später echte Uploads ergänzen. Hier erstmal Link angeben oder leer lassen.</p>
       {message && <p style={{ fontSize: 12, color: message.startsWith('Dokument') ? 'var(--green)' : 'var(--red)', marginBottom: 8 }}>{message}</p>}
       <button type="submit" disabled={loading} className="bgold" style={{ padding: '10px 16px', fontSize: 12 }}>{loading ? 'Wird gesendet…' : 'Einreichen'}</button>

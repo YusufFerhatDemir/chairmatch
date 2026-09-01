@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Link from 'next/link'
 import { itemListSchema, jsonLd } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { LadefehlerHinweis } from '@/components/LadefehlerHinweis'
 
 export const metadata: Metadata = {
   // Layout-Template fügt "| ChairMatch" auto an.
@@ -44,19 +45,26 @@ interface Offer {
 
 export default async function OffersPage() {
   let offers: Offer[] = []
+  let ladeFehler = false
 
   try {
     const supabase = getSupabaseAdmin()
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('offers')
       .select('id, title, description, discount_percent, salon:salons(id, name, slug, city)')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
 
-    if (data) offers = data as unknown as Offer[]
-  } catch {
-    // DB connection failed — render empty state
+    if (error) {
+      console.error('[offers] Angebote konnten nicht geladen werden:', error.message)
+      ladeFehler = true
+    } else if (data) {
+      offers = data as unknown as Offer[]
+    }
+  } catch (err) {
+    console.error('[offers] Datenbank nicht erreichbar:', err)
+    ladeFehler = true
   }
 
   return (
@@ -83,7 +91,9 @@ export default async function OffersPage() {
           <h1 className="cinzel" style={{ fontSize: 'var(--font-xl)', color: 'var(--gold2)' }}>Angebote</h1>
         </div>
         <section style={{ padding: '0 var(--pad)' }}>
-          {offers.length === 0 ? (
+          {ladeFehler ? (
+            <LadefehlerHinweis text="Die Angebote konnten gerade nicht geladen werden." />
+          ) : offers.length === 0 ? (
             <p style={{ color: 'var(--stone)', textAlign: 'center', padding: '40px 0' }}>Keine Angebote verf&uuml;gbar.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

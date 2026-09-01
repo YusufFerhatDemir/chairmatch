@@ -197,9 +197,10 @@ export default function MieterOnboardingPage() {
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Stadt / PLZ *</label>
+              <label htmlFor="onb-mieter-stadt" style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Stadt / PLZ *</label>
               <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 <input
+                  id="onb-mieter-stadt"
                   type="text" value={city} onChange={(e) => setCity(e.target.value)}
                   placeholder="z.B. Köln"
                   style={{
@@ -222,8 +223,8 @@ export default function MieterOnboardingPage() {
               </div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Wie lange?</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Wie lange?</span>
+              <div role="group" aria-label="Wie lange?" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
                 {DURATIONS.map((d) => {
                   const active = duration.has(d)
                   return (
@@ -243,9 +244,10 @@ export default function MieterOnboardingPage() {
               </div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Budget pro Tag (€)</label>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Budget pro Tag (€)</span>
+              <div role="group" aria-label="Budget pro Tag in Euro" style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
                 <input
+                  aria-label="Budget pro Tag, Minimum"
                   type="number" value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)}
                   placeholder="min" style={{
                     flex: 1, padding: '9px 10px',
@@ -256,6 +258,7 @@ export default function MieterOnboardingPage() {
                 />
                 <span style={{ color: '#C4A86A' }}>—</span>
                 <input
+                  aria-label="Budget pro Tag, Maximum"
                   type="number" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)}
                   placeholder="max" style={{
                     flex: 1, padding: '9px 10px',
@@ -280,8 +283,9 @@ export default function MieterOnboardingPage() {
               { k: 'portfolio' as const, l: 'Portfolio / Instagram (optional)' },
             ]).map(({ k, l }) => (
               <div key={k}>
-                <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>{l}</label>
+                <label htmlFor={`onb-mieter-${k}`} style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>{l}</label>
                 <input
+                  id={`onb-mieter-${k}`}
                   type="text" value={profile[k]}
                   onChange={(e) => setProfile({ ...profile, [k]: e.target.value })}
                   style={{
@@ -294,8 +298,8 @@ export default function MieterOnboardingPage() {
               </div>
             ))}
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Sprachen die du sprichst</label>
-              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Sprachen die du sprichst</span>
+              <div role="group" aria-label="Sprachen die du sprichst" style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 {LANGUAGES.map((lang) => {
                   const active = languages.has(lang)
                   return (
@@ -320,7 +324,7 @@ export default function MieterOnboardingPage() {
         {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Gewerbeanmeldung *</label>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Gewerbeanmeldung *</span>
               <div style={{
                 background: 'var(--c1)', border: '0.5px dashed rgba(196,168,106,0.3)',
                 borderRadius: 10, padding: 12, marginTop: 4, textAlign: 'center',
@@ -328,7 +332,7 @@ export default function MieterOnboardingPage() {
               }}>📄 PDF/JPG hochladen</div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Berufsnachweis (Gesellen-/Meisterbrief)</label>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Berufsnachweis (Gesellen-/Meisterbrief)</span>
               <div style={{
                 background: 'var(--c1)', border: '0.5px dashed rgba(196,168,106,0.3)',
                 borderRadius: 10, padding: 12, marginTop: 4, textAlign: 'center',
@@ -336,8 +340,9 @@ export default function MieterOnboardingPage() {
               }}>📜 Upload</div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Steuer-ID *</label>
+              <label htmlFor="onb-mieter-steuer-id" style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Steuer-ID *</label>
               <input
+                id="onb-mieter-steuer-id"
                 type="text" value={legal.tax}
                 onChange={(e) => setLegal({ ...legal, tax: e.target.value })}
                 style={{

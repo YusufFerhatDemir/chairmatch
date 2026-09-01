@@ -47,14 +47,17 @@ async function loadCityData(slug: string): Promise<{ city: CityData; salonCount:
   let salonCount = 0
   try {
     const supabase = getSupabaseAdmin()
-    const { count } = await supabase
+    // `salonCount` entscheidet ueber shouldIndex() — ein verschluckter
+    // Fehler wuerde eine bestehende Stadtseite auf noindex setzen.
+    const { count, error } = await supabase
       .from('salons')
       .select('*', { count: 'exact', head: true })
       .eq('is_active', true)
       .ilike('city', city.name)
+    if (error) console.error('[stadt] Salon-Anzahl nicht ladbar:', error.message)
     salonCount = count ?? 0
-  } catch {
-    salonCount = 0
+  } catch (err) {
+    console.error('[stadt] Datenbank nicht erreichbar:', err)
   }
   return { city, salonCount }
 }
@@ -149,15 +152,19 @@ export default async function CityHubPage({ params }: Props) {
   try {
     const supabase = getSupabaseAdmin()
     for (const v of VERTICALS) {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from('salons')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true)
         .ilike('city', city.name)
         .eq('category', v.slug)
+      if (error) console.error(`[stadt] Anzahl fuer ${v.slug} nicht ladbar:`, error.message)
       verticalCounts[v.slug] = count ?? 0
     }
-  } catch { /* fail-soft: alle Counts bleiben 0 */ }
+  } catch (err) {
+    // fail-soft: alle Counts bleiben 0
+    console.error('[stadt] Vertical-Zaehlung fehlgeschlagen:', err)
+  }
 
   const indexed = shouldIndex(salonCount)
   const nearby = getNearbyCities(city.slug, 8)

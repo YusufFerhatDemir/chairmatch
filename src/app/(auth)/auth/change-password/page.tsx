@@ -95,7 +95,7 @@ export default function ChangePasswordPage() {
         )}
 
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <input
+          <input aria-label="Neues Passwort (min. 8 Zeichen)"
             className="inp"
             type="password"
             placeholder="Neues Passwort (min. 8 Zeichen)"
@@ -105,7 +105,7 @@ export default function ChangePasswordPage() {
             autoComplete="new-password"
             required
           />
-          <input
+          <input aria-label="Neues Passwort wiederholen"
             className="inp"
             type="password"
             placeholder="Neues Passwort wiederholen"

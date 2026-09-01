@@ -124,7 +124,7 @@ function AntwortFormular({
 
   return (
     <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <textarea
+      <textarea aria-label="Deine Antwort — für Kundinnen und Kunden öffentlich sichtbar."
         value={text}
         onChange={e => setText(e.target.value)}
         rows={3}

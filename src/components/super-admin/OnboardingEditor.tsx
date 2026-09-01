@@ -102,13 +102,13 @@ export default function OnboardingEditor({ initialSlides }: OnboardingEditorProp
 
                 {editing === slide.id ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <input className="inp" value={slide.title}
+                    <input aria-label="Titel" className="inp" value={slide.title}
                       onChange={e => setSlides(prev => prev.map(s => s.id === slide.id ? { ...s, title: e.target.value } : s))}
                       placeholder="Titel" />
-                    <input className="inp" value={slide.subtitle}
+                    <input aria-label="Untertitel" className="inp" value={slide.subtitle}
                       onChange={e => setSlides(prev => prev.map(s => s.id === slide.id ? { ...s, subtitle: e.target.value } : s))}
                       placeholder="Untertitel" />
-                    <input className="inp" value={slide.icon || ''}
+                    <input aria-label="Icon (Emoji)" className="inp" value={slide.icon || ''}
                       onChange={e => setSlides(prev => prev.map(s => s.id === slide.id ? { ...s, icon: e.target.value } : s))}
                       placeholder="Icon (Emoji)" style={{ maxWidth: 100 }} />
                     <div style={{ display: 'flex', gap: 8 }}>
@@ -132,11 +132,15 @@ export default function OnboardingEditor({ initialSlides }: OnboardingEditorProp
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
-                <button onClick={() => moveSlide(i, -1)} disabled={i === 0}
+                <button
+                  aria-label="Slide nach oben verschieben"
+                  onClick={() => moveSlide(i, -1)} disabled={i === 0}
                   style={{ background: 'var(--c3)', border: 'none', borderRadius: 6, padding: '4px 8px', color: 'var(--cream)', cursor: 'pointer', fontSize: 12 }}>
                   ↑
                 </button>
-                <button onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
+                <button
+                  aria-label="Slide nach unten verschieben"
+                  onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
                   style={{ background: 'var(--c3)', border: 'none', borderRadius: 6, padding: '4px 8px', color: 'var(--cream)', cursor: 'pointer', fontSize: 12 }}>
                   ↓
                 </button>
@@ -147,7 +151,9 @@ export default function OnboardingEditor({ initialSlides }: OnboardingEditorProp
                   }}>
                   {slide.isActive ? 'AN' : 'AUS'}
                 </button>
-                <button onClick={() => handleDelete(slide.id)}
+                <button
+                  aria-label="Slide löschen"
+                  onClick={() => handleDelete(slide.id)}
                   style={{ background: 'var(--red)', border: 'none', borderRadius: 6, padding: '4px 8px', color: '#fff', cursor: 'pointer', fontSize: 10 }}>
                   ✕
                 </button>
@@ -162,11 +168,11 @@ export default function OnboardingEditor({ initialSlides }: OnboardingEditorProp
         <div className="card" style={{ marginTop: 12 }}>
           <h3 style={{ fontSize: 'var(--font-md)', color: 'var(--gold2)', fontWeight: 700, marginBottom: 8 }}>Neue Slide</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <input className="inp" placeholder="Titel" value={newSlide.title}
+            <input aria-label="Titel" className="inp" placeholder="Titel" value={newSlide.title}
               onChange={e => setNewSlide(prev => ({ ...prev, title: e.target.value }))} />
-            <input className="inp" placeholder="Untertitel" value={newSlide.subtitle}
+            <input aria-label="Untertitel" className="inp" placeholder="Untertitel" value={newSlide.subtitle}
               onChange={e => setNewSlide(prev => ({ ...prev, subtitle: e.target.value }))} />
-            <input className="inp" placeholder="Icon (Emoji)" value={newSlide.icon}
+            <input aria-label="Icon (Emoji)" className="inp" placeholder="Icon (Emoji)" value={newSlide.icon}
               onChange={e => setNewSlide(prev => ({ ...prev, icon: e.target.value }))}
               style={{ maxWidth: 100 }} />
             <div style={{ display: 'flex', gap: 8 }}>

@@ -83,29 +83,60 @@ export default async function CategoryPage({ params }: Props) {
     subscription_tier: string
     services: { id: string; name: string; sort_order: number }[]
   }[] = []
+  let ladeFehler = false
 
   try {
     const supabase = getSupabaseAdmin()
 
-    const { data: cat } = await supabase
+    /*
+     * Ein LESEFEHLER ist kein „diese Kategorie gibt es nicht".
+     * Weiter unten steht `notFound()`, wenn weder eine kuratierte noch eine
+     * DB-Kategorie gefunden wurde. Verschluckte man den Fehler, antwortete
+     * eine BESTEHENDE Kategorie bei jedem Ausfall mit „Seite nicht gefunden"
+     * — und weil die Route statisch vorgeneriert wird (dynamicParams=false),
+     * brennt sich das in den Build ein. Gleiche Begruendung wie in
+     * (public)/salon/[slug]/page.tsx.
+     *
+     * PGRST116 ist kein Fehler, sondern `.single()` ohne Treffer.
+     */
+    const { data: cat, error: catFehler } = await supabase
       .from('categories')
       .select('id, slug, label, description')
       .eq('slug', categoryId)
       .limit(1)
       .single()
 
+    if (catFehler && catFehler.code !== 'PGRST116') {
+      console.error('[category] Kategorie-Abfrage fehlgeschlagen:', catFehler.message)
+      // Nur werfen, wenn der Fehler das 404-Urteil unten verfaelschen wuerde.
+      // Fuer eine kuratierte Kategorie ist die DB-Zeile Beiwerk — die Seite
+      // steht auch ohne sie, und ein Build-Abbruch waere hier reine
+      // Selbstbeschaedigung.
+      if (!categoryMeta[categoryId]) throw new Error('Kategorie konnte nicht geladen werden')
+      ladeFehler = true
+    }
     if (cat) category = cat
 
-    const { data: salonData } = await supabase
+    const { data: salonData, error: salonFehler } = await supabase
       .from('salons')
       .select('id, name, slug, description, city, avg_rating, is_verified, review_count, subscription_tier, services(id, name, sort_order)')
       .eq('category', categoryId)
       .eq('is_active', true)
       .order('avg_rating', { ascending: false })
 
+    if (salonFehler) {
+      // Eine fehlgeschlagene Salon-Abfrage macht die Kategorie nicht
+      // ungueltig — sie macht die Liste unbekannt. Also Hinweis statt 404
+      // und statt Build-Abbruch.
+      console.error('[category] Salon-Abfrage fehlgeschlagen:', salonFehler.message)
+      ladeFehler = true
+    }
     if (salonData) salons = salonData as typeof salons
-  } catch {
-    // DB connection failed
+  } catch (err) {
+    // Ein geworfener Lesefehler gehoert in (public)/error.tsx, nicht in ein 404.
+    if (err instanceof Error && err.message === 'Kategorie konnte nicht geladen werden') throw err
+    console.error('[category] Datenbank nicht erreichbar:', err)
+    throw new Error('Kategorie konnte nicht geladen werden')
   }
 
   // Unbekannte Slugs (weder kuratierte Kategorie noch DB-Kategorie) → echter
@@ -113,5 +144,5 @@ export default async function CategoryPage({ params }: Props) {
   // jede Phantom-URL mit Status 200 — unbegrenzte Soft-404-Fläche für Google.
   if (!categoryMeta[categoryId] && !category) notFound()
 
-  return <CategoryClient categoryId={categoryId} category={category} dbSalons={salons} />
+  return <CategoryClient categoryId={categoryId} category={category} dbSalons={salons} ladeFehler={ladeFehler} />
 }

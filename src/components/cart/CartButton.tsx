@@ -10,6 +10,7 @@ export function CartButton() {
 
   return (
     <button
+      aria-label={`Warenkorb öffnen, ${itemCount} Artikel`}
       onClick={() => setIsOpen(true)}
       className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-[#c8a84b] to-[#e8d06a] shadow-lg shadow-[#c8a84b]/30 flex items-center justify-center text-[#1a1a2e] hover:scale-105 transition-transform"
     >

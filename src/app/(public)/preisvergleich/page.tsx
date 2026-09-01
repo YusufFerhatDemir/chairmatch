@@ -90,11 +90,14 @@ async function buildPriceRows(): Promise<PriceRow[]> {
 
   try {
     const supabase = getSupabaseAdmin()
-    const { data } = await supabase
+    // Faellt die Abfrage aus, bleiben nur die statischen Benchmark-Zeilen —
+    // sichtbar ist das nicht, deshalb wird es wenigstens protokolliert.
+    const { data, error } = await supabase
       .from('rental_equipment')
       .select('type, price_per_day_cents, salon:salons(city)')
       .eq('is_available', true)
 
+    if (error) console.error('[preisvergleich] Live-Preise nicht ladbar, nur Benchmarks:', error.message)
     if (data) {
       const groups = new Map<string, { city: string; type: string; prices: number[] }>()
       for (const row of data as unknown as EquipmentRow[]) {

@@ -46,6 +46,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const { q, city, plz } = await searchParams
 
   let salons: Salon[] = []
+  let ladeFehler = false
 
   // DB search
   try {
@@ -78,15 +79,20 @@ export default async function SearchPage({ searchParams }: Props) {
       if (safeCity) query = query.ilike('city', `%${safeCity}%`)
     }
 
-    const { data } = await query
+    const { data, error } = await query
+    if (error) {
+      console.error('[search] Salons konnten nicht geladen werden:', error.message)
+      ladeFehler = true
+    }
     if (data) {
       salons = data.map(s => {
         const coords = cityToCoords(s.city)
         return { ...s, lat: coords?.lat ?? null, lng: coords?.lng ?? null }
       })
     }
-  } catch {
-    // DB connection failed
+  } catch (err) {
+    console.error('[search] Datenbank nicht erreichbar:', err)
+    ladeFehler = true
   }
 
   // Also search demo providers
@@ -118,5 +124,5 @@ export default async function SearchPage({ searchParams }: Props) {
     }
   }
 
-  return <SearchClient salons={salons} initialQ={q || ''} initialCity={city || ''} initialPlz={plz || ''} />
+  return <SearchClient salons={salons} initialQ={q || ''} initialCity={city || ''} initialPlz={plz || ''} ladeFehler={ladeFehler} />
 }

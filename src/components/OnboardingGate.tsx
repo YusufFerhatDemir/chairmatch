@@ -265,8 +265,8 @@ export default function OnboardingGate({ slides, children }: Props) {
       {logo()}
       <div className="card" style={{ width: '100%', padding: 20 }}>
         <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--gold2)', marginBottom: 16, textAlign: 'center' }}>{t('auth.welcomeBack')}</p>
-        <input className="inp" type="email" placeholder={t('auth.email')} value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{ marginBottom: 10 }} />
-        <input className="inp" type="password" placeholder={t('auth.passwordShort')} value={loginPw} onChange={e => setLoginPw(e.target.value)}
+        <input aria-label={t('auth.email')} className="inp" type="email" placeholder={t('auth.email')} value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{ marginBottom: 10 }} />
+        <input aria-label={t('auth.passwordShort')} className="inp" type="password" placeholder={t('auth.passwordShort')} value={loginPw} onChange={e => setLoginPw(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleLogin() }}
           style={{ marginBottom: 16 }} />
         {loginError && <p style={{ fontSize: 12, color: 'var(--red)', marginBottom: 12 }}>{loginError}</p>}
@@ -305,12 +305,12 @@ export default function OnboardingGate({ slides, children }: Props) {
 
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', gap: 10 }}>
-          <input className="inp" placeholder={`${t('onboarding.firstName')} *`} value={profile.vn} onChange={e => updateProfile('vn', e.target.value)} style={{ flex: 1 }} />
-          <input className="inp" placeholder={`${t('onboarding.lastName')} *`} value={profile.nn} onChange={e => updateProfile('nn', e.target.value)} style={{ flex: 1 }} />
+          <input aria-label={`${t('onboarding.firstName')} *`} className="inp" placeholder={`${t('onboarding.firstName')} *`} value={profile.vn} onChange={e => updateProfile('vn', e.target.value)} style={{ flex: 1 }} />
+          <input aria-label={`${t('onboarding.lastName')} *`} className="inp" placeholder={`${t('onboarding.lastName')} *`} value={profile.nn} onChange={e => updateProfile('nn', e.target.value)} style={{ flex: 1 }} />
         </div>
-        <input className="inp" type="email" placeholder={`${t('auth.email')} *`} value={profile.email} onChange={e => updateProfile('email', e.target.value)} />
-        <input className="inp" type="tel" placeholder={t('onboarding.phone')} value={profile.phone} onChange={e => updateProfile('phone', e.target.value)} />
-        <input className="inp" placeholder={t('onboarding.city')} value={profile.city} onChange={e => updateProfile('city', e.target.value)} />
+        <input aria-label={`${t('auth.email')} *`} className="inp" type="email" placeholder={`${t('auth.email')} *`} value={profile.email} onChange={e => updateProfile('email', e.target.value)} />
+        <input aria-label={t('onboarding.phone')} className="inp" type="tel" placeholder={t('onboarding.phone')} value={profile.phone} onChange={e => updateProfile('phone', e.target.value)} />
+        <input aria-label={t('onboarding.city')} className="inp" placeholder={t('onboarding.city')} value={profile.city} onChange={e => updateProfile('city', e.target.value)} />
       </div>
 
       <button className="bgold" disabled={!canSubmit} style={{ marginTop: 20 }} onClick={() => {
@@ -441,10 +441,10 @@ export default function OnboardingGate({ slides, children }: Props) {
         {/* Custom Service Form */}
         <div style={{ width: '100%', marginTop: 14, padding: 14, border: '1.5px dashed var(--border)', borderRadius: 14 }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--stone)', marginBottom: 10 }}>+ Eigenen Service hinzufügen</p>
-          <input className="inp" placeholder="Name (z.B. Trockenschnitt)" value={csNm} onChange={e => setCsNm(e.target.value)} style={{ marginBottom: 8, fontSize: 13 }} />
+          <input aria-label="Name (z.B. Trockenschnitt)" className="inp" placeholder="Name (z.B. Trockenschnitt)" value={csNm} onChange={e => setCsNm(e.target.value)} style={{ marginBottom: 8, fontSize: 13 }} />
           <div style={{ display: 'flex', gap: 8 }}>
-            <input className="inp" type="number" placeholder="Dauer (min)" value={csDur} onChange={e => setCsDur(e.target.value)} style={{ flex: 1, fontSize: 13 }} />
-            <input className="inp" type="number" placeholder="Preis (€)" value={csPr} onChange={e => setCsPr(e.target.value)} style={{ flex: 1, fontSize: 13 }} />
+            <input aria-label="Dauer (min)" className="inp" type="number" placeholder="Dauer (min)" value={csDur} onChange={e => setCsDur(e.target.value)} style={{ flex: 1, fontSize: 13 }} />
+            <input aria-label="Preis (€)" className="inp" type="number" placeholder="Preis (€)" value={csPr} onChange={e => setCsPr(e.target.value)} style={{ flex: 1, fontSize: 13 }} />
           </div>
           <button onClick={addCustomSvc} className="boutline" style={{ marginTop: 10, padding: '8px 16px', fontSize: 12, width: '100%' }}>+ Hinzufügen</button>
         </div>
@@ -531,8 +531,8 @@ export default function OnboardingGate({ slides, children }: Props) {
         {/* Custom Equipment Form */}
         <div style={{ width: '100%', marginTop: 14, padding: 14, border: '1.5px dashed var(--border)', borderRadius: 14 }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--stone)', marginBottom: 10 }}>+ Eigenes Gerät hinzufügen</p>
-          <input className="inp" placeholder="Name (z.B. Dampfgerät)" value={ceNm} onChange={e => setCeNm(e.target.value)} style={{ marginBottom: 8, fontSize: 13 }} />
-          <input className="inp" type="number" placeholder="Aufpreis pro Tag (€)" value={cePr} onChange={e => setCePr(e.target.value)} style={{ fontSize: 13 }} />
+          <input aria-label="Name (z.B. Dampfgerät)" className="inp" placeholder="Name (z.B. Dampfgerät)" value={ceNm} onChange={e => setCeNm(e.target.value)} style={{ marginBottom: 8, fontSize: 13 }} />
+          <input aria-label="Aufpreis pro Tag (€)" className="inp" type="number" placeholder="Aufpreis pro Tag (€)" value={cePr} onChange={e => setCePr(e.target.value)} style={{ fontSize: 13 }} />
           <button onClick={addCustomEq} className="boutline" style={{ marginTop: 10, padding: '8px 16px', fontSize: 12, width: '100%' }}>+ Hinzufügen</button>
         </div>
 
@@ -554,16 +554,16 @@ export default function OnboardingGate({ slides, children }: Props) {
 
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', gap: 10 }}>
-            <input className="inp" placeholder="Vorname *" value={profile.vn} onChange={e => updateProfile('vn', e.target.value)} style={{ flex: 1 }} />
-            <input className="inp" placeholder="Nachname *" value={profile.nn} onChange={e => updateProfile('nn', e.target.value)} style={{ flex: 1 }} />
+            <input aria-label="Vorname *" className="inp" placeholder="Vorname *" value={profile.vn} onChange={e => updateProfile('vn', e.target.value)} style={{ flex: 1 }} />
+            <input aria-label="Nachname *" className="inp" placeholder="Nachname *" value={profile.nn} onChange={e => updateProfile('nn', e.target.value)} style={{ flex: 1 }} />
           </div>
-          <input className="inp" type="email" placeholder="E-Mail *" value={profile.email} onChange={e => updateProfile('email', e.target.value)} />
-          <input className="inp" type="tel" placeholder="Telefon *" value={profile.phone} onChange={e => updateProfile('phone', e.target.value)} />
-          <input className="inp" placeholder="Geschäftsname *" value={profile.biz} onChange={e => updateProfile('biz', e.target.value)} />
-          <input className="inp" placeholder="Straße + Nr. *" value={profile.street} onChange={e => updateProfile('street', e.target.value)} />
+          <input aria-label="E-Mail *" className="inp" type="email" placeholder="E-Mail *" value={profile.email} onChange={e => updateProfile('email', e.target.value)} />
+          <input aria-label="Telefon *" className="inp" type="tel" placeholder="Telefon *" value={profile.phone} onChange={e => updateProfile('phone', e.target.value)} />
+          <input aria-label="Geschäftsname *" className="inp" placeholder="Geschäftsname *" value={profile.biz} onChange={e => updateProfile('biz', e.target.value)} />
+          <input aria-label="Straße + Nr. *" className="inp" placeholder="Straße + Nr. *" value={profile.street} onChange={e => updateProfile('street', e.target.value)} />
           <div style={{ display: 'flex', gap: 10 }}>
-            <input className="inp" placeholder="PLZ *" value={profile.plz} onChange={e => updateProfile('plz', e.target.value)} style={{ flex: 1 }} />
-            <input className="inp" placeholder="Stadt *" value={profile.city} onChange={e => updateProfile('city', e.target.value)} style={{ flex: 1 }} />
+            <input aria-label="PLZ *" className="inp" placeholder="PLZ *" value={profile.plz} onChange={e => updateProfile('plz', e.target.value)} style={{ flex: 1 }} />
+            <input aria-label="Stadt *" className="inp" placeholder="Stadt *" value={profile.city} onChange={e => updateProfile('city', e.target.value)} style={{ flex: 1 }} />
           </div>
           {role === 'B2B' && (
             <>
@@ -576,7 +576,7 @@ export default function OnboardingGate({ slides, children }: Props) {
                 sie hinterlegt. Auszahlungsdaten werden nach der Anmeldung
                 unter /api/me/payout-account hinterlegt.
               */}
-              <input className="inp" placeholder="USt-IdNr." value={profile.ustid} onChange={e => updateProfile('ustid', e.target.value)} />
+              <input aria-label="USt-IdNr." className="inp" placeholder="USt-IdNr." value={profile.ustid} onChange={e => updateProfile('ustid', e.target.value)} />
             </>
           )}
         </div>

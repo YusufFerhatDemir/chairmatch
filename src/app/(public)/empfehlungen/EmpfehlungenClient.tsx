@@ -4,15 +4,17 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import AffiliateProductCard from '@/components/AffiliateProductCard'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { LadefehlerHinweis } from '@/components/LadefehlerHinweis'
 import type { AffiliateProductRow } from './page'
 
 const CATEGORIES = ['Haarpflege', 'Gesichtspflege', 'Make-up', 'Tools'] as const
 
 interface Props {
   products: AffiliateProductRow[]
+  ladeFehler?: boolean
 }
 
-export default function EmpfehlungenClient({ products }: Props) {
+export default function EmpfehlungenClient({ products, ladeFehler = false }: Props) {
   const [activeCat, setActiveCat] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
@@ -94,7 +96,9 @@ export default function EmpfehlungenClient({ products }: Props) {
         </div>
 
         {/* Produktgrid */}
-        {filtered.length === 0 ? (
+        {ladeFehler ? (
+          <LadefehlerHinweis text="Die Empfehlungen konnten gerade nicht geladen werden." />
+        ) : filtered.length === 0 ? (
           <div
             style={{
               padding: '60px 20px',

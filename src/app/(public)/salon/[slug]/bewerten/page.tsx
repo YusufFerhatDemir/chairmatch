@@ -207,8 +207,9 @@ export default function BewertenPage() {
 
           {/* Text */}
           <div>
-            <label style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>{t('reviews.experienceLabel')}</label>
+            <label style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }} htmlFor="bewertung-text">{t('reviews.experienceLabel')}</label>
             <textarea
+              id="bewertung-text"
               value={text}
               onChange={(e) => setText(e.target.value.slice(0, 500))}
               rows={5}

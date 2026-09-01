@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getTranslations } from '@/i18n/server'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { LadefehlerHinweis } from '@/components/LadefehlerHinweis'
 
 export const metadata: Metadata = {
   // Layout-Template fügt "| ChairMatch" auto an.
@@ -45,6 +46,7 @@ export default async function RentalsPage({ searchParams }: Props) {
   const { type: filterType } = await searchParams
   const t = await getTranslations()
   let rentals: Rental[] = []
+  let ladeFehler = false
 
   try {
     const supabase = getSupabaseAdmin()
@@ -59,10 +61,16 @@ export default async function RentalsPage({ searchParams }: Props) {
       query = query.eq('type', filterType)
     }
 
-    const { data } = await query
-    if (data) rentals = data as unknown as Rental[]
-  } catch {
-    // DB connection failed
+    const { data, error } = await query
+    if (error) {
+      console.error('[rentals] Inserate konnten nicht geladen werden:', error.message)
+      ladeFehler = true
+    } else if (data) {
+      rentals = data as unknown as Rental[]
+    }
+  } catch (err) {
+    console.error('[rentals] Datenbank nicht erreichbar:', err)
+    ladeFehler = true
   }
 
   const typeLabels: Record<string, string> = {
@@ -146,7 +154,9 @@ export default async function RentalsPage({ searchParams }: Props) {
         </div>
 
         <section style={{ padding: '0 var(--pad)' }}>
-          {rentals.length === 0 ? (
+          {ladeFehler ? (
+            <LadefehlerHinweis text="Die Inserate konnten gerade nicht geladen werden." />
+          ) : rentals.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <p style={{ color: 'var(--stone)', fontSize: 14, marginBottom: 16 }}>
                 {t('rentals.empty')}

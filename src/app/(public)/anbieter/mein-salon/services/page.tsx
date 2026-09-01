@@ -198,10 +198,10 @@ export default function Page() {
 
       {formOffen ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <input style={INPUT_STYLE} placeholder="Name der Leistung" value={name} onChange={e => setName(e.target.value)} />
+          <input aria-label="Name der Leistung" style={INPUT_STYLE} placeholder="Name der Leistung" value={name} onChange={e => setName(e.target.value)} />
           <div style={{ display: 'flex', gap: 10 }}>
-            <input style={INPUT_STYLE} inputMode="decimal" placeholder="Preis in € (z. B. 39,00)" value={preis} onChange={e => setPreis(e.target.value)} />
-            <input style={INPUT_STYLE} inputMode="numeric" placeholder="Dauer in Minuten" value={dauer} onChange={e => setDauer(e.target.value)} />
+            <input aria-label="Preis in € (z. B. 39,00)" style={INPUT_STYLE} inputMode="decimal" placeholder="Preis in € (z. B. 39,00)" value={preis} onChange={e => setPreis(e.target.value)} />
+            <input aria-label="Dauer in Minuten" style={INPUT_STYLE} inputMode="numeric" placeholder="Dauer in Minuten" value={dauer} onChange={e => setDauer(e.target.value)} />
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button

@@ -7,6 +7,7 @@ import { PROVS, type DemoProvider } from '@/lib/demo-data'
 import { BrandLogo } from '@/components/BrandLogo'
 import BottomNav from '@/components/BottomNav'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { LadefehlerHinweis } from '@/components/LadefehlerHinweis'
 import { useTranslations } from '@/i18n/client'
 
 interface DBSalon {
@@ -26,6 +27,7 @@ interface Props {
   categoryId: string
   category: { id: string; slug: string; label: string; description: string | null } | null
   dbSalons: DBSalon[]
+  ladeFehler?: boolean
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -46,7 +48,7 @@ const CATEGORY_FALLBACK_BG: Record<string, string> = {
   opraum: 'linear-gradient(135deg,#2A3A4A,#101F2A)',
 }
 
-export default function CategoryClient({ categoryId, category, dbSalons }: Props) {
+export default function CategoryClient({ categoryId, category, dbSalons, ladeFehler = false }: Props) {
   const router = useRouter()
   const t = useTranslations()
   const [favorites, setFavorites] = useState<string[]>([])
@@ -105,6 +107,7 @@ export default function CategoryClient({ categoryId, category, dbSalons }: Props
         {/* Top bar */}
         <div style={{ padding: '16px 20px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
+            aria-label="Zurück zur Startseite"
             onClick={() => router.push('/')}
             style={{
               width: 38, height: 38, borderRadius: 10,
@@ -147,7 +150,9 @@ export default function CategoryClient({ categoryId, category, dbSalons }: Props
 
         {/* List */}
         <div style={{ padding: '0 20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {total === 0 ? (
+          {ladeFehler ? (
+            <LadefehlerHinweis text="Die Anbieter konnten gerade nicht geladen werden." />
+          ) : total === 0 ? (
             <div style={{
               padding: '40px 20px', textAlign: 'center',
               background: 'rgba(176,144,96,0.04)',
@@ -248,6 +253,8 @@ function SalonCard({
           }}>✓ VERIFIZIERT</span>
         )}
         <button
+          aria-label={isFav ? 'Aus der Merkliste entfernen' : 'Zur Merkliste hinzufügen'}
+          aria-pressed={isFav}
           onClick={onFav}
           style={{
             position: 'absolute', top: 10, left: 10,

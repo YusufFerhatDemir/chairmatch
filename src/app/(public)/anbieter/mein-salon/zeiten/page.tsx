@@ -78,12 +78,12 @@ export default function Page() {
             borderRadius: 12, padding: '12px 14px',
           }}>
             <span style={{ fontSize: 14, fontWeight: 700, minWidth: 36, color: 'var(--cream)' }}>{t('subZeiten.'+key)}</span>
-            <input type="time" defaultValue="09:00" data-storage={'open_'+id} style={{
+            <input aria-label={t('subZeiten.'+key) + ' — öffnet um'} type="time" defaultValue="09:00" data-storage={'open_'+id} style={{
               flex: 1, padding: '6px 8px', background: 'var(--c2)', color: 'var(--cream)',
               border: '0.5px solid rgba(196,168,106,0.2)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit',
             }}/>
             <span style={{ color: 'var(--gold2)' }}>—</span>
-            <input type="time" defaultValue="18:00" data-storage={'close_'+id} style={{
+            <input aria-label={t('subZeiten.'+key) + ' — schließt um'} type="time" defaultValue="18:00" data-storage={'close_'+id} style={{
               flex: 1, padding: '6px 8px', background: 'var(--c2)', color: 'var(--cream)',
               border: '0.5px solid rgba(196,168,106,0.2)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit',
             }}/>

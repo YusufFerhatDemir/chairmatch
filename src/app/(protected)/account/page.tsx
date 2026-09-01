@@ -139,7 +139,7 @@ function TwoFactorToggle() {
             <code style={{ fontSize: 11, color: 'var(--stone)', wordBreak: 'break-all' }}>{secret}</code>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
-            <input
+            <input aria-label="6-stelliger Code"
               className="inp"
               inputMode="numeric"
               maxLength={6}

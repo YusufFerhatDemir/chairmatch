@@ -32,20 +32,27 @@ interface Salon {
 
 export default async function ExplorePage() {
   let salons: Salon[] = []
+  let ladeFehler = false
 
   try {
     const supabase = getSupabaseAdmin()
 
-    const { data: salonData } = await supabase
+    const { data: salonData, error } = await supabase
       .from('salons')
       .select('id, name, slug, description, city, avg_rating, services(id, name)')
       .eq('is_active', true)
       .order('avg_rating', { ascending: false })
 
-    if (salonData) salons = salonData as unknown as Salon[]
-  } catch {
-    // DB connection failed — render empty state
+    if (error) {
+      console.error('[explore] Salons konnten nicht geladen werden:', error.message)
+      ladeFehler = true
+    } else if (salonData) {
+      salons = salonData as unknown as Salon[]
+    }
+  } catch (err) {
+    console.error('[explore] Datenbank nicht erreichbar:', err)
+    ladeFehler = true
   }
 
-  return <ExploreClient salons={salons} />
+  return <ExploreClient salons={salons} ladeFehler={ladeFehler} />
 }

@@ -158,7 +158,9 @@ export default function SuchenPage() {
         marginBottom: 24,
       }}>
         <div style={{ padding: '16px 20px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button onClick={() => router.back()}
+          <button
+            aria-label="Zurück"
+            onClick={() => router.back()}
             style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 18, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}
           >‹</button>
           <span style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>Stühle suchen</span>
@@ -187,7 +189,7 @@ export default function SuchenPage() {
               <stop offset="0%" stopColor="#BF953F"/><stop offset="50%" stopColor="#FCF6BA"/><stop offset="100%" stopColor="#AA771C"/>
             </linearGradient>
           </defs></svg>
-          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Stadt, Name, Beschreibung..."
+          <input aria-label="Stadt, Name, Beschreibung..." type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Stadt, Name, Beschreibung..."
             style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--cream)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
           <button onClick={() => setShowFilter(!showFilter)}
             style={{ background: 'rgba(196,168,106,0.1)', border: '1px solid rgba(196,168,106,0.25)', color: 'var(--gold2)', padding: '6px 10px', borderRadius: 8, fontSize: 11, letterSpacing: 1, fontWeight: 700, textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}
@@ -221,14 +223,14 @@ export default function SuchenPage() {
             <h3 className="cinzel" style={{ fontSize: 13, color: 'var(--gold2)', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>{t('search.filter')}</h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-              <label style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>Stadt</label>
-              <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="z.B. Köln"
+              <label style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }} htmlFor="suche-stadt">Stadt</label>
+              <input id="suche-stadt" type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="z.B. Köln"
                 style={{ padding: '10px 12px', background: 'var(--c2)', color: 'var(--cream)', border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 10, fontSize: 13, fontFamily: 'inherit' }} />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-              <label style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>Max. Budget pro Tag (€) — 0 = egal</label>
-              <input type="number" min={0} value={maxPrice} onChange={(e) => setMaxPrice(Math.max(0, Number(e.target.value) || 0))}
+              <label style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }} htmlFor="suche-max-budget">Max. Budget pro Tag (€) — 0 = egal</label>
+              <input id="suche-max-budget" type="number" min={0} value={maxPrice} onChange={(e) => setMaxPrice(Math.max(0, Number(e.target.value) || 0))}
                 style={{ padding: '10px 12px', background: 'var(--c2)', color: 'var(--cream)', border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 10, fontSize: 13, fontFamily: 'inherit' }} />
             </div>
 
@@ -237,8 +239,8 @@ export default function SuchenPage() {
                 die garantiert null Treffer liefern. */}
             {availableFeatures.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-                <label style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>Ausstattung muss haben</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                <span style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>Ausstattung muss haben</span>
+                <div role="group" aria-label="Ausstattung muss haben" style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                   {availableFeatures.map(f => (
                     <button key={f} onClick={() => toggleFeature(f)}
                       style={{ fontSize: 10.5, padding: '4px 9px', borderRadius: 8, background: featureFilter.has(f) ? 'linear-gradient(135deg, #BF953F, #FCF6BA, #B38728)' : 'rgba(176,144,96,0.08)', color: featureFilter.has(f) ? '#1a1000' : 'var(--gold2)', border: featureFilter.has(f) ? 'none' : '1px solid rgba(176,144,96,0.2)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: featureFilter.has(f) ? 700 : 600 }}

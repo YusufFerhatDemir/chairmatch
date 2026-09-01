@@ -34,15 +34,15 @@ export default function Page() {
       }}
     >
       <div>
-        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subProfil.nameLbl')}</label>
-        <input type="text" data-storage="name" placeholder="Max Mustermann" style={{
+        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }} htmlFor="profil-name">{t('subProfil.nameLbl')}</label>
+        <input id="profil-name" type="text" data-storage="name" placeholder="Max Mustermann" style={{
           width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
           border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
         }}/>
       </div>
       <div>
-        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subProfil.jobLbl')}</label>
-        <select data-storage="job" style={{
+        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }} htmlFor="profil-job">{t('subProfil.jobLbl')}</label>
+        <select id="profil-job" data-storage="job" style={{
           width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
           border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
         }}>
@@ -54,8 +54,8 @@ export default function Page() {
         </select>
       </div>
       <div>
-        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subProfil.licenseLbl')}</label>
-        <input type="text" data-storage="license" placeholder={t('subProfil.licensePlaceholder')} style={{
+        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }} htmlFor="profil-lizenz">{t('subProfil.licenseLbl')}</label>
+        <input id="profil-lizenz" type="text" data-storage="license" placeholder={t('subProfil.licensePlaceholder')} style={{
           width: '100%', marginTop: 6, padding: '12px 14px', background: 'var(--c1)', color: 'var(--cream)',
           border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit',
         }}/>

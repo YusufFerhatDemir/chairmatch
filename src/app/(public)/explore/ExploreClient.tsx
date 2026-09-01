@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PROVS } from '@/lib/demo-data'
 import { haversine, formatDistance, requestUserLocation } from '@/lib/geo'
+import { LadefehlerHinweis } from '@/components/LadefehlerHinweis'
 
 interface Salon {
   id: string
@@ -16,7 +17,7 @@ interface Salon {
 
 type SortMode = 'rating' | 'nearest'
 
-export default function ExploreClient({ salons: dbSalons }: { salons: Salon[] }) {
+export default function ExploreClient({ salons: dbSalons, ladeFehler = false }: { salons: Salon[]; ladeFehler?: boolean }) {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [sortMode, setSortMode] = useState<SortMode>('rating')
   const [locationAsking, setLocationAsking] = useState(false)
@@ -97,6 +98,12 @@ export default function ExploreClient({ salons: dbSalons }: { salons: Salon[] })
         </div>
 
         <section style={{ padding: '0 var(--pad)' }}>
+          {/* Ohne diesen Hinweis sieht ein Abfragefehler aus wie ein duenner
+              Katalog: `dbSalons` ist leer, und die Liste faellt still auf die
+              Demo-Anbieter zurueck. */}
+          {ladeFehler && (
+            <LadefehlerHinweis text="Die Salons konnten gerade nicht geladen werden." />
+          )}
           {/* City filter chips + Sort toggle */}
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, alignItems: 'center' }}>
             <a href="/explore" className="badge badge-gold">Alle</a>

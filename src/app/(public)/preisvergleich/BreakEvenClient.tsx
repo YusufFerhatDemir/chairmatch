@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 const eur = (n: number) =>
   new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
@@ -28,15 +28,18 @@ function Slider({
   label: string; value: number; min: number; max: number; step: number; unit: string
   onChange: (v: number) => void
 }) {
+  // Der Slider wird mehrfach gerendert — eine feste ID waere doppelt vergeben.
+  const id = useId()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label style={labelStyle}>
+      <label htmlFor={id} style={labelStyle}>
         <span>{label}</span>
         <span className="cinzel" style={{ color: 'var(--gold2, #C4A86A)', fontSize: 15, fontWeight: 700, letterSpacing: 0 }}>
           {value}{unit}
         </span>
       </label>
       <input
+        id={id}
         type="range"
         min={min}
         max={max}

@@ -29,7 +29,7 @@ export default function Page() {
         })
       }}
     >
-      <textarea
+      <textarea aria-label={t('subBeschreibung.placeholder')}
         data-storage="value"
         placeholder={t('subBeschreibung.placeholder')}
         rows={6}

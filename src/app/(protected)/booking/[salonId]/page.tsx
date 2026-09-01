@@ -551,10 +551,10 @@ export default function BookingPage() {
           <div>
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 10 }}>Kontaktdaten</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-              <input className="inp" placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
-              <input className="inp" placeholder="E-Mail" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-              <input className="inp" placeholder="Telefon" type="tel" value={phone} onChange={e => setPhone(e.target.value)} />
-              <textarea className="inp" placeholder="Anmerkungen (optional)" value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ resize: 'none' }} />
+              <input aria-label="Name" className="inp" placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
+              <input aria-label="E-Mail" className="inp" placeholder="E-Mail" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+              <input aria-label="Telefon" className="inp" placeholder="Telefon" type="tel" value={phone} onChange={e => setPhone(e.target.value)} />
+              <textarea aria-label="Anmerkungen (optional)" className="inp" placeholder="Anmerkungen (optional)" value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ resize: 'none' }} />
             </div>
 
             {/* Booking Summary */}
@@ -586,7 +586,7 @@ export default function BookingPage() {
 
             {/* Promo-Code — geprueft wird ausschliesslich beim Buchen, serverseitig. */}
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>Promo-Code (optional)</p>
-            <input className="inp" placeholder="Code eingeben" value={promoCode} onChange={e => setPromoCode(e.target.value)} style={{ width: '100%', marginBottom: 8 }} />
+            <input aria-label="Code eingeben" className="inp" placeholder="Code eingeben" value={promoCode} onChange={e => setPromoCode(e.target.value)} style={{ width: '100%', marginBottom: 8 }} />
             <p style={{ fontSize: 11.5, color: 'var(--stone)', lineHeight: 1.5, marginBottom: 16 }}>
               Der Code wird beim Buchen geprüft. Greift er, steht der ermäßigte Preis auf der Bestätigung —
               vorher steht hier der Listenpreis.

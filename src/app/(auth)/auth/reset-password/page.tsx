@@ -128,7 +128,7 @@ export default function ResetPasswordPage() {
             )}
             {ready && (
               <>
-                <input
+                <input aria-label="Neues Passwort (min. 8 Zeichen)"
                   className="inp"
                   type="password"
                   placeholder="Neues Passwort (min. 8 Zeichen)"
@@ -137,7 +137,7 @@ export default function ResetPasswordPage() {
                   required
                   minLength={8}
                 />
-                <input
+                <input aria-label="Passwort bestätigen"
                   className="inp"
                   type="password"
                   placeholder="Passwort bestätigen"

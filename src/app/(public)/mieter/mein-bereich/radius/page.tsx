@@ -46,6 +46,7 @@ export default function Page() {
         {city && <p style={{ fontSize: 11, color: 'var(--stone)' }}>{t('subRadius.around', { city })}</p>}
       </AktuellBox>
       <input
+        aria-label="Suchradius in Kilometern"
         type="range" min="1" max="50" data-storage="km"
         value={km}
         onChange={(e) => setKm(Number(e.target.value))}

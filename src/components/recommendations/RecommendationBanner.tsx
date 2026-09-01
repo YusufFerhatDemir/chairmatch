@@ -62,7 +62,9 @@ export function RecommendationBanner() {
         <h3 style={{ fontSize: 'var(--font-md)', fontWeight: 700, color: 'var(--cream)' }}>
           Dein Spezialist empfiehlt
         </h3>
-        <button onClick={() => setDismissed(true)} style={{ background: 'none', border: 'none', color: 'var(--stone)', cursor: 'pointer' }}>
+        <button
+          aria-label="Empfehlungen ausblenden"
+          onClick={() => setDismissed(true)} style={{ background: 'none', border: 'none', color: 'var(--stone)', cursor: 'pointer' }}>
           <X size={18} />
         </button>
       </div>

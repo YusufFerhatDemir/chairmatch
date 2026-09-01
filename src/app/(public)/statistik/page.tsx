@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Footer from '@/components/Footer'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { LadefehlerHinweis } from '@/components/LadefehlerHinweis'
 
 export const metadata: Metadata = {
   title: 'ChairMatch Statistik — Plattform in Zahlen',
@@ -30,11 +31,17 @@ export const revalidate = 3600 // ISR statt force-dynamic — Marketing-Seite, 1
 export default async function StatistikPage() {
   const supabase = getSupabaseAdmin()
 
+  /*
+   * Jede dieser Zahlen fiel bei einem Abfragefehler auf 0 zurueck
+   * (`count ?? 0`) — eine Seite mit der Ueberschrift „CHAIRMATCH IN ZAHLEN",
+   * die dann „0 Salons, 0 Buchungen" behauptet. Falsche Zahlen sind schlimmer
+   * als gar keine, deshalb wird der Fehler ausgewertet und benannt.
+   */
   const [
-    { count: userCount },
-    { count: salonCount },
-    { count: bookingCount },
-    { count: reviewCount },
+    { count: userCount, error: userFehler },
+    { count: salonCount, error: salonFehler },
+    { count: bookingCount, error: bookingFehler },
+    { count: reviewCount, error: reviewFehler },
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('salons').select('*', { count: 'exact', head: true }),
@@ -42,14 +49,17 @@ export default async function StatistikPage() {
     supabase.from('reviews').select('*', { count: 'exact', head: true }),
   ])
 
-  const { data: salonCities } = await supabase.from('salons').select('city').not('city', 'is', null)
+  const { data: salonCities, error: cityFehler } = await supabase.from('salons').select('city').not('city', 'is', null)
   const cities = new Set((salonCities || []).map(s => s.city).filter(Boolean))
 
-  const { data: salonCats } = await supabase.from('salons').select('category').not('category', 'is', null)
+  const { data: salonCats, error: catFehler } = await supabase.from('salons').select('category').not('category', 'is', null)
   const catCounts: Record<string, number> = {}
   for (const s of salonCats || []) {
     if (s.category) catCounts[s.category] = (catCounts[s.category] || 0) + 1
   }
+
+  const zahlenFehler = [userFehler, salonFehler, bookingFehler, reviewFehler, cityFehler, catFehler].find(Boolean)
+  if (zahlenFehler) console.error('[statistik] Kennzahlen nicht ladbar:', zahlenFehler.message)
 
   const CAT_LABELS: Record<string, string> = {
     barber: 'Barbershop', friseur: 'Friseur', kosmetik: 'Kosmetik', aesthetik: 'Ästhetik',
@@ -83,6 +93,9 @@ export default async function StatistikPage() {
         </div>
 
         {/* Stats grid */}
+        {zahlenFehler ? (
+          <LadefehlerHinweis text="Die Kennzahlen konnten gerade nicht geladen werden." />
+        ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 32 }}>
           {stats.map(s => (
             <div key={s.label} style={{
@@ -98,6 +111,7 @@ export default async function StatistikPage() {
             </div>
           ))}
         </div>
+        )}
 
         {/* Categories */}
         {Object.keys(catCounts).length > 0 && (

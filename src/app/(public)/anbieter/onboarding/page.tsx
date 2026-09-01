@@ -267,8 +267,9 @@ export default function AnbieterOnboardingPage() {
               { k: 'email' as const,   l: 'E-Mail *' },
             ]).map(({ k, l }) => (
               <div key={k}>
-                <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>{l}</label>
+                <label htmlFor={`onb-anbieter-${k}`} style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>{l}</label>
                 <input
+                  id={`onb-anbieter-${k}`}
                   type="text" value={profile[k]}
                   onChange={(e) => setProfile({ ...profile, [k]: e.target.value })}
                   style={{
@@ -281,7 +282,7 @@ export default function AnbieterOnboardingPage() {
               </div>
             ))}
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Logo (optional)</label>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Logo (optional)</span>
               <div style={{
                 background: 'var(--c1)', border: '0.5px dashed rgba(196,168,106,0.3)',
                 borderRadius: 10, padding: 14, marginTop: 4, textAlign: 'center',
@@ -289,8 +290,8 @@ export default function AnbieterOnboardingPage() {
               }}>☁ Logo hochladen</div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Sprachen die du sprichst</label>
-              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Sprachen die du sprichst</span>
+              <div role="group" aria-label="Sprachen die du sprichst" style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 {LANGUAGES.map((lang) => {
                   const active = languages.has(lang)
                   return (
@@ -320,8 +321,9 @@ export default function AnbieterOnboardingPage() {
               { k: 'iban' as const, l: 'IBAN für Auszahlung *' },
             ]).map(({ k, l }) => (
               <div key={k}>
-                <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>{l}</label>
+                <label htmlFor={`onb-anbieter-legal-${k}`} style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>{l}</label>
                 <input
+                  id={`onb-anbieter-legal-${k}`}
                   type="text" value={legal[k]}
                   onChange={(e) => setLegal({ ...legal, [k]: e.target.value })}
                   style={{
@@ -334,7 +336,7 @@ export default function AnbieterOnboardingPage() {
               </div>
             ))}
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Gewerbeanmeldung *</label>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Gewerbeanmeldung *</span>
               <div style={{
                 background: 'var(--c1)', border: '0.5px dashed rgba(196,168,106,0.3)',
                 borderRadius: 10, padding: 12, marginTop: 4, textAlign: 'center',

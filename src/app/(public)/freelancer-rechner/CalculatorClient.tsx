@@ -25,12 +25,12 @@ export function CalculatorClient() {
 
     // Einkommensteuer (vereinfacht — Bundes-Durchschnitt 25%)
     const jahresGewinn = gewinn * 11  // 11 Monate Arbeit (1 Monat Urlaub/Krankheit)
-    let einkommenSteuerSatz = 0
-    if (jahresGewinn > 62000) einkommenSteuerSatz = 0.32
-    else if (jahresGewinn > 30000) einkommenSteuerSatz = 0.27
-    else if (jahresGewinn > 18000) einkommenSteuerSatz = 0.18
-    else if (jahresGewinn > 11000) einkommenSteuerSatz = 0.12
-    else einkommenSteuerSatz = 0.05
+    const einkommenSteuerSatz =
+      jahresGewinn > 62000 ? 0.32
+      : jahresGewinn > 30000 ? 0.27
+      : jahresGewinn > 18000 ? 0.18
+      : jahresGewinn > 11000 ? 0.12
+      : 0.05
 
     const einkommenSteuer = gewinn * einkommenSteuerSatz
 
@@ -173,6 +173,7 @@ function Slider({
         <span style={{ fontSize: 14, color: 'var(--gold2)', fontWeight: 700 }}>{value}</span>
       </div>
       <input
+        aria-label={label}
         type="range"
         min={min} max={max} step={step}
         value={value}

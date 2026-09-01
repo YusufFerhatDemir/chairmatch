@@ -294,6 +294,7 @@ export default function BuchenPage() {
       }}>
         <div style={{ padding: '16px 20px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
+            aria-label="Zurück"
             onClick={() => step > 1 ? setStep((step - 1) as 1 | 2 | 3) : router.back()}
             style={{
               width: 38, height: 38, borderRadius: 10,
@@ -407,9 +408,13 @@ export default function BuchenPage() {
             <>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <button onClick={() => changeMonth(-1)} style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}>‹</button>
+                  <button
+                    aria-label="Vorheriger Monat"
+                    onClick={() => changeMonth(-1)} style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}>‹</button>
                   <span className="cinzel" style={{ fontSize: 15, fontWeight: 600, letterSpacing: 1, color: 'var(--gold2)' }}>{MONTHS[calMonth]} {calYear}</span>
-                  <button onClick={() => changeMonth(1)} style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}>›</button>
+                  <button
+                    aria-label="Nächster Monat"
+                    onClick={() => changeMonth(1)} style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}>›</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
                   {DAY_NAMES.map(d => (

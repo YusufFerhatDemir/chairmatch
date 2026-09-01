@@ -624,7 +624,7 @@ export default function ChatWidget() {
                     flexShrink: 0,
                   }}
                 >
-                  <input
+                  <input aria-label={t('assistantInputPlaceholder')}
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
                     onKeyDown={handleAssistantKeyDown}
@@ -780,7 +780,7 @@ export default function ChatWidget() {
                     flexShrink: 0,
                   }}
                 >
-                  <input
+                  <input aria-label={t('inputPlaceholder')}
                     value={msgInput}
                     onChange={(e) => setMsgInput(e.target.value)}
                     onKeyDown={handleKeyDown}

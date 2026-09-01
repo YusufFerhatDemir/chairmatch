@@ -161,7 +161,9 @@ export function CartDrawer() {
             <ShoppingBag size={20} className="text-[#c8a84b]" />
             <h2 className="text-lg font-semibold text-white">Warenkorb</h2>
           </div>
-          <button onClick={() => setIsOpen(false)} className="text-white/60 hover:text-white">
+          <button
+            aria-label="Warenkorb schließen"
+            onClick={() => setIsOpen(false)} className="text-white/60 hover:text-white">
             <X size={24} />
           </button>
         </div>
@@ -191,6 +193,7 @@ export function CartDrawer() {
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
+                        aria-label="Menge verringern"
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         disabled={loading}
                         className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-white hover:bg-white/20"
@@ -199,6 +202,7 @@ export function CartDrawer() {
                       </button>
                       <span className="text-white text-sm w-6 text-center">{item.quantity}</span>
                       <button
+                        aria-label="Menge erhöhen"
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         disabled={loading}
                         className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-white hover:bg-white/20"
@@ -206,6 +210,7 @@ export function CartDrawer() {
                         <Plus size={14} />
                       </button>
                       <button
+                        aria-label="Artikel aus dem Warenkorb entfernen"
                         onClick={() => removeItem(item.id)}
                         disabled={loading}
                         className="ml-auto text-red-400/70 hover:text-red-400"

@@ -37,6 +37,7 @@ export default function AdminUserActions({ users: init }: { users: User[] }) {
               <div style={{ fontSize: 11, color: 'var(--stone)' }}>{u.email || 'Keine E-Mail'}</div>
             </div>
             <select
+              aria-label={`Rolle von ${u.full_name || u.email || 'Nutzer'} ändern`}
               value={u.role}
               onChange={e => changeRole(u.id, e.target.value)}
               disabled={changing === u.id}

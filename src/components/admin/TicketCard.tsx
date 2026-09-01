@@ -48,14 +48,14 @@ export function TicketCard({ t, salonName }: Props) {
       </div>
       <div style={{ fontSize: 12, color: 'var(--stone)', marginBottom: 10 }}>Plan: {t.plan_type} · {new Date(t.created_at).toLocaleDateString('de-DE')}</div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <select value={status} onChange={e => setStatus(e.target.value)} style={{ padding: '8px 12px', borderRadius: 10, background: 'var(--c2)', border: '1px solid var(--border)', color: 'var(--cream)', fontSize: 12 }}>
+        <select aria-label="Ticket-Status" value={status} onChange={e => setStatus(e.target.value)} style={{ padding: '8px 12px', borderRadius: 10, background: 'var(--c2)', border: '1px solid var(--border)', color: 'var(--cream)', fontSize: 12 }}>
           {STATUS_OPTIONS.map(s => (
             <option key={s} value={s}>{STATUS_LABEL[s]}</option>
           ))}
         </select>
         <button onClick={save} disabled={saving} className="bgold" style={{ padding: '8px 14px', fontSize: 12 }}>{saving ? 'Speichern…' : 'Speichern'}</button>
       </div>
-      <textarea placeholder="Admin-Notizen…" value={notes} onChange={e => setNotes(e.target.value)} rows={2} style={{ width: '100%', padding: 10, borderRadius: 10, background: 'var(--c2)', border: '1px solid var(--border)', color: 'var(--cream)', fontSize: 12, resize: 'vertical' }} />
+      <textarea aria-label="Admin-Notizen…" placeholder="Admin-Notizen…" value={notes} onChange={e => setNotes(e.target.value)} rows={2} style={{ width: '100%', padding: 10, borderRadius: 10, background: 'var(--c2)', border: '1px solid var(--border)', color: 'var(--cream)', fontSize: 12, resize: 'vertical' }} />
     </div>
   )
 }

@@ -241,8 +241,9 @@ export default function VermieterOnboardingPage() {
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Adresse *</label>
+              <label htmlFor="onb-vermieter-adresse" style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Adresse *</label>
               <input
+                id="onb-vermieter-adresse"
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
@@ -256,7 +257,7 @@ export default function VermieterOnboardingPage() {
               />
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Fotos (min. 3, max. 12)</label>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Fotos (min. 3, max. 12)</span>
               <div style={{
                 background: 'var(--c1)', border: '0.5px dashed rgba(196,168,106,0.3)',
                 borderRadius: 10, padding: 16, marginTop: 4, textAlign: 'center',
@@ -266,8 +267,8 @@ export default function VermieterOnboardingPage() {
               </div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Ausstattung</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Ausstattung</span>
+              <div role="group" aria-label="Ausstattung" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
                 {EQUIPMENT.map((e) => {
                   const active = equipment.has(e.id)
                   return (
@@ -290,8 +291,9 @@ export default function VermieterOnboardingPage() {
               </div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Kurzbeschreibung (max. 200 Zeichen)</label>
+              <label htmlFor="onb-vermieter-beschreibung" style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Kurzbeschreibung (max. 200 Zeichen)</label>
               <textarea
+                id="onb-vermieter-beschreibung"
                 value={description}
                 onChange={(e) => setDescription(e.target.value.slice(0, 200))}
                 rows={3}
@@ -312,10 +314,11 @@ export default function VermieterOnboardingPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {(['hour', 'day', 'week', 'month'] as const).map((k) => (
                 <div key={k}>
-                  <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>
+                  <label htmlFor={`onb-vermieter-preis-${k}`} style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>
                     Pro {k === 'hour' ? 'Stunde' : k === 'day' ? 'Tag' : k === 'week' ? 'Woche' : 'Monat'}
                   </label>
                   <input
+                    id={`onb-vermieter-preis-${k}`}
                     type="number"
                     value={price[k]}
                     onChange={(e) => setPrice({ ...price, [k]: e.target.value })}
@@ -331,8 +334,8 @@ export default function VermieterOnboardingPage() {
               ))}
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Verfügbare Tage</label>
-              <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Verfügbare Tage</span>
+              <div role="group" aria-label="Verfügbare Tage" style={{ display: 'flex', gap: 4, marginTop: 4 }}>
                 {DAYS.map((d) => {
                   const active = days.has(d)
                   return (
@@ -355,9 +358,10 @@ export default function VermieterOnboardingPage() {
               </div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Uhrzeit</label>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Uhrzeit</span>
+              <div role="group" aria-label="Uhrzeit" style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
                 <input
+                  aria-label="Von"
                   type="time" value={timeFrom} onChange={(e) => setTimeFrom(e.target.value)}
                   style={{
                     flex: 1, padding: '9px 10px',
@@ -368,6 +372,7 @@ export default function VermieterOnboardingPage() {
                 />
                 <span style={{ color: '#C4A86A' }}>—</span>
                 <input
+                  aria-label="Bis"
                   type="time" value={timeTo} onChange={(e) => setTimeTo(e.target.value)}
                   style={{
                     flex: 1, padding: '9px 10px',
@@ -385,13 +390,14 @@ export default function VermieterOnboardingPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
             {(['name', 'owner', 'tax', 'iban'] as const).map((field) => (
               <div key={field}>
-                <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>
+                <label htmlFor={`onb-vermieter-${field}`} style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>
                   {field === 'name' && 'Salon-/Firmenname *'}
                   {field === 'owner' && 'Inhaber *'}
                   {field === 'tax' && 'Steuer-ID / USt-ID *'}
                   {field === 'iban' && 'IBAN für Auszahlungen *'}
                 </label>
                 <input
+                  id={`onb-vermieter-${field}`}
                   type="text"
                   value={legal[field]}
                   onChange={(e) => setLegal({ ...legal, [field]: e.target.value })}
@@ -405,7 +411,7 @@ export default function VermieterOnboardingPage() {
               </div>
             ))}
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Gewerbeanmeldung *</label>
+              <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Gewerbeanmeldung *</span>
               <div style={{
                 background: 'var(--c1)', border: '0.5px dashed rgba(196,168,106,0.3)',
                 borderRadius: 10, padding: 12, marginTop: 4, textAlign: 'center',

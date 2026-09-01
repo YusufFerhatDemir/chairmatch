@@ -46,8 +46,8 @@ export default function Page() {
         </p>
       </AktuellBox>
       <div>
-        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5, textTransform: 'uppercase' }}>{t('subAuszahlung.ibanLbl')}</label>
-        <input type="text" data-storage="iban" inputMode="text" autoComplete="off"
+        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5, textTransform: 'uppercase' }} htmlFor="auszahlung-iban">{t('subAuszahlung.ibanLbl')}</label>
+        <input id="auszahlung-iban" type="text" data-storage="iban" inputMode="text" autoComplete="off"
           placeholder={account.configured ? 'Neue IBAN eingeben, um sie zu ersetzen' : 'DE89 3704 0044 0532 0130 00'}
           style={{
             width: '100%', marginTop: 6, padding: '12px 14px',

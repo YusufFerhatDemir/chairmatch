@@ -253,6 +253,7 @@ export default function SalonDetailClient({ salon, images, services, reviews, re
             </svg>
           )}
           <button
+            aria-label="Zurück"
             onClick={() => router.back()}
             style={{
               position: 'absolute', top: 20, left: 20,
@@ -264,6 +265,8 @@ export default function SalonDetailClient({ salon, images, services, reviews, re
             }}
           >‹</button>
           <button
+            aria-label={isFav ? 'Aus den Favoriten entfernen' : 'Zu den Favoriten hinzufügen'}
+            aria-pressed={isFav}
             onClick={toggleFav}
             style={{
               position: 'absolute', top: 20, right: 74,
@@ -275,6 +278,7 @@ export default function SalonDetailClient({ salon, images, services, reviews, re
             }}
           >{isFav ? '♥' : '♡'}</button>
           <button
+            aria-label="Salon teilen"
             onClick={async () => {
               if (navigator.share) {
                 try { await navigator.share({ title: salon.name, url: window.location.href }) } catch {}

@@ -21,6 +21,7 @@ export default function ColorPicker({ label, value, onChange }: ColorPickerProps
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <input
+        aria-label={label}
         type="color"
         value={hex}
         onChange={e => handleChange(e.target.value)}
@@ -32,6 +33,7 @@ export default function ColorPicker({ label, value, onChange }: ColorPickerProps
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 'var(--font-sm)', color: 'var(--cream)', fontWeight: 600 }}>{label}</div>
         <input
+          aria-label={`${label} als Hex-Wert`}
           className="inp"
           value={hex}
           onChange={e => handleChange(e.target.value)}

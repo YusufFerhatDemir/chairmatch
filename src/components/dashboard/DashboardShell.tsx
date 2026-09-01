@@ -122,7 +122,9 @@ export default function DashboardShell({ children, title, subtitle, navItems, br
             {subtitle && <p style={{ fontSize: 12, color: 'var(--stone)', marginTop: 2 }}>{subtitle}</p>}
           </div>
           {/* Mobile hamburger placeholder — shown on mobile via CSS */}
-          <button className="dashboard-menu-btn" style={{
+          <button
+            aria-label="Menü öffnen"
+            className="dashboard-menu-btn" style={{
             display: 'none', background: 'none', border: 'none',
             color: 'var(--cream)', fontSize: 20, cursor: 'pointer',
           }}>

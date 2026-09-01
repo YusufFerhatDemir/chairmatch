@@ -221,7 +221,7 @@ export default function SubscribersClient() {
 
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input
+        <input aria-label="E-Mail suchen..."
           type="text"
           value={q}
           onChange={e => { setQ(e.target.value); setPage(1) }}
@@ -238,6 +238,7 @@ export default function SubscribersClient() {
           }}
         />
         <select
+          aria-label="Nach Status filtern"
           value={status}
           onChange={e => { setStatus(e.target.value as 'active' | 'unsubscribed' | 'bounced' | ''); setPage(1) }}
           style={{
@@ -307,7 +308,7 @@ export default function SubscribersClient() {
           flexWrap: 'wrap',
         }}>
           <span style={{ fontSize: 13, color: 'var(--cream)', fontWeight: 600 }}>{selected.size} ausgewählt</span>
-          <input
+          <input aria-label="Tag hinzufügen (z.B. vip)"
             type="text"
             value={bulkTagInput}
             onChange={e => setBulkTagInput(e.target.value)}
@@ -369,6 +370,7 @@ export default function SubscribersClient() {
               <tr style={{ background: 'rgba(176,144,96,0.06)', borderBottom: '1px solid rgba(176,144,96,0.12)' }}>
                 <th style={th}>
                   <input
+                    aria-label="Alle Abonnenten auswählen"
                     type="checkbox"
                     checked={subs.length > 0 && selected.size === subs.length}
                     onChange={toggleSelectAll}
@@ -394,6 +396,7 @@ export default function SubscribersClient() {
                 <tr key={s.id} style={{ borderBottom: '1px solid rgba(176,144,96,0.06)' }}>
                   <td style={td}>
                     <input
+                      aria-label={`${s.email} auswählen`}
                       type="checkbox"
                       checked={selected.has(s.id)}
                       onChange={() => toggleSelect(s.id)}

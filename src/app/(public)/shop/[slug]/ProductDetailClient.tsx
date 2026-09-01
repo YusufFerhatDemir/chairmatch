@@ -174,9 +174,13 @@ export default function ProductDetailClient({ product: p }: Props) {
           {/* Quantity + Add to cart */}
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 'var(--btn-radius)' }}>
-              <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ width: 36, height: 36, background: 'none', border: 'none', color: 'var(--cream)', cursor: 'pointer', fontSize: 18 }}>-</button>
+              <button
+                aria-label="Menge verringern"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ width: 36, height: 36, background: 'none', border: 'none', color: 'var(--cream)', cursor: 'pointer', fontSize: 18 }}>-</button>
               <span style={{ width: 32, textAlign: 'center', color: 'var(--cream)', fontSize: 14 }}>{quantity}</span>
-              <button onClick={() => setQuantity(quantity + 1)} style={{ width: 36, height: 36, background: 'none', border: 'none', color: 'var(--cream)', cursor: 'pointer', fontSize: 18 }}>+</button>
+              <button
+                aria-label="Menge erhöhen"
+                onClick={() => setQuantity(quantity + 1)} style={{ width: 36, height: 36, background: 'none', border: 'none', color: 'var(--cream)', cursor: 'pointer', fontSize: 18 }}>+</button>
             </div>
 
             <button

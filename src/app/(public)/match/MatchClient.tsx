@@ -193,18 +193,18 @@ export default function MatchClient() {
             </datalist>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
+            <label htmlFor="match-budget" style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
               <span>Budget pro Tag</span>
               <span className="cinzel" style={{ color: 'var(--gold2)', fontSize: 15, letterSpacing: 0 }}>{budget} €</span>
             </label>
-            <input type="range" min={20} max={150} step={5} value={budget} onChange={(e) => setBudget(Number(e.target.value))} style={{ accentColor: '#C4A86A' }} />
+            <input id="match-budget" type="range" min={20} max={150} step={5} value={budget} onChange={(e) => setBudget(Number(e.target.value))} style={{ accentColor: '#C4A86A' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
+            <label htmlFor="match-arbeitstage" style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
               <span>Arbeitstage pro Woche</span>
               <span className="cinzel" style={{ color: 'var(--gold2)', fontSize: 15, letterSpacing: 0 }}>{arbeitstage}</span>
             </label>
-            <input type="range" min={1} max={6} step={1} value={arbeitstage} onChange={(e) => setArbeitstage(Number(e.target.value))} style={{ accentColor: '#C4A86A' }} />
+            <input id="match-arbeitstage" type="range" min={1} max={6} step={1} value={arbeitstage} onChange={(e) => setArbeitstage(Number(e.target.value))} style={{ accentColor: '#C4A86A' }} />
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setStep(1)} className="boutline" style={{ padding: '12px 20px', borderRadius: 12, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>

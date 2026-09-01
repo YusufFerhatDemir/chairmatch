@@ -147,8 +147,8 @@ export default function AnbieterRegisterPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {([['Vorname', 'vn', 'text', 'Max'], ['Nachname', 'nn', 'text', 'Mustermann'], ['E-Mail', 'em', 'email', 'max@mail.de'], ['Telefon', 'tel', 'tel', '+49 170 ...']] as const).map(([label, key, type, ph]) => (
                 <div key={key}>
-                  <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{label}</label>
-                  <input className="inp" type={type} value={f[key] as string} onChange={e => upd(key, e.target.value)} placeholder={ph} />
+                  <label htmlFor={`reg-${key}`} style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{label}</label>
+                  <input id={`reg-${key}`} className="inp" type={type} value={f[key] as string} onChange={e => upd(key, e.target.value)} placeholder={ph} />
                 </div>
               ))}
             </div>
@@ -159,13 +159,13 @@ export default function AnbieterRegisterPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {([['Geschäftsname', 'geschaeft', 'Mein Studio'], ['Straße + Nr.', 'st', 'Münchener Str. 17'], ['PLZ', 'plz', '60329'], ['Stadt', 'city', 'Frankfurt']] as const).map(([label, key, ph]) => (
                 <div key={key}>
-                  <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{label}</label>
-                  <input className="inp" value={f[key] as string} onChange={e => upd(key, e.target.value)} placeholder={ph} />
+                  <label htmlFor={`reg-${key}`} style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{label}</label>
+                  <input id={`reg-${key}`} className="inp" value={f[key] as string} onChange={e => upd(key, e.target.value)} placeholder={ph} />
                 </div>
               ))}
               <div>
-                <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 8 }}>Kategorie</label>
-                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 8 }}>Kategorie</span>
+                <div role="group" aria-label="Kategorie" style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                   {CATEGORIES.map(c => (
                     <button
                       key={c}
@@ -266,8 +266,8 @@ export default function AnbieterRegisterPage() {
                 </div>
                 {f.chair && (
                   <div>
-                    <label style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{L.priceLabel}</label>
-                    <input className="inp" type="number" value={f.cpr} onChange={e => upd('cpr', e.target.value)} placeholder={L.placeholder} />
+                    <label htmlFor="reg-stuhlpreis" style={{ fontSize: 12, color: 'var(--stone)', display: 'block', marginBottom: 4 }}>{L.priceLabel}</label>
+                    <input id="reg-stuhlpreis" className="inp" type="number" value={f.cpr} onChange={e => upd('cpr', e.target.value)} placeholder={L.placeholder} />
                   </div>
                 )}
               </div>
@@ -329,7 +329,9 @@ export default function AnbieterRegisterPage() {
           {/* Navigation Buttons */}
           <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
             {step > 1 && (
-              <button className="boutline" style={{ flex: '0 0 auto', padding: '13px 18px' }} onClick={() => setStep(step - 1)}>
+              <button
+                aria-label="Zurück zum vorherigen Schritt"
+                className="boutline" style={{ flex: '0 0 auto', padding: '13px 18px' }} onClick={() => setStep(step - 1)}>
                 ←
               </button>
             )}

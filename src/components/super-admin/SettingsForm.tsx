@@ -91,8 +91,9 @@ export default function SettingsForm({ themeSettings, layoutSettings, animationS
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {layoutSettings.map(s => (
             <div key={s.key}>
-              <label style={{ fontSize: 'var(--font-sm)', color: 'var(--cream)', fontWeight: 600 }}>{s.label || s.key}</label>
+              <label htmlFor={`layout-${s.key}`} style={{ fontSize: 'var(--font-sm)', color: 'var(--cream)', fontWeight: 600 }}>{s.label || s.key}</label>
               <input
+                id={`layout-${s.key}`}
                 className="inp"
                 type="number"
                 value={layout[s.key]}
@@ -120,6 +121,9 @@ export default function SettingsForm({ themeSettings, layoutSettings, animationS
             <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 'var(--font-sm)', color: 'var(--cream)', fontWeight: 600 }}>{s.label || s.key}</span>
               <button
+                role="switch"
+                aria-checked={animation[s.key] === 'true'}
+                aria-label={s.label || s.key}
                 onClick={() => setAnimation(prev => ({ ...prev, [s.key]: prev[s.key] === 'true' ? 'false' : 'true' }))}
                 style={{
                   width: 48, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',

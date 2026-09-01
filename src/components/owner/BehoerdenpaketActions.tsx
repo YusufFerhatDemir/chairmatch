@@ -40,8 +40,8 @@ export function BehoerdenpaketActions({ locations }: { locations: Location[] }) 
         <p style={{ fontSize: 12, color: 'var(--stone)' }}>Keine Standorte. Zuerst unter Anbieter-Registrierung einen Salon anlegen.</p>
       ) : (
         <>
-          <label style={{ display: 'block', fontSize: 12, color: 'var(--stone)', marginBottom: 6 }}>Standort</label>
-          <select value={locationId} onChange={e => setLocationId(e.target.value)} style={{ width: '100%', padding: 10, marginBottom: 10, borderRadius: 10, background: 'var(--c2)', border: '1px solid var(--border)', color: 'var(--cream)', fontSize: 13 }}>
+          <label htmlFor="behoerdenpaket-standort" style={{ display: 'block', fontSize: 12, color: 'var(--stone)', marginBottom: 6 }}>Standort</label>
+          <select id="behoerdenpaket-standort" value={locationId} onChange={e => setLocationId(e.target.value)} style={{ width: '100%', padding: 10, marginBottom: 10, borderRadius: 10, background: 'var(--c2)', border: '1px solid var(--border)', color: 'var(--cream)', fontSize: 13 }}>
             {locations.map(l => (
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}

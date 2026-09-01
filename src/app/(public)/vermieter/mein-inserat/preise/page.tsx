@@ -81,7 +81,7 @@ export default function Page() {
             borderRadius: 12, padding: '12px 14px',
           }}>
             <span style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>{t('subPreise.'+f.label)}</span>
-            <input type="number" min="0" defaultValue={f.fallback} data-storage={f.id} style={{
+            <input aria-label={t('subPreise.'+f.label)} type="number" min="0" defaultValue={f.fallback} data-storage={f.id} style={{
               width: 80, padding: '8px 10px', background: 'var(--c2)', color: 'var(--cream)',
               border: '0.5px solid rgba(196,168,106,0.2)', borderRadius: 8,
               fontSize: 14, fontFamily: 'inherit', textAlign: 'right',

@@ -8,7 +8,7 @@
  * noch einen Schutz gegen Wiederholung.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createDb, sessionFor, postRequest, getRequest, rawRequest, IDS } from './_harness/fixtures'
+import { createDb, sessionFor, postRequest, rawRequest, IDS } from './_harness/fixtures'
 import type { FakeSupabase } from './_harness/fake-supabase'
 
 const state = vi.hoisted(() => ({

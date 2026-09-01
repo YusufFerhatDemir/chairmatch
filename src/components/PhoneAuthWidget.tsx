@@ -98,7 +98,7 @@ export function PhoneAuthWidget({ initialPhone = '', onVerified, verifyLabel }: 
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
       {step === 'phone' && (
         <>
-          <input
+          <input aria-label={t('phoneAuth.phoneLabel') || 'Handynummer'}
             className="inp"
             type="tel"
             inputMode="tel"
@@ -118,7 +118,7 @@ export function PhoneAuthWidget({ initialPhone = '', onVerified, verifyLabel }: 
           <p style={{ fontSize: 13, color: 'var(--stone)', textAlign: 'center', margin: 0 }}>
             {t('phoneAuth.codeSentTo') || 'Code an'} <strong style={{ color: 'var(--gold2)' }}>{phone}</strong>
           </p>
-          <input
+          <input aria-label={t('phoneAuth.codeLabel') || '6-stelliger Bestätigungscode'}
             className="inp"
             type="text"
             inputMode="numeric"

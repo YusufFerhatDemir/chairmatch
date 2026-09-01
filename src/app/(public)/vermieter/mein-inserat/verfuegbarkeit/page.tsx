@@ -68,8 +68,8 @@ export default function Page() {
       }}
     >
       <div>
-        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subVerfuegbarkeit.daysLbl')}</label>
-        <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+        <span style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subVerfuegbarkeit.daysLbl')}</span>
+        <div role="group" aria-label={t('subVerfuegbarkeit.daysLbl')} style={{ display: 'flex', gap: 4, marginTop: 6 }}>
           {DAYS.map(d => {
             const active = selected.includes(d)
             return (
@@ -92,14 +92,14 @@ export default function Page() {
         </div>
       </div>
       <div>
-        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }}>{t('subVerfuegbarkeit.timesLbl')}</label>
+        <label style={{ fontSize: 11, color: 'var(--stone)', letterSpacing: 1.5 }} htmlFor="verfuegbarkeit-oeffnet">{t('subVerfuegbarkeit.timesLbl')}</label>
         <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center' }}>
-          <input type="time" defaultValue="09:00" data-storage="open" style={{
+          <input id="verfuegbarkeit-oeffnet" aria-label="Öffnet um" type="time" defaultValue="09:00" data-storage="open" style={{
             flex: 1, padding: '10px 12px', background: 'var(--c1)', color: 'var(--cream)',
             border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 10, fontSize: 14, fontFamily: 'inherit',
           }}/>
           <span style={{ color: 'var(--gold2)' }}>—</span>
-          <input type="time" defaultValue="18:00" data-storage="close" style={{
+          <input id="verfuegbarkeit-schliesst" aria-label="Schließt um" type="time" defaultValue="18:00" data-storage="close" style={{
             flex: 1, padding: '10px 12px', background: 'var(--c1)', color: 'var(--cream)',
             border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 10, fontSize: 14, fontFamily: 'inherit',
           }}/>

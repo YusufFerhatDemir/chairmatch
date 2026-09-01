@@ -517,7 +517,7 @@ describe('Befund 6: Empfehlungen — kein IDOR ueber customerId', () => {
     // Entweder 201 mit der richtigen customerId (aus Booking), oder die
     // Route ignoriert customerId gaenzlich — beides richtig.
     if (res.status === 201) {
-      const body = await res.json()
+      await res.json()
       // Die Empfehlung MUSS an den Buchungskunden gehen, nicht an den
       // im Body uebergebenen otherCustomer.
       const recs = db().rows('product_recommendations')

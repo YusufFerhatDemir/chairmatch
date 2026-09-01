@@ -251,7 +251,9 @@ export default function KontoPage() {
         )}
 
         <div style={{ padding: '16px 20px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button onClick={() => router.push('/')}
+          <button
+            aria-label="Zurück zur Startseite"
+            onClick={() => router.push('/')}
             style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(196,168,106,0.08)', border: '1px solid rgba(196,168,106,0.22)', color: 'var(--gold2)', fontSize: 18, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}
           >‹</button>
           <span style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--stone)', fontWeight: 600, textTransform: 'uppercase' }}>{t('bottomNav.account')}</span>
@@ -342,21 +344,21 @@ export default function KontoPage() {
 
               {tab === 'register' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  <label style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>{t('konto.yourName')}</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Yusuf Demir"
+                  <label htmlFor="konto-name" style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>{t('konto.yourName')}</label>
+                  <input id="konto-name" autoComplete="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Yusuf Demir"
                     style={{ width: '100%', padding: '13px 14px', background: 'var(--c1)', color: 'var(--cream)', border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit' }} />
                 </div>
               )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>{t('konto.email')}</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dein@email.de"
+                <label htmlFor="konto-email" style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>{t('konto.email')}</label>
+                <input id="konto-email" autoComplete="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dein@email.de"
                   style={{ width: '100%', padding: '13px 14px', background: 'var(--c1)', color: 'var(--cream)', border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit' }} />
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>{t('konto.password')}</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('konto.passwordPlaceholder')}
+                <label htmlFor="konto-passwort" style={{ fontSize: 11, letterSpacing: 1.5, color: 'var(--stone)', textTransform: 'uppercase' }}>{t('konto.password')}</label>
+                <input id="konto-passwort" autoComplete={tab === 'login' ? 'current-password' : 'new-password'} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('konto.passwordPlaceholder')}
                   style={{ width: '100%', padding: '13px 14px', background: 'var(--c1)', color: 'var(--cream)', border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 12, fontSize: 14, fontFamily: 'inherit' }} />
               </div>
 

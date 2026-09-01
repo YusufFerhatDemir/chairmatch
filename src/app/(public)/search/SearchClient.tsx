@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { PROVS } from '@/lib/demo-data'
 import { haversine, formatDistance, requestUserLocation, geocodeCity } from '@/lib/geo'
 import { sortSalons } from '@/lib/search-sort'
+import { LadefehlerHinweis } from '@/components/LadefehlerHinweis'
 
 interface Salon {
   id: string
@@ -27,11 +28,13 @@ export default function SearchClient({
   initialQ,
   initialCity,
   initialPlz,
+  ladeFehler = false,
 }: {
   salons: Salon[]
   initialQ: string
   initialCity: string
   initialPlz: string
+  ladeFehler?: boolean
 }) {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [sortMode, setSortMode] = useState<SortMode>('rating')
@@ -111,7 +114,7 @@ export default function SearchClient({
           </h1>
 
           <form action="/search" method="GET" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            <input
+            <input aria-label="Salon, Service, Stadt..."
               type="text"
               name="q"
               defaultValue={initialQ}
@@ -130,7 +133,7 @@ export default function SearchClient({
 
           {/* PLZ search */}
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <input
+            <input aria-label="PLZ eingeben..."
               type="text"
               placeholder="PLZ eingeben..."
               value={plzInput}
@@ -211,6 +214,12 @@ export default function SearchClient({
         </div>
 
         <section style={{ padding: '0 var(--pad)' }}>
+          {/* Ohne diesen Hinweis ist ein Abfragefehler nicht von „nichts
+              gefunden" zu unterscheiden: die Treffer werden mit den
+              Demo-Anbietern zusammengelegt, die Liste bleibt also gefuellt. */}
+          {ladeFehler && (
+            <LadefehlerHinweis text="Die Suche konnte gerade nicht vollständig geladen werden." />
+          )}
           {sorted.length === 0 && (initialQ || initialCity) ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <p style={{ color: 'var(--stone)', fontSize: 14, marginBottom: 8 }}>

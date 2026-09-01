@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
                 {error}
               </div>
             )}
-            <input
+            <input aria-label="E-Mail"
               className="inp"
               type="email"
               placeholder="E-Mail"

@@ -469,7 +469,7 @@ function TagPicker({
         ))}
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
-        <input
+        <input aria-label="Neuen Tag hinzufügen + Enter"
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}

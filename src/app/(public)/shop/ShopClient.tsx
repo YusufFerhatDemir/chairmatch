@@ -88,7 +88,7 @@ export default function ShopClient({ initialProducts }: Props) {
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           <div style={{ flex: 1, position: 'relative' }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--stone)' }} />
-            <input
+            <input aria-label="Produkt suchen..."
               className="inp"
               placeholder="Produkt suchen..."
               value={search}

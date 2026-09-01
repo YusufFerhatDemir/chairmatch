@@ -503,7 +503,7 @@ export default function HomeClient({ categories, dbSalons, topOfferPercent }: Pr
             <circle cx="11" cy="11" r="7"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input
+          <input aria-label={t('home.searchPlaceholder')}
             type="text"
             placeholder={t('home.searchPlaceholder')}
             value={searchQuery}
@@ -557,7 +557,7 @@ export default function HomeClient({ categories, dbSalons, topOfferPercent }: Pr
           </div>
           {/* Price */}
           <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--stone)', textTransform: 'uppercase', marginBottom: 8 }}>{t('common.maxPrice')}: {filterMaxPrice}€</p>
-          <input type="range" min={20} max={500} step={10} value={filterMaxPrice} onChange={e => setFilterMaxPrice(Number(e.target.value))} style={{ width: '100%', marginBottom: 14, accentColor: 'var(--gold)' }} />
+          <input aria-label={t('common.maxPrice')} type="range" min={20} max={500} step={10} value={filterMaxPrice} onChange={e => setFilterMaxPrice(Number(e.target.value))} style={{ width: '100%', marginBottom: 14, accentColor: 'var(--gold)' }} />
           {/* Toggles */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
             <button onClick={() => setFilterOnlyAvail(!filterOnlyAvail)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: 12, background: 'var(--c3)', borderRadius: 12, border: filterOnlyAvail ? '1px solid var(--gold)' : '1px solid var(--border)', cursor: 'pointer' }}>
@@ -742,7 +742,10 @@ function ProviderCard({ p, favorites, toggleFav, userLocation }: { p: DemoProvid
             </div>
             {/* Right: Fav + Rating */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-              <button onClick={(e) => toggleFav(p.id, e)} style={{ fontSize: 18, background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: favorites.includes(p.id) ? 'var(--red)' : 'var(--stone)' }}>
+              <button
+                aria-label={favorites.includes(p.id) ? 'Aus den Favoriten entfernen' : 'Zu den Favoriten hinzufügen'}
+                aria-pressed={favorites.includes(p.id)}
+                onClick={(e) => toggleFav(p.id, e)} style={{ fontSize: 18, background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: favorites.includes(p.id) ? 'var(--red)' : 'var(--stone)' }}>
                 {favorites.includes(p.id) ? '♥' : '♡'}
               </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>

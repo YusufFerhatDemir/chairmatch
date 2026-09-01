@@ -180,7 +180,7 @@ function OpenBookingCard({
       {!done && (
         <>
           <StarPicker value={rating} onChange={(v) => { setRating(v); setFeedback(null) }} disabled={submitting} />
-          <textarea
+          <textarea aria-label={booking.role === 'mieter' ? 'Wie war der Salon? (optional)' : 'Wie war der Mieter? (optional)'}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder={booking.role === 'mieter' ? 'Wie war der Salon? (optional)' : 'Wie war der Mieter? (optional)'}

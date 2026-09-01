@@ -39,18 +39,25 @@ export interface AffiliateProductRow {
 
 export default async function EmpfehlungenPage() {
   let products: AffiliateProductRow[] = []
+  let ladeFehler = false
 
   try {
     const supabase = getSupabaseAdmin()
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('affiliate_products')
       .select('id, partner, product_name, product_url, category, commission_rate, image_url, price_cents, is_active')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
-    if (data) products = data as AffiliateProductRow[]
-  } catch {
-    // ignore — render empty state
+    if (error) {
+      console.error('[empfehlungen] Produkte konnten nicht geladen werden:', error.message)
+      ladeFehler = true
+    } else if (data) {
+      products = data as AffiliateProductRow[]
+    }
+  } catch (err) {
+    console.error('[empfehlungen] Datenbank nicht erreichbar:', err)
+    ladeFehler = true
   }
 
-  return <EmpfehlungenClient products={products} />
+  return <EmpfehlungenClient products={products} ladeFehler={ladeFehler} />
 }
