@@ -2,6 +2,7 @@
 'use client'
 
 import { signIn } from 'next-auth/react'
+import { uebernehmeOffenenEntwurf } from '@/lib/onboarding-draft'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -95,6 +96,26 @@ export default function AuthPage() {
     return <WelcomeSplitterV11 />
   }
 
+  /**
+   * Uebernimmt einen offenen Onboarding-Entwurf, sobald eine Sitzung
+   * besteht. Gibt zurueck, ob dabei tatsaechlich ein Salon entstanden oder
+   * ergaenzt wurde — danach richtet sich das Weiterleitungsziel.
+   *
+   * Scheitert die Uebernahme, bleibt der Entwurf liegen (der naechste Login
+   * versucht es erneut, die Route legt keine Dubletten an) und der Fehler
+   * wird angezeigt statt verschluckt: der Anbieter soll nicht in einem
+   * leeren Salon-Bereich landen und raten muessen, wo seine Angaben sind.
+   */
+  async function onboardingEntwurfUebernehmen(): Promise<boolean> {
+    const ergebnis = await uebernehmeOffenenEntwurf()
+    if (!ergebnis) return false
+    if (!ergebnis.ok) {
+      setError(`Deine Onboarding-Angaben konnten nicht übernommen werden: ${ergebnis.fehler}`)
+      return false
+    }
+    return true
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -131,6 +152,12 @@ export default function AuthPage() {
     if (result?.error) {
       setError(result.error === 'CredentialsSignin' ? t('auth.wrongEmailPw') : result.error)
     } else {
+      // Ein offener Onboarding-Entwurf wird JETZT uebernommen — vor der
+      // Rollenabfrage. Sonst liest die naechste Zeile die alte Rolle
+      // (`kunde`) und leitet den frisch angelegten Anbieter auf die
+      // Startseite statt in seinen Salon. Siehe src/lib/onboarding-draft.ts.
+      await onboardingEntwurfUebernehmen()
+
       // Role-based redirect — Session-API mit Timeout, sonst Fallback auf /
       try {
         const controller = new AbortController()
@@ -192,7 +219,13 @@ export default function AuthPage() {
         setError(t('auth.registerSuccess'))
         setTab('login')
       } else {
-        router.push('/')
+        // Hier lag das Ende des Anbieter-Onboardings: `router.push('/')`.
+        // Der Wizard hatte vier Schritte lang Kategorien, Leistungen und
+        // Stammdaten gesammelt, die Registrierung legte ein Konto mit der
+        // Rolle `kunde` an — und der Entwurf blieb im Browser liegen. Erst
+        // die Uebernahme macht daraus Salon, Leistungen und Inserat.
+        const uebernommen = await onboardingEntwurfUebernehmen()
+        router.push(uebernommen ? '/anbieter/mein-salon' : '/')
       }
     } catch (err) {
       const isAbort = (err as Error)?.name === 'AbortError'

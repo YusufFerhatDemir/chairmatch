@@ -6,15 +6,41 @@
  * Klick auf "Anbieter" im V14-Welcome-Splitter führt hierhin.
  *
  * Slide 1: Was bietest du an? (10 Kategorien: Friseur/Barber/Kosmetik/Nagel/Massage/Wimpern/Ästhetik/Medical/Arzt/PMU)
- * Slide 2: Deine Services (Multi-Select pro Kategorie + Preis/Dauer)
+ * Slide 2: Deine Services (Multi-Select pro Kategorie + eigener Preis/Dauer)
  * Slide 3: Wer bist du? (Salon-Daten + Sprachen)
- * Slide 4: Rechtliches & Auszahlung (Gewerbe + Steuer-ID + IBAN + AGB)
+ * Slide 4: Rechtliches (Gewerbe + AGB)
+ *
+ * ─────────────────────────────────────────────────────────────────────
+ * DREI BEFUNDE AUS DER ONBOARDING-ANALYSE (P3)
+ * ─────────────────────────────────────────────────────────────────────
+ *
+ * 1. DER GANZE WIZARD ENDETE IM NICHTS.
+ *    `submit()` schrieb den Entwurf in den `localStorage` und schickte den
+ *    Anbieter auf /auth. Danach las ihn niemand mehr: es gab keine Route,
+ *    die daraus einen Salon, eine Leistung oder ein Inserat gemacht haette.
+ *    Wer die vier Schritte vollstaendig ausfuellte, hatte danach keinen
+ *    Salon und die Rolle `kunde` — und wurde von (provider)/layout.tsx
+ *    wieder auf /auth geworfen. Der Entwurf geht jetzt nach der Anmeldung
+ *    an /api/onboarding/salon (siehe src/lib/onboarding-draft.ts).
+ *
+ * 2. DAS ZIEL DER WEITERLEITUNG GAB ES NICHT.
+ *    `router.push('/auth?mode=register&role=anbieter')` — die Auth-Seite
+ *    liest aber `?tab=register`; `mode` und `role` kennt sie nicht. Der
+ *    Anbieter landete deshalb auf dem LOGIN-Tab, ohne Konto. Korrigiert.
+ *
+ * 3. DIE PREISE WAREN ERFUNDEN.
+ *    `SERVICES_BY_CAT` enthielt feste Betraege (Damenschnitt 45 €,
+ *    Botox 250 €, …) — Zahlen, die niemand entschieden hat und die
+ *    ausserdem denen in `SVC_CATALOG` (src/lib/constants.ts) widersprachen
+ *    (Herrenschnitt: hier 25 €, dort 28 €). Der Anbieter setzt seinen Preis
+ *    jetzt selbst; der Katalog liefert nur noch Name und Dauer.
  */
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
 import { BrandLogo } from '@/components/BrandLogo'
+import { speichereEntwurf, euroZuCent } from '@/lib/onboarding-draft'
 
 type CatId = 'friseur' | 'barber' | 'kosmetik' | 'nagel' | 'massage' | 'wimpern' | 'aesthetik' | 'medical' | 'arzt' | 'pmu'
 
@@ -31,47 +57,65 @@ const CATEGORIES: { id: CatId; title: string }[] = [
   { id: 'pmu',       title: 'Permanent Make-Up' },
 ]
 
-const SERVICES_BY_CAT: Record<CatId, { id: string; name: string; price: number; duration: number }[]> = {
+/**
+ * Leistungs-Katalog — NUR Name und Dauer.
+ *
+ * Hier standen bis zur Onboarding-Analyse feste Preise (`price: 45` fuer
+ * den Damenschnitt, `price: 250` fuer Botox, …). Das war eine doppelte
+ * Erfindung: die Betraege hat niemand entschieden, und sie widersprachen
+ * dem zweiten, gleichnamigen Katalog in src/lib/constants.ts
+ * (`SVC_CATALOG`), der fuer denselben Herrenschnitt 28 € statt 25 €
+ * auswies. Welcher der beiden Kataloge gelten soll, ist eine
+ * Produktentscheidung — sie wird hier nicht heimlich getroffen.
+ *
+ * Der Preis kommt jetzt aus der Eingabe des Anbieters. Wer keinen angibt,
+ * bekommt die Leistung inaktiv angelegt (siehe onboarding.service.ts) —
+ * nicht kostenlos und nicht zu einem geschaetzten Betrag.
+ *
+ * Die Dauern bleiben: eine Dauer ist eine fachliche Groesse des Handwerks,
+ * kein Preisschild, und sie ist im Salon jederzeit aenderbar.
+ */
+const SERVICES_BY_CAT: Record<CatId, { id: string; name: string; duration: number }[]> = {
   friseur: [
-    { id: 'damenschnitt',  name: 'Damenschnitt',  price: 45, duration: 60 },
-    { id: 'herrenschnitt', name: 'Herrenschnitt', price: 25, duration: 30 },
-    { id: 'faerben',       name: 'Färben',        price: 60, duration: 90 },
+    { id: 'damenschnitt',  name: 'Damenschnitt',  duration: 60 },
+    { id: 'herrenschnitt', name: 'Herrenschnitt', duration: 30 },
+    { id: 'faerben',       name: 'Färben',        duration: 90 },
   ],
   barber: [
-    { id: 'bart',     name: 'Bart trimmen',     price: 15, duration: 20 },
-    { id: 'rasur',    name: 'Hot-Towel-Rasur',  price: 30, duration: 45 },
+    { id: 'bart',     name: 'Bart trimmen',     duration: 20 },
+    { id: 'rasur',    name: 'Hot-Towel-Rasur',  duration: 45 },
   ],
   kosmetik: [
-    { id: 'reinigung', name: 'Gesichtsreinigung', price: 50, duration: 60 },
-    { id: 'peeling',   name: 'Peeling',           price: 70, duration: 75 },
+    { id: 'reinigung', name: 'Gesichtsreinigung', duration: 60 },
+    { id: 'peeling',   name: 'Peeling',           duration: 75 },
   ],
   nagel: [
-    { id: 'maniküre', name: 'Maniküre', price: 30, duration: 45 },
-    { id: 'gelnaegel', name: 'Gel-Nägel', price: 50, duration: 90 },
+    { id: 'maniküre', name: 'Maniküre', duration: 45 },
+    { id: 'gelnaegel', name: 'Gel-Nägel', duration: 90 },
   ],
   massage: [
-    { id: 'klassisch', name: 'Klassische Massage', price: 60, duration: 60 },
-    { id: 'shiatsu',   name: 'Shiatsu',            price: 80, duration: 90 },
+    { id: 'klassisch', name: 'Klassische Massage', duration: 60 },
+    { id: 'shiatsu',   name: 'Shiatsu',            duration: 90 },
   ],
   wimpern: [
-    { id: 'extensions', name: 'Wimpern-Extensions', price: 90, duration: 120 },
-    { id: 'lifting',    name: 'Wimpern-Lifting',    price: 60, duration: 60 },
+    { id: 'extensions', name: 'Wimpern-Extensions', duration: 120 },
+    { id: 'lifting',    name: 'Wimpern-Lifting',    duration: 60 },
   ],
   aesthetik: [
-    { id: 'hydrafacial', name: 'HydraFacial', price: 120, duration: 60 },
-    { id: 'microneedling', name: 'Microneedling', price: 150, duration: 75 },
+    { id: 'hydrafacial', name: 'HydraFacial', duration: 60 },
+    { id: 'microneedling', name: 'Microneedling', duration: 75 },
   ],
   medical: [
-    { id: 'botox',  name: 'Botox',           price: 250, duration: 30 },
-    { id: 'filler', name: 'Hyaluron-Filler', price: 300, duration: 45 },
+    { id: 'botox',  name: 'Botox',           duration: 30 },
+    { id: 'filler', name: 'Hyaluron-Filler', duration: 45 },
   ],
   arzt: [
-    { id: 'beratung',  name: 'Beratung',         price: 80,  duration: 30 },
-    { id: 'check',     name: 'Hautcheck',         price: 120, duration: 45 },
+    { id: 'beratung',  name: 'Beratung',         duration: 30 },
+    { id: 'check',     name: 'Hautcheck',         duration: 45 },
   ],
   pmu: [
-    { id: 'augenbrauen', name: 'Augenbrauen',    price: 350, duration: 120 },
-    { id: 'lippen',      name: 'Lippen',         price: 400, duration: 150 },
+    { id: 'augenbrauen', name: 'Augenbrauen',    duration: 120 },
+    { id: 'lippen',      name: 'Lippen',         duration: 150 },
   ],
 }
 
@@ -86,7 +130,8 @@ export default function AnbieterOnboardingPage() {
   const [services, setServices] = useState<Set<string>>(new Set())
   const [profile, setProfile] = useState({ name: '', owner: '', address: '', phone: '', email: '' })
   const [languages, setLanguages] = useState<Set<string>>(new Set(['DE']))
-  const [legal, setLegal] = useState({ tax: '', vat: '', iban: '' })
+  /** Preis je Leistung in Euro, wie eingetippt. Leer = keine Angabe. */
+  const [preise, setPreise] = useState<Record<string, string>>({})
   const [agreed, setAgreed] = useState({ agb: false, gewerbe: false, newsletter: false })
 
   const toggleCat = (id: CatId) => {
@@ -111,7 +156,13 @@ export default function AnbieterOnboardingPage() {
     if (step === 1) return cats.size > 0
     if (step === 2) return services.size > 0
     if (step === 3) return profile.name.trim().length > 1 && profile.owner.trim().length > 1 && profile.address.trim().length > 3
-    if (step === 4) return legal.tax.trim().length > 1 && legal.iban.trim().length > 5 && agreed.agb && agreed.gewerbe
+    // Schritt 4 verlangte bis zur Onboarding-Analyse Steuer-ID UND IBAN.
+    // Beide Felder hatten kein Ziel: sie landeten im `localStorage` und
+    // wurden nie gelesen — /api/register-provider hat die IBAN aus demselben
+    // Grund bereits entfernt. Auszahlungsdaten gehoeren nach der Anmeldung
+    // in /anbieter/mein-salon/auszahlung (→ payout_accounts). Es bleiben die
+    // beiden Zusagen, die tatsaechlich protokolliert werden.
+    if (step === 4) return agreed.agb && agreed.gewerbe
     return false
   }
 
@@ -122,8 +173,41 @@ export default function AnbieterOnboardingPage() {
   }
 
   const submit = () => {
-    try { localStorage.setItem('cm_anbieter_draft', JSON.stringify({ cats: [...cats], services: [...services], profile, languages: [...languages], legal, agreed })) } catch {}
-    router.push('/auth?mode=register&role=anbieter' as never)
+    // Die ausgewaehlten Leistungen werden hier mit Name und Dauer
+    // ausgeschrieben — der Server soll den Katalog nicht kennen muessen,
+    // und ein spaeterer Katalog-Umbau darf einen liegenden Entwurf nicht
+    // entwerten.
+    const leistungen = [...cats].flatMap((catId) =>
+      (SERVICES_BY_CAT[catId] || [])
+        .filter((s) => services.has(s.id))
+        .map((s) => ({
+          name: s.name,
+          duration_minutes: s.duration,
+          price_cents: euroZuCent(preise[s.id]),
+        })),
+    )
+
+    speichereEntwurf('anbieter', {
+      // `cats` bleibt: /anbieter/mein-salon leitet daraus den
+      // Hygiene-Hinweis ab, /konto die angezeigte Rolle.
+      cats: [...cats],
+      services: [...services],
+      profile,
+      languages: [...languages],
+      agreed,
+      uebernahme: {
+        quelle: 'anbieter',
+        salon: {
+          name: profile.name,
+          category: [...cats][0] || 'friseur',
+          address: profile.address,
+          phone: profile.phone,
+        },
+        leistungen,
+        einwilligungen: { agb: agreed.agb, gewerbeschein_angegeben: agreed.gewerbe },
+      },
+    })
+    router.push('/auth?tab=register' as never)
   }
 
   return (
@@ -233,21 +317,48 @@ export default function AnbieterOnboardingPage() {
                     {svcs.map((s) => {
                       const active = services.has(s.id)
                       return (
-                        <label key={s.id} style={{
+                        <div key={s.id} style={{
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '6px 0', fontSize: 12.5, color: 'var(--cream)', cursor: 'pointer',
+                          gap: 8, padding: '6px 0', fontSize: 12.5, color: 'var(--cream)',
                           borderBottom: '0.5px solid rgba(196,168,106,0.08)',
                         }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <label htmlFor={`onb-svc-${s.id}`} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', flex: 1 }}>
                             <input
+                              id={`onb-svc-${s.id}`}
                               type="checkbox" checked={active}
                               onChange={() => toggleService(s.id)}
                               style={{ accentColor: '#C4A86A' }}
                             />
                             {s.name}
+                          </label>
+                          {/*
+                            Hier stand „€45 · 60min" — ein Preis, den niemand
+                            entschieden hat. Der Anbieter tippt ihn jetzt
+                            selbst; leer bleiben ist erlaubt und legt die
+                            Leistung inaktiv an, statt einen Betrag zu raten.
+                          */}
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(232,230,218,0.6)' }}>
+                            <label htmlFor={`onb-preis-${s.id}`} className="sr-only">
+                              Preis für {s.name} in Euro
+                            </label>
+                            <input
+                              id={`onb-preis-${s.id}`}
+                              type="text" inputMode="decimal"
+                              value={preise[s.id] ?? ''}
+                              disabled={!active}
+                              placeholder="Preis €"
+                              onChange={(e) => setPreise({ ...preise, [s.id]: e.target.value })}
+                              style={{
+                                width: 74, padding: '5px 7px', textAlign: 'right',
+                                background: 'var(--c2)', color: 'var(--cream)',
+                                border: '0.5px solid rgba(196,168,106,0.25)', borderRadius: 6,
+                                fontSize: 12, fontFamily: 'inherit',
+                                opacity: active ? 1 : 0.4,
+                              }}
+                            />
+                            <span style={{ minWidth: 42 }}>{s.duration}min</span>
                           </span>
-                          <span style={{ color: 'rgba(232,230,218,0.6)' }}>€{s.price} · {s.duration}min</span>
-                        </label>
+                        </div>
                       )
                     })}
                   </div>
@@ -315,26 +426,30 @@ export default function AnbieterOnboardingPage() {
 
         {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-            {([
-              { k: 'tax' as const,  l: 'Steuer-ID *' },
-              { k: 'vat' as const,  l: 'USt-ID (falls vorhanden)' },
-              { k: 'iban' as const, l: 'IBAN für Auszahlung *' },
-            ]).map(({ k, l }) => (
-              <div key={k}>
-                <label htmlFor={`onb-anbieter-legal-${k}`} style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>{l}</label>
-                <input
-                  id={`onb-anbieter-legal-${k}`}
-                  type="text" value={legal[k]}
-                  onChange={(e) => setLegal({ ...legal, [k]: e.target.value })}
-                  style={{
-                    width: '100%', marginTop: 4, padding: '10px 12px',
-                    background: 'var(--c1)', color: 'var(--cream)',
-                    border: '0.5px solid rgba(196,168,106,0.3)', borderRadius: 8,
-                    fontSize: 13, fontFamily: 'inherit',
-                  }}
-                />
-              </div>
-            ))}
+            {/*
+              Hier standen drei Eingabefelder: Steuer-ID, USt-ID und
+              „IBAN für Auszahlung *". Sie waren Pflicht, und sie gingen
+              nirgendwohin — der komplette `legal`-Block landete im
+              `localStorage` und wurde von keiner Zeile Code wieder gelesen.
+              Eine Bankverbindung, die im Browser liegen bleibt statt in
+              `payout_accounts` anzukommen, ist die schlechtere Haelfte von
+              beidem; /api/register-provider hat dasselbe Feld aus demselben
+              Grund bereits entfernt.
+
+              Die Auszahlungsdaten werden nach der Anmeldung erhoben, unter
+              /anbieter/mein-salon/auszahlung — dort gehen sie ueber
+              /api/me/payout-account in die Datenbank und kommen nur noch
+              mit den letzten vier Stellen zurueck.
+            */}
+            <div style={{
+              background: 'rgba(196,168,106,0.06)', border: '0.5px solid rgba(196,168,106,0.2)',
+              borderRadius: 10, padding: '12px 14px', fontSize: 12,
+              color: 'rgba(232,230,218,0.75)', lineHeight: 1.55,
+            }}>
+              Steuerdaten und Bankverbindung trägst du nach der Anmeldung in
+              deinem Salon-Bereich unter „Auszahlung" ein — sicher gespeichert
+              und für dich später nur noch mit den letzten vier Stellen sichtbar.
+            </div>
             <div>
               <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Gewerbeanmeldung *</span>
               <div style={{

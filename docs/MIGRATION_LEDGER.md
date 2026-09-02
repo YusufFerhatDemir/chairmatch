@@ -41,6 +41,7 @@
 
 | Repo-Datei | Repo-Timestamp | Track | Inhalt |
 |---|---|---|---|
+| `20260902_rls_restliche_tabellen.sql` | 20260902 | P3 | `ENABLE`+`FORCE ROW LEVEL SECURITY` und `REVOKE ALL FROM anon, authenticated` auf den neun Live-Tabellen, fuer die es im Repo kein `ENABLE ROW LEVEL SECURITY` gibt: `salons`, `services`, `bookings`, `booking_policies`, `staff`, `promo_codes`, `rental_bookings`, `error_logs`, `newsletter_sends`. Antwort auf die Dashboard-Meldung „RLS disabled in public". Keine Policies — kein Client liest diese Tabellen direkt. |
 | `20260828170738_benachrichtigungswege_haertung.sql` | 20260828170738 | CM23 | `push_subscriptions.updated_at`; Arbiter-fähiger UNIQUE auf `wait_list(email, city)`; 6 CHECK-Constraints (Endpunkt https, Schlüsselmaterial, E-Mail normalisiert, Stadt nicht leer, `choices` vollständig); `DROP POLICY cookie_consents_insert_anon`; `REVOKE ALL … FROM anon` auf `push_subscriptions`, `notification_log`, `wait_list`, `cookie_consents` |
 
 ### CM23 — Teilbefund aus der Produktionssonde (2026-08-28)

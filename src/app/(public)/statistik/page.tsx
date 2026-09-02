@@ -29,37 +29,71 @@ export const metadata: Metadata = {
 export const revalidate = 3600 // ISR statt force-dynamic — Marketing-Seite, 1h Cache
 
 export default async function StatistikPage() {
-  const supabase = getSupabaseAdmin()
-
   /*
    * Jede dieser Zahlen fiel bei einem Abfragefehler auf 0 zurueck
    * (`count ?? 0`) — eine Seite mit der Ueberschrift „CHAIRMATCH IN ZAHLEN",
    * die dann „0 Salons, 0 Buchungen" behauptet. Falsche Zahlen sind schlimmer
    * als gar keine, deshalb wird der Fehler ausgewertet und benannt.
+   *
+   * ZWEITER BEFUND (P3): der ganze Block lief bis hierher UNGESCHUETZT.
+   *
+   * `getSupabaseAdmin()` wirft, wenn SUPABASE_SERVICE_ROLE_KEY fehlt, und
+   * diese Seite ist ISR (`revalidate = 3600`) — sie wird beim Build
+   * vorgerendert. Fehlte der Schluessel oder war die Datenbank im
+   * Build-Moment nicht erreichbar, endete `next build` mit
+   *
+   *     Export encountered an error on /(public)/statistik/page
+   *     Next.js build worker exited with code: 1
+   *
+   * und das GESAMTE Deployment fiel aus — wegen einer Marketing-Seite mit
+   * sechs Zahlen darauf. Die sieben anderen datengetriebenen oeffentlichen
+   * Seiten (explore, search, rentals, offers, category, [stadt],
+   * empfehlungen) fangen genau das laengst ab und zeigen einen
+   * Ladefehler-Hinweis; hier fehlte das Muster als einziges. Nachgezogen.
    */
-  const [
-    { count: userCount, error: userFehler },
-    { count: salonCount, error: salonFehler },
-    { count: bookingCount, error: bookingFehler },
-    { count: reviewCount, error: reviewFehler },
-  ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('salons').select('*', { count: 'exact', head: true }),
-    supabase.from('bookings').select('*', { count: 'exact', head: true }),
-    supabase.from('reviews').select('*', { count: 'exact', head: true }),
-  ])
-
-  const { data: salonCities, error: cityFehler } = await supabase.from('salons').select('city').not('city', 'is', null)
-  const cities = new Set((salonCities || []).map(s => s.city).filter(Boolean))
-
-  const { data: salonCats, error: catFehler } = await supabase.from('salons').select('category').not('category', 'is', null)
+  let userCount: number | null = null
+  let salonCount: number | null = null
+  let bookingCount: number | null = null
+  let reviewCount: number | null = null
+  const cities = new Set<string>()
   const catCounts: Record<string, number> = {}
-  for (const s of salonCats || []) {
-    if (s.category) catCounts[s.category] = (catCounts[s.category] || 0) + 1
-  }
+  let zahlenFehler: { message: string } | undefined
 
-  const zahlenFehler = [userFehler, salonFehler, bookingFehler, reviewFehler, cityFehler, catFehler].find(Boolean)
-  if (zahlenFehler) console.error('[statistik] Kennzahlen nicht ladbar:', zahlenFehler.message)
+  try {
+    const supabase = getSupabaseAdmin()
+
+    const [
+      { count: c1, error: userFehler },
+      { count: c2, error: salonFehler },
+      { count: c3, error: bookingFehler },
+      { count: c4, error: reviewFehler },
+    ] = await Promise.all([
+      supabase.from('profiles').select('*', { count: 'exact', head: true }),
+      supabase.from('salons').select('*', { count: 'exact', head: true }),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }),
+      supabase.from('reviews').select('*', { count: 'exact', head: true }),
+    ])
+    userCount = c1
+    salonCount = c2
+    bookingCount = c3
+    reviewCount = c4
+
+    const { data: salonCities, error: cityFehler } = await supabase.from('salons').select('city').not('city', 'is', null)
+    for (const s of salonCities || []) {
+      if (s.city) cities.add(s.city)
+    }
+
+    const { data: salonCats, error: catFehler } = await supabase.from('salons').select('category').not('category', 'is', null)
+    for (const s of salonCats || []) {
+      if (s.category) catCounts[s.category] = (catCounts[s.category] || 0) + 1
+    }
+
+    zahlenFehler = [userFehler, salonFehler, bookingFehler, reviewFehler, cityFehler, catFehler].find(Boolean) || undefined
+    if (zahlenFehler) console.error('[statistik] Kennzahlen nicht ladbar:', zahlenFehler.message)
+  } catch (err) {
+    console.error('[statistik] Datenbank nicht erreichbar:', err)
+    zahlenFehler = { message: err instanceof Error ? err.message : String(err) }
+  }
 
   const CAT_LABELS: Record<string, string> = {
     barber: 'Barbershop', friseur: 'Friseur', kosmetik: 'Kosmetik', aesthetik: 'Ästhetik',
@@ -162,6 +196,13 @@ export default async function StatistikPage() {
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--cream)', marginBottom: 16 }}>Unsere Plattform</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
             {[
+              // BUSINESS_DECISION_REQUIRED: „0% Provision" ist hier eine
+              // oeffentliche Zusage an Salons. Der zugehoerige Satz steht in
+              // COMMISSION_RULES (src/lib/marketplace-rules.ts) und ist dort
+              // ausdruecklich als Platzhalter markiert — dieselbe Zahl darf
+              // nicht an einer Stelle unbestaetigt und an der anderen
+              // beworben sein. Wert bleibt unveraendert, bis die
+              // Geschaeftsfuehrung entschieden hat.
               { val: '0%', label: 'Provision für Salons' },
               { val: '24/7', label: 'Online-Buchung' },
               { val: 'PWA', label: 'App ohne Download' },

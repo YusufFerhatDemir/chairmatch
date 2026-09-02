@@ -15,6 +15,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
 import { BrandLogo } from '@/components/BrandLogo'
+import { speichereEntwurf } from '@/lib/onboarding-draft'
 
 type PlaceId = 'stuhl' | 'liege' | 'kabine' | 'op' | 'raum'
 
@@ -81,8 +82,25 @@ export default function MieterOnboardingPage() {
   }
 
   const submit = () => {
-    try { localStorage.setItem('cm_mieter_draft', JSON.stringify({ selected: [...selected], city, duration: [...duration], budgetMin, budgetMax, profile, languages: [...languages], legal, agreed })) } catch {}
-    router.push('/auth?mode=register&role=mieter' as never)
+    // Zwei Korrekturen aus der Onboarding-Analyse (P3):
+    //
+    // 1. `?mode=register&role=mieter` — die Auth-Seite liest `?tab=register`.
+    //    `mode` und `role` kennt sie nicht, der Mieter landete deshalb auf
+    //    dem LOGIN-Tab, ohne Konto zu haben.
+    //
+    // 2. Die Steuer-ID ging im Klartext in den `localStorage` und wurde von
+    //    keiner Zeile Code gelesen. `speichereEntwurf()` filtert sie heraus.
+    //
+    // NICHT geschlossen ist hier die Uebernahme selbst: fuer die Mieterseite
+    // gibt es mit `tenant_profiles` und /api/me/tenant-profile zwar ein Ziel,
+    // aber dessen Felder (display_name, job, license_number, search_city,
+    // search_radius_km) decken den Entwurf nur teilweise — Budget, Dauer und
+    // Sprachen haben live keine Spalte. Siehe Bericht.
+    speichereEntwurf('mieter', {
+      selected: [...selected], city, duration: [...duration],
+      budgetMin, budgetMax, profile, languages: [...languages], agreed,
+    })
+    router.push('/auth?tab=register' as never)
   }
 
   return (

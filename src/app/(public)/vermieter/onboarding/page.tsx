@@ -9,13 +9,40 @@
  * Slide 1: Was vermietest du? (Stuhl/Liege/Kabine/OP-Raum/Kompletter Raum mit Anzahl-Stepper)
  * Slide 2: Standort & Ausstattung (Adresse + GPS + Fotos + Ausstattung)
  * Slide 3: Preise & Verfügbarkeit (Stunden/Tag/Woche/Monat + Tage + Uhrzeit)
- * Slide 4: Inhaber & Rechtliches (Firma + Steuer-ID + Gewerbe + IBAN + AGB)
+ * Slide 4: Inhaber & Rechtliches (Firma + Inhaber + Gewerbe + AGB)
+ *
+ * ─────────────────────────────────────────────────────────────────────
+ * DREI BEFUNDE AUS DER ONBOARDING-ANALYSE (P3)
+ * ─────────────────────────────────────────────────────────────────────
+ *
+ * 1. DAS INSERAT ENTSTAND NIE.
+ *    Vier Schritte lang Plaetze, Adresse, Ausstattung, Preise und
+ *    Verfuegbarkeiten — und `submit()` legte alles im `localStorage` ab
+ *    und leitete weiter. Es gab keine Route, die daraus eine Zeile in
+ *    `rental_equipment` gemacht haette; die Tabelle kann jedes dieser
+ *    Felder (`price_per_hour_cents` … `available_from`, `features`), sie
+ *    bekam sie nur nie. Der Entwurf geht jetzt nach der Anmeldung an
+ *    /api/onboarding/salon.
+ *
+ * 2. ZWEI DER FUENF KACHELN KENNT DIE DATENBANK NICHT.
+ *    `rental_equipment_type_check` (Migration CM22, live) laesst genau
+ *    'stuhl', 'liege', 'raum' und 'opraum' zu. Der Wizard bietet
+ *    zusaetzlich `kabine` und `op` an — ein Insert damit waere an 23514
+ *    gescheitert. Die Abbildung steht in onboarding.service.ts, damit die
+ *    Auswahl des Vermieters erhalten bleibt (der Anzeigename „Kabine"
+ *    bleibt, der Typ wird 'raum').
+ *
+ * 3. IBAN UND STEUER-ID LAGEN IM BROWSER.
+ *    Beide waren Pflichtfelder, beide gingen in den `localStorage`, keines
+ *    wurde je gelesen. Entfernt — Auszahlungsdaten werden nach der
+ *    Anmeldung ueber /api/me/payout-account erhoben.
  */
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/client'
 import { BrandLogo } from '@/components/BrandLogo'
+import { speichereEntwurf, euroZuCent } from '@/lib/onboarding-draft'
 
 type PlaceId = 'stuhl' | 'liege' | 'kabine' | 'op' | 'raum'
 
@@ -68,7 +95,7 @@ export default function VermieterOnboardingPage() {
   const [timeTo, setTimeTo] = useState('18:00')
 
   // Slide 4
-  const [legal, setLegal] = useState({ name: '', owner: '', tax: '', iban: '' })
+  const [legal, setLegal] = useState({ name: '', owner: '' })
   const [agreed, setAgreed] = useState({ agb: false, pros: false, hygiene: false, fee: false })
 
   const totalPlaces = Object.values(counts).reduce((a, b) => a + b, 0)
@@ -86,10 +113,12 @@ export default function VermieterOnboardingPage() {
     if (step === 1) return totalPlaces > 0
     if (step === 2) return address.trim().length > 3
     if (step === 3) return !!price.day || !!price.hour
+    // `legal.iban.trim().length > 5` stand hier als Pflichtbedingung fuer
+    // ein Feld, dessen Inhalt nirgends ankam. Die Bankverbindung wird nach
+    // der Anmeldung erhoben (siehe Kopfkommentar, Befund 3).
     if (step === 4) return (
       legal.name.trim().length > 1 &&
       legal.owner.trim().length > 1 &&
-      legal.iban.trim().length > 5 &&
       agreed.agb && agreed.pros && agreed.hygiene && agreed.fee
     )
     return false
@@ -102,8 +131,59 @@ export default function VermieterOnboardingPage() {
   }
 
   function submit() {
-    try { localStorage.setItem('cm_vermieter_draft', JSON.stringify({ counts, address, equipment: [...equipment], description, price, days: [...days], timeFrom, timeTo, legal })) } catch {}
-    router.push('/auth?mode=register&role=vermieter' as never)
+    const plaetze = (Object.keys(counts) as PlaceId[])
+      .filter((id) => counts[id] > 0)
+      .map((id) => ({ art: id, anzahl: counts[id] }))
+
+    speichereEntwurf('vermieter', {
+      counts,
+      address,
+      equipment: [...equipment],
+      description,
+      price,
+      days: [...days],
+      timeFrom,
+      timeTo,
+      legal,
+      uebernahme: {
+        quelle: 'vermieter',
+        salon: {
+          name: legal.name,
+          // Der Vermieter-Wizard fragt keine Branche ab. 'raum' ist die
+          // neutrale Einordnung fuer reine Vermietung — kein geratenes
+          // Gewerk. Der Salon ist ohnehin `is_active: false`, bis er
+          // freigeschaltet wird, und die Kategorie ist danach in
+          // /anbieter/mein-salon aenderbar.
+          category: 'raum',
+          address,
+          description,
+        },
+        vermietung: {
+          plaetze,
+          features: [...equipment],
+          beschreibung: description,
+          // Preise kommen ausschliesslich aus der Eingabe. Was der
+          // Vermieter leer laesst, bleibt leer — ohne Tagespreis geht das
+          // Inserat offline online (Constraint `…_online_needs_price`).
+          preise: {
+            hour_cents: euroZuCent(price.hour),
+            day_cents: euroZuCent(price.day),
+            week_cents: euroZuCent(price.week),
+            month_cents: euroZuCent(price.month),
+          },
+          available_days: [...days],
+          available_from: timeFrom || null,
+          available_to: timeTo || null,
+        },
+        einwilligungen: {
+          agb: agreed.agb,
+          profi_nachweis: agreed.pros,
+          hygiene: agreed.hygiene,
+          gebuehren: agreed.fee,
+        },
+      },
+    })
+    router.push('/auth?tab=register' as never)
   }
 
   return (
@@ -388,13 +468,11 @@ export default function VermieterOnboardingPage() {
 
         {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-            {(['name', 'owner', 'tax', 'iban'] as const).map((field) => (
+            {(['name', 'owner'] as const).map((field) => (
               <div key={field}>
                 <label htmlFor={`onb-vermieter-${field}`} style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>
                   {field === 'name' && 'Salon-/Firmenname *'}
                   {field === 'owner' && 'Inhaber *'}
-                  {field === 'tax' && 'Steuer-ID / USt-ID *'}
-                  {field === 'iban' && 'IBAN für Auszahlungen *'}
                 </label>
                 <input
                   id={`onb-vermieter-${field}`}
@@ -410,6 +488,21 @@ export default function VermieterOnboardingPage() {
                 />
               </div>
             ))}
+            {/*
+              „Steuer-ID / USt-ID *" und „IBAN für Auszahlungen *" standen
+              hier als Pflichtfelder. Ihr Inhalt landete im `localStorage`
+              und wurde von keiner Zeile Code gelesen — siehe Befund 3 im
+              Kopfkommentar.
+            */}
+            <div style={{
+              background: 'rgba(196,168,106,0.06)', border: '0.5px solid rgba(196,168,106,0.2)',
+              borderRadius: 10, padding: '12px 14px', fontSize: 12,
+              color: 'rgba(232,230,218,0.75)', lineHeight: 1.55,
+            }}>
+              Steuerdaten und Bankverbindung trägst du nach der Anmeldung unter
+              „Auszahlung" ein — sicher gespeichert und später nur noch mit den
+              letzten vier Stellen sichtbar.
+            </div>
             <div>
               <span style={{ fontSize: 11, color: 'rgba(232,230,218,0.7)' }}>Gewerbeanmeldung *</span>
               <div style={{
