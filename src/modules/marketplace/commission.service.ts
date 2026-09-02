@@ -10,6 +10,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  * Der Fehler war unsichtbar: die Buchung ging durch, nur der Betrag stimmte
  * nicht. `??` greift ausschliesslich bei fehlendem Satz.
  */
+// BUSINESS_DECISION_REQUIRED: Notfall-Provisionssatz ist ein Platzhalter.
 const DEFAULT_RATE_PERCENT = 10
 
 async function getRate(type: string): Promise<number> {

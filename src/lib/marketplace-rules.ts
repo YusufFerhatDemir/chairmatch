@@ -21,6 +21,8 @@ export interface CommissionRule {
   label: string
 }
 
+// BUSINESS_DECISION_REQUIRED: Provisionssätze sind Platzhalter und müssen
+// vor dem Launch mit der Geschäftsführung abgestimmt werden.
 export const COMMISSION_RULES: Record<CommissionType, CommissionRule> = {
   booking: { rate: 0, label: 'Buchung' },              // 0% — USP
   chair_rental: { rate: 0.10, label: 'Stuhl/Liege-Vermietung' },
@@ -36,6 +38,8 @@ export interface SubscriptionTierConfig {
   features: string[]
 }
 
+// BUSINESS_DECISION_REQUIRED: Abo-Preise sind Platzhalter und müssen
+// vor dem Launch mit der Geschäftsführung abgestimmt werden.
 export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, SubscriptionTierConfig> = {
   free: {
     name: 'Free',
