@@ -62,6 +62,29 @@
 -- braucht, schreibt die Policy zusammen mit dem Client.
 --
 -- ══════════════════════════════════════════════════════════════════════
+-- NACHPRUEFUNG 2026-09-04
+-- ══════════════════════════════════════════════════════════════════════
+--
+-- Die Behauptung „alles laeuft ueber service_role" ist jetzt ausgezaehlt und
+-- nicht mehr nur begruendet. Alle `.from()`-Aufrufe auf die neun Tabellen im
+-- Produktivcode (ohne Tests): 70 Dateien, alle ueber `getSupabaseAdmin()`
+-- bzw. den daraus abgeleiteten Typ `AdminClient`
+-- (src/modules/rentals/listing.service.ts: `type AdminClient =
+-- ReturnType<typeof getSupabaseAdmin>`). Kein einziger Treffer auf einem
+-- anon-Client. Es gibt sechs weitere Stellen, die einen anon-Client bauen
+-- (auth/register, auth/forgot-password, auth/change-password,
+-- register-provider, auth/reset-password, modules/auth/auth.config.ts) —
+-- keine davon fasst eine der neun Tabellen an; sie arbeiten auf `profiles`,
+-- `login_attempts`, `user_2fa`, `consent_logs` und `audit_logs`.
+--
+-- anon-Gegenprobe wiederholt (2026-09-04, nur lesend): alle neun weiterhin
+-- 401/42501. Keine Regression seit dem 02.09.
+--
+-- WEITERHIN UNGEMESSEN bleibt die `authenticated`-Frage oben — dafuer
+-- braucht es ein echtes Nutzer-JWT. Genau diese Luecke ist der Grund, diese
+-- Migration einzuspielen; sie ist kein Argument, es zu lassen.
+--
+-- ══════════════════════════════════════════════════════════════════════
 -- STATUS: COMMITTET, NICHT ANGEWENDET
 -- ══════════════════════════════════════════════════════════════════════
 -- Es gibt in diesem Projekt keinen Migrations-Runner. Nach dem Einspielen
@@ -86,6 +109,22 @@ DECLARE
     'newsletter_sends'
   ];
 BEGIN
+  -- ── PRE-FLIGHT ──────────────────────────────────────────────────────
+  -- Diese Migration setzt FORCE ROW LEVEL SECURITY und legt bewusst KEINE
+  -- Policy an. Fuer jede Rolle, die RLS nicht umgeht, heisst das ab hier:
+  -- null Zeilen lesbar, nichts schreibbar. Die gesamte Anwendung laeuft
+  -- ueber `service_role` (70 Aufrufstellen, alle ueber getSupabaseAdmin()).
+  -- Traegt diese Rolle das Attribut BYPASSRLS nicht, wuerde die Migration
+  -- die Anwendung im selben Moment stilllegen, in dem sie sie absichert.
+  -- Deshalb wird das hier geprueft und nicht angenommen.
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_roles WHERE rolname = 'service_role' AND rolbypassrls
+  ) THEN
+    RAISE EXCEPTION
+      'ABBRUCH: service_role fehlt BYPASSRLS. FORCE RLS ohne Policies wuerde '
+      'die Anwendung stilllegen. Erst Rollenrechte klaeren, dann erneut.';
+  END IF;
+
   FOREACH t IN ARRAY ziele LOOP
     -- Die Live-Tabellenliste deckt sich nicht mit dem Repo. Ein ALTER TABLE
     -- auf eine fehlende Tabelle ist ein harter Fehler und wuerde die ganze
@@ -97,6 +136,11 @@ BEGIN
       -- FORCE gilt auch fuer den Tabellen-Eigentuemer. Ohne das umgeht ein
       -- Zugriff unter der Owner-Rolle die Policies stillschweigend.
       EXECUTE format('ALTER TABLE public.%I FORCE ROW LEVEL SECURITY', t);
+      -- PUBLIC zuerst: anon und authenticated erben jedes Recht, das an
+      -- PUBLIC haengt. Ein REVOKE nur von anon laesst ein PUBLIC-GRANT
+      -- unberuehrt — die Tabelle bliebe offen, und die Gegenprobe unten
+      -- (grantee IN ('anon','authenticated')) wuerde das nicht einmal sehen.
+      EXECUTE format('REVOKE ALL ON public.%I FROM PUBLIC', t);
       EXECUTE format('REVOKE ALL ON public.%I FROM anon', t);
       EXECUTE format('REVOKE ALL ON public.%I FROM authenticated', t);
       RAISE NOTICE 'RLS + REVOKE gesetzt: %', t;
@@ -135,7 +179,7 @@ COMMIT;
 --   SELECT table_name, grantee, privilege_type
 --     FROM information_schema.role_table_grants
 --    WHERE table_schema = 'public'
---      AND grantee IN ('anon','authenticated')
+--      AND grantee IN ('anon','authenticated','PUBLIC')
 --      AND table_name IN ('salons','services','bookings','booking_policies',
 --                         'staff','promo_codes','rental_bookings',
 --                         'error_logs','newsletter_sends');
