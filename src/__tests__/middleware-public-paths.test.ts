@@ -31,6 +31,7 @@ describe('isPublicPath — oeffentliche API-Pfade', () => {
     ['/api/auth/session', 'NextAuth'],
     ['/api/products', 'Shop-Katalog'],
     ['/api/public-stats', 'Startseiten-Zahlen'],
+    ['/api/rental-listings', 'oeffentliche Inseratssuche'],
   ])('%s ist oeffentlich (%s)', (pathname) => {
     expect(isPublicPath(pathname)).toBe(true)
   })
@@ -161,5 +162,47 @@ describe('isPublicPath — die Ketten dieses Auftrags', () => {
     // Lesen ist oeffentlich, Schreiben nicht — sonst koennte jeder anonym
     // Anfragen im Namen niemandes erzeugen.
     expect(isPublicPath('/api/rental-requests')).toBe(false)
+  })
+
+  /**
+   * Die Mietsuche des Marktplatzes — der Weg VOR dem Inserat.
+   *
+   * `/api/rental-listings` antwortete anonymen Besuchern live mit
+   * 401 `{"error":"Nicht authentifiziert"}`, obwohl der Handler keine Session
+   * prueft und sich im Kopfkommentar ausdruecklich als oeffentlich
+   * beschreibt. Die drei Seiten, die davon leben, liegen selbst unter dem
+   * oeffentlichen Prefix `/mieter/` und laden mit 200 — sichtbar war der
+   * Fehler deshalb nur an einer leeren Liste, nicht an einer Fehlerseite.
+   *
+   * `route.e2e.test.ts` und `gesperrter-salon.test.ts` importieren den
+   * Handler direkt und laufen an der Middleware vorbei; sie waren gruen,
+   * waehrend die Route in der Produktion unerreichbar war. Genau diese
+   * Luecke schliesst der Test hier.
+   */
+  it('traegt den oeffentlichen Weg in die Mietsuche', () => {
+    const chain = [
+      '/mieter/mein-bereich/suchen',
+      '/mieter/mein-bereich/angebote',
+      '/mieter/mein-bereich/favoriten',
+      '/api/rental-listings',
+    ]
+
+    for (const step of chain) {
+      expect(isPublicPath(step), `${step} muss ohne Login erreichbar sein`).toBe(true)
+    }
+  })
+
+  it('oeffnet mit /api/rental-listings keine Nachbarroute', () => {
+    // Der Eintrag steht als EXAKTER Pfad in `publicPaths`, nicht als Prefix.
+    // Waere er ein Prefix ohne Slash, oeffnete er jede kuenftige Route,
+    // deren Name mit diesem Namen beginnt — und Unterpfade, die es hier gar
+    // nicht gibt: die Route exportiert ausschliesslich GET.
+    expect(isPublicPath('/api/rental-listings/geheim')).toBe(false)
+    expect(isPublicPath('/api/rental-listings-intern')).toBe(false)
+
+    // Die schreibenden Nachbarn des Miet-Marktplatzes bleiben unberuehrt.
+    expect(isPublicPath('/api/rental-bookings')).toBe(false)
+    expect(isPublicPath('/api/rental-requests')).toBe(false)
+    expect(isPublicPath('/api/rental-equipment')).toBe(false)
   })
 })

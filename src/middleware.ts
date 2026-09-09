@@ -127,6 +127,32 @@ const publicPaths = [
   '/shop',
   '/statistik',
   '/api/auth',
+  // Die oeffentliche Inseratssuche. Der Handler prueft bewusst keine Session
+  // (Kopfkommentar von src/app/api/rental-listings/route.ts: „Bewusst
+  // oeffentlich … keine Besitzer-IDs, keine Kontaktdaten"), stand aber weder
+  // hier noch in `publicPrefixes` — der Default-Deny fuer /api/* hat jeden
+  // anonymen Aufruf mit 401 beantwortet. Nachgewiesen gegen die Produktion
+  // am 09.09.2026:
+  //
+  //   GET https://www.chairmatch.de/api/rental-listings
+  //   → 401 {"error":"Nicht authentifiziert","code":"UNAUTHORIZED"}
+  //
+  // Betroffen waren drei Seiten, die selbst ueber den oeffentlichen Prefix
+  // `/mieter/` erreichbar sind und alle live mit 200 laden — nur der Fetch
+  // dahinter lief ins Leere: /mieter/mein-bereich/suchen (die Mietsuche des
+  // Marktplatzes), /angebote und /favoriten.
+  //
+  // Dieselbe Klasse wie `/api/rental-equipment/[id]` und `/api/uploads/[id]`
+  // im August: die Route-Tests importieren den Handler direkt und laufen
+  // deshalb an der Middleware vorbei — sie koennen diesen Fehler gar nicht
+  // sehen. Die Gegenprobe steht in
+  // src/__tests__/middleware-public-paths.test.ts.
+  //
+  // Bewusst als exakter Pfad in `publicPaths` und NICHT als Prefix: die Route
+  // exportiert ausschliesslich GET, es gibt keine Unterpfade, und ein
+  // Prefix-Eintrag ohne Slash wuerde zusaetzlich jede kuenftige Route
+  // oeffnen, deren Name mit diesem Namen beginnt.
+  '/api/rental-listings',
   // SEO/Marketing-Pages (alle public!)
   '/was-ist-chairmatch',
   '/provisionsmodell',
