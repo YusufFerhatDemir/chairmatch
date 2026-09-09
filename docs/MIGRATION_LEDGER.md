@@ -43,6 +43,37 @@
 |---|---|---|---|
 | `20260902_rls_restliche_tabellen.sql` | 20260902 | P3 | `ENABLE`+`FORCE ROW LEVEL SECURITY` und `REVOKE ALL FROM anon, authenticated` auf den neun Live-Tabellen, fuer die es im Repo kein `ENABLE ROW LEVEL SECURITY` gibt: `salons`, `services`, `bookings`, `booking_policies`, `staff`, `promo_codes`, `rental_bookings`, `error_logs`, `newsletter_sends`. Antwort auf die Dashboard-Meldung „RLS disabled in public". Keine Policies — kein Client liest diese Tabellen direkt. |
 | `20260828170738_benachrichtigungswege_haertung.sql` | 20260828170738 | CM23 | `push_subscriptions.updated_at`; Arbiter-fähiger UNIQUE auf `wait_list(email, city)`; 6 CHECK-Constraints (Endpunkt https, Schlüsselmaterial, E-Mail normalisiert, Stadt nicht leer, `choices` vollständig); `DROP POLICY cookie_consents_insert_anon`; `REVOKE ALL … FROM anon` auf `push_subscriptions`, `notification_log`, `wait_list`, `cookie_consents` |
+| `20260910_anon_insert_lockdown.sql` | 20260910 | P7 | `REVOKE ALL FROM anon, PUBLIC` + `ENABLE ROW LEVEL SECURITY` auf `visit_logs` und `submission_tickets`. **Gemessen, nicht vermutet:** beide nehmen am 2026-09-10 einen anonymen INSERT an (`POST {}` → 201; mit ungueltiger UUID → 22P02 statt 42501, also existiert das Recht). GET antwortet dagegen 401 — reines Lesen haette die Luecke nicht gefunden. Beide Tabellen werden ausschliesslich ueber `getSupabaseAdmin()` bedient, das REVOKE bricht nichts. **Nicht abgedeckt von `20260902_rls_restliche_tabellen.sql`** — die nennt neun andere Tabellen. Gegenprobe: `bash scripts/anon-perimeter-probe.sh` |
+
+### P7 — Der Perimeter war nur beim LESEN dicht (2026-09-10)
+
+`bash scripts/anon-perimeter-probe.sh` misst alle 47 bekannten Tabellen mit
+dem oeffentlichen Schluessel — lesend UND schreibend. Ergebnis:
+
+```
+  submission_tickets   GET 401  INSERT 22P02   ← ANON KANN SCHREIBEN
+  visit_logs           GET 401  INSERT 22P02   ← ANON KANN SCHREIBEN
+  categories           GET 200  INSERT 42501   (lesbar — bewusst so)
+
+  47 Tabellen geprueft · unerwartet lesbar: 0 · beschreibbar: 2
+```
+
+Das Lesen ist also dicht (46 von 47 antworten 401, `categories` ist eine
+bewusste Ausnahme). Beim Schreiben standen zwei Tueren offen.
+
+**Warum das lange unbemerkt blieb:** Jede bisherige Sonde in diesem Repo hat
+nur gelesen. Eine Tabelle kann `anon` mit 401 antworten und trotzdem ein
+INSERT-Recht tragen — genau diese Kombination lag hier vor. Auch die erste
+Fassung der neuen Sonde meldete noch „Perimeter dicht": sie testete den
+INSERT mit `Prefer: return=representation`, und der antwortet bei fehlendem
+SELECT ebenfalls 401. Erst der Umweg ueber eine ungueltige UUID trennt
+„kein Recht" (42501) von „Recht vorhanden, Anweisung abgebrochen" (22P02) —
+und schreibt dabei nichts.
+
+**Rueckstand aus der Messung:** Die erste, noch nicht seiteneffektfreie
+Probe hat je Tabelle EINE leere Zeile erzeugt (`POST {}` → 201). Sie sind
+mit dem anon-Key weder lesbar noch loeschbar; das Aufraeumen steht als
+SQL am Ende von `20260910_anon_insert_lockdown.sql`.
 
 ### CM23 — Teilbefund aus der Produktionssonde (2026-08-28)
 
