@@ -56,6 +56,35 @@ const FAQS = [
   { question: 'Brauche ich ein Gewerbe?', answer: 'Ja — als selbstständiger Beauty-Profi. Bei Friseur Meisterbrief Pflicht. Bei Kosmetik/Nail/Lash reicht einfache Gewerbeanmeldung (online bei deinem Gewerbeamt, ~30€).' },
   { question: 'Wie funktioniert die Bezahlung?', answer: 'Du zahlst nach Buchungsbestätigung via Stripe (Kreditkarte, Apple Pay, Google Pay, SEPA). Erst nach Zahlung bekommst du Adresse + Zugangscode des Salons.' },
   { question: 'Kann ich kurzfristig stornieren?', answer: 'Bis 48h vorher kostenlos. Danach 50-100% des Tagespreises (steht im Listing). Bei Krankheit (mit Attest): immer kostenlos.' },
+  /*
+   * BUSINESS_DECISION_REQUIRED — „Streit-Schlichtung in 48h" ist eine
+   * Zusage ohne Vorgang.
+   *
+   * Im Code gibt es keinen Schlichtungsweg. Volltextsuche „dispute" in
+   * `src/`: drei Treffer, und keiner davon ist einer — zwei stammen aus
+   * Stripes eigenen Ereignissen (`charge.dispute.*` im Webhook, die
+   * Rueckstellung im Payout-Cron), der dritte ist die Audit-Log-Ansicht.
+   * Es gibt keine Tabelle fuer einen Fall, keinen Status, keine Frist,
+   * keine Benachrichtigung und niemanden, der 48 Stunden zaehlt.
+   *
+   * Dieselbe Zusage steht in `src/lib/seo-data/magazin.ts` („Streit-
+   * Schlichtung in 48h, Stripe-Zahlungs-Garantie" und „integrierte
+   * Schlichtung"). Der zweite Teil ist zusaetzlich falsch: Stripe ist in
+   * Produktion nicht konfiguriert, es gibt also auch keine Zahlungsgarantie.
+   *
+   * Zu entscheiden ist, was zuerst kommt — der Vorgang oder der Satz:
+   *   1. Schlichtung bauen (Fall, Frist, Zustaendiger, Protokoll) und die
+   *      48 Stunden dann wirklich einhalten.
+   *   2. Den Satz auf das zuruecknehmen, was es gibt: eine E-Mail-Adresse,
+   *      an die man sich wenden kann.
+   * Was NICHT geht, ist die Frist stehen zu lassen, ohne dass jemand sie
+   * zaehlt.
+   *
+   * Die Stornoregel in der Antwort darueber ist davon nicht betroffen und
+   * an anderer Stelle schon benannt: `cancelBooking` erklaert, dass es fuer
+   * eine Stornogebuehr keine Spalte gibt (`booking_policies` fuehrt nur
+   * `no_show_fee_cents`) und der Fall deshalb ueber /api/admin/refund geht.
+   */
   { question: 'Was wenn der Salon nicht passt?', answer: 'Bewerte ehrlich nach der Buchung. Bei schwerwiegenden Mängeln (verdreckte Ausstattung, vertragsbruch): Reklamation per Email → Streit-Schlichtung in 48h, oft mit Gutschein-Ausgleich.' },
   { question: 'Wie viele Buchungen pro Monat sind realistisch?', answer: 'Anfänger 8-12 Tage/Monat. Etablierte mit Stammkunden 18-22 Tage/Monat. Bei Vollzeit-Stuhl-Miete im Schnitt 20 Tage/Monat möglich.' },
   { question: 'Kann ich meine eigenen Kunden mitbringen?', answer: 'Ja — der Kundenstamm gehört dir. Du buchst den Stuhl, deine Kunden kommen zu DIR (nicht zum Salon). Achte aber auf "Konkurrenzschutz"-Klauseln im Vertrag — die meisten haben keine.' },
