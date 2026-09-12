@@ -11,6 +11,8 @@
  * Heilberufe.
  */
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   DIMENSIONEN,
   NACHWEIS_ZU_PRUEFEN,
@@ -286,5 +288,69 @@ describe('Welche Kategorien einen Qualifikationsnachweis brauchen', () => {
     for (const [k, v] of Object.entries(NACHWEIS_ZU_PRUEFEN)) {
       expect(v.anlass.length, k).toBeGreaterThan(20)
     }
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// STEHENDE REGEL: darfAlsVerifiziertGelten() ist NIEMALS true
+// ════════════════════════════════════════════════════════════════════
+/*
+ * Die Regel ist heute doppelt gesichert — durch den Rueckgabetyp
+ * (`{ erlaubt: false }`, ein Literaltyp) und durch den Rumpf. Der Typ ist
+ * die staerkere der beiden Sicherungen, aber er ist auch die, die man
+ * versehentlich aufweicht: ein `boolean` statt `false` in der Signatur
+ * faellt beim Lesen kaum auf, und ab dann schweigt der Compiler.
+ *
+ * Deshalb hier beides: der Rumpf wird ueber ALLE moeglichen Profile
+ * geprueft, und die Signatur selbst wird im Quelltext festgenagelt.
+ */
+const STUFEN = ['nicht_erhoben', 'offen', 'bestaetigt', 'abgelehnt'] as const
+
+describe('Stehende Regel: das oeffentliche Abzeichen bleibt zu', () => {
+  it('fuer JEDE der 1024 moeglichen Profilkombinationen', () => {
+    // 4 Stufen hoch 5 Dimensionen. Vollstaendig statt stichprobenartig —
+    // die Menge ist klein genug, und „fuer alle" ist die Aussage, die die
+    // stehende Regel verlangt.
+    let geprueft = 0
+    for (const email of STUFEN)
+      for (const telefon of STUFEN)
+        for (const identitaet of STUFEN)
+          for (const gewerbe of STUFEN)
+            for (const qualifikation of STUFEN) {
+              const urteil = darfAlsVerifiziertGelten({
+                email,
+                telefon,
+                identitaet,
+                gewerbe,
+                qualifikation,
+              })
+              expect(urteil.erlaubt).toBe(false)
+              geprueft++
+            }
+    expect(geprueft).toBe(4 ** 5)
+  })
+
+  it('nennt immer den Grund — sonst ist die Ablehnung nicht nachvollziehbar', () => {
+    const urteil = darfAlsVerifiziertGelten(verifikationsprofil(ALLE_BESTAETIGT))
+    expect(urteil.grund).toMatch(/BUSINESS_DECISION_REQUIRED/)
+    expect(urteil.grund).toMatch(/verification\.ts/)
+  })
+
+  it('die Signatur gibt `false` zurueck, nicht `boolean`', () => {
+    // Waere hier `boolean`, koennte jemand den Rumpf aendern, ohne dass der
+    // Compiler etwas sagt. Der Literaltyp ist die eigentliche Sicherung —
+    // dieser Test bewacht sie.
+    const quelle = readFileSync(
+      join(process.cwd(), 'src/modules/verification/verification.ts'),
+      'utf8',
+    )
+    const signatur = quelle.slice(
+      quelle.indexOf('export function darfAlsVerifiziertGelten'),
+      quelle.indexOf('export function istVonPlattformFreigeschaltet'),
+    )
+    expect(signatur).toContain('erlaubt: false')
+    expect(signatur).not.toMatch(/erlaubt:\s*boolean/)
+    // Und im Rumpf steht nirgends ein `true`.
+    expect(signatur).not.toMatch(/erlaubt:\s*true/)
   })
 })
