@@ -252,3 +252,181 @@ export const STUFEN_TEXT: Record<Verifikationsstufe, string> = {
   bestaetigt: 'bestätigt',
   abgelehnt: 'abgelehnt',
 }
+
+// ══════════════════════════════════════════════════════════════════════
+// LEGACY-UEBERGANG UND SPEICHERFORM
+// ══════════════════════════════════════════════════════════════════════
+
+/**
+ * Die Stufe, wie sie in der Datenbank steht (`profiles.verification_tier`,
+ * `salons.verification_tier`).
+ *
+ * Grossgeschrieben und englisch, weil es eine Spaltenform ist und dem
+ * Schema folgt (`is_verified`, `no_show_fee_cents`, …). Die Rechnung
+ * daneben laeuft weiter auf `Vertrauensstufe` — `tierAusVertrauensstufe`
+ * uebersetzt.
+ */
+export type VerificationTier =
+  | 'UNVERIFIED'
+  | 'BASIC'
+  | 'CONTACT'
+  | 'BUSINESS'
+  | 'PROFESSIONAL'
+
+const TIER_ZU_STUFE: Record<VerificationTier, Vertrauensstufe> = {
+  UNVERIFIED: 'keine',
+  BASIC: 'basis',
+  CONTACT: 'kontakt',
+  BUSINESS: 'geschaeftlich',
+  PROFESSIONAL: 'fachlich',
+}
+
+const STUFE_ZU_TIER = Object.fromEntries(
+  Object.entries(TIER_ZU_STUFE).map(([t, s]) => [s, t]),
+) as Record<Vertrauensstufe, VerificationTier>
+
+export function tierAusVertrauensstufe(s: Vertrauensstufe): VerificationTier {
+  return STUFE_ZU_TIER[s]
+}
+
+export function vertrauensstufeAusTier(t: VerificationTier): Vertrauensstufe {
+  return TIER_ZU_STUFE[t]
+}
+
+/**
+ * Der Altbestand — und warum er auf `UNVERIFIED` landet.
+ *
+ * Heute traegt JEDER freigeschaltete Salon `is_verified = true`. Die
+ * naheliegende Migration waere, daraus eine Stufe zu machen. Sie waere
+ * falsch: hinter dem Flag steht ein Admin-Klick und kein Nachweis, und
+ * jede Stufe ausser `UNVERIFIED` wuerde behaupten, es habe eine Pruefung
+ * gegeben.
+ *
+ * Deshalb zwei Felder statt einem:
+ *
+ *   verification_tier = 'UNVERIFIED'   — was geprueft wurde: nichts
+ *   legacy_verified   = true           — dass die Plattform freigegeben hat
+ *
+ * Damit geht keine Information verloren (der Admin-Klick bleibt sichtbar
+ * und ist weiter auswertbar), und trotzdem behauptet niemand eine Pruefung,
+ * die nicht stattgefunden hat. Die oeffentliche Anzeige haengt an `tier`,
+ * nicht an `legacy_verified`.
+ */
+export interface LegacyUebergang {
+  verification_tier: VerificationTier
+  legacy_verified: boolean
+}
+
+export function legacyUebergang(
+  salon: { is_verified?: boolean | null } | null | undefined,
+): LegacyUebergang {
+  return {
+    verification_tier: 'UNVERIFIED',
+    legacy_verified: istVonPlattformFreigeschaltet(salon),
+  }
+}
+
+/**
+ * Der Nachweis hinter einer Stufe.
+ *
+ * Eine Stufe ohne diese Angaben ist eine Behauptung ohne Vorgang — also
+ * genau das, was `is_verified` heute ist. `verification_evidence` nennt die
+ * Art des Belegs (nicht den Beleg selbst: der liegt in `documents`).
+ */
+export interface VerificationNachweis {
+  verified_at: string | null
+  verified_by: string | null
+  /** z. B. 'gewerbeanmeldung', 'approbation', 'handelsregister', 'nisv-fachkunde' */
+  verification_evidence: string | null
+  /** Nachweise laufen ab — eine Fachkunde von 2019 belegt heute nichts. */
+  verification_expiry: string | null
+}
+
+/** Ist der Nachweis am Stichtag noch gueltig? Ohne Ablauf: unbefristet. */
+export function nachweisGueltig(
+  n: Pick<VerificationNachweis, 'verification_expiry'> | null | undefined,
+  stichtag: Date = new Date(),
+): boolean {
+  const bis = n?.verification_expiry
+  if (!bis) return true
+  const d = new Date(bis)
+  if (Number.isNaN(d.getTime())) return false // unlesbares Datum belegt nichts
+  return d.getTime() >= stichtag.getTime()
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// WELCHE KATEGORIEN EINEN QUALIFIKATIONSNACHWEIS BRAUCHEN
+// ══════════════════════════════════════════════════════════════════════
+
+/**
+ * BUSINESS_DECISION_REQUIRED — die RECHTLICHE Einordnung gehoert geprueft,
+ * nicht hier entschieden.
+ *
+ * Was dieses Modul tut: es benennt die Kategorien, bei denen die Frage
+ * ueberhaupt gestellt werden muss, und sagt warum. Ob und in welcher Form
+ * ChairMatch den Nachweis verlangen MUSS, ist eine Rechtsfrage.
+ *
+ * Die Kategorien kommen aus `CATEGORIES` (src/lib/constants.ts) und aus der
+ * Tabelle `categories` — beide fuehren dieselben elf Eintraege.
+ */
+export type Nachweisgrund =
+  /** Heilkunde am Menschen. */
+  | 'heilberuf'
+  /** Zulassungspflichtiges Handwerk (Meisterpflicht). */
+  | 'handwerk'
+  /** Geraetegebundene Fachkunde (Laser/IPL). */
+  | 'geraetefachkunde'
+
+export interface Nachweisbedarf {
+  grund: Nachweisgrund
+  /** Woran es haengt — kurz, damit die Pruefung einen Ansatzpunkt hat. */
+  anlass: string
+}
+
+/**
+ * Kategorien, bei denen ein Qualifikationsnachweis zu pruefen ist.
+ *
+ * Bewusst NICHT „Kategorien, die einen Nachweis brauchen": ob sie ihn
+ * brauchen, steht hier nicht fest.
+ */
+export const NACHWEIS_ZU_PRUEFEN: Readonly<Record<string, Nachweisbedarf>> = {
+  arzt: {
+    grund: 'heilberuf',
+    anlass: 'Arzt / Klinik — Heilkunde am Menschen, Approbation.',
+  },
+  opraum: {
+    grund: 'heilberuf',
+    anlass: 'OP-Raum — chirurgische Eingriffe, dazu Hygiene- und Raumanforderungen.',
+  },
+  aesthetik: {
+    grund: 'heilberuf',
+    anlass:
+      'Botox und Filler sind verschreibungspflichtige Arzneimittel bzw. ' +
+      'Eingriffe, die je nach Verfahren Aerzten vorbehalten sind.',
+  },
+  kosmetik: {
+    grund: 'geraetefachkunde',
+    anlass:
+      'Die Unterzeile der Kategorie nennt ausdruecklich „Laser". Fuer Laser- ' +
+      'und IPL-Anwendungen gilt in Deutschland eine Fachkunde-Anforderung ' +
+      '(NiSV) — ob sie diese Kategorie trifft, haengt am konkreten Angebot.',
+  },
+  friseur: {
+    grund: 'handwerk',
+    anlass:
+      'Friseur ist ein zulassungspflichtiges Handwerk (Meisterpflicht bzw. ' +
+      'angestellter Betriebsleiter). Die eigenen Magazin-Artikel sagen das ' +
+      'bereits — der Nachweis wird nirgends verlangt.',
+  },
+}
+
+/** Braucht diese Kategorie eine Nachweis-Entscheidung? */
+export function nachweisbedarf(kategorie: string | null | undefined): Nachweisbedarf | null {
+  if (!kategorie) return null
+  return NACHWEIS_ZU_PRUEFEN[kategorie.toLowerCase()] ?? null
+}
+
+/** Die drei Kategorien, bei denen es um Heilkunde geht. */
+export function istHeilberuf(kategorie: string | null | undefined): boolean {
+  return nachweisbedarf(kategorie)?.grund === 'heilberuf'
+}

@@ -13,10 +13,17 @@
 import { describe, it, expect } from 'vitest'
 import {
   DIMENSIONEN,
+  NACHWEIS_ZU_PRUEFEN,
   darfAlsVerifiziertGelten,
+  istHeilberuf,
   istVonPlattformFreigeschaltet,
+  legacyUebergang,
+  nachweisGueltig,
+  nachweisbedarf,
+  tierAusVertrauensstufe,
   verifikationsprofil,
   vertrauensstufe,
+  vertrauensstufeAusTier,
   type Dimension,
 } from '@/modules/verification/verification'
 
@@ -169,6 +176,115 @@ describe('Alle Dimensionen sind abgedeckt', () => {
     for (const d of DIMENSIONEN) {
       const p = verifikationsprofil({ ...ALLE_BESTAETIGT, abgelehnt: [d as Dimension] })
       expect(p[d], d).toBe('abgelehnt')
+    }
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// Legacy-Uebergang, Nachweis, Nachweisbedarf
+// ════════════════════════════════════════════════════════════════════
+
+describe('Der Altbestand landet auf UNVERIFIED', () => {
+  it('is_verified=true wird zu UNVERIFIED + legacy_verified=true', () => {
+    // Der Kern der Migration: der Admin-Klick geht nicht verloren, wird
+    // aber nicht zur Pruefung erklaert.
+    expect(legacyUebergang({ is_verified: true })).toEqual({
+      verification_tier: 'UNVERIFIED',
+      legacy_verified: true,
+    })
+  })
+
+  it('ohne Flag bleibt legacy_verified false', () => {
+    for (const s of [{ is_verified: false }, { is_verified: null }, {}, null, undefined]) {
+      expect(legacyUebergang(s)).toEqual({
+        verification_tier: 'UNVERIFIED',
+        legacy_verified: false,
+      })
+    }
+  })
+
+  it('KEIN Salon bekommt durch die Migration eine Stufe', () => {
+    // Waere hier irgendwo etwas anderes als UNVERIFIED moeglich, waere aus
+    // einem Klick eine Pruefung geworden.
+    for (const s of [{ is_verified: true }, { is_verified: false }, null]) {
+      expect(legacyUebergang(s).verification_tier).toBe('UNVERIFIED')
+    }
+  })
+})
+
+describe('Tier und Vertrauensstufe sind dasselbe in zwei Schreibweisen', () => {
+  it('hin und zurueck ergibt das Original', () => {
+    for (const s of ['keine', 'basis', 'kontakt', 'geschaeftlich', 'fachlich'] as const) {
+      expect(vertrauensstufeAusTier(tierAusVertrauensstufe(s))).toBe(s)
+    }
+  })
+
+  it('nichts Geprueftes ist UNVERIFIED', () => {
+    expect(tierAusVertrauensstufe(vertrauensstufe(verifikationsprofil({})))).toBe('UNVERIFIED')
+  })
+
+  it('volle Verifikation ist PROFESSIONAL', () => {
+    expect(tierAusVertrauensstufe(vertrauensstufe(verifikationsprofil(ALLE_BESTAETIGT)))).toBe(
+      'PROFESSIONAL',
+    )
+  })
+})
+
+describe('Nachweise laufen ab', () => {
+  const jetzt = new Date('2026-09-12T00:00:00.000Z')
+
+  it('ohne Ablaufdatum gilt der Nachweis unbefristet', () => {
+    expect(nachweisGueltig({ verification_expiry: null }, jetzt)).toBe(true)
+    expect(nachweisGueltig(null, jetzt)).toBe(true)
+  })
+
+  it('ein abgelaufener Nachweis belegt nichts mehr', () => {
+    // Eine NiSV-Fachkunde von 2019 belegt heute nichts.
+    expect(nachweisGueltig({ verification_expiry: '2026-09-11T23:59:59.000Z' }, jetzt)).toBe(false)
+    expect(nachweisGueltig({ verification_expiry: '2027-01-01T00:00:00.000Z' }, jetzt)).toBe(true)
+  })
+
+  it('ein unlesbares Datum belegt auch nichts', () => {
+    expect(nachweisGueltig({ verification_expiry: 'demnaechst' }, jetzt)).toBe(false)
+  })
+})
+
+describe('Welche Kategorien einen Qualifikationsnachweis brauchen', () => {
+  it('die drei Heilberuf-Kategorien sind erkannt', () => {
+    for (const k of ['arzt', 'opraum', 'aesthetik']) {
+      expect(istHeilberuf(k), k).toBe(true)
+      expect(nachweisbedarf(k)?.grund, k).toBe('heilberuf')
+    }
+  })
+
+  it('Kosmetik haengt an der Geraetefachkunde, nicht an der Heilkunde', () => {
+    // Die Kategorie-Unterzeile nennt ausdruecklich „Laser".
+    expect(nachweisbedarf('kosmetik')?.grund).toBe('geraetefachkunde')
+    expect(istHeilberuf('kosmetik')).toBe(false)
+  })
+
+  it('Friseur ist zulassungspflichtiges Handwerk', () => {
+    expect(nachweisbedarf('friseur')?.grund).toBe('handwerk')
+    expect(istHeilberuf('friseur')).toBe(false)
+  })
+
+  it('Kategorien ohne Nachweisbedarf liefern null', () => {
+    for (const k of ['barber', 'nail', 'massage', 'lash', 'angebote', 'termin']) {
+      expect(nachweisbedarf(k), k).toBeNull()
+    }
+  })
+
+  it('unbekannt oder leer ist kein Bedarf', () => {
+    expect(nachweisbedarf(null)).toBeNull()
+    expect(nachweisbedarf('')).toBeNull()
+    expect(nachweisbedarf('gibt-es-nicht')).toBeNull()
+  })
+
+  it('jeder Eintrag nennt einen Anlass', () => {
+    // Ein Nachweisbedarf ohne Begruendung waere genau die Sorte Behauptung,
+    // die das Modul abschaffen soll.
+    for (const [k, v] of Object.entries(NACHWEIS_ZU_PRUEFEN)) {
+      expect(v.anlass.length, k).toBeGreaterThan(20)
     }
   })
 })

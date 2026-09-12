@@ -61,3 +61,19 @@ jobs:
       # ein neuer FEHLER faellt jetzt hier auf statt gar nicht.
       - name: Lint (nur Fehler)
         run: npm run lint
+
+      # Bewusst OHNE `|| true` und ohne `continue-on-error`: ein gefundener
+      # Schluessel muss den Lauf rot faerben, sonst ist der Scan Zierde.
+      #
+      # Er prueft den GESAMTEN getrackten Bestand, nicht nur den Diff — der
+      # Pre-Commit-Guard sieht nur, was hinzukommt, und war deshalb blind
+      # fuer `index_legacy.html`, das seit dem 08.03.2026 einen gueltigen
+      # Supabase-anon-Key fuer ein fremdes Projekt trug.
+      #
+      # NICHT hier drin: `scripts/anon-perimeter-probe.sh`. Die Sonde
+      # braucht den anon-Key aus .env.local, und sie endet derzeit
+      # absichtlich mit Exit 1, weil `spatial_ref_sys` offen ist — sie wuerde
+      # jeden Deploy blockieren, bis jemand mit Dashboard-Zugang die
+      # Migration anwendet. Sie gehoert von Hand gefahren.
+      - name: Secret-Scan (gesamter Bestand)
+        run: npm run secret-scan

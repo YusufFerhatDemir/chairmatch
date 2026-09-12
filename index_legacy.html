@@ -197,7 +197,20 @@ button:focus-visible,.inp:focus-visible,.card:focus-visible{outline:2px solid va
 "use strict";
 // ═══════════════ SUPABASE CLIENT ═══════════════
 const SUPABASE_URL="https://vlrviyrgggzhayepfmop.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZscnZpeXJnZ2d6aGF5ZXBmbW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODIyNzYsImV4cCI6MjA4ODE1ODI3Nn0.pvcZqzAm-ARWVsSv6hKUnTwZeggVJcwYN---4jUfyA0";
+/* ENTFERNT 12.09.2026 — hier stand ein FUNKTIONIERENDER Supabase-anon-Key
+   fuer das Projekt vlrviyrgggzhayepfmop. Nicht ChairMatch: ChairMatch ist
+   pwdbjqfpgumyfktbfswg. Der Schluessel lag seit dem 08.03.2026 in diesem
+   OEFFENTLICHEN Repository, und er war am 12.09.2026 noch gueltig
+   (GoTrue v2.196.0 antwortete darauf).
+
+   ACHTUNG: Das Entfernen hier reicht NICHT. Die git-Historie ist
+   oeffentlich, der Schluessel steht weiter in Commit 2d89dc7. Er gehoert
+   im betroffenen Projekt ROTIERT.
+
+   Diese Datei ist laut CLAUDE.md nur noch eine Lesereferenz auf den alten
+   Vanilla-JS-Stand, wird nicht ausgeliefert (/index_legacy.html antwortet
+   live mit 404) und von keinem Produktivpfad geladen. */
+const SUPABASE_KEY="";
 let sb=null;
 try{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);}catch(e){console.warn("⚠️ Supabase CDN not loaded, running in offline mode");}
 let currentUser=null;

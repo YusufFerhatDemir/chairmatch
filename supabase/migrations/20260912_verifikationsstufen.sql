@@ -1,9 +1,9 @@
 -- 20260912_verifikationsstufen.sql
 --
 -- NICHT ANGEWENDET — in dieser Session gibt es keinen DDL-Zugang
--- (service_role rotiert, psql ohne IPv6-Route zum AAAA-only-Host, CLI ohne
--- Token, kein Supabase-MCP). Anwenden kann das nur jemand mit
--- Dashboard-Zugang.
+-- (service_role rotiert, psql ohne IPv6-Route zum AAAA-only-Host, Pooler
+-- ENOTFOUND, CLI ohne Token, kein Supabase-MCP). Anwenden kann das nur
+-- jemand mit Dashboard-Zugang.
 --
 -- ══════════════════════════════════════════════════════════════════════
 -- WOFUER
@@ -12,94 +12,129 @@
 -- `salons.is_verified` ist heute EIN Bit und traegt eine Aussage, die es
 -- nicht tragen kann. Gesetzt wird es an einer einzigen Stelle
 -- (`src/app/api/admin/route.ts`, Aktion `salon-status` = `approved`), und
--- diese Stelle verlangt nichts — keinen Ausweis, keine Gewerbeanmeldung,
--- keinen Registerauszug. Dem gegenueber stehen 100 Stellen in 35 Dateien,
--- die oeffentlich „verifiziert" sagen, davon 21 ueber Heilberufe.
+-- diese Stelle verlangt nichts. Dem gegenueber stehen 100 Stellen in 35
+-- Dateien, die oeffentlich „verifiziert" sagen, davon 21 ueber Heilberufe.
 --
--- Das Stufenmodell dazu steht bereits im Code und ist getestet:
--- `src/modules/verification/verification.ts`. Es rechnet heute aus Signalen,
--- die in drei verschiedenen Systemen liegen, und hat fuer alles, wofuer es
--- keine Quelle gibt, den ausdruecklichen Zustand `nicht_erhoben`. Diese
--- Migration gibt ihm einen Speicher.
---
--- WAS ES HEUTE AN QUELLEN GIBT (gemessen 12.09.2026):
---   email          auth.users.email_confirmed_at   — vorhanden, nicht gespiegelt
---   telefon        phone_verifications.verified    — vorhanden
---   identitaet     nichts
---   gewerbe        documents / authorities_packs   — Upload ja, Pruefung nein
---   qualifikation  nichts
+-- Das Stufenmodell steht im Code und ist getestet:
+-- `src/modules/verification/verification.ts`.
 --
 -- ══════════════════════════════════════════════════════════════════════
--- WAS DIESE MIGRATION BEWUSST NICHT TUT
+-- DER ALTBESTAND LANDET AUF 'UNVERIFIED' — UND DAS IST DER PUNKT
 -- ══════════════════════════════════════════════════════════════════════
 --
--- Sie fasst `is_verified` NICHT an. Das Feld bleibt, was es ist — die
--- Freigabe durch die Plattform —, und `salonIsPubliclyVisible` /
--- `salonAcceptsBusiness` haengen weiter an `is_active`, nicht hieran.
--- Wuerde diese Migration `is_verified` umdeuten oder loeschen, aenderte sich
--- schlagartig, was auf 100 oeffentlichen Stellen behauptet wird — und zwar
+-- Heute traegt JEDER freigeschaltete Salon `is_verified = true`. Die
+-- naheliegende Migration waere, daraus eine Stufe zu machen. Sie waere
+-- falsch: hinter dem Flag steht ein Admin-Klick und kein Nachweis, und jede
+-- Stufe ausser `UNVERIFIED` wuerde eine Pruefung behaupten, die es nie gab.
+--
+-- Deshalb ZWEI Felder statt einem:
+--
+--   verification_tier = 'UNVERIFIED'   -- was geprueft wurde: nichts
+--   legacy_verified   = true           -- dass die Plattform freigegeben hat
+--
+-- Es geht damit keine Information verloren — der Admin-Klick bleibt
+-- sichtbar und auswertbar —, und trotzdem behauptet niemand eine Pruefung.
+-- Die oeffentliche Anzeige haengt an `verification_tier`, nie an
+-- `legacy_verified`.
+--
+-- `is_verified` selbst bleibt unveraendert stehen. Es zu loeschen wuerde
+-- schlagartig aendern, was auf 100 oeffentlichen Stellen behauptet wird,
 -- ohne dass jemand entschieden haette, was dort kuenftig stehen soll.
---
--- Sie setzt auch KEINE Stufe auf `bestaetigt`. Alle Spalten starten leer.
--- Ein Backfill aus `is_verified` waere genau der Fehler, den das Modell
--- beheben soll: aus einem Admin-Klick wuerden fuenf Pruefungen.
+-- `salonIsPubliclyVisible` / `salonAcceptsBusiness` haengen ohnehin an
+-- `is_active`, nicht hieran.
 
 BEGIN;
 
--- Eine Stufe je Dimension. Der Default ist ausdruecklich `nicht_erhoben`
--- und nicht NULL: „wir haben nie gefragt" ist eine Aussage, kein fehlender
--- Wert, und NULL wuerde beim Lesen wieder zu „unbekannt" verschwimmen.
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'verifikationsstufe') THEN
-    CREATE TYPE public.verifikationsstufe AS ENUM
-      ('nicht_erhoben', 'offen', 'bestaetigt', 'abgelehnt');
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'verification_tier') THEN
+    CREATE TYPE public.verification_tier AS ENUM
+      ('UNVERIFIED', 'BASIC', 'CONTACT', 'BUSINESS', 'PROFESSIONAL');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'verification_state') THEN
+    -- Je Dimension. `not_collected` ist ein eigener Zustand und NICHT
+    -- dasselbe wie `pending`: das eine heisst „fuer diese Pruefung gibt es
+    -- keinen Vorgang", das andere „laeuft, Ergebnis steht aus". Wer beides
+    -- zu false zusammenzieht, kann hinterher nicht sagen, ob jemand
+    -- durchgefallen ist oder nie gefragt wurde.
+    CREATE TYPE public.verification_state AS ENUM
+      ('not_collected', 'pending', 'confirmed', 'rejected');
   END IF;
 END $$;
 
+-- ── profiles ─────────────────────────────────────────────────────────
 ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS verif_email         public.verifikationsstufe NOT NULL DEFAULT 'nicht_erhoben',
-  ADD COLUMN IF NOT EXISTS verif_telefon       public.verifikationsstufe NOT NULL DEFAULT 'nicht_erhoben',
-  ADD COLUMN IF NOT EXISTS verif_identitaet    public.verifikationsstufe NOT NULL DEFAULT 'nicht_erhoben',
-  ADD COLUMN IF NOT EXISTS verif_gewerbe       public.verifikationsstufe NOT NULL DEFAULT 'nicht_erhoben',
-  ADD COLUMN IF NOT EXISTS verif_qualifikation public.verifikationsstufe NOT NULL DEFAULT 'nicht_erhoben';
+  ADD COLUMN IF NOT EXISTS verification_tier public.verification_tier
+    NOT NULL DEFAULT 'UNVERIFIED',
+  ADD COLUMN IF NOT EXISTS verif_email         public.verification_state NOT NULL DEFAULT 'not_collected',
+  ADD COLUMN IF NOT EXISTS verif_phone         public.verification_state NOT NULL DEFAULT 'not_collected',
+  ADD COLUMN IF NOT EXISTS verif_identity      public.verification_state NOT NULL DEFAULT 'not_collected',
+  ADD COLUMN IF NOT EXISTS verif_business      public.verification_state NOT NULL DEFAULT 'not_collected',
+  ADD COLUMN IF NOT EXISTS verif_qualification public.verification_state NOT NULL DEFAULT 'not_collected',
+  ADD COLUMN IF NOT EXISTS verified_at            timestamptz,
+  ADD COLUMN IF NOT EXISTS verified_by            uuid REFERENCES auth.users(id),
+  ADD COLUMN IF NOT EXISTS verification_evidence  text,
+  ADD COLUMN IF NOT EXISTS verification_expiry    timestamptz;
 
--- WER hat wann geprueft. Ohne das ist eine Stufe eine Behauptung ohne
--- Vorgang — also genau der Zustand, den `is_verified` heute hat.
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS verif_geprueft_von uuid REFERENCES auth.users(id),
-  ADD COLUMN IF NOT EXISTS verif_geprueft_am  timestamptz,
-  ADD COLUMN IF NOT EXISTS verif_notiz        text;
-
--- Dieselben Spalten am Salon: die Gewerbe- und Qualifikationspruefung
--- haengt am BETRIEB, nicht an der Person. Ein Inhaber mit zwei Salons kann
--- fuer den einen eine Gewerbeanmeldung vorgelegt haben und fuer den anderen
--- nicht.
+-- ── salons ───────────────────────────────────────────────────────────
+-- Gewerbe und Qualifikation haengen am BETRIEB, nicht an der Person: ein
+-- Inhaber mit zwei Salons kann fuer den einen eine Gewerbeanmeldung
+-- vorgelegt haben und fuer den anderen nicht.
 ALTER TABLE public.salons
-  ADD COLUMN IF NOT EXISTS verif_gewerbe       public.verifikationsstufe NOT NULL DEFAULT 'nicht_erhoben',
-  ADD COLUMN IF NOT EXISTS verif_qualifikation public.verifikationsstufe NOT NULL DEFAULT 'nicht_erhoben',
-  ADD COLUMN IF NOT EXISTS verif_geprueft_von  uuid REFERENCES auth.users(id),
-  ADD COLUMN IF NOT EXISTS verif_geprueft_am   timestamptz,
-  ADD COLUMN IF NOT EXISTS verif_notiz         text;
+  ADD COLUMN IF NOT EXISTS verification_tier public.verification_tier
+    NOT NULL DEFAULT 'UNVERIFIED',
+  ADD COLUMN IF NOT EXISTS legacy_verified boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS verif_business      public.verification_state NOT NULL DEFAULT 'not_collected',
+  ADD COLUMN IF NOT EXISTS verif_qualification public.verification_state NOT NULL DEFAULT 'not_collected',
+  ADD COLUMN IF NOT EXISTS verified_at            timestamptz,
+  ADD COLUMN IF NOT EXISTS verified_by            uuid REFERENCES auth.users(id),
+  ADD COLUMN IF NOT EXISTS verification_evidence  text,
+  ADD COLUMN IF NOT EXISTS verification_expiry    timestamptz;
+
+-- Der EINZIGE Backfill: der Admin-Klick wird uebernommen, aber als das,
+-- was er ist. Die Stufe bleibt UNVERIFIED.
+UPDATE public.salons
+   SET legacy_verified = true
+ WHERE is_verified IS TRUE
+   AND legacy_verified IS FALSE;
 
 -- Eine bestaetigte oder abgelehnte Stufe ohne Pruefer und Zeitpunkt ist
--- kein Vorgang. Der CHECK laesst `nicht_erhoben` und `offen` frei.
+-- kein Vorgang, sondern wieder nur eine Behauptung. `not_collected` und
+-- `pending` bleiben frei.
 ALTER TABLE public.salons
-  ADD CONSTRAINT salons_verif_hat_vorgang CHECK (
-    (verif_gewerbe IN ('nicht_erhoben', 'offen')
-     AND verif_qualifikation IN ('nicht_erhoben', 'offen'))
-    OR (verif_geprueft_von IS NOT NULL AND verif_geprueft_am IS NOT NULL)
+  DROP CONSTRAINT IF EXISTS salons_verification_has_record;
+ALTER TABLE public.salons
+  ADD CONSTRAINT salons_verification_has_record CHECK (
+    (verif_business      IN ('not_collected', 'pending')
+     AND verif_qualification IN ('not_collected', 'pending'))
+    OR (verified_by IS NOT NULL AND verified_at IS NOT NULL)
   );
 
+-- Ein Ablaufdatum vor dem Pruefdatum ist ein Tippfehler, kein Zustand.
+ALTER TABLE public.salons
+  DROP CONSTRAINT IF EXISTS salons_verification_expiry_nach_pruefung;
+ALTER TABLE public.salons
+  ADD CONSTRAINT salons_verification_expiry_nach_pruefung CHECK (
+    verification_expiry IS NULL
+    OR verified_at IS NULL
+    OR verification_expiry > verified_at
+  );
+
+CREATE INDEX IF NOT EXISTS salons_verification_tier_idx
+  ON public.salons (verification_tier)
+  WHERE verification_tier <> 'UNVERIFIED';
+
 -- Diese Spalten gehoeren niemandem ausser dem Dienstschluessel. `anon` und
--- `authenticated` haben auf `profiles` und `salons` ohnehin kein Recht
--- (nachgemessen: beide antworten 42501) — die Zeile haelt das fest, falls
--- das jemals aufgeweicht wird.
+-- `authenticated` haben auf beiden Tabellen ohnehin kein Recht
+-- (nachgemessen 12.09.2026: 42501) — die Zeilen halten das fest.
 REVOKE ALL ON TABLE public.profiles FROM anon, authenticated, PUBLIC;
 REVOKE ALL ON TABLE public.salons   FROM anon, authenticated, PUBLIC;
 
 COMMIT;
 
 -- GEGENPROBE NACH DEM ANWENDEN:
---   bash scripts/anon-perimeter-probe.sh     → unveraendert dicht erwartet
---   npm test -- --run                        → Stufenmodell-Tests bleiben gruen
+--   SELECT verification_tier, legacy_verified, count(*)
+--     FROM public.salons GROUP BY 1, 2;
+--   -- erwartet: ausschliesslich UNVERIFIED; legacy_verified spiegelt is_verified
+--   bash scripts/anon-perimeter-probe.sh   -- unveraendert dicht erwartet
+--   npm test -- --run                      -- Stufenmodell-Tests bleiben gruen
