@@ -68,12 +68,19 @@
 -- Die Sonde kennt `spatial_ref_sys` seit dem 12.09.2026 und prueft neben
 -- Lesen und Einfuegen auch Loeschen. Erwartet: „Perimeter dicht", Exit 0.
 
+-- Alles oder nichts: ohne Transaktion koennte das erste REVOKE greifen und
+-- das zweite scheitern — dann waere der Perimeter halb zu, und die Sonde
+-- meldete weiter eine offene Tuer, ohne dass klar waere, welche.
+BEGIN;
+
 REVOKE ALL ON TABLE public.spatial_ref_sys FROM anon, authenticated, PUBLIC;
 
 -- Die beiden Sichten sind anon ebenfalls lesbar. Sie antworten heute leer,
 -- geben aber die Schema-Struktur preis, sobald eine Geo-Spalte dazukommt.
 REVOKE ALL ON TABLE public.geography_columns FROM anon, authenticated, PUBLIC;
 REVOKE ALL ON TABLE public.geometry_columns  FROM anon, authenticated, PUBLIC;
+
+COMMIT;
 
 -- `postgres` und `service_role` behalten ihren Zugriff: PostGIS braucht die
 -- Tabelle fuer `ST_Transform` & Co., falls das Schema sie spaeter doch nutzt.

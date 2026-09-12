@@ -124,6 +124,111 @@ CREATE INDEX IF NOT EXISTS salons_verification_tier_idx
   ON public.salons (verification_tier)
   WHERE verification_tier <> 'UNVERIFIED';
 
+-- ══════════════════════════════════════════════════════════════════════
+-- DER PRUEFVORGANG
+-- ══════════════════════════════════════════════════════════════════════
+--
+-- Die Spalten oben sagen, WAS geprueft ist. Diese Tabelle sagt, WIE es dazu
+-- kam: wer eingereicht hat, wer angesehen hat, wer entschieden hat, und bei
+-- einer Ablehnung warum. Ohne diesen Teil bliebe das Stufenmodell eine
+-- Behauptung mit besserer Struktur — genau der Vorwurf, den es an
+-- `salons.is_verified` richtet.
+--
+-- Logik und Uebergangstabelle stehen in src/modules/verification/review.ts
+-- und sind dort getestet.
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'review_status') THEN
+    -- `expired` ist ein EIGENER Zustand: „war einmal belegt, ist es nicht
+    -- mehr" ist etwas anderes als `rejected` (geprueft, durchgefallen) und
+    -- als `not_submitted` (nie versucht).
+    CREATE TYPE public.review_status AS ENUM
+      ('not_submitted', 'submitted', 'in_review', 'info_requested',
+       'approved', 'rejected', 'expired');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'rejection_reason') THEN
+    CREATE TYPE public.rejection_reason AS ENUM
+      ('unreadable', 'expired_document', 'mismatch', 'wrong_document',
+       'suspected_forgery', 'incomplete', 'other');
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS public.verification_reviews (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- Auf wen oder was sich der Vorgang bezieht. Gewerbe und Qualifikation
+  -- haengen am BETRIEB, Identitaet an der PERSON — deshalb beides moeglich.
+  subject_type  text NOT NULL CHECK (subject_type IN ('profile', 'salon')),
+  subject_id    uuid NOT NULL,
+  dimension     text NOT NULL CHECK (dimension IN
+                  ('email', 'telefon', 'identitaet', 'gewerbe', 'qualifikation')),
+  status        public.review_status NOT NULL DEFAULT 'not_submitted',
+  reviewer_id       uuid REFERENCES auth.users(id),
+  reviewed_at       timestamptz,
+  rejection_reason  public.rejection_reason,
+  rejection_note    text,
+  -- NULL = unbefristet. Welche Nachweisart wie lange gilt, ist offen
+  -- (BUSINESS_DECISION_REQUIRED in review.ts).
+  expires_at        timestamptz,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+
+  -- Eine Entscheidung ohne Namen ist keine.
+  CONSTRAINT verification_reviews_decision_has_reviewer CHECK (
+    status NOT IN ('approved', 'rejected')
+    OR (reviewer_id IS NOT NULL AND reviewed_at IS NOT NULL)
+  ),
+  -- Eine Ablehnung ohne Grund ist fuer den Betroffenen nicht handhabbar.
+  CONSTRAINT verification_reviews_rejection_has_reason CHECK (
+    (status = 'rejected') = (rejection_reason IS NOT NULL)
+  ),
+  -- Nur ein genehmigter Nachweis kann ablaufen.
+  CONSTRAINT verification_reviews_expiry_only_approved CHECK (
+    expires_at IS NULL OR status IN ('approved', 'expired')
+  )
+);
+
+-- Ein laufender Vorgang je Subjekt und Dimension. Abgeschlossene blockieren
+-- einen neuen Versuch nicht.
+CREATE UNIQUE INDEX IF NOT EXISTS verification_reviews_ein_laufender
+  ON public.verification_reviews (subject_type, subject_id, dimension)
+  WHERE status IN ('submitted', 'in_review', 'info_requested');
+
+-- Fuer den Ablauf-Lauf: welche Nachweise sind faellig?
+CREATE INDEX IF NOT EXISTS verification_reviews_expiry_idx
+  ON public.verification_reviews (expires_at)
+  WHERE status = 'approved' AND expires_at IS NOT NULL;
+
+-- Die eingereichten Dateien liegen in `documents`; hier nur die Zuordnung.
+CREATE TABLE IF NOT EXISTS public.verification_review_documents (
+  review_id   uuid NOT NULL REFERENCES public.verification_reviews(id) ON DELETE CASCADE,
+  document_id uuid NOT NULL,
+  added_at    timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (review_id, document_id)
+);
+
+-- Der Verlauf. Ein Vorgang ohne Protokoll ist eine Behauptung.
+CREATE TABLE IF NOT EXISTS public.verification_review_events (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  review_id  uuid NOT NULL REFERENCES public.verification_reviews(id) ON DELETE CASCADE,
+  at         timestamptz NOT NULL DEFAULT now(),
+  -- NULL bei Ereignissen, die das System ausloest (Ablauf).
+  by_user    uuid REFERENCES auth.users(id),
+  status     public.review_status NOT NULL,
+  note       text NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS verification_review_events_review_idx
+  ON public.verification_review_events (review_id, at);
+
+REVOKE ALL ON TABLE public.verification_reviews           FROM anon, authenticated, PUBLIC;
+REVOKE ALL ON TABLE public.verification_review_documents  FROM anon, authenticated, PUBLIC;
+REVOKE ALL ON TABLE public.verification_review_events     FROM anon, authenticated, PUBLIC;
+
+ALTER TABLE public.verification_reviews          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.verification_review_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.verification_review_events    ENABLE ROW LEVEL SECURITY;
+
 -- Diese Spalten gehoeren niemandem ausser dem Dienstschluessel. `anon` und
 -- `authenticated` haben auf beiden Tabellen ohnehin kein Recht
 -- (nachgemessen 12.09.2026: 42501) — die Zeilen halten das fest.
