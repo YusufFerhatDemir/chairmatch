@@ -1,3 +1,15 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 1 Marktangabe auf dieser Seite.
+ *
+ * Der Investoren-Abschnitt nennt „€15 Mrd. Beauty-Markt in Deutschland".
+ * Dieselbe Zahl steht auf `/pitch`, dort ebenfalls ohne Quelle — zwei
+ * Stellen, eine Behauptung, kein Beleg. Wer sie belegt, muss beide aendern;
+ * es gibt keine gemeinsame Konstante.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Footer from '@/components/Footer'
@@ -257,6 +269,7 @@ export default function LandingPage() {
             Für Investoren
           </h3>
           <p style={{ fontSize: 13, color: 'var(--stone)', marginBottom: 20, lineHeight: 1.5 }}>
+            {/* BUSINESS_DECISION_REQUIRED: Marktgroesse ohne Quelle — siehe Kopf der Datei. */}
             €15 Mrd. Beauty-Markt in Deutschland.<br />Seien Sie von Anfang an dabei.
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>

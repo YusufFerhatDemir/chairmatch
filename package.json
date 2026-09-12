@@ -16,7 +16,9 @@
     "typecheck": "tsc --noEmit",
     "ios:build": "cd mobile && npx eas-cli build --platform ios --profile production --non-interactive",
     "ios:submit": "cd mobile && npx eas-cli submit --platform ios --profile production --non-interactive --latest",
-    "verify:pricing-schema": "node scripts/verify-pricing-schema.mjs"
+    "verify:pricing-schema": "node scripts/verify-pricing-schema.mjs",
+    "price-audit": "node scripts/price-audit.mjs",
+    "price-audit:check": "node scripts/price-audit.mjs --check"
   },
   "author": "Yusuf Demir",
   "license": "MIT",

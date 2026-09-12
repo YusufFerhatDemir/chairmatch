@@ -4,6 +4,30 @@
  * Behandlungswert €39-1.490.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 21 Preisliterale auf dieser Seite.
+ *
+ * Die Seite nennt Behandlungspreise fuer Kryotherapie, HBOT, HIFU, EMS und Body-Contouring. Sie stammen
+ * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
+ *
+ * DREI WEGE NACH DRAUSSEN, und der zweite ist der, den man leicht uebersieht:
+ *
+ *   1. `metadata.description` — die Zahl steht im Suchergebnis, bevor jemand
+ *      die Seite ueberhaupt oeffnet.
+ *   2. `FAQS` geht an `<FAQ items={FAQS} />`, und die Komponente gibt daraus
+ *      FAQPage-JSON-LD aus (`src/components/seo/FAQ.tsx`). Die Preise werden
+ *      also nicht nur angezeigt, sondern Suchmaschinen als strukturierte
+ *      Auskunft uebergeben.
+ *   3. Die Preiskarten im Rumpf.
+ *
+ * Das ist kein Stuhlmiet-Preis, sondern ein Heilbehandlungspreis. Wer das
+ * freigibt, sollte auch geprueft haben, ob die Darstellung als Preisliste
+ * hier zulaessig ist — diese Frage ist mit dem Marker NICHT beantwortet,
+ * sie ist nur aufgeschrieben.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts`. KEIN Preis wurde geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
@@ -48,6 +72,8 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/longevity',
 }
 
+// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
     question: 'Was ist ein Longevity-Center?',
@@ -129,6 +155,7 @@ export default function LongevityPage() {
           <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 14, borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
             Therapien &amp; Preise
           </h2>
+          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <PriceCard name="Ganzkörper-Kryotherapie (-110°C)" price="29 – 49 € / Sitzung" desc="3 Minuten Kältekammer. Entzündungs-Reduktion, Endorphin-Boost. 10er ab 290 €." />
           <PriceCard name="HBOT (Hyperbare Sauerstofftherapie)" price="149 € / Sitzung" desc="90 Min Druckkammer mit reinem Sauerstoff. Anti-Aging-Effekte, Wundheilung. 10er 1.290 €." highlight />
           <PriceCard name="HIFU-Hautstraffung Gesicht" price="490 – 690 €" desc="Ultraschall-Lifting ohne OP. Hält 12-18 Monate." />

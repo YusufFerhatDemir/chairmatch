@@ -9,6 +9,24 @@
  *
  * Wird in magazin.ts an MAGAZIN_ARTIKEL angehängt.
  */
+
+/*
+ * BUSINESS_DECISION_REQUIRED — 213 Preisliterale in dieser Datei.
+ *
+ * Batch 2 der Magazin-Artikel, gleiche Lage wie in `magazin.ts`: Tagesmieten
+ * je Berufsgruppe, Einstiegskosten, Teilzeit-Rechnungen. Die Artikel haengen
+ * ueber `MAGAZIN_ARTIKEL_2` an derselben Liste und sind damit genauso
+ * oeffentlich und genauso im FAQ-JSON-LD.
+ *
+ * Keine dieser Zahlen hat eine Quelle im Repo. Sie sind hier entstanden und
+ * werden als Marktwissen praesentiert — nicht als Schaetzung, nicht mit
+ * Stand, nicht mit Erhebung. Bis jemand sie bestaetigt oder ersetzt, ist
+ * jede einzelne eine offene Geschaeftsentscheidung.
+ *
+ * Das vollstaendige Inventar mit Zeilennummern steht in
+ * `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
 import type { MagazinArtikel } from './magazin'
 
 export const MAGAZIN_ARTIKEL_2: MagazinArtikel[] = [

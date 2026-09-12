@@ -11,6 +11,24 @@
  * Bonn, Münster) rendern die Sektion einfach nicht — fail-soft.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 82 Preisliterale in dieser Datei.
+ *
+ * Die hand geschriebenen Guide-Abschnitte der Stadtseiten nennen Mieten,
+ * Lagenaufschlaege und Nebenkosten im Fliesstext. Sie stehen neben den
+ * `priceRange`-Werten aus `cities.ts` auf derselben Seite — zwei Quellen fuer
+ * dieselbe Aussage, beide unbestaetigt, und nichts haelt sie zusammen.
+ *
+ * Keine dieser Zahlen hat eine Quelle im Repo. Sie sind hier entstanden und
+ * werden als Marktwissen praesentiert — nicht als Schaetzung, nicht mit
+ * Stand, nicht mit Erhebung. Bis jemand sie bestaetigt oder ersetzt, ist
+ * jede einzelne eine offene Geschaeftsentscheidung.
+ *
+ * Das vollstaendige Inventar mit Zeilennummern steht in
+ * `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 export interface GuideSection {
   heading: string
   /** Absätze mit \n\n getrennt — page.tsx splittet und rendert <p> je Absatz. */

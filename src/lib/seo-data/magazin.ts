@@ -4,6 +4,35 @@
  * Batch 1: 19 Artikel aus Modul-0-PAA-Recherche.
  * Batch 2 (magazin-2.ts): 8 Artikel Content-Authority-Ausbau (Juli 2026).
  */
+
+/*
+ * BUSINESS_DECISION_REQUIRED — 525 Preisliterale in dieser Datei.
+ *
+ * Die Artikeltexte und FAQ-Antworten nennen Tagesmieten, Monatsfixkosten,
+ * Startkapital, Versicherungsbeitraege und Tagesumsaetze. Zwei Gruppen sind
+ * besonders heikel:
+ *
+ *   - VERDIENSTANGABEN („Anfaenger 80-150 €, etablierte Selbststaendige
+ *     200-400 €"). Wer danach seine Selbststaendigkeit plant, plant nach
+ *     einer Zahl, die niemand erhoben hat.
+ *   - RECHENBEISPIELE in Tabellenform („Tagespreis Stuhl -45 €",
+ *     „4 Kunden a 60 € +240 €"). Die Form suggeriert eine Kalkulation;
+ *     die Eingangswerte sind gesetzt.
+ *
+ * Jeder Artikel ist unter /magazin/<slug> oeffentlich erreichbar (27 Stueck
+ * in der Sitemap) und die FAQ-Bloecke gehen ueber `faqSchema()` als
+ * FAQPage-JSON-LD an Suchmaschinen — die Zahlen werden also nicht nur
+ * angezeigt, sondern als strukturierte Auskunft ausgeliefert.
+ *
+ * Keine dieser Zahlen hat eine Quelle im Repo. Sie sind hier entstanden und
+ * werden als Marktwissen praesentiert — nicht als Schaetzung, nicht mit
+ * Stand, nicht mit Erhebung. Bis jemand sie bestaetigt oder ersetzt, ist
+ * jede einzelne eine offene Geschaeftsentscheidung.
+ *
+ * Das vollstaendige Inventar mit Zeilennummern steht in
+ * `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
 import { MAGAZIN_ARTIKEL_2 } from './magazin-2'
 
 export interface MagazinArtikel {

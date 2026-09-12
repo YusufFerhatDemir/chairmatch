@@ -1,3 +1,36 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 27 Preisliterale auf dieser Seite.
+ *
+ * ZUERST DAS, WAS HIER RICHTIG IST: die Preistabelle rechnet echte Mediane
+ * aus `rental_equipment` und kennzeichnet jede Zeile mit ihrer Quelle
+ * („Live aus n Inseraten" gegen „Marktdaten"). Das ist mehr Ehrlichkeit als
+ * anderswo im Repo, und es bleibt so.
+ *
+ * WAS TROTZDEM ZU ENTSCHEIDEN IST — gemessen am 12.09.2026 gegen
+ * www.chairmatch.de/preisvergleich:
+ *
+ *     10 Zeilen  „Live aus 1 Inserat"
+ *    114 Zeilen  „Marktdaten"
+ *
+ * Also: 114 der 124 Zeilen kommen aus `cities.ts` und sind unbestaetigt
+ * (dort ebenfalls markiert). Die zehn „Live"-Zeilen bilden je einen Median
+ * ueber GENAU EIN Inserat — `median()` bekommt ein einelementiges Array.
+ * Das Wort „Median" ist in dieser Lage irrefuehrend, auch wenn die Rechnung
+ * stimmt; die Spalte gehoert erst ab einer Mindestzahl von Inseraten
+ * gefuellt, oder anders beschriftet.
+ *
+ * Dazu drei fest verdrahtete Stellen:
+ *   - `metadata.description` verspricht „Live-Marktpreise aus echten
+ *     Inseraten" und nennt „ab 25 €/Tag" — beides steht so im Suchergebnis,
+ *     und das Verhaeltnis 114:10 traegt die Aussage nicht.
+ *   - die FAQ-Antworten (Tagesmieten, Startkapital, Fixkosten) gehen ueber
+ *     `<FAQ>` zusaetzlich als FAQPage-JSON-LD an Suchmaschinen.
+ *   - die Vergleichstabelle „eigener Salon vs. Stuhlmiete" im Rumpf.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 export const dynamic = 'force-dynamic'
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'
@@ -154,6 +187,8 @@ async function buildPriceRows(): Promise<PriceRow[]> {
 // FAQ (Inhalt + JSON-LD)
 // ---------------------------------------------------------------------------
 
+// BUSINESS_DECISION_REQUIRED: Tagesmieten, Startkapital und Fixkosten ohne
+// Quelle — und ueber `<FAQ>` zusaetzlich als JSON-LD ausgeliefert.
 const FAQS = [
   {
     question: 'Was kostet ein Friseurstuhl zur Miete in Deutschland?',

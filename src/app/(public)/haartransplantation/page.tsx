@@ -15,6 +15,30 @@
  *   - CTA: Verifizierte Klinik finden + Kostenlose Beratung anfragen
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 15 Preisliterale auf dieser Seite.
+ *
+ * Die Seite nennt Behandlungspreise fuer FUE, DHI und Saphir-FUE. Sie stammen
+ * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
+ *
+ * DREI WEGE NACH DRAUSSEN, und der zweite ist der, den man leicht uebersieht:
+ *
+ *   1. `metadata.description` — die Zahl steht im Suchergebnis, bevor jemand
+ *      die Seite ueberhaupt oeffnet.
+ *   2. `FAQS` geht an `<FAQ items={FAQS} />`, und die Komponente gibt daraus
+ *      FAQPage-JSON-LD aus (`src/components/seo/FAQ.tsx`). Die Preise werden
+ *      also nicht nur angezeigt, sondern Suchmaschinen als strukturierte
+ *      Auskunft uebergeben.
+ *   3. Die Preiskarten im Rumpf.
+ *
+ * Das ist kein Stuhlmiet-Preis, sondern ein Heilbehandlungspreis. Wer das
+ * freigibt, sollte auch geprueft haben, ob die Darstellung als Preisliste
+ * hier zulaessig ist — diese Frage ist mit dem Marker NICHT beantwortet,
+ * sie ist nur aufgeschrieben.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts`. KEIN Preis wurde geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
@@ -59,6 +83,8 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/haartransplantation',
 }
 
+// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
     question: 'Was kostet eine Haartransplantation in Deutschland?',
@@ -183,6 +209,7 @@ export default function HaartransplantationPage() {
             Methoden im Vergleich
           </h2>
 
+          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <MethodCard
             name="FUE-Methode"
             tag="Standard"

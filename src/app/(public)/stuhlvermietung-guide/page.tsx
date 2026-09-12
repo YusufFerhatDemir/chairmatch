@@ -1,3 +1,16 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 5 Preisliterale auf dieser Seite.
+ *
+ * Die Guide-FAQ nennt bundesweite Spannen („25-80 € pro Tag",
+ * „Monatsflats zwischen 450 und 1.100 €"), der Einleitungstext wiederholt
+ * sie. Dieselben Aussagen stehen in `cities.ts`, `verticals.ts` und den
+ * Magazin-Artikeln — vier Quellen fuer eine Zahl, keine davon belegt, und
+ * nichts haelt sie synchron.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MAGAZIN_ARTIKEL, getMagazinArtikel, type MagazinArtikel } from '@/lib/seo-data/magazin'
@@ -94,6 +107,8 @@ const VERTICAL_LINKS = [
   { href: '/lash-brows-deutschland', label: 'Lash- & Brow-Platz mieten' },
 ] as const
 
+// BUSINESS_DECISION_REQUIRED: Bundesweite Mietspannen ohne Erhebung — und
+// ueber `<FAQ>` zusaetzlich als FAQPage-JSON-LD ausgeliefert.
 const GUIDE_FAQS = [
   { question: 'Was ist Stuhlvermietung?', answer: 'Bei der Stuhlvermietung (Chair Rental) mietet ein selbstständiger Beauty-Profi — Friseur, Barber, Kosmetikerin, Nageldesignerin oder Lash-Stylistin — tageweise oder monatlich einen Arbeitsplatz in einem bestehenden Salon. Die Miete ist fix, der komplette Behandlungsumsatz bleibt beim Mieter.' },
   { question: 'Was kostet ein Stuhl zur Miete in Deutschland?', answer: 'Je nach Stadt, Gewerk und Ausstattung 25-80 € pro Tag. Friseur- und Barber-Plätze liegen im Schnitt bei 40-70 €/Tag, Nagel- und Lash-Plätze bei 25-55 €. Monatsflats gibt es zwischen 450 und 1.100 €.' },

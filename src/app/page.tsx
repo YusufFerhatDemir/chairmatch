@@ -1,3 +1,17 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 1 Preisangabe in den Metadaten.
+ *
+ * `description` nennt „Tagespreis ab 25 €". Das ist die Zahl, die im
+ * Suchergebnis zur Startseite steht — die sichtbarste Preisangabe des
+ * ganzen Projekts, und sie ist fest verdrahtet.
+ *
+ * Dieselbe Zusage steht auf /rentals, /preisvergleich und in
+ * `HomeSEOLanding.tsx`. Vier Stellen, keine gemeinsame Konstante.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 // ISR statt force-dynamic: Homepage ist die meistgecrawlte Seite — 5 Min Cache
 // senkt TTFB von ~5s auf Edge-Niveau. Greeting rechnet HomeClient client-seitig.
 export const revalidate = 300

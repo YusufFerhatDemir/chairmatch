@@ -10,6 +10,23 @@
  * unabhängig vom OnboardingGate-Client-State.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 9 Preisangaben im SEO-Block der Startseite.
+ *
+ * Der Textblock nennt die Spanne „25–75 €" viermal, dazu Monatspauschalen
+ * („ab ca. 300 €/Monat bis ueber 1.000 €/Monat"). Er steht direkt neben der
+ * Zusage „ChairMatch zeigt fuer jedes Inserat den transparenten Tagespreis
+ * ohne versteckte Gebuehren" — die Spanne selbst kommt aber aus keinem
+ * Inserat, sondern steht hier im Quelltext.
+ *
+ * Gemessen am 12.09.2026: in der Datenbank liegen 5 oeffentlich sichtbare
+ * Inserate (`GET /api/rental-listings`). Eine deutschlandweite Spanne laesst
+ * sich daraus nicht bilden.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import Link from 'next/link'
 import { faqSchema, serviceAreaSchema, speakableSchema, type FaqItem, jsonLd as jsonLdScript } from '@/lib/seo'
 import { PHASE_1_CITIES } from '@/lib/seo-data/cities'
@@ -101,6 +118,7 @@ export function HomeHero() {
         color: 'var(--stone)',
         letterSpacing: '0.02em',
       }}>
+        {/* BUSINESS_DECISION_REQUIRED: Deutschlandweite Preisspanne ohne Erhebung — siehe Kopf der Datei. */}
         <li>✓ Tagespreis 25–75 €</li>
         <li>✓ Sichere Zahlung über Plattform</li>
         <li>✓ DSGVO &amp; Hosting in Deutschland</li>

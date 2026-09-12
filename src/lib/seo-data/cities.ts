@@ -8,6 +8,31 @@
  * Phase 3: weitere Top-20
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 152 Preisliterale in dieser Datei.
+ *
+ * `priceRange` gibt je Stadt eine Spanne fuer Stuhl, Kabine und Raum an
+ * („45-75 €/Tag"), die FAQ-Antworten schluesseln sie nach Stadtteilen auf
+ * („Wedding, Neukoelln-Sued und Lichtenberg bieten Plaetze ab 25 €/Tag").
+ *
+ * Das ist die Angabe mit der groessten Fallhoehe im Repo: sie liest sich wie
+ * eine Marktbeobachtung fuer eine konkrete Stadt, und der Nutzer kann sie
+ * gegen die echten Inserate halten. In der Datenbank stehen 15 Salons, alle
+ * Seed-Daten, und eine einzige Buchung — eine Grundlage fuer lokale
+ * Preisspannen gibt es nicht.
+ *
+ * Sichtbar unter /<stadt> (Stadt-Hubs) und in den Stadt-FAQ-Bloecken.
+ *
+ * Keine dieser Zahlen hat eine Quelle im Repo. Sie sind hier entstanden und
+ * werden als Marktwissen praesentiert — nicht als Schaetzung, nicht mit
+ * Stand, nicht mit Erhebung. Bis jemand sie bestaetigt oder ersetzt, ist
+ * jede einzelne eine offene Geschaeftsentscheidung.
+ *
+ * Das vollstaendige Inventar mit Zeilennummern steht in
+ * `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 export interface CityData {
   slug: string
   name: string                  // Display-Name (mit Umlaut)

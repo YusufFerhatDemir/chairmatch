@@ -1,3 +1,17 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 2 Zahlenangaben auf dieser Seite.
+ *
+ * „Du zahlst NUR die Stuhl-Miete an den Salon (z.B. 50€/Tag)" — ein
+ * Beispielwert, der als Groessenordnung gelesen wird. „Gewerbeanmeldung
+ * (~30€)" ist eine kommunale Gebuehr und je nach Stadt verschieden.
+ *
+ * Die Antworten gehen ueber `<FAQ>` zusaetzlich als FAQPage-JSON-LD an
+ * Suchmaschinen.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { serviceAreaSchema, howToSchema, speakableSchema, jsonLd as jsonLdScript } from '@/lib/seo'
@@ -35,6 +49,8 @@ const STEPS = [
   { n: 4, t: 'Arbeiten & bewerten', d: 'Schlüssel kommt am Tag der Buchung. Nach Termin bewerten.' },
 ]
 
+// BUSINESS_DECISION_REQUIRED: Beispiel-Tagesmiete und Gewerbegebuehr in den
+// Antworten unten — siehe Kopf der Datei.
 const FAQS = [
   { question: 'Was kostet mich ChairMatch?', answer: '0%. Du zahlst NUR die Stuhl-Miete an den Salon (z.B. 50€/Tag). ChairMatch verdient ausschließlich an der Provision des Salons — du behältst 100% deines Behandlungs-Umsatzes.' },
   { question: 'Brauche ich ein Gewerbe?', answer: 'Ja — als selbstständiger Beauty-Profi. Bei Friseur Meisterbrief Pflicht. Bei Kosmetik/Nail/Lash reicht einfache Gewerbeanmeldung (online bei deinem Gewerbeamt, ~30€).' },

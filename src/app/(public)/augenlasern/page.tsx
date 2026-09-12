@@ -3,6 +3,30 @@
  * Suchvolumen "augen lasern kosten" = 60k/Monat in DE.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 15 Preisliterale auf dieser Seite.
+ *
+ * Die Seite nennt Behandlungspreise fuer LASIK, Femto-LASIK, ReLEx Smile und ICL. Sie stammen
+ * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
+ *
+ * DREI WEGE NACH DRAUSSEN, und der zweite ist der, den man leicht uebersieht:
+ *
+ *   1. `metadata.description` — die Zahl steht im Suchergebnis, bevor jemand
+ *      die Seite ueberhaupt oeffnet.
+ *   2. `FAQS` geht an `<FAQ items={FAQS} />`, und die Komponente gibt daraus
+ *      FAQPage-JSON-LD aus (`src/components/seo/FAQ.tsx`). Die Preise werden
+ *      also nicht nur angezeigt, sondern Suchmaschinen als strukturierte
+ *      Auskunft uebergeben.
+ *   3. Die Preiskarten im Rumpf.
+ *
+ * Das ist kein Stuhlmiet-Preis, sondern ein Heilbehandlungspreis. Wer das
+ * freigibt, sollte auch geprueft haben, ob die Darstellung als Preisliste
+ * hier zulaessig ist — diese Frage ist mit dem Marker NICHT beantwortet,
+ * sie ist nur aufgeschrieben.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts`. KEIN Preis wurde geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
@@ -47,6 +71,8 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/augenlasern',
 }
 
+// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
     question: 'Was kostet eine Augenlaser-OP in Deutschland?',
@@ -128,6 +154,7 @@ export default function AugenlasernPage() {
           <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 14, borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
             Methoden &amp; Preise (pro Auge)
           </h2>
+          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <PriceCard name="LASIK (Standard)" price="1.490 – 1.890 €" desc="Bewährte Standard-Methode. Schnelle Heilung." />
           <PriceCard name="Femto-LASIK" price="1.890 – 2.290 €" desc="Lappen mit Laser statt Klinge. Präziser, sicherer." highlight />
           <PriceCard name="ReLEx Smile (Premium)" price="2.290 – 2.990 €" desc="Minimal-invasiv, nur 2-3 mm Schnitt. Beste Variante bei trockenen Augen." />

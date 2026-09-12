@@ -1,5 +1,26 @@
 'use client'
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 4 Preisliterale in den Hilfetexten.
+ *
+ * Die `help`-Texte der Schieberegler geben dem Nutzer die Zahl vor, mit der
+ * er rechnen soll: „Bundesdurchschnitt 45 €. Muenchen/Frankfurt 65-90 €"
+ * und „Gesetzlich 14-15% (Min 420 €), Privat oft 280-450 €".
+ *
+ * Bei einem Rechner ist das wirksamer als eine Angabe im Fliesstext: die
+ * meisten Nutzer verschieben den Regler nicht weit vom vorgeschlagenen Wert
+ * weg. Was hier steht, bestimmt also das Ergebnis, das der Nutzer als „sein"
+ * Ergebnis mitnimmt.
+ *
+ * Die Krankenkassen-Angabe ist dabei eine andere Sorte als die Stuhlmiete:
+ * der GKV-Beitragssatz ist nachpruefbar und aendert sich jaehrlich, die
+ * 45 € Bundesdurchschnitt sind geschaetzt. Beide stehen hier gleich
+ * aussehend nebeneinander.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 
@@ -82,6 +103,7 @@ export function CalculatorClient() {
             min={5} max={26} step={1}
             help="Realistisch 16-20. Vollzeit 22, Teilzeit 8-12."
           />
+          {/* BUSINESS_DECISION_REQUIRED: Die `help`-Texte geben die Rechengroessen vor — siehe Kopf der Datei. */}
           <Slider
             label="Stuhl-Miete (€/Tag)"
             value={stuhlMiete} setValue={setStuhlMiete}

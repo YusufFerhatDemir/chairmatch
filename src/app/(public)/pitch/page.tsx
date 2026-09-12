@@ -1,3 +1,25 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 5 Zahlenangaben auf dieser Seite.
+ *
+ * Anders als die uebrigen Seiten stehen hier keine Marktpreise, sondern
+ * EIGENE Festlegungen und Marktbehauptungen:
+ *
+ *   - Abo-Stufen „Starter 29 €/Monat", „Premium 49 €/Monat", „Gold
+ *     99 €/Monat". Das ist die Preisliste des eigenen Produkts. Sie hat im
+ *     Code keine Entsprechung — es gibt keine Stripe-Preise dazu (Stripe ist
+ *     in Produktion nicht konfiguriert), also verspricht die Seite ein
+ *     Angebot, das technisch nicht existiert.
+ *   - „Beauty-Markt Deutschland: €15 Mrd. Jahresumsatz" — eine Marktgroesse
+ *     ohne Quellenangabe.
+ *   - „Pre-Seed: €150K" — die Finanzierungsrunde.
+ *
+ * Die Seite ist oeffentlich (`/pitch` steht in `publicPaths` und in der
+ * Sitemap), nicht nur fuer geladene Investoren erreichbar.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -7,6 +29,8 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.chairmatch.de/pitch' },
 }
 
+// BUSINESS_DECISION_REQUIRED: Abo-Preise, Marktgroesse und Finanzierungs-
+// bedarf — eigene Festlegungen, oeffentlich sichtbar, ohne Beleg.
 const SLIDES = [
   {
     title: 'Das Problem',

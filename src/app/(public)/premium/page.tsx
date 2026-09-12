@@ -5,6 +5,19 @@
  * SEO-Boost durch interne Verlinkung zu allen Money-Pages.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 6 Preisliterale auf dieser Seite.
+ *
+ * `SERVICES[].priceFrom` nennt Einstiegspreise fuer Heilbehandlungen
+ * („ab 2.490 €", „ab 1.490 €", „ab 290 €"). Die Hub-Seite fasst damit die
+ * Zahlen der fuenf Money-Pages zusammen — dieselbe Entscheidung wie dort,
+ * nur an einer weiteren Stelle. Wer die Preise dort aendert, muss hier
+ * nachziehen; es gibt keine gemeinsame Quelle.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
@@ -62,6 +75,8 @@ interface PremiumService {
   highlight?: boolean
 }
 
+// BUSINESS_DECISION_REQUIRED: Einstiegspreise fuer Heilbehandlungen, ohne
+// Quelle und ohne Kopplung an die Money-Pages, von denen sie stammen.
 const SERVICES: PremiumService[] = [
   {
     slug: 'haartransplantation',

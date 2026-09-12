@@ -5,6 +5,30 @@
  * Behandlungswert €890-15.000.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 19 Preisliterale auf dieser Seite.
+ *
+ * Die Seite nennt Behandlungspreise fuer Implantate, All-on-4, Veneers und Invisalign. Sie stammen
+ * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
+ *
+ * DREI WEGE NACH DRAUSSEN, und der zweite ist der, den man leicht uebersieht:
+ *
+ *   1. `metadata.description` — die Zahl steht im Suchergebnis, bevor jemand
+ *      die Seite ueberhaupt oeffnet.
+ *   2. `FAQS` geht an `<FAQ items={FAQS} />`, und die Komponente gibt daraus
+ *      FAQPage-JSON-LD aus (`src/components/seo/FAQ.tsx`). Die Preise werden
+ *      also nicht nur angezeigt, sondern Suchmaschinen als strukturierte
+ *      Auskunft uebergeben.
+ *   3. Die Preiskarten im Rumpf.
+ *
+ * Das ist kein Stuhlmiet-Preis, sondern ein Heilbehandlungspreis. Wer das
+ * freigibt, sollte auch geprueft haben, ob die Darstellung als Preisliste
+ * hier zulaessig ist — diese Frage ist mit dem Marker NICHT beantwortet,
+ * sie ist nur aufgeschrieben.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts`. KEIN Preis wurde geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
@@ -49,6 +73,8 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/zahnimplantate',
 }
 
+// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
     question: 'Was kostet ein Zahnimplantat in Deutschland?',
@@ -130,6 +156,7 @@ export default function ZahnimplantatePage() {
           <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 14, borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
             Behandlungen &amp; Preise
           </h2>
+          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <PriceCard name="Einzel-Implantat (Standard)" price="1.490 – 1.990 €" desc="Titan-Implantat + Krone. Hält 20-30 Jahre. Bewährt." />
           <PriceCard name="Einzel-Implantat Premium" price="2.290 – 2.890 €" desc="Straumann / Nobel Biocare. Höhere Erfolgsquote, lebenslange Garantie." highlight />
           <PriceCard name="All-on-4 (komplett, pro Kiefer)" price="11.900 – 14.900 €" desc="4 Implantate + feste Brücke. Komplettes Gebiss in 1 Tag." />

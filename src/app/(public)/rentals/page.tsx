@@ -1,3 +1,19 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 1 Preisangabe in den Metadaten.
+ *
+ * `metadata.description` verspricht „ab 25 €/Tag". Die Zahl steht damit im
+ * Suchergebnis, bevor jemand die Seite oeffnet — und sie ist fest
+ * verdrahtet, waehrend die Liste darunter echte Inserate aus
+ * `rental_equipment` rendert. Faellt das guenstigste Inserat weg oder kommt
+ * ein guenstigeres dazu, stimmt die Zusage nicht mehr; nichts im Code
+ * bemerkt das.
+ *
+ * Dieselbe Zusage steht auf /preisvergleich, dort ebenfalls markiert.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 export const dynamic = 'force-dynamic'
 
 import { getSupabaseAdmin } from '@/lib/supabase-server'

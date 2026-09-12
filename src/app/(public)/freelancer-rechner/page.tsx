@@ -3,6 +3,27 @@
  * Server-Component-Wrapper (für SEO/Metadata) + Client-Calculator.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 12 Preisliterale auf dieser Seite.
+ *
+ * Die FAQ-Antworten nennen ein Monatsnetto fuer Selbststaendige
+ * („realistisch 2.200–3.800 € netto pro Monat") und stellen es dem
+ * Angestelltennetto gegenueber („meist bei 1.400–1.800 €"). Das ist die
+ * Kernaussage, mit der die Seite Mieter gewinnt — und die Zahl dahinter hat
+ * keine Erhebung.
+ *
+ * Die Nebenkostenposten (Krankenversicherung, Berufshaftpflicht,
+ * Gewerbeanmeldung, Grundfreibetrag, Kleinunternehmergrenze) sind teils
+ * nachpruefbare Rechtsgroessen, teils geschaetzt — sie stehen hier
+ * ununterscheidbar nebeneinander und tragen alle dasselbe „ca.".
+ *
+ * Der Rechner selbst steht in `CalculatorClient.tsx` und ist dort separat
+ * markiert: seine Startwerte entscheiden, was der Nutzer als Erstes sieht.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { FaqItem } from '@/lib/seo'
@@ -14,6 +35,8 @@ import { jsonLd } from '@/lib/seo'
 
 // GEO/SEO: natürlichsprachliche, zitierbare Antworten rund um den Rechner —
 // sichtbar als Accordion + FAQPage-Schema (Featured Snippets / AI-Antworten).
+// BUSINESS_DECISION_REQUIRED: Verdienstangaben ohne Erhebung — und ueber
+// `<FAQ>` zusaetzlich als FAQPage-JSON-LD ausgeliefert.
 const RECHNER_FAQS: FaqItem[] = [
   {
     question: 'Wie viel verdient ein selbstständiger Friseur mit Stuhlmiete?',

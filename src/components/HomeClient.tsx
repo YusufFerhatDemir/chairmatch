@@ -1,3 +1,23 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 8 Preisangaben auf der Startseite.
+ *
+ * Diese Datei liegt nicht unter `(public)`, wird aber von `src/app/page.tsx`
+ * gerendert — sie ist die Startseite. Drei Sorten Zahlen:
+ *
+ *   - „ab 25 €/Tag" fuer Mieter.
+ *   - „+800-1.500 €/Monat extra" fuer Salons. Das ist keine Preisangabe,
+ *     sondern eine ERTRAGSERWARTUNG, und sie steht auf der Startseite. Die
+ *     Datenbank kennt dazu nichts: 15 Salons, alle Seed-Daten, eine Buchung.
+ *   - Sechs `priceFrom`-Werte fuer Heilbehandlungen („ab 2.490 €", …), die
+ *     dieselben Zahlen wiederholen wie /premium und die Money-Pages.
+ *
+ * Keine davon hat eine Quelle, und keine ist an die Stelle gekoppelt, von
+ * der sie stammt.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
  'use client'
 
 import { BrandLogo } from '@/components/BrandLogo'
@@ -329,6 +349,7 @@ export default function HomeClient({ categories, dbSalons, topOfferPercent }: Pr
             }}
           >
             <span>💼 Stuhl mieten</span>
+            {/* BUSINESS_DECISION_REQUIRED: Tagespreis-Zusage und Ertragserwartung — siehe Kopf der Datei. */}
             <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75 }}>ab 25 €/Tag · selbstständig arbeiten →</span>
           </Link>
 

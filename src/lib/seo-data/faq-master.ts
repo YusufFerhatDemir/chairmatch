@@ -14,6 +14,29 @@
  *   getFaqsByTags(['stuhl-miete', 'steuern']) → Schnittmenge
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 28 Preisliterale in dieser Datei.
+ *
+ * Diese FAQs werden bewusst mehrfach verwendet — das ist der Zweck der
+ * Datei. Damit vervielfaeltigt sich auch jede Preisangabe darin:
+ *
+ *   - /faq rendert sie als Seite,
+ *   - `faqSchema()` liefert sie als FAQPage-JSON-LD an Suchmaschinen,
+ *   - `ChatWidget.tsx` antwortet Besuchern damit im Chat.
+ *
+ * Der letzte Punkt ist der unangenehmste: im Chat liest sich eine Zahl wie
+ * eine Auskunft an genau diesen Nutzer, nicht wie Werbetext.
+ *
+ * Keine dieser Zahlen hat eine Quelle im Repo. Sie sind hier entstanden und
+ * werden als Marktwissen praesentiert — nicht als Schaetzung, nicht mit
+ * Stand, nicht mit Erhebung. Bis jemand sie bestaetigt oder ersetzt, ist
+ * jede einzelne eine offene Geschaeftsentscheidung.
+ *
+ * Das vollstaendige Inventar mit Zeilennummern steht in
+ * `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 export interface MasterFaq {
   id: string
   question: string

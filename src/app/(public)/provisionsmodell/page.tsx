@@ -1,3 +1,22 @@
+/*
+ * BUSINESS_DECISION_REQUIRED — 4 Zahlenangaben auf dieser Seite.
+ *
+ * Zwei verschiedene Dinge, die man auseinanderhalten muss:
+ *
+ *   - Das Provisions-Rechenbeispiel („Kunde zahlt 100€, du bekommst 90€")
+ *     setzt einen Satz von 10 %. Der zugehoerige Satz steht in
+ *     `COMMISSION_DEFAULTS` (src/lib/constants.ts) und ist dort als
+ *     Platzhalter markiert — dieselbe Zahl darf nicht an einer Stelle
+ *     unbestaetigt und an der anderen als Zusage stehen.
+ *   - Die Stripe-Gebuehr („1,4% + 0,25€ pro Transaktion") ist eine externe,
+ *     nachpruefbare Groesse. Sie braucht keine Geschaeftsentscheidung,
+ *     sondern einen Abgleich mit dem aktuellen Stripe-Tarif — und den
+ *     Hinweis, wer sie traegt.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
@@ -26,6 +45,8 @@ export const metadata: Metadata = {
   },
 }
 
+// BUSINESS_DECISION_REQUIRED: Provisionssatz (10 %) und Stripe-Gebuehr in
+// den Antworten unten — siehe Kopf der Datei, die beiden sind verschieden.
 const FAQS = [
   { question: 'Warum überhaupt Provision?', answer: 'Wir bauen die Infrastruktur: Stripe-Zahlungen, Streit-Schlichtung, Verifizierung, Bewertungssystem, rechtliche Mietverträge, SEO-Sichtbarkeit. Das kostet pro Monat 4-stellig — die Provision finanziert das.' },
   { question: 'Was bekomme ich für die Provision?', answer: 'Garantierte Zahlung via Stripe (PCI-DSS Level 1). Streit-Schlichtung in 48h. Vertrauliche Kontaktdaten erst nach Zahlung. Verifizierte Gegenseite (Identität + Branchen-Nachweis). Automatischer CSV-Export für Steuerberater.' },

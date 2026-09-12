@@ -3,6 +3,30 @@
  * Boom-Markt: NAD+, Vitamin-Drips, Glutathion.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 17 Preisliterale auf dieser Seite.
+ *
+ * Die Seite nennt Behandlungspreise fuer NAD+, Glutathion und Vitamin-C-Hochdosis. Sie stammen
+ * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
+ *
+ * DREI WEGE NACH DRAUSSEN, und der zweite ist der, den man leicht uebersieht:
+ *
+ *   1. `metadata.description` — die Zahl steht im Suchergebnis, bevor jemand
+ *      die Seite ueberhaupt oeffnet.
+ *   2. `FAQS` geht an `<FAQ items={FAQS} />`, und die Komponente gibt daraus
+ *      FAQPage-JSON-LD aus (`src/components/seo/FAQ.tsx`). Die Preise werden
+ *      also nicht nur angezeigt, sondern Suchmaschinen als strukturierte
+ *      Auskunft uebergeben.
+ *   3. Die Preiskarten im Rumpf.
+ *
+ * Das ist kein Stuhlmiet-Preis, sondern ein Heilbehandlungspreis. Wer das
+ * freigibt, sollte auch geprueft haben, ob die Darstellung als Preisliste
+ * hier zulaessig ist — diese Frage ist mit dem Marker NICHT beantwortet,
+ * sie ist nur aufgeschrieben.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts`. KEIN Preis wurde geaendert.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BackButton } from '@/components/BackButton'
@@ -47,6 +71,8 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/iv-infusionen',
 }
 
+// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
     question: 'Was sind IV-Infusionen / Vitamin-Drips?',
@@ -128,6 +154,7 @@ export default function IVInfusionenPage() {
           <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 14, borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
             Infusionen &amp; Preise
           </h2>
+          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <PriceCard name="NAD+ 250mg" price="290 €" desc="Anti-Aging-Master. Mitochondrien-Booster, Energie, Klarheit." highlight />
           <PriceCard name="NAD+ 500mg" price="490 €" desc="Stärkere Dosis für intensiveren Effekt. Empfohlen ab 40 Jahren." />
           <PriceCard name="NAD+ 1000mg (Mega-Dose)" price="890 €" desc="Maximum-Dosierung. Lange Infusion (4h). Premium-Anti-Aging." />

@@ -2,6 +2,30 @@
  * Vertical-Whitelist + Content für SEO-Landingpages.
  */
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 41 Preisliterale in dieser Datei.
+ *
+ * Neben den Tagesmieten je Berufsgruppe steht hier `marketStats` mit
+ * Aussagen wie „Geschaetzt 30.000+ Stuhl-Miet-Verhaeltnisse in Deutschland
+ * aktiv. Durchschnittliche Vertragslaufzeit: 8 Monate. Tagespreis-Median:
+ * 45 €."
+ *
+ * „Median" ist ein Wort mit Anspruch: es behauptet eine Erhebung. Es gibt
+ * keine. Das Feld gehoert entweder belegt oder umformuliert.
+ *
+ * Sichtbar auf den Vertical-Hubs (/barbershop-deutschland,
+ * /friseur-deutschland, …).
+ *
+ * Keine dieser Zahlen hat eine Quelle im Repo. Sie sind hier entstanden und
+ * werden als Marktwissen praesentiert — nicht als Schaetzung, nicht mit
+ * Stand, nicht mit Erhebung. Bis jemand sie bestaetigt oder ersetzt, ist
+ * jede einzelne eine offene Geschaeftsentscheidung.
+ *
+ * Das vollstaendige Inventar mit Zeilennummern steht in
+ * `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 export interface VerticalData {
   slug: string
   name: string

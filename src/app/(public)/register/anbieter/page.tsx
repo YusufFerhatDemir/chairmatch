@@ -1,10 +1,28 @@
 'use client'
 
+/*
+ * BUSINESS_DECISION_REQUIRED — 5 Verdienstangaben auf dieser Seite.
+ *
+ * Im Anmeldeformular fuer Anbieter steht je Kategorie ein
+ * „Zusatzeinnahmen · ca. 80–150 €/Tag". Das ist keine Preisinformation,
+ * sondern eine ERTRAGSERWARTUNG, und sie steht an der Stelle, an der sich
+ * jemand gerade entscheidet, seinen Salon einzutragen.
+ *
+ * Wer sie freigibt, gibt frei, dass ChairMatch einem Anbieter sagt, was er
+ * verdienen wird. Die Datenbank kennt dazu nichts: 15 Salons, alle
+ * Seed-Daten, eine Buchung.
+ *
+ * Inventar: `src/lib/pricing/price-audit.ts` (erzeugt von `scripts/price-audit.mjs`).
+ * KEIN Preis wurde beim Markieren geaendert.
+ */
+
 import { useState } from 'react'
 import Link from 'next/link'
 import { BrandLogo } from '@/components/BrandLogo'
 
 const STEP_NAMES = ['Persönliche Daten', 'Geschäftsdaten', 'Services & Vermietung', 'Bestätigung']
+// BUSINESS_DECISION_REQUIRED: Die `sub`-Texte der Kategorien unten nennen
+// taegliche Zusatzeinnahmen — eine Ertragserwartung ohne jede Grundlage.
 const CATEGORIES = ['Barbershop', 'Friseur', 'Kosmetik', 'Ästhetik', 'Nail & Lash', 'Massage', 'OP-Raum'] as const
 
 /**
