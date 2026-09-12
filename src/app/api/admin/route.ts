@@ -70,6 +70,43 @@ export async function PATCH(req: NextRequest) {
     if (!(VALID_SALON_STATUSES as readonly string[]).includes(status)) {
       return NextResponse.json({ error: 'Ungültiger Salon-Status' }, { status: 400 })
     }
+    /*
+     * BUSINESS_DECISION_REQUIRED — was bedeutet „verifiziert"?
+     *
+     * Diese eine Zeile ist die EINZIGE Stelle im Repo, die `is_verified`
+     * auf true setzt (die Gegenstelle unten setzt sie zurueck). Sie
+     * verlangt nichts: keinen Ausweis, keine Gewerbeanmeldung, keinen
+     * Registerauszug, keine Pruefung irgendeiner Art. Ein Klick auf
+     * „Freischalten" in /admin/anbieter genuegt.
+     *
+     * WAS DIESER KLICK OEFFENTLICH BEHAUPTET — gezaehlt am 12.09.2026:
+     * 100 Stellen in 35 Dateien unter (public), components und seo-data
+     * sprechen von „verifiziert". Darunter 21 Stellen, die es auf
+     * HEILBERUFE beziehen: „verifizierte Kliniken", „verifizierten
+     * Aerzten", „Verifizierte Kliniken in Deutschland" als Seitentitel.
+     *
+     * DAS BELEGMATERIAL LIEGT DANEBEN UND WIRD NICHT ANGESEHEN. Es gibt
+     * `/api/owner/documents` und `/api/owner/authorities-pack`, also einen
+     * Weg, Nachweise hochzuladen, und die Tabellen `documents` und
+     * `authorities_packs` dafuer. Dieser Pfad hier fragt sie nicht ab. Die
+     * Freischaltung ist damit von jedem Beleg entkoppelt.
+     *
+     * KYC GIBT ES NICHT. Volltextsuche „kyc" in `src/`: null Treffer (der
+     * einzige Treffer im Repo steht in `scripts/stripe-setup.mjs` und
+     * meint Stripes eigenes Onboarding).
+     *
+     * ZU ENTSCHEIDEN IST NICHT, OB DER KLICK BLEIBT, sondern was das Wort
+     * nach aussen heissen soll. Drei Wege, und keiner davon ist eine
+     * technische Frage:
+     *   1. Belege verlangen, bevor `is_verified` gesetzt werden kann.
+     *   2. Das Wort in der oeffentlichen Ansprache ersetzen durch das, was
+     *      tatsaechlich passiert ist („von ChairMatch freigeschaltet").
+     *   3. Bei Heilberufen strenger als beim Rest.
+     *
+     * Bis dahin steht hier eine Zusage an Nutzer, hinter der kein Vorgang
+     * steht. `is_active` ist davon unberuehrt — das ist der Betriebs-
+     * schalter und als solcher richtig (siehe src/lib/salon-status.ts).
+     */
     const updates: Record<string, boolean> = {}
     if (status === 'approved') {
       updates.is_active = true

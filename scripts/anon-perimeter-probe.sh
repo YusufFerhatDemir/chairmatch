@@ -94,12 +94,30 @@ spatial_ref_sys geography_columns geometry_columns
 # ohnehin auf jeder oeffentlichen Seite, keine personenbezogenen Daten.
 LESEN_ERLAUBT="categories"
 
+# Reine SICHTEN. PostgREST kann in sie nicht einfuegen, ein INSERT-Test
+# sagt dort also nichts ueber Rechte aus. Das Lesen wird trotzdem geprueft.
+SICHTEN="geography_columns geometry_columns"
+
 # Die meisten Tabellen haben eine `id` vom Typ uuid. Wo nicht, steht hier
 # die Spalte, an der die Sonde ansetzt — sonst antwortet PostgREST mit
-# PGRST204 („column not found"), und das ist ueberhaupt kein Rechtetest.
+# PGRST204 („column not found"), und das ist ueberhaupt kein Rechtetest,
+# sondern eine Fehlanzeige, die frueher wie Ruhe aussah.
+#
+# GEFUNDEN AM 12.09.2026: sieben der fuenfzig Eintraege liefen in genau
+# diese Falle — `rental_request_dedupe`, `payout_accounts`, `user_2fa`,
+# `tenant_profiles` und die drei PostGIS-Eintraege. Darunter sind
+# Bankverbindungen (`payout_accounts`) und 2FA-Geheimnisse (`user_2fa`).
+# Sie sind, wie die Nachmessung mit der richtigen Spalte zeigt, alle dicht
+# (42501) — aber die Sonde hatte es nie gewusst und trotzdem „dicht"
+# gemeldet. Deshalb zaehlt unten jedes nicht auswertbare Ergebnis als
+# UNGEPRUEFT und laesst den Lauf durchfallen.
 schluessel_spalte() {
   case "$1" in
     spatial_ref_sys) echo "srid" ;;
+    payout_accounts|user_2fa|tenant_profiles) echo "user_id" ;;
+    # `fingerprint` ist der Primaerschluessel, aber vom Typ text — dort ist
+    # kein Wert ungueltig. Die uuid-Spalte daneben taugt fuer den Test.
+    rental_request_dedupe) echo "requester_id" ;;
     *) echo "id" ;;
   esac
 }
@@ -110,6 +128,7 @@ schluessel_werte() {
   case "$1" in
     spatial_ref_sys) echo "0 1" ;;
     *) echo "00000000-0000-4000-a000-000000000000 11111111-1111-4111-8111-111111111111" ;;
+    # uuid-Spalten teilen sich den Default; nur nicht-uuid braucht einen Fall.
   esac
 }
 
@@ -130,6 +149,7 @@ echo
 lese_offen=0
 schreib_offen=0
 loesch_offen=0
+ungepruef=0
 gepruef=0
 
 for t in $TABELLEN; do
@@ -163,10 +183,29 @@ for t in $TABELLEN; do
 
   # 22P02 = die Anweisung kam bis zur Typumwandlung, also existiert das
   # INSERT-Recht. 42501 = vorher an der Berechtigung gescheitert.
-  if [ "$post_code" = "22P02" ]; then
-    meldung="$meldung  ← ANON KANN SCHREIBEN"
-    schreib_offen=$((schreib_offen + 1))
-  fi
+  #
+  # ALLES ANDERE IST KEINE ANTWORT, SONDERN EINE FEHLANZEIGE. Vor allem
+  # PGRST204 („column not found"): den beantwortet PostgREST selbst, die
+  # Anweisung erreicht Postgres nie, und ueber Rechte ist damit nichts
+  # gesagt. Frueher fiel das unter den Tisch — die Zeile bekam keine
+  # Meldung und der Lauf endete mit „Perimeter dicht". Jetzt zaehlt es als
+  # UNGEPRUEFT und laesst den Lauf durchfallen: eine Sonde, die eine Tabelle
+  # nicht pruefen kann, darf sie nicht als geprueft ausweisen.
+  case " $SICHTEN " in
+    *" $t "*)
+      # Sichten nehmen kein INSERT entgegen; das ist kein Rechtebefund.
+      meldung="$meldung  (Sicht — INSERT nicht anwendbar)"
+      ;;
+    *)
+      if [ "$post_code" = "22P02" ]; then
+        meldung="$meldung  ← ANON KANN SCHREIBEN"
+        schreib_offen=$((schreib_offen + 1))
+      elif [ "$post_code" != "42501" ]; then
+        meldung="$meldung  ← INSERT UNGEPRUEFT (${post_code:-keine Antwort})"
+        ungepruef=$((ungepruef + 1))
+      fi
+      ;;
+  esac
 
   # 204 = geloescht (null Zeilen, der Filter ist leer), also besteht das
   # Recht. 401 = verweigert.
@@ -185,12 +224,25 @@ printf ' %d Tabellen geprueft\n' "$gepruef"
 printf ' unerwartet lesbar:    %d\n' "$lese_offen"
 printf ' beschreibbar:         %d\n' "$schreib_offen"
 printf ' loeschbar:            %d\n' "$loesch_offen"
+printf ' INSERT ungeprueft:    %d\n' "$ungepruef"
 echo "═══════════════════════════════════════════════════════════════"
+
+if [ "$ungepruef" -gt 0 ]; then
+  echo
+  echo "UNGEPRUEFT: fuer diese Tabellen hat der INSERT-Test Postgres nie"
+  echo "erreicht — meist, weil die Schluesselspalte anders heisst als 'id'."
+  echo "Den richtigen Namen in schluessel_spalte() eintragen. Bis dahin ist"
+  echo "ueber diese Tabellen NICHTS ausgesagt."
+fi
 
 if [ "$lese_offen" -gt 0 ] || [ "$schreib_offen" -gt 0 ] || [ "$loesch_offen" -gt 0 ]; then
   echo
   echo "OFFENE TUER GEFUNDEN. Zu schliessen ueber eine Migration nach dem"
   echo "Muster von 20260910_anon_insert_lockdown.sql (erst REVOKE, dann RLS)."
+fi
+
+if [ "$lese_offen" -gt 0 ] || [ "$schreib_offen" -gt 0 ] || [ "$loesch_offen" -gt 0 ] \
+   || [ "$ungepruef" -gt 0 ]; then
   exit 1
 fi
 

@@ -45,6 +45,65 @@
 | `20260828170738_benachrichtigungswege_haertung.sql` | 20260828170738 | CM23 | `push_subscriptions.updated_at`; Arbiter-fähiger UNIQUE auf `wait_list(email, city)`; 6 CHECK-Constraints (Endpunkt https, Schlüsselmaterial, E-Mail normalisiert, Stadt nicht leer, `choices` vollständig); `DROP POLICY cookie_consents_insert_anon`; `REVOKE ALL … FROM anon` auf `push_subscriptions`, `notification_log`, `wait_list`, `cookie_consents` |
 | `20260910_anon_insert_lockdown.sql` | 20260910 | P7 | `REVOKE ALL FROM anon, PUBLIC` + `ENABLE ROW LEVEL SECURITY` auf `visit_logs` und `submission_tickets`. **Gemessen, nicht vermutet:** beide nehmen am 2026-09-10 einen anonymen INSERT an (`POST {}` → 201; mit ungueltiger UUID → 22P02 statt 42501, also existiert das Recht). GET antwortet dagegen 401 — reines Lesen haette die Luecke nicht gefunden. Beide Tabellen werden ausschliesslich ueber `getSupabaseAdmin()` bedient, das REVOKE bricht nichts. **Nicht abgedeckt von `20260902_rls_restliche_tabellen.sql`** — die nennt neun andere Tabellen. Gegenprobe: `bash scripts/anon-perimeter-probe.sh` |
 
+### Track I, 2026-09-12 vormittags — spatial_ref_sys ist WEITER OFFEN
+
+`20260912_spatial_ref_sys_lockdown.sql` ist **nicht angewendet**. Nachgemessen
+um 07:55Z mit `bash scripts/anon-perimeter-probe.sh`:
+
+```
+  spatial_ref_sys   GET 200  INSERT 22P02  DELETE 204
+                    ← ANON KANN LESEN  ← ANON KANN SCHREIBEN  ← ANON KANN LOESCHEN
+
+  50 Tabellen geprueft · lesbar 3 · beschreibbar 1 · loeschbar 1 · Exit 1
+```
+
+Kein Weg zum Anwenden: service_role 401, `psql` scheitert an der fehlenden
+IPv6-Route zum AAAA-only-Host, CLI ohne Token, kein `SUPABASE_ACCESS_TOKEN`
+in Umgebung oder `.env*`. **Die Sicherheitslage ist an dieser Stelle NICHT
+geschlossen** — das ist erst der Fall, wenn die Sonde mit Exit 0 endet.
+
+### Die Sonde hatte einen zweiten blinden Fleck — sieben Tabellen
+
+Beim Nachmessen der PII-Tabellen fiel auf, dass der INSERT-Test bei sieben
+Eintraegen gar nicht bis Postgres kam: er schickt `{"id": …}`, und diese
+Tabellen haben keine Spalte `id`. PostgREST antwortet dann selbst mit
+`PGRST204 column not found` — **kein Rechtetest**, sondern eine Fehlanzeige.
+Die Sonde hat sie stillschweigend als unauffaellig gewertet:
+
+| Tabelle | Schluessel | vorher | nachgemessen |
+|---|---|---|---|
+| `payout_accounts` | `user_id` | PGRST204 | **42501** |
+| `user_2fa` | `user_id` | PGRST204 | **42501** |
+| `tenant_profiles` | `user_id` | PGRST204 | **42501** |
+| `rental_request_dedupe` | `requester_id` | PGRST204 | **42501** |
+| `geography_columns` / `geometry_columns` | — | PGRST204 | Sichten, INSERT nicht anwendbar |
+
+Alle vier Tabellen sind **dicht** — aber die Sonde hatte es nie geprueft und
+trotzdem „Perimeter dicht" gemeldet. Unter ihnen `payout_accounts`
+(Bankverbindungen) und `user_2fa` (2FA-Geheimnisse).
+
+Behoben: Schluesselspalte je Tabelle konfigurierbar, Sichten ausdruecklich
+ausgenommen, und **jedes nicht auswertbare Ergebnis zaehlt als UNGEPRUEFT und
+laesst den Lauf durchfallen**. Eine Sonde, die eine Tabelle nicht pruefen
+kann, darf sie nicht als geprueft ausweisen. Gegenprobe gefahren: nimmt man
+die Spalten-Zuordnung wieder heraus, meldet der Lauf „INSERT ungeprueft: 3".
+
+### PII-Tabellen einzeln, 2026-09-12
+
+`profiles`, `messages`, `conversations`, `consents`, `consent_logs`,
+`audit_logs`, `payments`, `payout_accounts`, `login_attempts`, `user_2fa`,
+`push_subscriptions`, `cookie_consents`, `newsletter_subscribers`,
+`newsletter_sends`, `user_uploads`, `documents`, `tenant_profiles`, `orders`,
+`bookings` — **alle** `SELECT 401 · INSERT 42501 · DELETE 401`.
+
+Nicht pruefbar bleibt die Rolle `authenticated`: dafuer braucht es ein
+Nutzer-JWT, und das gaebe es nur durch Anlegen eines echten Kontos in der
+Produktion. Ein Schreibvorgang in Produktivdaten fuer eine Messung ist die
+falsche Wahl; der Punkt bleibt offen und ist als offen gekennzeichnet.
+`TRUNCATE` kennt PostgREST nicht — pruefbar ist es von aussen nicht, aber das
+nachgewiesene DELETE-Recht auf `spatial_ref_sys` reicht ohnehin aus, um die
+Tabelle zu leeren.
+
 ### Nachmessung 2026-09-12 — die P7-Luecke ist ZU, aber nicht durch diese Datei
 
 `bash scripts/anon-perimeter-probe.sh` am 2026-09-12T00:07:47Z, derselbe
