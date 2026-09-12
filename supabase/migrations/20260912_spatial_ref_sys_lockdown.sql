@@ -1,0 +1,44 @@
+-- 20260912_spatial_ref_sys_lockdown.sql
+--
+-- NICHT ANGEWENDET — es gibt in dieser Session keinen DDL-Zugang.
+-- Der Dienstschluessel in .env.prod ist rotiert (Gateway: „Invalid API key",
+-- obwohl `ref`, `role` und `exp` im Payload stimmen), das Passwort von
+-- `prisma_app` aus DATABASE_URL ebenfalls („password authentication failed"),
+-- und die Supabase-CLI hat kein Access-Token. Anwenden kann das nur jemand
+-- mit Dashboard-Zugang (SQL Editor).
+--
+-- WAS GEMESSEN WURDE (2026-09-12, oeffentlicher anon-Key aus .env.local):
+--
+--   GET /rest/v1/spatial_ref_sys?select=*&limit=1
+--     → 200, echte Zeilen (srid 2000, "Anguilla 1957 / British West Indies Grid")
+--
+-- Also: REVOKE ist bis heute NICHT passiert; die Frage aus dem Auftrag ist
+-- damit beantwortet.
+--
+-- EHRLICHE EINORDNUNG DES RISIKOS: gering. `spatial_ref_sys` ist die
+-- Referenztabelle von PostGIS mit den EPSG-Koordinatensystemen — oeffentlich
+-- bekannte Konstanten, keine Nutzerdaten, kein Geschaeftsgeheimnis. Der Grund
+-- fuer dieses REVOKE ist der Supabase-Linter („RLS disabled in public"), nicht
+-- ein Datenabfluss. Es steht hier, damit der Perimeter EINE Regel hat statt
+-- einer Regel mit Ausnahme.
+--
+-- WARUM ES NICHTS BRICHT: PostGIS ist installiert, aber unbenutzt. Gemessen
+-- am selben Tag mit demselben Schluessel:
+--
+--   GET /rest/v1/geography_columns  → 200 []
+--   GET /rest/v1/geometry_columns   → 200 []
+--
+-- Keine einzige Geometrie- oder Geographie-Spalte im Schema. Salons tragen
+-- ihre Lage als Stadtname (siehe `salon/[slug]/page.tsx`: die Koordinaten
+-- kommen aus `lib/seo-data/cities.ts`, nicht aus der Datenbank).
+--
+-- GEGENPROBE NACH DEM ANWENDEN:
+--   bash scripts/anon-perimeter-probe.sh
+--   und:  curl "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/spatial_ref_sys?select=srid&limit=1" \
+--           -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY"
+--         → erwartet 401 mit code 42501 statt 200
+
+REVOKE ALL ON TABLE public.spatial_ref_sys FROM anon, authenticated, PUBLIC;
+
+-- `postgres` und `service_role` behalten ihren Zugriff: PostGIS braucht die
+-- Tabelle fuer `ST_Transform` & Co., falls das Schema sie spaeter doch nutzt.

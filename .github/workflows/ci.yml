@@ -4,10 +4,23 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Wiederverwendbar: `auto-create-pr.yml` und `auto-merge.yml` rufen diesen
+  # Lauf als Gate auf, bevor sie nach main mergen. Ohne das lief der
+  # Auto-Merge an JEDER Pruefung vorbei — siehe die Kopfkommentare dort.
+  workflow_call:
 
 # Ein laufender CI-Lauf pro Branch reicht; aeltere Laeufe werden abgebrochen.
+#
+# `github.workflow` MUSS in der Gruppe stehen, seit `workflow_call` dazukam:
+# bei einem PR aus `claude/**` laeuft dieser Lauf zweimal auf derselben
+# `github.ref` — einmal direkt ueber den `pull_request`-Trigger, einmal als
+# `verify`-Job von `auto-merge.yml`. Mit `ci-${{ github.ref }}` allein waeren
+# beide in derselben Gruppe und haetten sich gegenseitig abgebrochen; der
+# abgebrochene Lauf haette dann `needs: verify` scheitern lassen und den
+# Auto-Merge blockiert. Bei einem aufgerufenen Lauf ist `github.workflow` der
+# Name des AUFRUFERS, die Gruppen sind damit verschieden.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

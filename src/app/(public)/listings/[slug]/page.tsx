@@ -58,47 +58,69 @@ interface SalonImageRow {
   image_type: string
 }
 
-async function loadListing(slug: string): Promise<{ listing: ListingRow; salon: SalonRow; salonLogo: string | null } | null> {
+/*
+ * Das Ergebnis trennt drei Faelle, nicht zwei.
+ *
+ * Bis hierher gab `loadListing` bei JEDEM Ausgang `null` zurueck — der
+ * unbekannte Slug, das abgeschaltete Inserat, der gesperrte Salon UND der
+ * Verbindungsabbruch, der abgelaufene Schluessel, der Timeout. Der Rumpf
+ * beantwortete alles davon mit `notFound()`. Faellt also die Datenbank aus,
+ * antwortete jedes BESTEHENDE Inserat mit „Seite nicht gefunden" — und weil
+ * die Seite mit ISR laeuft (revalidate 600), stand diese Auskunft bis zu
+ * zehn Minuten fuer alle Besucher und fuer Google.
+ *
+ * `src/app/(public)/salon/[slug]/page.tsx` hat dieselbe Falle schon
+ * abgeraeumt; diese Route war die letzte mit der alten Form.
+ */
+type ListingErgebnis =
+  | { status: 'gefunden'; listing: ListingRow; salon: SalonRow; salonLogo: string | null }
+  /** Abfrage lief, es gibt nichts (oder nichts Oeffentliches) → 404. */
+  | { status: 'fehlt' }
+  /** Abfrage lief NICHT sauber → kein 404, sondern `(public)/error.tsx`. */
+  | { status: 'lesefehler' }
+
+async function loadListing(slug: string): Promise<ListingErgebnis> {
   try {
     const supabase = getSupabaseAdmin()
 
     // Variante 1: explizites slug-Feld auf services
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bySlug: any = await supabase
+    const { data: bySlug, error: slugFehler } = await supabase
       .from('services')
       .select('*')
       .eq('slug', slug)
       .eq('is_active', true)
       .limit(1)
       .maybeSingle()
-      .then((r: { data: ListingRow | null }) => r.data, () => null)
+    if (slugFehler) return { status: 'lesefehler' }
 
-    let listing: ListingRow | null = bySlug
+    let listing = bySlug as ListingRow | null
 
     // Variante 2: id als slug
     if (!listing) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('services')
         .select('*')
         .eq('id', slug)
         .eq('is_active', true)
         .limit(1)
         .maybeSingle()
+      if (error) return { status: 'lesefehler' }
       listing = data as ListingRow | null
     }
 
-    if (!listing) return null
+    if (!listing) return { status: 'fehlt' }
 
-    const { data: salon } = await supabase
+    const { data: salon, error: salonFehler } = await supabase
       .from('salons')
       .select('id, slug, name, city, category, description, avg_rating, review_count, is_active')
       .eq('id', listing.salon_id)
       .limit(1)
       .maybeSingle()
+    if (salonFehler) return { status: 'lesefehler' }
 
-    if (!salon || !salon.is_active) return null
+    if (!salon || !salon.is_active) return { status: 'fehlt' }
 
-    // Logo des Salons holen
+    // Logo des Salons holen — optional, ein Fehler darf die Seite nicht kosten.
     let salonLogo: string | null = null
     try {
       const { data: imgs } = await supabase
@@ -111,9 +133,9 @@ async function loadListing(slug: string): Promise<{ listing: ListingRow; salon: 
       salonLogo = ((imgs as SalonImageRow | null)?.url) || null
     } catch { /* logo optional */ }
 
-    return { listing, salon: salon as SalonRow, salonLogo }
+    return { status: 'gefunden', listing, salon: salon as SalonRow, salonLogo }
   } catch {
-    return null
+    return { status: 'lesefehler' }
   }
 }
 
@@ -121,7 +143,57 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const data = await loadListing(slug)
 
-  if (!data) {
+  /*
+   * HIER STEHT BEWUSST KEIN `notFound()`. Zwei Messungen vom 12.09.2026.
+   *
+   * Ausgangslage: diese Route und `/salon/[slug]` beantworten jeden
+   * unbekannten Slug mit Status 200 und dem Rumpf „Seite nicht gefunden".
+   * Nachgemessen gegen Produktion UND gegen einen lokalen Produktionsbuild
+   * auf Port 3210 — beide identisch:
+   *
+   *     /listings/00000000-0000-4000-a000-000000000000   → 200
+   *     /salon/gibt-es-nicht-xyz                         → 200
+   *     /category/quatsch      (dynamicParams = false)   → 404
+   *
+   * VERSUCH 1 — `notFound()` in `generateMetadata` statt im Rumpf.
+   * Gedanke: die Metadaten werden vor dem Rumpf aufgeloest, da kann der
+   * Status noch gesetzt werden. Gebaut, mit `CM_404_PROBE=1` erzwungen,
+   * gemessen auf Port 3211:
+   *
+   *     /salon/gibt-es-nicht-xyz  → 200   (<title>Seite nicht gefunden</title>)
+   *
+   * Der Titel belegt, dass `notFound()` LIEF — er kam aus der globalen
+   * `not-found.tsx` statt aus den Routen-Metadaten. Gelaufen, Status
+   * trotzdem 200. WIDERLEGT.
+   *
+   * VERSUCH 2 — die Hypothese, die im Kopfkommentar von
+   * `salon/[slug]/page.tsx` stand: `(public)/loading.tsx` setzt eine
+   * Suspense-Grenze, an der Next die Huelle mitsamt Status hinausschiebt.
+   * Dort war daraus geschlossen, die Heilung koste den Ladebildschirm des
+   * gesamten oeffentlichen Bereichs — „eine Produktentscheidung".
+   * `(public)/loading.tsx` entfernt, neu gebaut (im Build-Ausgang liegt
+   * kein loading-Chunk mehr unter `(public)/`), `notFound()` im Rumpf
+   * erzwungen:
+   *
+   *     /salon/gibt-es-nicht-xyz  → 200
+   *
+   * Ebenfalls WIDERLEGT. Der Ladebildschirm ist NICHT der Preis — er war
+   * nie die Ursache.
+   *
+   * WAS UEBRIG BLEIBT: der einzige gemessene Unterschied ist
+   * `dynamicParams`. Jede Route mit `dynamicParams = false` antwortet
+   * sauber mit 404, jede mit ISR-Rendern auf Anfrage mit 200 — auch ohne
+   * jede Suspense-Grenze. Das deutet auf die On-Demand-ISR-Auslieferung
+   * selbst, nicht auf den Seitenbaum. Hier ist `dynamicParams = false`
+   * keine Option: ein neu freigeschaltetes Inserat muss ohne Deploy
+   * erreichbar sein.
+   *
+   * Der SEO-Schaden ist unabhaengig vom Status abgedeckt: `robots: { index:
+   * false }` steht unten in den Notfall-Metadaten, die Seite wird also nicht
+   * indiziert. Wer den Status angeht, faengt bei ISR an — nicht bei
+   * `loading.tsx` und nicht bei `generateMetadata`.
+   */
+  if (data.status !== 'gefunden') {
     return {
       title: 'Listing nicht gefunden — ChairMatch',
       robots: { index: false, follow: true },
@@ -165,8 +237,13 @@ export default async function ListingDetailPage({ params }: Props) {
   const { slug } = await params
   const data = await loadListing(slug)
 
-  if (!data) {
-    notFound()
+  if (data.status === 'fehlt') notFound()
+
+  // Kein `notFound()` fuer den Lesefehler: das waere die Auskunft „gibt es
+  // nicht" fuer ein Inserat, das es gibt — mit ISR (revalidate 600) bis zu
+  // zehn Minuten lang. Der geworfene Fehler landet in `(public)/error.tsx`.
+  if (data.status === 'lesefehler') {
+    throw new Error('Inserat konnte nicht geladen werden')
   }
 
   const { listing, salon, salonLogo } = data

@@ -45,6 +45,45 @@
 | `20260828170738_benachrichtigungswege_haertung.sql` | 20260828170738 | CM23 | `push_subscriptions.updated_at`; Arbiter-fähiger UNIQUE auf `wait_list(email, city)`; 6 CHECK-Constraints (Endpunkt https, Schlüsselmaterial, E-Mail normalisiert, Stadt nicht leer, `choices` vollständig); `DROP POLICY cookie_consents_insert_anon`; `REVOKE ALL … FROM anon` auf `push_subscriptions`, `notification_log`, `wait_list`, `cookie_consents` |
 | `20260910_anon_insert_lockdown.sql` | 20260910 | P7 | `REVOKE ALL FROM anon, PUBLIC` + `ENABLE ROW LEVEL SECURITY` auf `visit_logs` und `submission_tickets`. **Gemessen, nicht vermutet:** beide nehmen am 2026-09-10 einen anonymen INSERT an (`POST {}` → 201; mit ungueltiger UUID → 22P02 statt 42501, also existiert das Recht). GET antwortet dagegen 401 — reines Lesen haette die Luecke nicht gefunden. Beide Tabellen werden ausschliesslich ueber `getSupabaseAdmin()` bedient, das REVOKE bricht nichts. **Nicht abgedeckt von `20260902_rls_restliche_tabellen.sql`** — die nennt neun andere Tabellen. Gegenprobe: `bash scripts/anon-perimeter-probe.sh` |
 
+### Nachmessung 2026-09-12 — die P7-Luecke ist ZU, aber nicht durch diese Datei
+
+`bash scripts/anon-perimeter-probe.sh` am 2026-09-12T00:07:47Z, derselbe
+Schluessel, dasselbe Skript:
+
+```
+  categories                 GET 200 INSERT 42501  (lesbar — bewusst so)
+
+  47 Tabellen geprueft · unerwartet lesbar: 0 · beschreibbar: 0
+```
+
+`beschreibbar` ist von 2 auf 0 gefallen. Einzelnachweis:
+
+```
+  visit_logs          GET 401  {"code":"42501","message":"permission denied for table visit_logs"}
+  submission_tickets  GET 401  {"code":"42501","message":"permission denied for table submission_tickets"}
+```
+
+WAS DARAUS FOLGT UND WAS NICHT: die Tueren sind zu — das ist gemessen. Ob
+`20260910_anon_insert_lockdown.sql` dafuer angewendet wurde oder jemand die
+Rechte im Dashboard von Hand gezogen hat, ist von aussen NICHT zu
+unterscheiden: dazu muesste man `supabase_migrations.schema_migrations`
+lesen, und dafuer fehlt der Zugang (siehe unten). Die Zeile bleibt deshalb
+unter „Offen" stehen, bis jemand mit Dashboard-Zugang die Version bestaetigt.
+
+### Zugangslage am 2026-09-12 — kein DDL moeglich
+
+| Weg | Ergebnis | Beweis |
+|---|---|---|
+| anon-Key (`.env.local`) | **gueltig**, nur Lesen im Rahmen der Rechte | `GET /rest/v1/categories` → 200 |
+| service_role (`.env.prod`) | **rotiert/tot** | `GET /rest/v1/categories` → 401 `Invalid API key` — obwohl der Payload `ref=pwdbjqfpgumyfktbfswg`, `role=service_role`, `exp=2087573420` traegt |
+| `psql` via `DATABASE_URL` | **Passwort tot** | `FATAL: password authentication failed for user "prisma_app"` (psql selbst ist installiert und erreicht den Host — der fruehere Befund „psql blockiert" stimmt nicht mehr) |
+| Supabase-CLI 2.113.0 | installiert, **kein Access-Token** | kein `~/.supabase/access-token` |
+| Supabase-MCP | **in dieser Session nicht vorhanden** | keine `execute_sql`-Funktion im Toolset |
+
+Produktion selbst hat einen funktionierenden Dienstschluessel — `GET
+https://www.chairmatch.de/api/rental-listings` liefert anonym 5 echte
+Inserate aus der Datenbank. Tot ist nur die Kopie im Repo.
+
 ### P7 — Der Perimeter war nur beim LESEN dicht (2026-09-10)
 
 `bash scripts/anon-perimeter-probe.sh` misst alle 47 bekannten Tabellen mit

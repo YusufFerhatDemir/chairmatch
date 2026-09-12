@@ -1,5 +1,18 @@
 name: Auto-merge Claude PRs
 
+# WAS HIER BIS ZUM 12.09.2026 STAND, UND WARUM ES GEAENDERT IST
+#
+# Der Job rief `pulls.merge` direkt beim Ereignis `opened` auf. Das ist
+# KEIN „auto-merge aktivieren" (das waere `enablePullRequestAutoMerge` und
+# wartet auf die Pflicht-Checks) — es ist der sofortige Merge. Der PR war
+# gemerged, bevor `ci.yml` auf demselben `pull_request`-Ereignis auch nur
+# den Runner bekommen hatte. Der Kommentar im alten Job („Enable
+# auto-merge") beschrieb etwas, das der Code nicht tat.
+#
+# Jetzt haengt der Merge an `needs: verify` — demselben Lauf aus `ci.yml`
+# (Typecheck, vitest, Lint), den auch main durchlaeuft. Faellt er durch,
+# bleibt der PR offen.
+
 on:
   pull_request:
     types: [opened, synchronize]
@@ -8,16 +21,24 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
+  verify:
+    if: startsWith(github.head_ref, 'claude/')
+    uses: ./.github/workflows/ci.yml
+
   auto-merge:
+    needs: verify
     if: startsWith(github.head_ref, 'claude/')
     runs-on: ubuntu-latest
     steps:
-      - name: Auto-merge PR
+      - name: Merge PR (CI ist gruen)
         uses: actions/github-script@v7
         with:
           script: |
-            // Enable auto-merge
             await github.rest.pulls.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,

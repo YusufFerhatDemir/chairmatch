@@ -1,13 +1,43 @@
 name: Auto-deploy Claude branches to main
+
+# WAS HIER BIS ZUM 12.09.2026 STAND, UND WARUM ES GEAENDERT IST
+#
+# Der Job hat jeden Push auf `claude/**` ohne jede Pruefung nach `main`
+# gemerged — kein Typecheck, keine Tests, kein Lint, kein Review. `ci.yml`
+# lief zu diesem Zeitpunkt NUR auf `push: main` und auf `pull_request`,
+# also auf keinem der beiden Wege, die hier nach main fuehren. Ein Push auf
+# einen `claude/**`-Branch ging damit direkt in die Produktion (jeder Push
+# auf main loest bei Vercel ein Deployment aus) — und zwoelf verwaiste
+# `claude/**`-Branches liegen dafuer bereit.
+#
+# Geaendert ist NICHT, DASS automatisch gemerged wird: das ist in CLAUDE.md
+# ausdruecklich so gewollt („Push → PR → Merge akışını mümkünse otomatik
+# yap"). Geaendert ist, dass vorher jemand hinsieht — `ci.yml` laeuft als
+# wiederverwendbarer Lauf (`workflow_call`) und der Merge haengt daran.
+
 on:
   push:
     branches:
       - 'claude/**'
+
 permissions:
   contents: write
   pull-requests: write
+
+# Zwei Pushes kurz hintereinander duerfen sich nicht gegenseitig nach main
+# mergen. `cancel-in-progress` ist hier bewusst NICHT gesetzt: einen halb
+# durchgelaufenen Merge abzubrechen ist schlimmer als zu warten.
+concurrency:
+  group: auto-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  verify:
+    # Derselbe Lauf, den auch PRs und main durchlaufen: Typecheck, vitest, Lint.
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

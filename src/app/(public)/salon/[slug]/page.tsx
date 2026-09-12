@@ -119,10 +119,42 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
    * (/magazin, /category, /[stadt]) antwortet sauber mit 404, und genau die
    * zwei ohne (/salon, /listings) antworten mit 200.
    *
-   * NAHELIEGENDE, ABER NICHT NACHGEMESSENE URSACHE: unter `(public)` liegt
-   * ein `loading.tsx` und damit eine Suspense-Grenze, an der Next die Huelle
-   * mitsamt Status hinausschiebt, bevor die Abfrage hier zurueck ist. Wer das
-   * angeht, misst es bitte zuerst nach.
+   * NACHGEMESSEN AM 12.09.2026 — die hier frueher genannte, ausdruecklich
+   * ungemessene Ursache ist WIDERLEGT, und der daraus gezogene Schluss auch.
+   *
+   * Der Text an dieser Stelle lautete: „unter `(public)` liegt ein
+   * `loading.tsx` und damit eine Suspense-Grenze, an der Next die Huelle
+   * mitsamt Status hinausschiebt" — und weiter unten: den Status zu heilen
+   * hiesse, diese Grenze und damit den Ladebildschirm fuer den gesamten
+   * oeffentlichen Bereich aufzugeben, „eine Produktentscheidung". Beides
+   * stimmt nicht. Zwei Builds, gemessen gegen einen lokalen
+   * Produktionsbuild:
+   *
+   *   1) `notFound()` in `generateMetadata` statt im Rumpf — also vor jedem
+   *      Rendern. Erzwungen ueber eine temporaere Probe (die Datenbank ist
+   *      lokal nicht erreichbar), gemessen:
+   *
+   *          /salon/gibt-es-nicht-xyz → 200
+   *          <title>Seite nicht gefunden</title>
+   *
+   *      Der Titel kam aus der globalen `not-found.tsx` — `notFound()` ist
+   *      also GELAUFEN. Der Status blieb 200.
+   *
+   *   2) `(public)/loading.tsx` entfernt, neu gebaut (kein loading-Chunk
+   *      mehr unter `.next/server/app/(public)/`), `notFound()` im Rumpf
+   *      erzwungen:
+   *
+   *          /salon/gibt-es-nicht-xyz → 200
+   *
+   *      Ohne jede Suspense-Grenze derselbe Status. Der Ladebildschirm ist
+   *      nicht der Preis; er war nie die Ursache.
+   *
+   * Der einzige gemessene Unterschied bleibt `dynamicParams`: die Routen mit
+   * `dynamicParams = false` (/magazin, /category, /[stadt]) antworten mit
+   * 404, die beiden mit ISR-Rendern auf Anfrage (/salon, /listings) mit 200.
+   * Wer das angeht, faengt also bei der On-Demand-ISR-Auslieferung an — und
+   * nicht bei `loading.tsx` oder `generateMetadata`. Die ausfuehrliche
+   * Messreihe steht in `src/app/(public)/listings/[slug]/page.tsx`.
    *
    * Was blieb, war der SEO-Schaden, und der hing NICHT am Status allein:
    * hier stand bis hierher `{ title: 'Salon — ChairMatch' }` und sonst
@@ -131,10 +163,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
    * Salon als eigene Seite in den Index zu nehmen. `/listings/[slug]` macht
    * es im selben Repo seit jeher richtig (`robots: { index: false }`).
    *
-   * Der Statuscode bleibt offen und ist im Bericht als solcher vermerkt: ihn
-   * zu heilen hiesse, die Suspense-Grenze fuer den gesamten oeffentlichen
-   * Bereich aufzugeben, und damit den Ladebildschirm. Das ist eine
-   * Produktentscheidung, keine, die ein Haerte-Track still trifft.
+   * Der Statuscode bleibt offen — aber nicht mehr aus dem oben genannten
+   * Grund: zwei naheliegende Heilungen sind gemessen und gescheitert, und
+   * was es KOSTET, ihn zu heilen, ist damit wieder unbekannt statt
+   * „Ladebildschirm". Der SEO-Schaden ist unabhaengig davon abgedeckt.
    */
   return {
     title: 'Salon nicht gefunden — ChairMatch',
