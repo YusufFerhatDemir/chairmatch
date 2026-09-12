@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { rankListings, type MatchCriteria, type MatchListing } from '@/lib/matching/match-engine'
+import { salonIsNotBlocked } from '@/lib/salon-status'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,12 +53,19 @@ export async function POST(req: Request) {
     // Haken, und der Link fuehrte auf eine Salonseite, die seit Track 20 mit
     // 404 antwortet.
     //
-    // Bewusst nur bei einem AUSDRUECKLICHEN `false` — wie in
-    // /api/rental-listings und aus demselben Grund: ein „im Zweifel raus"
+    // Die Regel steht in `salonAcceptsBusiness`, nicht hier. Sie stand bis
+    // zum 12.09.2026 als `l.salon?.is_active !== false` ausgeschrieben — in
+    // dieser Route und in /api/rental-listings, also zweimal dieselbe
+    // Entscheidung neben dem Modul, das es genau dafuer gibt. Das ist die
+    // Sorte Duplikat, die erst auffaellt, wenn jemand die Regel aendert und
+    // eine der Kopien uebersieht.
+    //
+    // Bewusst nur bei einem AUSDRUECKLICHEN `false` — die Begruendung steht
+    // im Kopfkommentar von src/lib/salon-status.ts: ein „im Zweifel raus"
     // wuerde beim Ausfall der Einbettung jedes Ergebnis verschlucken und dem
     // Nutzer „keine Treffer" zeigen, ohne dass jemand etwas gesperrt haette.
-    const listings = ((data ?? []) as unknown as MatchListing[]).filter(
-      (l) => l.salon?.is_active !== false,
+    const listings = ((data ?? []) as unknown as MatchListing[]).filter((l) =>
+      salonIsNotBlocked(l.salon),
     )
     const ranked = rankListings(criteria, listings).slice(0, 20)
 

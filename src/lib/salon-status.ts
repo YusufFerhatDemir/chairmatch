@@ -78,6 +78,41 @@ export function salonAcceptsBusiness(
 }
 
 /**
+ * Ist dieser Salon NICHT gesperrt? Die Listen-Variante.
+ *
+ * Unterscheidet sich von `salonAcceptsBusiness` in genau einem Fall, und der
+ * ist wichtig genug fuer eine eigene Funktion: bei einem FEHLENDEN Salon.
+ *
+ *   salonAcceptsBusiness(null)  → false   („kein Salon, kein Geschaeft")
+ *   salonIsNotBlocked(null)     → true    („nichts spricht dagegen")
+ *
+ * WARUM DER UNTERSCHIED BESTEHEN BLEIBT. Auf den Geldstrecken laedt der
+ * Aufrufer den Salon gezielt ueber seine ID: kommt nichts zurueck, ist das
+ * ein echter Befund, und `fail closed` ist die richtige Antwort. In den
+ * oeffentlichen Listen kommt der Salon dagegen als EINGEBETTETER Join mit
+ * (`salons(id, name, city, slug, is_active)`). Bleibt die Einbettung leer —
+ * weil ein Recht fehlt, ein Join nicht aufloest oder PostgREST die
+ * Projektion abschaltet —, dann ist das eine Aussage ueber die ABFRAGE, nicht
+ * ueber den Salon. Wer daraus eine Sperre macht, legt bei so einem Aussetzer
+ * den halben Marktplatz still, ohne dass jemand irgendetwas gesperrt haette,
+ * und der Nutzer sieht „keine Treffer".
+ *
+ * Dieser Unterschied stand vorher nirgends als Begriff, sondern nur als
+ * `?.is_active !== false` in zwei Routen — und beim Versuch, die Kopien
+ * durch `salonAcceptsBusiness` zu ersetzen, fiel prompt
+ * `matching-gesperrte-anbieter.test.ts` durch („verschluckt kein Inserat,
+ * dessen Salon-Einbettung leer bleibt"). Genau dafuer gibt es den Namen
+ * jetzt.
+ *
+ * Fuer alles, wo Geld oder eine Verpflichtung entsteht: `salonAcceptsBusiness`.
+ */
+export function salonIsNotBlocked(
+  salon: { is_active?: boolean | null } | null | undefined,
+): boolean {
+  return salon?.is_active !== false
+}
+
+/**
  * Die Felder, die ein Aufrufer nach bestandener Pruefung ohne zweite Abfrage
  * weiterverwenden kann. `createBooking` braucht sie fuer den Oeffnungszeiten-
  * und Feiertagsriegel (siehe src/lib/salon-open.ts).

@@ -6,7 +6,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 19 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 19 Preisliterale auf dieser Seite.
  *
  * Die Seite nennt Behandlungspreise fuer Implantate, All-on-4, Veneers und Invisalign. Sie stammen
  * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
@@ -73,7 +73,7 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/zahnimplantate',
 }
 
-// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
 // `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
@@ -156,7 +156,7 @@ export default function ZahnimplantatePage() {
           <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 14, borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
             Behandlungen &amp; Preise
           </h2>
-          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
+          {/* BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <PriceCard name="Einzel-Implantat (Standard)" price="1.490 – 1.990 €" desc="Titan-Implantat + Krone. Hält 20-30 Jahre. Bewährt." />
           <PriceCard name="Einzel-Implantat Premium" price="2.290 – 2.890 €" desc="Straumann / Nobel Biocare. Höhere Erfolgsquote, lebenslange Garantie." highlight />
           <PriceCard name="All-on-4 (komplett, pro Kiefer)" price="11.900 – 14.900 €" desc="4 Implantate + feste Brücke. Komplettes Gebiss in 1 Tag." />

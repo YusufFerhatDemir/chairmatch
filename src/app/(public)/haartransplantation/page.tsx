@@ -16,7 +16,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 15 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 15 Preisliterale auf dieser Seite.
  *
  * Die Seite nennt Behandlungspreise fuer FUE, DHI und Saphir-FUE. Sie stammen
  * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
@@ -83,7 +83,7 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/haartransplantation',
 }
 
-// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
 // `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
@@ -209,7 +209,7 @@ export default function HaartransplantationPage() {
             Methoden im Vergleich
           </h2>
 
-          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
+          {/* BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <MethodCard
             name="FUE-Methode"
             tag="Standard"

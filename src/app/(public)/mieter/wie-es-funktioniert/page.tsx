@@ -1,5 +1,5 @@
 /*
- * BUSINESS_DECISION_REQUIRED — 2 Zahlenangaben auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 2 Zahlenangaben auf dieser Seite.
  *
  * „Du zahlst NUR die Stuhl-Miete an den Salon (z.B. 50€/Tag)" — ein
  * Beispielwert, der als Groessenordnung gelesen wird. „Gewerbeanmeldung
@@ -49,7 +49,7 @@ const STEPS = [
   { n: 4, t: 'Arbeiten & bewerten', d: 'Schlüssel kommt am Tag der Buchung. Nach Termin bewerten.' },
 ]
 
-// BUSINESS_DECISION_REQUIRED: Beispiel-Tagesmiete und Gewerbegebuehr in den
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Beispiel-Tagesmiete und Gewerbegebuehr in den
 // Antworten unten — siehe Kopf der Datei.
 const FAQS = [
   { question: 'Was kostet mich ChairMatch?', answer: '0%. Du zahlst NUR die Stuhl-Miete an den Salon (z.B. 50€/Tag). ChairMatch verdient ausschließlich an der Provision des Salons — du behältst 100% deines Behandlungs-Umsatzes.' },

@@ -1,7 +1,7 @@
 'use client'
 
 /*
- * BUSINESS_DECISION_REQUIRED — 5 Verdienstangaben auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 5 Verdienstangaben auf dieser Seite.
  *
  * Im Anmeldeformular fuer Anbieter steht je Kategorie ein
  * „Zusatzeinnahmen · ca. 80–150 €/Tag". Das ist keine Preisinformation,
@@ -21,7 +21,7 @@ import Link from 'next/link'
 import { BrandLogo } from '@/components/BrandLogo'
 
 const STEP_NAMES = ['Persönliche Daten', 'Geschäftsdaten', 'Services & Vermietung', 'Bestätigung']
-// BUSINESS_DECISION_REQUIRED: Die `sub`-Texte der Kategorien unten nennen
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Die `sub`-Texte der Kategorien unten nennen
 // taegliche Zusatzeinnahmen — eine Ertragserwartung ohne jede Grundlage.
 const CATEGORIES = ['Barbershop', 'Friseur', 'Kosmetik', 'Ästhetik', 'Nail & Lash', 'Massage', 'OP-Raum'] as const
 

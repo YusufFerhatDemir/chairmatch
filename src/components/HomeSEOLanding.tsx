@@ -11,7 +11,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 9 Preisangaben im SEO-Block der Startseite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 9 Preisangaben im SEO-Block der Startseite.
  *
  * Der Textblock nennt die Spanne „25–75 €" viermal, dazu Monatspauschalen
  * („ab ca. 300 €/Monat bis ueber 1.000 €/Monat"). Er steht direkt neben der
@@ -118,7 +118,7 @@ export function HomeHero() {
         color: 'var(--stone)',
         letterSpacing: '0.02em',
       }}>
-        {/* BUSINESS_DECISION_REQUIRED: Deutschlandweite Preisspanne ohne Erhebung — siehe Kopf der Datei. */}
+        {/* BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Deutschlandweite Preisspanne ohne Erhebung — siehe Kopf der Datei. */}
         <li>✓ Tagespreis 25–75 €</li>
         <li>✓ Sichere Zahlung über Plattform</li>
         <li>✓ DSGVO &amp; Hosting in Deutschland</li>

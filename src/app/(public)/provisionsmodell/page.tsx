@@ -1,5 +1,5 @@
 /*
- * BUSINESS_DECISION_REQUIRED — 4 Zahlenangaben auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 4 Zahlenangaben auf dieser Seite.
  *
  * Zwei verschiedene Dinge, die man auseinanderhalten muss:
  *
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   },
 }
 
-// BUSINESS_DECISION_REQUIRED: Provisionssatz (10 %) und Stripe-Gebuehr in
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Provisionssatz (10 %) und Stripe-Gebuehr in
 // den Antworten unten — siehe Kopf der Datei, die beiden sind verschieden.
 const FAQS = [
   { question: 'Warum überhaupt Provision?', answer: 'Wir bauen die Infrastruktur: Stripe-Zahlungen, Streit-Schlichtung, Verifizierung, Bewertungssystem, rechtliche Mietverträge, SEO-Sichtbarkeit. Das kostet pro Monat 4-stellig — die Provision finanziert das.' },

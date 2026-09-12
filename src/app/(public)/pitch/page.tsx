@@ -1,5 +1,5 @@
 /*
- * BUSINESS_DECISION_REQUIRED — 5 Zahlenangaben auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 5 Zahlenangaben auf dieser Seite.
  *
  * Anders als die uebrigen Seiten stehen hier keine Marktpreise, sondern
  * EIGENE Festlegungen und Marktbehauptungen:
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.chairmatch.de/pitch' },
 }
 
-// BUSINESS_DECISION_REQUIRED: Abo-Preise, Marktgroesse und Finanzierungs-
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Abo-Preise, Marktgroesse und Finanzierungs-
 // bedarf — eigene Festlegungen, oeffentlich sichtbar, ohne Beleg.
 const SLIDES = [
   {

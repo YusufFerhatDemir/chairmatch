@@ -6,7 +6,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 525 Preisliterale in dieser Datei.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 525 Preisliterale in dieser Datei.
  *
  * Die Artikeltexte und FAQ-Antworten nennen Tagesmieten, Monatsfixkosten,
  * Startkapital, Versicherungsbeitraege und Tagesumsaetze. Zwei Gruppen sind

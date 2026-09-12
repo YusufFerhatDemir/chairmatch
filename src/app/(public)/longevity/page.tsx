@@ -5,7 +5,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 21 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 21 Preisliterale auf dieser Seite.
  *
  * Die Seite nennt Behandlungspreise fuer Kryotherapie, HBOT, HIFU, EMS und Body-Contouring. Sie stammen
  * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
@@ -72,7 +72,7 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/longevity',
 }
 
-// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
 // `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
@@ -155,7 +155,7 @@ export default function LongevityPage() {
           <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 14, borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
             Therapien &amp; Preise
           </h2>
-          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
+          {/* BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <PriceCard name="Ganzkörper-Kryotherapie (-110°C)" price="29 – 49 € / Sitzung" desc="3 Minuten Kältekammer. Entzündungs-Reduktion, Endorphin-Boost. 10er ab 290 €." />
           <PriceCard name="HBOT (Hyperbare Sauerstofftherapie)" price="149 € / Sitzung" desc="90 Min Druckkammer mit reinem Sauerstoff. Anti-Aging-Effekte, Wundheilung. 10er 1.290 €." highlight />
           <PriceCard name="HIFU-Hautstraffung Gesicht" price="490 – 690 €" desc="Ultraschall-Lifting ohne OP. Hält 12-18 Monate." />

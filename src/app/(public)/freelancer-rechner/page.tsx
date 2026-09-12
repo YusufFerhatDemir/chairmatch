@@ -4,7 +4,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 12 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 12 Preisliterale auf dieser Seite.
  *
  * Die FAQ-Antworten nennen ein Monatsnetto fuer Selbststaendige
  * („realistisch 2.200–3.800 € netto pro Monat") und stellen es dem
@@ -35,7 +35,7 @@ import { jsonLd } from '@/lib/seo'
 
 // GEO/SEO: natürlichsprachliche, zitierbare Antworten rund um den Rechner —
 // sichtbar als Accordion + FAQPage-Schema (Featured Snippets / AI-Antworten).
-// BUSINESS_DECISION_REQUIRED: Verdienstangaben ohne Erhebung — und ueber
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Verdienstangaben ohne Erhebung — und ueber
 // `<FAQ>` zusaetzlich als FAQPage-JSON-LD ausgeliefert.
 const RECHNER_FAQS: FaqItem[] = [
   {

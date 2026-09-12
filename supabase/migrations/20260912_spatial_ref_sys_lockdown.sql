@@ -1,44 +1,79 @@
 -- 20260912_spatial_ref_sys_lockdown.sql
 --
--- NICHT ANGEWENDET — es gibt in dieser Session keinen DDL-Zugang.
--- Der Dienstschluessel in .env.prod ist rotiert (Gateway: „Invalid API key",
--- obwohl `ref`, `role` und `exp` im Payload stimmen), das Passwort von
--- `prisma_app` aus DATABASE_URL ebenfalls („password authentication failed"),
--- und die Supabase-CLI hat kein Access-Token. Anwenden kann das nur jemand
--- mit Dashboard-Zugang (SQL Editor).
+-- NICHT ANGEWENDET — es gibt in dieser Session keinen DDL-Zugang. Vier Wege
+-- einzeln durchprobiert (Stand 2026-09-12):
 --
--- WAS GEMESSEN WURDE (2026-09-12, oeffentlicher anon-Key aus .env.local):
+--   service_role aus .env.prod  → 401 "Invalid API key" (rotiert; Payload
+--                                 traegt ref/role/exp korrekt)
+--   psql via DATABASE_URL       → der direkte Host hat NUR einen
+--                                 AAAA-Eintrag, und diese Maschine hat
+--                                 keine IPv6-Route: getaddrinfo scheitert,
+--                                 und ueber das IPv6-Literal kommt
+--                                 "No route to host"
+--   Pooler (IPv4)               → "(ENOTFOUND) tenant/user ... not found"
+--   Supabase-CLI 2.113.0        → kein Access-Token
 --
---   GET /rest/v1/spatial_ref_sys?select=*&limit=1
---     → 200, echte Zeilen (srid 2000, "Anguilla 1957 / British West Indies Grid")
+-- Anwenden kann das nur jemand mit Dashboard-Zugang (SQL Editor).
 --
--- Also: REVOKE ist bis heute NICHT passiert; die Frage aus dem Auftrag ist
--- damit beantwortet.
+-- ══════════════════════════════════════════════════════════════════════
+-- KORREKTUR ZUR ERSTEN FASSUNG DIESER DATEI (11.09.2026)
+-- ══════════════════════════════════════════════════════════════════════
 --
--- EHRLICHE EINORDNUNG DES RISIKOS: gering. `spatial_ref_sys` ist die
--- Referenztabelle von PostGIS mit den EPSG-Koordinatensystemen — oeffentlich
--- bekannte Konstanten, keine Nutzerdaten, kein Geschaeftsgeheimnis. Der Grund
--- fuer dieses REVOKE ist der Supabase-Linter („RLS disabled in public"), nicht
--- ein Datenabfluss. Es steht hier, damit der Perimeter EINE Regel hat statt
--- einer Regel mit Ausnahme.
+-- Dort stand: „Risiko gering … es geht um eine Perimeter-Regel ohne
+-- Ausnahme, nicht um einen Datenabfluss." Das war zu milde, weil nur das
+-- LESEN gemessen worden war. `anon` hat auf dieser Tabelle alle vier
+-- Rechte. Nachgemessen am 12.09.2026 mit dem oeffentlichen Schluessel:
 --
--- WARUM ES NICHTS BRICHT: PostGIS ist installiert, aber unbenutzt. Gemessen
--- am selben Tag mit demselben Schluessel:
+--   SELECT  GET  /rest/v1/spatial_ref_sys?select=*&limit=1        → 200, echte Zeilen
+--   INSERT  POST /rest/v1/spatial_ref_sys  {"srid":"keine-zahl"}  → 22P02
+--   UPDATE  PATCH ?srid=eq.0               {"auth_name":"x"}      → 204
+--   DELETE  DELETE ?srid=eq.0                                     → 204
+--
+-- WARUM DAS DIE RECHTELAGE BEWEIST UND NICHT NUR VERMUTET:
+--
+--   * Beim INSERT trennt der Fehlercode. Vier Kontrolltabellen mit
+--     demselben ungueltigen Wert — `visit_logs`, `submission_tickets`,
+--     `categories`, `salons` — antworten alle 42501 „permission denied".
+--     Die Berechtigung greift dort also VOR der Typumwandlung. Nur
+--     `spatial_ref_sys` kommt bis zur Umwandlung durch (22P02), also
+--     existiert das Recht. Geschrieben wurde dabei nichts.
+--   * Bei DELETE und UPDATE trennt der Fehlercode NICHT: dort wertet
+--     PostgREST den Filter vor der Berechtigung aus, `salons` antwortet
+--     mit ungueltiger UUID ebenfalls 22P02. Deshalb hier ein Filter auf
+--     `srid=eq.0` — diese Zeile gibt es nicht (`GET ?srid=eq.0` → `[]`),
+--     die Menge ist leer. `spatial_ref_sys` antwortet 204, `salons` unter
+--     demselben Muster 401. Der Zeilenbestand blieb vor und nach allen
+--     Proben bei 8500 (`Prefer: count=exact`).
+--
+-- WAS DAS BEDEUTET: Wer den oeffentlichen anon-Schluessel hat — und den hat
+-- jeder Besucher, er steht im Browser-Bundle — kann die
+-- PostGIS-Referenztabelle mit einem einzigen Aufruf leeren. Die Daten
+-- darin sind oeffentlich bekannt (EPSG-Koordinatensysteme), es geht also
+-- nicht um einen Abfluss, sondern um Integritaet und Verfuegbarkeit einer
+-- Tabelle, die jede kuenftige Geo-Funktion braucht. Heute nutzt sie
+-- niemand (siehe unten) — der Schaden waere also still.
+--
+-- WARUM ES NICHTS BRICHT: PostGIS ist installiert, aber unbenutzt.
+-- Gemessen mit demselben Schluessel:
 --
 --   GET /rest/v1/geography_columns  → 200 []
 --   GET /rest/v1/geometry_columns   → 200 []
 --
 -- Keine einzige Geometrie- oder Geographie-Spalte im Schema. Salons tragen
--- ihre Lage als Stadtname (siehe `salon/[slug]/page.tsx`: die Koordinaten
--- kommen aus `lib/seo-data/cities.ts`, nicht aus der Datenbank).
+-- ihre Lage als Stadtname; die Koordinaten kommen aus
+-- `lib/seo-data/cities.ts`, nicht aus der Datenbank.
 --
 -- GEGENPROBE NACH DEM ANWENDEN:
 --   bash scripts/anon-perimeter-probe.sh
---   und:  curl "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/spatial_ref_sys?select=srid&limit=1" \
---           -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY"
---         → erwartet 401 mit code 42501 statt 200
+-- Die Sonde kennt `spatial_ref_sys` seit dem 12.09.2026 und prueft neben
+-- Lesen und Einfuegen auch Loeschen. Erwartet: „Perimeter dicht", Exit 0.
 
 REVOKE ALL ON TABLE public.spatial_ref_sys FROM anon, authenticated, PUBLIC;
+
+-- Die beiden Sichten sind anon ebenfalls lesbar. Sie antworten heute leer,
+-- geben aber die Schema-Struktur preis, sobald eine Geo-Spalte dazukommt.
+REVOKE ALL ON TABLE public.geography_columns FROM anon, authenticated, PUBLIC;
+REVOKE ALL ON TABLE public.geometry_columns  FROM anon, authenticated, PUBLIC;
 
 -- `postgres` und `service_role` behalten ihren Zugriff: PostGIS braucht die
 -- Tabelle fuer `ST_Transform` & Co., falls das Schema sie spaeter doch nutzt.

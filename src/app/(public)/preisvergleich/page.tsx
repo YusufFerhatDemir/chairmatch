@@ -1,5 +1,5 @@
 /*
- * BUSINESS_DECISION_REQUIRED — 27 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 27 Preisliterale auf dieser Seite.
  *
  * ZUERST DAS, WAS HIER RICHTIG IST: die Preistabelle rechnet echte Mediane
  * aus `rental_equipment` und kennzeichnet jede Zeile mit ihrer Quelle
@@ -187,7 +187,7 @@ async function buildPriceRows(): Promise<PriceRow[]> {
 // FAQ (Inhalt + JSON-LD)
 // ---------------------------------------------------------------------------
 
-// BUSINESS_DECISION_REQUIRED: Tagesmieten, Startkapital und Fixkosten ohne
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Tagesmieten, Startkapital und Fixkosten ohne
 // Quelle — und ueber `<FAQ>` zusaetzlich als JSON-LD ausgeliefert.
 const FAQS = [
   {

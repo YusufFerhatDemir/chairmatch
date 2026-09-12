@@ -1,7 +1,7 @@
 'use client'
 
 /*
- * BUSINESS_DECISION_REQUIRED — 4 Preisliterale in den Hilfetexten.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 4 Preisliterale in den Hilfetexten.
  *
  * Die `help`-Texte der Schieberegler geben dem Nutzer die Zahl vor, mit der
  * er rechnen soll: „Bundesdurchschnitt 45 €. Muenchen/Frankfurt 65-90 €"
@@ -103,7 +103,7 @@ export function CalculatorClient() {
             min={5} max={26} step={1}
             help="Realistisch 16-20. Vollzeit 22, Teilzeit 8-12."
           />
-          {/* BUSINESS_DECISION_REQUIRED: Die `help`-Texte geben die Rechengroessen vor — siehe Kopf der Datei. */}
+          {/* BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Die `help`-Texte geben die Rechengroessen vor — siehe Kopf der Datei. */}
           <Slider
             label="Stuhl-Miete (€/Tag)"
             value={stuhlMiete} setValue={setStuhlMiete}

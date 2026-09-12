@@ -11,7 +11,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 213 Preisliterale in dieser Datei.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 213 Preisliterale in dieser Datei.
  *
  * Batch 2 der Magazin-Artikel, gleiche Lage wie in `magazin.ts`: Tagesmieten
  * je Berufsgruppe, Einstiegskosten, Teilzeit-Rechnungen. Die Artikel haengen

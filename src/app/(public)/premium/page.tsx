@@ -6,7 +6,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 6 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 6 Preisliterale auf dieser Seite.
  *
  * `SERVICES[].priceFrom` nennt Einstiegspreise fuer Heilbehandlungen
  * („ab 2.490 €", „ab 1.490 €", „ab 290 €"). Die Hub-Seite fasst damit die
@@ -75,7 +75,7 @@ interface PremiumService {
   highlight?: boolean
 }
 
-// BUSINESS_DECISION_REQUIRED: Einstiegspreise fuer Heilbehandlungen, ohne
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Einstiegspreise fuer Heilbehandlungen, ohne
 // Quelle und ohne Kopplung an die Money-Pages, von denen sie stammen.
 const SERVICES: PremiumService[] = [
   {

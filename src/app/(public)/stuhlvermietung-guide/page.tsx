@@ -1,5 +1,5 @@
 /*
- * BUSINESS_DECISION_REQUIRED — 5 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 5 Preisliterale auf dieser Seite.
  *
  * Die Guide-FAQ nennt bundesweite Spannen („25-80 € pro Tag",
  * „Monatsflats zwischen 450 und 1.100 €"), der Einleitungstext wiederholt
@@ -107,7 +107,7 @@ const VERTICAL_LINKS = [
   { href: '/lash-brows-deutschland', label: 'Lash- & Brow-Platz mieten' },
 ] as const
 
-// BUSINESS_DECISION_REQUIRED: Bundesweite Mietspannen ohne Erhebung — und
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Bundesweite Mietspannen ohne Erhebung — und
 // ueber `<FAQ>` zusaetzlich als FAQPage-JSON-LD ausgeliefert.
 const GUIDE_FAQS = [
   { question: 'Was ist Stuhlvermietung?', answer: 'Bei der Stuhlvermietung (Chair Rental) mietet ein selbstständiger Beauty-Profi — Friseur, Barber, Kosmetikerin, Nageldesignerin oder Lash-Stylistin — tageweise oder monatlich einen Arbeitsplatz in einem bestehenden Salon. Die Miete ist fix, der komplette Behandlungsumsatz bleibt beim Mieter.' },

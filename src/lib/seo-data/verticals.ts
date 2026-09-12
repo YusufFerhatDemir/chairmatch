@@ -3,7 +3,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 41 Preisliterale in dieser Datei.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 41 Preisliterale in dieser Datei.
  *
  * Neben den Tagesmieten je Berufsgruppe steht hier `marketStats` mit
  * Aussagen wie „Geschaetzt 30.000+ Stuhl-Miet-Verhaeltnisse in Deutschland

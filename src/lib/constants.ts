@@ -56,7 +56,7 @@ export const RENTAL_ICONS: Record<string, string> = {
  * werden: in der Datenbank.
  */
 
-// BUSINESS_DECISION_REQUIRED: Alle Preise (pr) im Service-Katalog sind
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Alle Preise (pr) im Service-Katalog sind
 // Platzhalter und müssen vor dem Launch validiert werden.
 export const SVC_CATALOG: Record<string, { nm: string; dur: number; pr: number }[]> = {
   barber: [
@@ -134,7 +134,7 @@ export const SVC_CATALOG: Record<string, { nm: string; dur: number; pr: number }
   ],
 }
 
-// BUSINESS_DECISION_REQUIRED: Alle Stundensätze (pr) im Equipment-Katalog
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Alle Stundensätze (pr) im Equipment-Katalog
 // sind Platzhalter und müssen vor dem Launch validiert werden.
 export const EQUIP_CATALOG: Record<string, { nm: string; pr: number; icon: string }[]> = {
   barber: [
@@ -208,7 +208,7 @@ export const PRODUCT_CATEGORIES_B2B = [
   { slug: 'technik', name: 'Technik & Geräte', icon: '🔌' },
 ] as const
 
-// BUSINESS_DECISION_REQUIRED: Provisions-Bandbreiten sind Platzhalter
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Provisions-Bandbreiten sind Platzhalter
 // und müssen vor dem Launch mit der Geschäftsführung abgestimmt werden.
 export const COMMISSION_DEFAULTS = {
   rental: { min: 12, max: 15, default: 12 },

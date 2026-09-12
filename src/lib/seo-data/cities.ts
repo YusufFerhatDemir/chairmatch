@@ -9,7 +9,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 152 Preisliterale in dieser Datei.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 152 Preisliterale in dieser Datei.
  *
  * `priceRange` gibt je Stadt eine Spanne fuer Stuhl, Kabine und Raum an
  * („45-75 €/Tag"), die FAQ-Antworten schluesseln sie nach Stadtteilen auf

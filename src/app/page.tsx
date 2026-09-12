@@ -1,5 +1,5 @@
 /*
- * BUSINESS_DECISION_REQUIRED — 1 Preisangabe in den Metadaten.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 1 Preisangabe in den Metadaten.
  *
  * `description` nennt „Tagespreis ab 25 €". Das ist die Zahl, die im
  * Suchergebnis zur Startseite steht — die sichtbarste Preisangabe des

@@ -1,5 +1,5 @@
 /*
- * BUSINESS_DECISION_REQUIRED — 8 Preisangaben auf der Startseite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 8 Preisangaben auf der Startseite.
  *
  * Diese Datei liegt nicht unter `(public)`, wird aber von `src/app/page.tsx`
  * gerendert — sie ist die Startseite. Drei Sorten Zahlen:
@@ -349,7 +349,7 @@ export default function HomeClient({ categories, dbSalons, topOfferPercent }: Pr
             }}
           >
             <span>💼 Stuhl mieten</span>
-            {/* BUSINESS_DECISION_REQUIRED: Tagespreis-Zusage und Ertragserwartung — siehe Kopf der Datei. */}
+            {/* BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Tagespreis-Zusage und Ertragserwartung — siehe Kopf der Datei. */}
             <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.75 }}>ab 25 €/Tag · selbstständig arbeiten →</span>
           </Link>
 

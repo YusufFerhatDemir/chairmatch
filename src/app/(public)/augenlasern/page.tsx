@@ -4,7 +4,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 15 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 15 Preisliterale auf dieser Seite.
  *
  * Die Seite nennt Behandlungspreise fuer LASIK, Femto-LASIK, ReLEx Smile und ICL. Sie stammen
  * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
@@ -71,7 +71,7 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/augenlasern',
 }
 
-// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
 // `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
@@ -154,7 +154,7 @@ export default function AugenlasernPage() {
           <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 14, borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
             Methoden &amp; Preise (pro Auge)
           </h2>
-          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
+          {/* BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <PriceCard name="LASIK (Standard)" price="1.490 – 1.890 €" desc="Bewährte Standard-Methode. Schnelle Heilung." />
           <PriceCard name="Femto-LASIK" price="1.890 – 2.290 €" desc="Lappen mit Laser statt Klinge. Präziser, sicherer." highlight />
           <PriceCard name="ReLEx Smile (Premium)" price="2.290 – 2.990 €" desc="Minimal-invasiv, nur 2-3 mm Schnitt. Beste Variante bei trockenen Augen." />

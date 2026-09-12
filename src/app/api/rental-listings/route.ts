@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { RentalListing } from '@/modules/rentals/rental-listing.types'
+import { salonIsNotBlocked } from '@/lib/salon-status'
 
 /**
  * Oeffentliche Inseratssuche — GET /api/rental-listings
@@ -174,9 +175,14 @@ export async function GET(req: NextRequest) {
     // Geldstrecken (rental-bookings, rental-requests, createBooking), die
     // fail closed sind. Hier wuerde ein „im Zweifel raus" bei einem Ausfall
     // der Einbettung den halben Marktplatz stillegen, ohne dass jemand etwas
-    // gesperrt haette. Siehe src/lib/salon-status.ts.
+    // gesperrt haette.
+    //
+    // Die Regel selbst steht in `salonAcceptsBusiness` und wird hier nur noch
+    // aufgerufen. Bis zum 12.09.2026 stand sie ausgeschrieben da — zusammen
+    // mit der Kopie in /api/match waren es zwei Stellen neben dem Modul, das
+    // genau diese eine Frage beantworten soll.
     const listings = ((data ?? []) as unknown as EquipmentRow[])
-      .filter((row) => row.salons?.is_active !== false)
+      .filter((row) => salonIsNotBlocked(row.salons))
       .map(toListing)
       .filter((l) => matchesQuery(l, query))
       .filter((l) => matchesCity(l, city))

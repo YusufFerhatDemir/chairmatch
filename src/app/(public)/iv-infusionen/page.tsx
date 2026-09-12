@@ -4,7 +4,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 17 Preisliterale auf dieser Seite.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 17 Preisliterale auf dieser Seite.
  *
  * Die Seite nennt Behandlungspreise fuer NAD+, Glutathion und Vitamin-C-Hochdosis. Sie stammen
  * aus keiner Quelle im Repo: kein Anbieter, keine Erhebung, kein Stand.
@@ -71,7 +71,7 @@ const SERVICE_SCHEMA = {
   url: 'https://www.chairmatch.de/iv-infusionen',
 }
 
-// BUSINESS_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
+// BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Die Antworten unten nennen Behandlungspreise.
 // `<FAQ>` gibt sie zusaetzlich als FAQPage-JSON-LD aus — siehe Kopf der Datei.
 const FAQS = [
   {
@@ -154,7 +154,7 @@ export default function IVInfusionenPage() {
           <h2 className="cinzel" style={{ fontSize: 22, color: 'var(--gold2)', marginBottom: 14, borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
             Infusionen &amp; Preise
           </h2>
-          {/* BUSINESS_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
+          {/* BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: Preisliste ohne Quelle — siehe Kopf der Datei. */}
           <PriceCard name="NAD+ 250mg" price="290 €" desc="Anti-Aging-Master. Mitochondrien-Booster, Energie, Klarheit." highlight />
           <PriceCard name="NAD+ 500mg" price="490 €" desc="Stärkere Dosis für intensiveren Effekt. Empfohlen ab 40 Jahren." />
           <PriceCard name="NAD+ 1000mg (Mega-Dose)" price="890 €" desc="Maximum-Dosierung. Lange Infusion (4h). Premium-Anti-Aging." />

@@ -15,7 +15,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 28 Preisliterale in dieser Datei.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 28 Preisliterale in dieser Datei.
  *
  * Diese FAQs werden bewusst mehrfach verwendet — das ist der Zweck der
  * Datei. Damit vervielfaeltigt sich auch jede Preisangabe darin:

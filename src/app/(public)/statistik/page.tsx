@@ -196,7 +196,7 @@ export default async function StatistikPage() {
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--cream)', marginBottom: 16 }}>Unsere Plattform</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
             {[
-              // BUSINESS_DECISION_REQUIRED: „0% Provision" ist hier eine
+              // BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED: „0% Provision" ist hier eine
               // oeffentliche Zusage an Salons. Der zugehoerige Satz steht in
               // COMMISSION_RULES (src/lib/marketplace-rules.ts) und ist dort
               // ausdruecklich als Platzhalter markiert — dieselbe Zahl darf

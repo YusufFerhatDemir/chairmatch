@@ -12,7 +12,7 @@
  */
 
 /*
- * BUSINESS_DECISION_REQUIRED — 82 Preisliterale in dieser Datei.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 82 Preisliterale in dieser Datei.
  *
  * Die hand geschriebenen Guide-Abschnitte der Stadtseiten nennen Mieten,
  * Lagenaufschlaege und Nebenkosten im Fliesstext. Sie stehen neben den

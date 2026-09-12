@@ -1,5 +1,5 @@
 /*
- * BUSINESS_DECISION_REQUIRED — 1 Preisangabe in den Metadaten.
+ * BUSINESS_DECISION_REQUIRED / PRICE_DECISION_REQUIRED — 1 Preisangabe in den Metadaten.
  *
  * `metadata.description` verspricht „ab 25 €/Tag". Die Zahl steht damit im
  * Suchergebnis, bevor jemand die Seite oeffnet — und sie ist fest

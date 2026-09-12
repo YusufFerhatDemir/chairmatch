@@ -1133,8 +1133,8 @@ export const PREIS_AUDIT: readonly PreisDatei[] = [
     datei: "src/app/api/rental-listings/route.ts",
     bereich: "api",
     treffer: [
-      { zeile: 18, literale: ["90 €"], kommentar: true, dynamisch: false },
-      { zeile: 19, literale: ["500 €"], kommentar: true, dynamisch: false },
+      { zeile: 19, literale: ["90 €"], kommentar: true, dynamisch: false },
+      { zeile: 20, literale: ["500 €"], kommentar: true, dynamisch: false },
     ],
   },
   {
